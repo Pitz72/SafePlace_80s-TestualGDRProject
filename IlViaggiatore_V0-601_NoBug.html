@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it" style="height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Safe Place - Prototipo GDR</title>
+    <style>
+        :root {
+            --bg-color: #000000; --fg-color: #00FF00; --fg-dim-color: #009900;
+            --border-color: #00FF00; --border-dim-color: #005500;
+            --highlight-bg: #00FF00; --highlight-fg: #000000;
+            --accent-color: #FFFF00; --danger-color: #FF4444;
+            --overlay-bg: rgba(0, 10, 0, 0.97);
+            --plains-color: #00BB00; --forest-color: #008800; --mountain-color: #339933;
+            --water-color: #008888; --ruin-color: #55AA55; --special-color: #AAAA00;
+            --end-color: var(--accent-color);
+        }
+        html { height: 100%; }
+        body { background-color: var(--bg-color); color: var(--fg-color); font-family: 'Courier New', Courier, monospace; font-size: 16px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box; overflow: hidden; }
+        #splash-screen, #intro-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); color: var(--fg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; }
+         #intro-overlay { z-index: 99; display: none; justify-content: space-between; text-align: left; padding: 30px; }
+          #intro-text { white-space: pre-wrap; max-height: 80%; overflow-y: auto; margin-bottom: 20px; font-size: 1.1em; line-height: 1.4; }
+          #intro-overlay button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 10px 20px; font-family: inherit; font-size: 1.1em; cursor: pointer; }
+        #splash-screen h1 { font-size: 2.5em; margin-bottom: 15px; text-shadow: 0 0 5px var(--fg-color); }
+        #splash-screen p.subtitle { font-size: 1.1em; margin-bottom: 20px; font-style: italic; opacity: 0.9; }
+        #splash-screen p.attribution { font-size: 0.9em; margin-top: 20px; margin-bottom: 30px; opacity: 0.8; }
+        @keyframes buttonBlink { 0%, 100% { background-color: #111; color: var(--fg-color); border-color: var(--border-color); box-shadow: 0 0 8px var(--fg-color); } 50% { background-color: var(--highlight-bg); color: var(--highlight-fg); border-color: var(--border-color); box-shadow: 0 0 15px var(--fg-color); } }
+        #splash-screen button { background-color: #111; color: var(--fg-color); border: 2px solid var(--border-color); padding: 10px 20px; font-family: inherit; font-size: 1.2em; cursor: pointer; box-shadow: 0 0 8px var(--fg-color); animation: buttonBlink 1.3s step-end infinite; }
+        #game-container { display: none; flex-direction: row; border: 2px solid var(--border-color); padding: 10px; box-sizing: border-box; position: relative; width: 100%; height: 100%; max-width: 1000px; max-height: 700px; background-color: var(--bg-color); overflow: hidden; }
+        #map-area { flex: 3; border-right: 1px dashed var(--border-color); padding-right: 10px; margin-right: 10px; display: flex; flex-direction: column; overflow: hidden; }
+        #map-display { font-family: 'Courier New', Courier, monospace; white-space: pre; font-size: 18px; line-height: 1.1; margin-bottom: 10px; flex-grow: 1; overflow: auto; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; box-sizing: border-box; }
+        .tile-plains { color: var(--plains-color); } .tile-forest { color: var(--forest-color); } .tile-mountain { color: var(--mountain-color); } .tile-river { color: var(--water-color); } .tile-city, .tile-village { color: var(--ruin-color); } .tile-rest-stop, .tile-start { color: var(--special-color); } .tile-end { color: var(--end-color); font-weight: bold; }
+        .visited { opacity: 0.6 !important; }
+        .player-marker { animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { background-color: var(--highlight-bg); color: var(--highlight-fg); } 50% { background-color: transparent; color: var(--fg-color); } }
+        #controls { text-align: center; margin-top: 5px; flex-shrink: 0; }
+        #controls button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 5px 10px; margin: 2px; font-family: inherit; font-size: 14px; cursor: pointer; }
+        #controls button:disabled { color: var(--border-dim-color); border-color: var(--border-dim-color); cursor: not-allowed; }
+        #btn-start-game { margin-top: 10px; }
+        #status-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 220px; }
+        #character-stats, #map-legend { margin-bottom: 15px; flex-shrink: 0; }
+        #character-stats h3, #map-legend h3, #message-log h3 { margin-top: 0; margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 3px; flex-shrink: 0; font-size: 1em; }
+        #character-stats ul, #map-legend ul { list-style: none; padding: 0; margin: 0; font-size: 0.9em; }
+        #character-stats li, #map-legend li { margin-bottom: 2px; white-space: nowrap; }
+        #stat-food, #stat-water { font-weight: bold; } .low-resource { color: var(--danger-color); }
+        #map-legend .legend-symbol { display: inline-block; width: 1.5em; text-align: center; font-weight: bold; }
+        #message-log { border-top: 1px dashed var(--border-color); padding-top: 5px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column-reverse; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; margin-top: 5px; min-height: 100px; }
+        #messages { list-style: none; padding: 0; margin: 0; } #messages li { font-size: 0.9em; margin-bottom: 4px; word-break: break-word; }
+         #event-overlay { display: none; position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background-color: var(--overlay-bg); border: 3px solid var(--border-color); color: var(--fg-color); z-index: 50; padding: 15px; box-sizing: border-box; font-size: 1em; overflow-y: auto; text-align: center; }
+          #event-overlay h4 { margin-top: 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+          #event-content { margin-bottom: 15px; text-align: left; white-space: pre-wrap; font-size: 0.95em; }
+          .event-choice { margin-top: 10px; text-align: left; cursor: default; }
+          .event-choice-key { font-weight: bold; color: var(--accent-color); margin-right: 5px;}
+          #event-overlay button.continue-button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.9em; cursor: pointer; margin-top: 10px; }
+        .hidden { display: none !important; }
+        @media (max-width: 700px) { body { align-items: stretch; } #game-container { flex-direction: column; max-width: 100%; max-height: none; height: 100%; padding: 5px; border: none; } #map-area { flex: 1 1 55%; border-right: none; border-bottom: 1px dashed var(--border-color); padding-right: 0; margin-right: 0; margin-bottom: 10px; } #map-display { font-size: 14px; line-height: 1.0; } #controls { order: 1; margin-bottom: 10px; } #status-area { flex: 1 1 45%; min-width: unset; width: 100%; order: 2; } #map-legend { display: none; } #message-log { font-size: 0.85em; } #event-overlay { width: 95%; left: 2.5%; height: 90%; top: 2.5%; font-size: 0.9em; } #splash-screen h1 { font-size: 2em; } #splash-screen p.subtitle { font-size: 1em; } #intro-overlay { padding: 15px; } #intro-text { font-size: 1em; } }
+    </style>
+</head>
+<body style="height: 100%;">
+
+    <div id="splash-screen"><h1>THE SAFE PLACE</h1><p class="subtitle">Un sussurro di speranza tra le rovine...</p><p class="attribution">un'idea di Simone Pizzi</p><button onclick="showIntroScreen()">Accetta il tuo Destino</button></div>
+    <div id="intro-overlay"><div id="intro-text">Il silenzio è rotto solo dal vento che sibila tra le ossa di un mondo morto...\nEri solo un bambino quando il cielo bruciò e le città caddero... Non ricordi molto del "prima", solo frammenti confusi...\nPoi venne il "dopo". La polvere, la fame, la fuga costante.\nTuo padre ti ha tenuto in vita... ti ha insegnato a nasconderti, a cercare... a diffidare...\nMa un giorno, senza un vero addio, se n'è andato.\nTi ha lasciato solo... con un'unica, criptica istruzione: "Trova il Safe Place, Ultimo. È la nostra unica speranza."\n\nOra hai 17 anni. La cicatrice pulsa...\nIl mondo fuori è spietato. Predoni, comunità disperate, sette fanatiche... i fantasmi della Guerra Inespressa.\nCos'è il "Safe Place"? E perché tuo padre ti ha abbandonato?\n\nIl viaggio inizia adesso. Un passo dopo l'altro...\nForse troverai risposte... o solo altra polvere.\nForse... troverai un futuro.</div><button onclick="proceedToGame()">Inizia il Viaggio</button></div>
+    <div id="game-container"><div id="map-area"><pre id="map-display">...</pre><div id="controls"><button onclick="movePlayer(0, -1)" id="btn-up">Nord</button><br><button onclick="movePlayer(-1, 0)" id="btn-left">Ovest</button><button onclick="movePlayer(1, 0)" id="btn-right">Est</button><br><button onclick="movePlayer(0, 1)" id="btn-down">Sud</button><br><button onclick="startGame()" id="btn-start-game" class="hidden">Inizia Nuova Partita</button></div></div><div id="status-area"><div id="character-stats"><h3>ULTIMO</h3><ul id="stats-list"><li>HP: <span id="stat-hp">--</span>/<span id="stat-maxhp">--</span></li><li>Vigore: <span id="stat-vig">--</span></li><li>Potenza: <span id="stat-pot">--</span></li><li>Agilita': <span id="stat-agi">--</span></li><li>Tracce: <span id="stat-tra">--</span></li><li>Influenza: <span id="stat-inf">--</span></li><li>Presagio: <span id="stat-pre">--</span></li><li>Adattamento: <span id="stat-ada">--</span></li><li>Acquisita: <span id="stat-acq">--</span></li><li>Cibo: <span id="stat-food">--</span></li><li>Acqua: <span id="stat-water">--</span></li><li>Posizione: (<span id="pos-x">--</span>,<span id="pos-y">--</span>)</li><li>Terreno: <span id="tile-type">--</span></li></ul></div><div id="map-legend"><h3>LEGENDA</h3><ul id="legend-list"></ul></div><div id="message-log"><ul id="messages"></ul><h3>LOG EVENTI</h3></div></div><div id="event-overlay"><h4 id="event-title">...</h4><div id="event-content">...</div><button onclick="hideEventScreen()" class="continue-button">Continua...</button></div></div>
+
+    <script>
+        // --- CONFIGURAZIONE GIOCO ---
+        const MAP_WIDTH = 50; const MAP_HEIGHT = 30; const MAX_MESSAGES = 30;
+        const CONSUMPTION_RATE = 8; const STARTING_FOOD = 4; const STARTING_WATER = 4;
+
+        const TILE_SYMBOLS = { PLAINS: '.', MOUNTAIN: 'M', RIVER: '~', FOREST: 'F', VILLAGE: 'V', CITY: 'C', REST_STOP: 'R', START: 'S', END: 'E', PLAYER: '@' };
+        const TILE_DESC = { '.': 'Pianura desolata', 'M': 'Montagne cicatrizzate', '~': 'Fiume lento', 'F': 'Foresta opprimente', 'V': 'Accampamento isolato', 'C': 'Rovine di città', 'R': 'Rifugio improvvisato', 'S': 'Punto d\'inizio', 'E': 'Destinazione incerta', '@': 'Ultimo (Tu)' };
+
+        const flavorTextsCity = [ "Il vento geme attraverso le finestre rotte di un grattacielo.", "Un vecchio segnale stradale arrugginito indica una direzione illeggibile.", "Ombre lunghe si stiracchiano tra edifici sventrati.", "Silenzio innaturale, interrotto solo dal crepitio lontano di qualcosa che brucia?" ];
+        const flavorTextsMountain = [ "Una carcassa metallica, forse di un velivolo, giace incastrata tra le rocce.", "Senti l'eco distante di una frana o... qualcos'altro?", "Il sentiero è ripido e franoso, ogni passo è una scommessa.", "Un'aquila solitaria disegna cerchi nel cielo plumbeo." ];
+        const flavorTextsForest = [ "Rami nodosi si intrecciano sopra di te come dita scheletriche.", "L'odore di terra umida e marciume riempie l'aria.", "Un silenzio innaturale regna qui, nemmeno gli uccelli cantano.", "Intravedi movimento tra gli alberi... o è solo la tua immaginazione?" ];
+        const flavorTextsRiver = ["Detriti di un'epoca passata galleggiano pigramente sull'acqua torbida.", "La riva è fangosa e piena di impronte indistinte.", "Un pesce dall'aspetto strano salta brevemente fuori dall'acqua."];
+        const loreFragments = [ "Pagina strappata: '...le scorte stanno finendo. Le urla fuori... non si fermano. Ho sigillato l'ingresso est...'", "Pezzo di metallo inciso: 'Proprietà ZONA BLU - Evacuazione Livello 3 Fallita - Protocollo Gamma...' il resto è corroso.", "Ologramma tremolante (morente): Mostra per un istante un bambino che ride... poi si spegne.", "Scheda perforata: '...esperimento sfuggito... contenimento fallito... quarantena totale... richiesta supporto armato...'" ];
+
+        // Array per varietà testi eventi
+        const descrizioniPredoni = ["Ombre si muovono rapide tra le macerie!", "Figure emergono dal nulla, armate di tubi e coltelli arrugginiti!", "Senti un fischio, poi vedi facce ostili sbucare da dietro una copertura."];
+        const vociPredoni = ["'Fermi tutti, ragazzo! Svuota le tasche!'", "'Guarda un po' chi abbiamo qui... carne fresca!'", "'Non fare l'eroe. Dacci tutto e forse ti lasciamo andare.'"];
+        const esitiFugaPredoniOk = ["Con uno scatto fulmineo degno di un topo, sparisci nell'ombra prima che possano reagire.", "Li distrai lanciando un sasso e sgusci via nel caos.", "La tua conoscenza del terreno ti permette di trovare una via di fuga nascosta."];
+        const esitiFugaPredoniKo = ["Cerchi di scappare, ma inciampi / ti bloccano la strada. Sei troppo lento!", "Esiti un attimo di troppo. Ti sono addosso."];
+        const esitiLottaPredoniOk = ["La tua disperazione ti dà forza. Li respingi con una furia inaspettata, ma non senza qualche taglio.", "Uno scontro brutale e veloce. Riesci a ferirne uno e gli altri esitano, dandoti il tempo di allontanarti.", "Parare un colpo ti costa caro, ma rimani in piedi. Si ritirano borbottando, forse torneranno."];
+        const esitiLottaPredoniKo = ["Ti sommergono con la loro superiorità numerica. Vieni picchiato brutalmente e lasciato a terra.", "Un colpo ben assestato ti fa vedere le stelle. Quando riprendi conoscenza, ti hanno derubato di tutto.", "Lottare è stato inutile. Ti immobilizzano e prendono quello che vogliono, ridendo."];
+
+        const descrizioniAnimali = ["Un branco di cani randagi macilenti, con occhi iniettati di sangue, ti circonda ringhiando.", "Un cinghiale mutato, con zanne sporgenti e pelle coriacea, carica nella tua direzione.", "Un ratto gigante, grande quasi come un gatto, squittisce aggressivamente e si lancia verso di te."];
+        const esitiEvitaAnimaleOk = ["Con un balzo agile, eviti la carica / ti arrampichi rapidamente fuori portata.", "Ti muovi silenziosamente e aggiri la creatura senza che si accorga di te.", "Ti immobilizzi e la bestia, non vedendoti come una minaccia immediata, perde interesse."];
+        const esitiEvitaAnimaleKo = ["Sei troppo lento / rumoroso. La bestia ti è addosso!", "Sottovaluti la sua velocità. Non riesci a schivarlo in tempo."];
+        const esitiSpaventaAnimaleOk = ["Urli con quanto fiato hai in corpo e agiti le braccia. La creatura esita, poi si ritira.", "Raccogli una grossa pietra e la scagli con forza. Il colpo la spaventa e fugge.", "Il tuo sguardo determinato / la tua improvvisa aggressività la confonde e si allontana."];
+        const esitiSpaventaAnimaleKo = ["Il tuo tentativo di spaventarla la fa solo infuriare di più!", "Non si lascia intimidire. Si prepara ad attaccare."];
+        const esitiAttaccoAnimale = ["Le sue zanne / artigli lacerano i tuoi vestiti e la tua carne.", "Ti morde ferocemente prima che tu possa reagire.", "Vieni sbattuto a terra dalla sua carica."];
+
+        // ... (continua con array per altri eventi come scavenging, meteo, pericoli, etc.)
+
+        let player = {}; let map = []; let messages = []; let gameActive = false; let eventScreenActive = false; let currentEventChoices = []; let currentEventContext = null;
+        const splashScreen = document.getElementById('splash-screen'); const introOverlay = document.getElementById('intro-overlay'); const gameContainer = document.getElementById('game-container');
+         const mapDisplay = document.getElementById('map-display'); const statsList = document.getElementById('stats-list');
+         const statHp = document.getElementById('stat-hp'); const statMaxHp = document.getElementById('stat-maxhp'); const statVig = document.getElementById('stat-vig'); const statPot = document.getElementById('stat-pot'); const statAgi = document.getElementById('stat-agi'); const statTra = document.getElementById('stat-tra'); const statInf = document.getElementById('stat-inf'); const statPre = document.getElementById('stat-pre'); const statAda = document.getElementById('stat-ada'); const statAcq = document.getElementById('stat-acq'); const statFood = document.getElementById('stat-food'); const statWater = document.getElementById('stat-water'); const posX = document.getElementById('pos-x'); const posY = document.getElementById('pos-y'); const tileType = document.getElementById('tile-type'); const messagesList = document.getElementById('messages'); const moveButtons = document.querySelectorAll('#controls button:not(#btn-start-game)'); const startGameButton = document.getElementById('btn-start-game'); const eventOverlay = document.getElementById('event-overlay'); const eventTitle = document.getElementById('event-title'); const eventContent = document.getElementById('event-content'); const legendList = document.getElementById('legend-list'); const continueButton = eventOverlay.querySelector('.continue-button');
+
+        function getRandomText(arr) { if (!arr || arr.length === 0) return ""; return arr[getRandomInt(0, arr.length - 1)]; }
+        function getRandomInt(min, max) { min = Math.ceil(min); max = Math.floor(max); return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function addMessage(msg, type = 'info', emphasize = false) { const maxLogMsgLength = 70; let displayMsg = msg.length > maxLogMsgLength ? msg.substring(0, maxLogMsgLength) + '...' : msg; messages.unshift(`${emphasize ? '<span class="log-warning">' : ''}> ${displayMsg}${emphasize ? '</span>' : ''}`); if (messages.length > MAX_MESSAGES) { messages.pop(); } if(gameActive || messages.length <= 10) { renderMessages(); } }
+
+        function showIntroScreen() { splashScreen.classList.add('hidden'); introOverlay.style.display = 'flex'; }
+        function proceedToGame() { introOverlay.classList.add('hidden'); gameContainer.style.display = 'flex'; setupInputListeners(); startGame(); }
+        function startGame() { messages = []; addMessage("========================================="); addMessage("Il viaggio di Ultimo inizia ora."); addMessage("========================================="); generateCharacter(); generateMap(); gameActive = true; eventScreenActive = false; enableControls(); startGameButton.classList.add('hidden'); startGameButton.disabled = true; addMessage(`Abilità: VIG ${player.vigore}|POT ${player.potenza}|AGI ${player.agilita}|TRA ${player.tracce}|INF ${player.influenza}|PRE ${player.presagio}|ADA ${player.adattamento}|ACQ ${player.acquisita}`); addMessage(`HP: ${player.hp}/${player.maxHp} | Cibo: ${player.food} | Acqua: ${player.water} | Pos:(${player.x}, ${player.y}) | Obiettivo: '${TILE_SYMBOLS.END}'`); eventOverlay.style.display = 'none'; renderLegend(); renderMap(); renderStats(); renderMessages(); }
+
+        function generateCharacter() { player = { name: "Ultimo", vigore: 9 + getRandomInt(0, 2), potenza: 9 + getRandomInt(0, 2), agilita: 14 + getRandomInt(0, 2), tracce: 14 + getRandomInt(0, 2), influenza: 6 + getRandomInt(0, 2), presagio: 7 + getRandomInt(0, 2), adattamento: 9 + getRandomInt(0, 2), acquisita: 8 + getRandomInt(0, 2), maxHp: 0, hp: 0, x: 0, y: 0, food: STARTING_FOOD, water: STARTING_WATER, ammo: 0, movesCounter: 0 }; player.maxHp = 10 + player.vigore; player.hp = player.maxHp; }
+        function generateMap() { map = []; let startPos = null; let endPos = null; for (let y = 0; y < MAP_HEIGHT; y++) { map[y] = []; for (let x = 0; x < MAP_WIDTH; x++) { let tileType = TILE_SYMBOLS.PLAINS; const rand = Math.random(); if (rand < 0.10) tileType = TILE_SYMBOLS.MOUNTAIN; else if (rand < 0.20) tileType = TILE_SYMBOLS.FOREST; else if (rand < 0.26) tileType = TILE_SYMBOLS.RIVER; else if (rand < 0.30) tileType = TILE_SYMBOLS.VILLAGE; else if (rand < 0.32) tileType = TILE_SYMBOLS.CITY; else if (rand < 0.35) tileType = TILE_SYMBOLS.REST_STOP; map[y][x] = { type: tileType, visited: false }; } } const startX = getRandomInt(1, Math.floor(MAP_WIDTH / 4)); const startY = getRandomInt(1, Math.floor(MAP_HEIGHT / 4)); map[startY][startX] = { type: TILE_SYMBOLS.START, visited: true }; startPos = { x: startX, y: startY }; let endX, endY; do { endX = getRandomInt(Math.floor(MAP_WIDTH * 3 / 4), MAP_WIDTH - 2); endY = getRandomInt(Math.floor(MAP_HEIGHT * 3 / 4), MAP_HEIGHT - 2); } while (map[endY][endX].type === TILE_SYMBOLS.MOUNTAIN || map[endY][endX].type === TILE_SYMBOLS.RIVER || (endX === startX && endY === startY)); map[endY][endX] = { type: TILE_SYMBOLS.END, visited: false }; endPos = { x: endX, y: endY }; if ([TILE_SYMBOLS.MOUNTAIN, TILE_SYMBOLS.RIVER].includes(map[startPos.y][startPos.x].type)) { map[startPos.y][startPos.x].type = TILE_SYMBOLS.PLAINS; } map[startPos.y][startPos.x].type = TILE_SYMBOLS.START; if ([TILE_SYMBOLS.MOUNTAIN, TILE_SYMBOLS.RIVER].includes(map[endPos.y][endPos.x].type)) { map[endPos.y][endPos.x].type = TILE_SYMBOLS.PLAINS; } map[endPos.y][endPos.x].type = TILE_SYMBOLS.END; player.x = startPos.x; player.y = startPos.y; }
+
+        function renderStats() { statHp.textContent = player.hp; statMaxHp.textContent = player.maxHp; statVig.textContent = player.vigore; statPot.textContent = player.potenza; statAgi.textContent = player.agilita; statTra.textContent = player.tracce; statInf.textContent = player.influenza; statPre.textContent = player.presagio; statAda.textContent = player.adattamento; statAcq.textContent = player.acquisita; statFood.textContent = player.food; statWater.textContent = player.water; statFood.classList.toggle('low-resource', player.food <= 1); statWater.classList.toggle('low-resource', player.water <= 1); posX.textContent = player.x; posY.textContent = player.y; if (map && map[player.y] && map[player.y][player.x]) { const currentTile = map[player.y][player.x]; tileType.textContent = TILE_DESC[currentTile.type] || '???';} else {tileType.textContent = '???';} }
+        function renderMessages() { messagesList.innerHTML = messages.map(msg => `<li>${msg}</li>`).join(''); }
+        function renderLegend() { legendList.innerHTML = ''; const legendItems = [ { symbol: TILE_SYMBOLS.PLAYER, desc: TILE_DESC['@'] }, { symbol: TILE_SYMBOLS.PLAINS, desc: TILE_DESC['.'] }, { symbol: TILE_SYMBOLS.FOREST, desc: TILE_DESC['F'] }, { symbol: TILE_SYMBOLS.MOUNTAIN, desc: TILE_DESC['M'] }, { symbol: TILE_SYMBOLS.RIVER, desc: TILE_DESC['~'] }, { symbol: TILE_SYMBOLS.VILLAGE, desc: TILE_DESC['V'] }, { symbol: TILE_SYMBOLS.CITY, desc: TILE_DESC['C'] }, { symbol: TILE_SYMBOLS.REST_STOP, desc: TILE_DESC['R'] }, { symbol: TILE_SYMBOLS.START, desc: TILE_DESC['S'] }, { symbol: TILE_SYMBOLS.END, desc: TILE_DESC['E'] } ]; legendItems.forEach(item => { const tileClass = `tile-${Object.keys(TILE_SYMBOLS).find(key => TILE_SYMBOLS[key] === item.symbol)?.toLowerCase().replace('_','-') || 'unknown'}`; const endClass = item.symbol === TILE_SYMBOLS.END ? 'tile-end' : ''; legendList.innerHTML += `<li><span class="legend-symbol ${tileClass} ${endClass}">${item.symbol}</span> = ${item.desc}</li>`; }); }
+
+        function renderMap() { const localMapDisplay = document.getElementById('map-display'); if (!localMapDisplay) return; if (!player || typeof player.x === 'undefined') return; if (!map || map.length === 0) return; let mapString = ""; const viewWidth = 40; const viewHeight = 25; const viewHalfWidth = Math.floor(viewWidth / 2); const viewHalfHeight = Math.floor(viewHeight / 2); let startX = Math.max(0, player.x - viewHalfWidth); let startY = Math.max(0, player.y - viewHalfHeight); startX = Math.min(startX, MAP_WIDTH - viewWidth); startY = Math.min(startY, MAP_HEIGHT - viewHeight); startX = Math.max(0, startX); startY = Math.max(0, startY); let endX = Math.min(MAP_WIDTH, startX + viewWidth); let endY = Math.min(MAP_HEIGHT, startY + viewHeight); try { for (let y = startY; y < endY; y++) { if (y < 0 || y >= MAP_HEIGHT) continue; for (let x = startX; x < endX; x++) { if (x < 0 || x >= MAP_WIDTH) continue; if (x === player.x && y === player.y) { mapString += `<span class="player-marker">${TILE_SYMBOLS.PLAYER}</span>`; } else { if (!map[y] || !map[y][x]) { mapString += '?'; continue; } const tile = map[y][x]; const symbol = tile.type || '?'; let tileClass = ''; try { tileClass = `tile-${Object.keys(TILE_SYMBOLS).find(key => TILE_SYMBOLS[key] === symbol)?.toLowerCase().replace('_','-') || 'unknown'}`; } catch(e){} let visitedClass = tile.visited ? 'visited' : ''; let endClass = symbol === TILE_SYMBOLS.END ? 'tile-end' : ''; mapString += `<span class="${tileClass} ${visitedClass} ${endClass}">${symbol}</span>`; } } mapString += "\n"; } localMapDisplay.innerHTML = mapString; } catch (error) { console.error("ERRORE renderMap:", error); localMapDisplay.textContent = "Err Map Render!"; } }
+
+        function disableControls(disabled = true) { moveButtons.forEach(btn => btn.disabled = disabled); if(disabled) startGameButton.disabled = true; }
+        function enableControls(){ if(gameActive) { moveButtons.forEach(btn => btn.disabled = false); } }
+        function showEventPopup(title, content, choices = []) { eventTitle.textContent = title; let choiceHTML = ""; if (choices && choices.length > 0) { currentEventChoices = choices; choices.forEach(choice => { choiceHTML += `<div class="event-choice"><span class="event-choice-key">[${choice.key}]</span> ${choice.text}</div>`; }); continueButton.classList.add('hidden'); } else { currentEventChoices = []; currentEventContext = null; continueButton.classList.remove('hidden'); } eventContent.innerHTML = content.replace(/\n/g, '<br>') + choiceHTML; eventOverlay.style.display = 'block'; disableControls(true); eventScreenActive = true; }
+        function hideEventScreen() { eventOverlay.style.display = 'none'; eventScreenActive = false; currentEventChoices = []; currentEventContext = null; if (gameActive) { enableControls(); } checkGameOver(); renderMap(); renderStats(); }
+        function performSkillCheck(statKey, difficulty) { const statValue = player[statKey] || 5; const roll = getRandomInt(1, 20); const bonus = Math.floor((statValue - 10) / 2); const total = roll + bonus; const success = total >= difficulty; const resultText = `Prova ${statKey.toUpperCase()} (Diff ${difficulty}):\n  Dado(d20): ${roll} | Bonus(${bonus}) | Totale: ${total}\n  Esito: ${success ? 'SUCCESSO' : 'FALLIMENTO'}`; return { success: success, text: resultText }; }
+
+        // --- Gestione Eventi con Testi Ampliati e Scelte ---
+        function handleTileEvent(tile) {
+            if (!tile) return false; tile.visited = true; const tileType = tile.type; let eventTitleStr = `Esplorando: ${TILE_DESC[tileType]}`; let eventDescStr = ""; let showPopup = false; let statsChanged = false; let choices = [];
+            addMessage(`Entri in: ${TILE_DESC[tileType] || 'Zona Sconosciuta'}`);
+            if (Math.random() < 0.12) { // Flavor text ambientale (12% chance)
+                 let flavorPool = []; if (tileType === TILE_SYMBOLS.CITY) flavorPool = flavorTextsCity; else if (tileType === TILE_SYMBOLS.MOUNTAIN) flavorPool = flavorTextsMountain; else if (tileType === TILE_SYMBOLS.FOREST) flavorPool = flavorTextsForest; else if (tileType === TILE_SYMBOLS.RIVER) flavorPool = flavorTextsRiver; if (flavorPool.length > 0) { addMessage(getRandomText(flavorPool)); }
+             }
+
+            switch (tileType) {
+                 case TILE_SYMBOLS.REST_STOP:
+                    eventTitleStr = getRandomText(["Rifugio Silenzioso", "Nascondiglio Provvisorio", "Un Attimo di Pace?"]);
+                    eventDescStr = getRandomText(["Trovi riparo in una cantina umida / grotta stretta / baracca di lamiera. L'aria è ferma, quasi soffocante, ma sei al sicuro... per ora.", "Un angolo nascosto tra le rovine offre un momento di tregua. Puoi quasi dimenticare il mondo esterno.", "Questo luogo sembra abbandonato da tempo. Puoi riprendere fiato, ma resta vigile."]);
+                    const vigCheck = performSkillCheck('vigore', 8); eventDescStr += "\n\nTentativo di Riposo:\n" + vigCheck.text;
+                    if (vigCheck.success) { const healed = Math.min(player.maxHp - player.hp, getRandomInt(1, 3)); if (healed > 0) { player.hp += healed; statsChanged = true; eventDescStr += getRandomText([`\nRiesci a rilassarti un minimo. Il tuo corpo recupera un po' di resistenza (+${healed} HP).`, `\nUn breve riposo ti rinvigorisce leggermente (+${healed} HP).`]); } else { eventDescStr += getRandomText(["\nSei sfinito, ma le ferite più profonde rimangono.", "\nIl riposo non basta a guarirti completamente."]); } } else { eventDescStr += getRandomText(["\nIl disagio / i rumori lontani / i brutti pensieri ti impediscono di riposare davvero.", "\nSei troppo teso per rilassarti qui."]); }
+                    showPopup = true; break;
+
+                 case TILE_SYMBOLS.VILLAGE:
+                    eventTitleStr = getRandomText(["Accampamento all'Orizzonte", "Fumo in Lontananza"]); const encounterRoll = Math.random();
+                    if (encounterRoll < 0.45) { // Neutrale/Buono
+                        eventDescStr = getRandomText(["Scorgi un piccolo fuoco da campo. Persone vestite di stracci lavorano o montano la guardia. Sembrano stanchi ma organizzati.", "Un recinto improvvisato circonda poche tende logore. C'è odore di zuppa nell'aria. Ti osservano con diffidenza, ma senza ostilità."]);
+                        if (Math.random() < 0.5) { const helpType = getRandomInt(1,2); if (helpType === 1 && player.water < 5) { player.water += 1; statsChanged = true; eventDescStr += getRandomText(["\nUn anziano ti fa cenno e ti offre una borraccia d'acqua pulita (+1 Acqua).", "\nUna donna ti porge un recipiente con acqua piovana filtrata (+1 Acqua)."]); } else if (helpType === 2 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 1); statsChanged = true; eventDescStr += getRandomText(["\nCondividono un pezzo di pane duro o radici bollite. Non è molto, ma aiuta (+1 HP).", "\nTi danno degli avanzi commestibili. Meglio di niente (+1 HP)."]); } else { eventDescStr += getRandomText(["\nScambiate uno sguardo silenzioso. Nessuno parla.", "\nTi fanno cenno di proseguire. Non vogliono guai."]); } } else { eventDescStr += getRandomText(["\nTi ignorano completamente, persi nelle loro vite.", "\nTi guardano passare, indifferenti."]); }
+                    } else { // Ostile/Setta (con Scelta)
+                        eventTitleStr = getRandomText(["Strana Atmosfera", "Sguardi Ostili"]);
+                        eventDescStr = getRandomText(["Avvicinandoti, noti simboli inquietanti dipinti sui muri / persone che ti fissano con occhi vuoti. C'è qualcosa di sbagliato.", "L'aria è pesante. Nessuno lavora, stanno fermi, sussurrando e guardandoti. Ti senti a disagio."]);
+                        eventDescStr += "\n\nCosa fai?";
+                        currentEventContext = { event: 'villaggio_ostile', stage: 'approach_decision' };
+                        choices = [ { key: 'A', text: 'Approccia con Cautela' }, { key: 'E', text: 'Evita e Aggira' } ];
+                    } showPopup = true; break;
+
+                case TILE_SYMBOLS.CITY: if (Math.random() < 0.4) { triggerRandomEvent(['scavenging', 'predoni', 'pericolo_ambientale', 'tracce_strane']); } break;
+                case TILE_SYMBOLS.MOUNTAIN: if (Math.random() < 0.30) { triggerRandomEvent(['pericolo_ambientale', 'animale', 'predoni', 'tracce_strane', 'scoperta_minore']); } break;
+                case TILE_SYMBOLS.RIVER: if (Math.random() < 0.35) { triggerRandomEvent(['pericolo_ambientale', 'scavenging', 'acqua_contaminata', 'scoperta_minore']); } break;
+                case TILE_SYMBOLS.FOREST: if (Math.random() < 0.4) { triggerRandomEvent(['animale', 'predoni', 'scavenging', 'tracce_strane', 'scoperta_minore']); } break;
+                case TILE_SYMBOLS.PLAINS: if (Math.random() < 0.20) { triggerRandomEvent(['meteo', 'scavenging', 'incontro_neutrale', 'animale', 'scoperta_minore']); } break; // Aggiunto animale e scoperta minore anche qui
+
+                 case TILE_SYMBOLS.END: // Finale esteso
+                    eventTitleStr = "La Fine del Viaggio... o l'Inizio?";
+                    eventDescStr = "Dopo giorni, settimane, forse mesi di cammino tra le rovine e la desolazione, sei finalmente arrivato. La 'Destinazione Incerta' si rivela essere l'ingresso semi-sepolto di una struttura sotterranea.\n\nUna massiccia porta blindata, segnata dal tempo e da qualcosa che sembrava un'esplosione, è socchiusa. Accanto, incisa rozzamente nella roccia, c'è un simbolo: un cerchio spezzato con un punto al centro. Lo riconosci. È lo stesso che tuo padre portava tatuato sull'avambraccio, quello che ti diceva di non mostrare a nessuno.\n\nPolvere danza nei rari raggi di sole che filtrano da crepe nel soffitto. L'aria all'interno è stantia, sa di chiuso e... di qualcos'altro, un odore metallico e dolciastro che non ti piace.\nUn terminale arrugginito è incassato nella parete accanto alla porta, il suo schermo scuro come uno specchio rotto.\n\nÈ questo il 'Safe Place'? Un bunker dimenticato? Cosa ci troverai dentro? E soprattutto, tuo padre è qui? O lo era?\nLe domande ti affollano la mente. Il viaggio attraverso queste terre ti ha cambiato, ti ha temprato, ma forse ti ha solo portato alla soglia di un mistero ancora più grande.\n\nIl tuo percorso attuale finisce qui, Ultimo. Ma la storia... la tua storia... sembra appena iniziata.";
+                    showPopup = true; gameActive = false; statsChanged = true; disableControls(true); startGameButton.classList.remove('hidden'); startGameButton.disabled = false; startGameButton.textContent = "Inizia un Nuovo Viaggio"; break;
+            }
+            if (statsChanged && gameActive) { renderStats(); } if (showPopup && gameActive) { showEventPopup(eventTitleStr, eventDescStr, choices); } return showPopup;
+        }
+
+        function triggerRandomEvent(allowedTypes = ['predoni', 'animale', 'scavenging', 'meteo', 'pericolo_ambientale', 'incontro_neutrale', 'tracce_strane', 'acqua_contaminata', 'scoperta_minore']) {
+             let eventType = allowedTypes[getRandomInt(0, allowedTypes.length - 1)]; let eventTitleStr = "Qualcosa Accade..."; let eventDescStr = ""; let statsChanged = false; let choices = []; currentEventContext = null;
+             addMessage("Avverti un cambiamento nell'aria...");
+
+            switch(eventType) {
+                case 'predoni':
+                    eventTitleStr = getRandomText(["AGGUATO!", "Visitatori Indesiderati", "Ombre Ostili"]);
+                    eventDescStr = getRandomText(descrizioniPredoni) + "\n" + getRandomText(vociPredoni);
+                    const agiCheckFuga = performSkillCheck('agilita', 14); eventDescStr += "\n\nTentativo di Fuga (Agilità):\n" + agiCheckFuga.text;
+                    if (agiCheckFuga.success) { eventDescStr += "\n" + getRandomText(esitiFugaPredoniOk); }
+                    else { eventDescStr += "\n" + getRandomText(esitiFugaPredoniKo); const potCheckLotta = performSkillCheck('potenza', 13); eventDescStr += "\nTentativo di Difesa (Potenza):\n" + potCheckLotta.text;
+                        if (potCheckLotta.success) { const d1 = getRandomInt(1, 3); player.hp -= d1; statsChanged = true; eventDescStr += "\n" + getRandomText(esitiLottaPredoniOk) + ` (-${d1} HP).`; if (checkGameOver()){} }
+                        else { const d2 = getRandomInt(3, 6); player.hp -= d2; statsChanged = true; eventDescStr += "\n" + getRandomText(esitiLottaPredoniKo) + ` (-${d2} HP).`; if (checkGameOver()){} }
+                    } break;
+
+                case 'animale':
+                    eventTitleStr = getRandomText(["Bestia Feroce", "Incontro Selvatico", "Fame Primordiale"]);
+                    eventDescStr = getRandomText(descrizioniAnimali);
+                    const agiCheckEvita = performSkillCheck('agilita', 12); eventDescStr += "\n\nTentativo di Schivare (Agilità):\n" + agiCheckEvita.text;
+                     if (!agiCheckEvita.success) { eventDescStr += "\n" + getRandomText(esitiEvitaAnimaleKo); const potCheckSpaventa = performSkillCheck('potenza', 11); eventDescStr += "\nTentativo di Spaventare (Potenza):\n" + potCheckSpaventa.text;
+                        if (!potCheckSpaventa.success) { const d = getRandomInt(1, 4); player.hp -= d; statsChanged = true; eventDescStr += "\n" + getRandomText(esitiAttaccoAnimale) + ` (-${d} HP).`; if (checkGameOver()){} }
+                        else { eventDescStr += "\n" + getRandomText(esitiSpaventaAnimaleOk); } }
+                     else { eventDescStr += "\n" + getRandomText(esitiEvitaAnimaleOk); } break;
+
+                 case 'scavenging':
+                     eventTitleStr = getRandomText(["Ricerca tra i Detriti", "Frugando nel Passato", "Tesori o Spazzatura?"]);
+                     eventDescStr = getRandomText(["Frughi tra cumuli di macerie / interni di un veicolo / resti di un edificio...", "Cerchi qualcosa di utile tra la polvere e i rottami..."]);
+                     const tracceCheck = performSkillCheck('tracce', 11); eventDescStr += "\n\nRisultato Ricerca (Tracce):\n" + tracceCheck.text;
+                     if (tracceCheck.success) { const findRoll = Math.random();
+                         if (findRoll < 0.4) { eventDescStr += getRandomText(["\nTrovi una scatoletta ammaccata / bottiglia d'acqua stagnante / radici secche.", "\nRecuperi dei resti di cibo / un po' d'acqua dubbia."]); const adattCheck = performSkillCheck('adattamento', 10); eventDescStr += "\nValutazione (Adattamento):\n" + adattCheck.text; if (adattCheck.success) { const resType = Math.random() < 0.5 ? 'food' : 'water'; player[resType]++; statsChanged = true; eventDescStr += `\nLa tua esperienza ti dice che è ${resType === 'food' ? 'commestibile' : 'potabile'}. (+1 ${resType === 'food' ? 'Cibo' : 'Acqua'})`; } else { eventDescStr += "\nSembra troppo rischioso consumarlo. Lo lasci lì."; } }
+                         else if (findRoll < 0.6) { eventDescStr += getRandomText(["\nTrovi pezzi di metallo / cavi / ingranaggi. Forse utili?", "\nRecuperi rottami che potrebbero servire per riparazioni future."]); }
+                         else if (findRoll < 0.7 && player.adattamento > 10) { eventDescStr += getRandomText(["\nIncredibile! Garze sterili / pillole antidolorifiche! Una scoperta preziosa.", "\nUna siringa sigillata con un liquido trasparente. Medicina?"]); }
+                         else if (findRoll < 0.85) { eventDescStr += "\n" + getRandomText(loreFragments); } // Lore Fragment
+                         else { eventDescStr += getRandomText(["\nTrovi solo polvere, ruggine e il silenzio dei morti.", "\nNiente di utile qui, solo detriti senza valore."]); }
+                     } else { eventDescStr += getRandomText(["\nNon trovi nulla di interessante.", "\nLa ricerca è infruttuosa."]); } break;
+
+                case 'meteo': eventTitleStr = "Cambiamento Improvviso"; const m = ["Una pioggia gelida e acida inizia a cadere...", "Una nebbia fitta e innaturale, dall'odore chimico, cala...", "Il vento ulula tra le rovine, sollevando polvere irritante..."]; eventDescStr = getRandomText(m); const vCheckM = performSkillCheck('vigore', 10); eventDescStr += "\n\nResistenza (Vigore):\n" + vCheckM.text; if (!vCheckM.success) { player.hp -= 1; statsChanged = true; eventDescStr += `\nIl maltempo ti sfinisce (-1 HP). Devi trovare riparo.`; if (checkGameOver()){} } else { eventDescStr += "\nStringi i denti e prosegui."; } break;
+                case 'pericolo_ambientale': eventTitleStr = "Pericolo Nascosto"; const p = ["Il terreno cede sotto i piedi!", "Sfiori un cavo scoperto!", "Una nube di spore irritanti!"]; eventDescStr = getRandomText(p); const agCheckP = performSkillCheck('agilita', 12); eventDescStr += "\n\nRiflessi (Agilità):\n" + agCheckP.text; if (!agCheckP.success) { eventDescStr += "\nNon eviti!"; const vCheckR = performSkillCheck('vigore', 11); eventDescStr += "\nResistenza (Vigore):\n" + vCheckR.text; if (!vCheckR.success) { const d = getRandomInt(1, 4); player.hp -= d; statsChanged = true; eventDescStr += `\nVieni colpito! (-${d} HP).`; if (checkGameOver()){} } else { eventDescStr += "\nLimiti i danni."; } } else { eventDescStr += "\nEviti il peggio."; } break;
+                case 'acqua_contaminata': eventTitleStr = "Sete Disperata"; eventDescStr = "La sete ti attanaglia..."; const vCheckA = performSkillCheck('vigore', 13); eventDescStr += "\n\nResistenza Contaminazione (Vigore):\n" + vCheckA.text; if (!vCheckA.success && Math.random() < 0.5) { player.hp -= 1; statsChanged = true; eventDescStr += "\nTi senti male dopo aver bevuto... (-1 HP)"; if(checkGameOver()){} } else if (!vCheckA.success) { eventDescStr += "\nSapore metallico... nessun effetto immediato."; } else { eventDescStr += "\nAcqua raccolta con successo (+1 Acqua)."; player.water++; statsChanged = true; } break;
+                case 'tracce_strane': eventTitleStr = getRandomText(["Segni Insoliti", "Qualcosa è Passato di Qui"]); eventDescStr = getRandomText(["Noti impronte non umane / strani simboli sul muro.", "Senti un odore acre / vedi rami spezzati di fresco."]); const trCheckInd = performSkillCheck('tracce', 12); eventDescStr += "\n\nAnalisi (Tracce):\n" + trCheckInd.text; if (trCheckInd.success) { const prCheckInt = performSkillCheck('presagio', 11); eventDescStr += "\nIntuizione (Presagio):\n" + prCheckInt.text; if (prCheckInt.success) { eventDescStr += "\n" + getRandomText(["Capisci che qualcosa di pericoloso è vicino.", "Il tuo istinto dice che non sei solo."]) + " Vuoi indagare?"; currentEventContext = { event: 'tracce_strane', stage: 'follow_decision' }; choices = [ { key: 'S', text: 'Segui le tracce' }, { key: 'I', text: 'Ignora e prosegui' } ]; } else { eventDescStr += "\n" + getRandomText(["Le tracce sono confuse.", "Non capisci... Meglio proseguire."]); } } else { eventDescStr += "\n" + getRandomText(["Non riesci a decifrare i segni.", "Prosegui ignorando."]); } break;
+
+                 case 'scoperta_minore': // Nuovo evento per risorse
+                     eventTitleStr = getRandomText(["Piccola Fortuna", "Trovato Qualcosa!", "Una Sorpresa Inattesa"]);
+                     const resType = Math.random() < 0.5 ? 'food' : 'water';
+                     player[resType]++; statsChanged = true;
+                     eventDescStr = getRandomText([`Trovi una radice commestibile / bacche selvatiche (+1 Cibo).`, `Recuperi acqua piovana pulita da una tanica / un incavo nella roccia (+1 Acqua).`, `In un angolo nascosto, trovi un po' di cibo conservato / acqua filtrata (+1 ${resType === 'food' ? 'Cibo':'Acqua'}).`]);
+                     break; // Mostra popup con la scoperta
+
+                 default: addMessage("Il vento sussurra storie dimenticate..."); return;
+             }
+             if (gameActive) { if (statsChanged) { renderStats(); } showEventPopup(eventTitleStr, eventDescStr, choices); }
+        }
+
+        function handleEventChoice(choiceKey) {
+            let outcomeTitle = "Conseguenze"; let outcomeDesc = ""; let statsChanged = false; let choices = []; // Reset choices for outcome
+            hideEventScreen(); // Nasconde subito il popup della scelta
+
+            if (currentEventContext?.event === 'tracce_strane' && currentEventContext?.stage === 'follow_decision') {
+                 if (choiceKey === 'S') { outcomeTitle = "Seguendo le Tracce..."; const followCheck = performSkillCheck('tracce', 13); outcomeDesc = "Ti inoltri con cautela, seguendo le impronte/segni...\n" + followCheck.text;
+                     if (followCheck.success) { const findOutcome = Math.random();
+                         if (findOutcome < 0.4) { outcomeTitle = "Trappola!"; outcomeDesc += "\nLe tracce erano un'esca! Predoni ti circondano!"; triggerRandomEvent(['predoni']); return; }
+                         else if (findOutcome < 0.7) { outcomeTitle = "Nascondiglio"; outcomeDesc += "\nLe tracce portano a una piccola scorta nascosta! (+1 Cibo)"; player.food++; statsChanged = true; }
+                         else { outcomeTitle = "Vicolo Cieco"; outcomeDesc += "\nLe tracce svaniscono improvvisamente. Hai perso solo tempo."; }
+                     } else { outcomeTitle = "Tracce Perse"; outcomeDesc += "\nNon riesci a seguire le tracce nel terreno difficile. Torni indietro."; }
+                 } else { outcomeTitle = "Prudenza"; outcomeDesc = "Decidi di non rischiare. Ignori le tracce e prosegui, più guardingo di prima."; }
+             } else if (currentEventContext?.event === 'villaggio_ostile' && currentEventContext?.stage === 'approach_decision') {
+                  if (choiceKey === 'A') { outcomeTitle = "Avvicinamento Cauto"; const infCheck = performSkillCheck('influenza', 15); // Molto difficile influenzarli
+                      outcomeDesc = "Provi ad avvicinarti lentamente, mostrando le mani vuote...\n" + infCheck.text;
+                      if (infCheck.success) { outcomeDesc += "\nSorprendentemente, sembrano accettare la tua presenza, seppur con sospetto. Ti lasciano passare, mormorando strane litanie."; }
+                      else { const vigCheckIntimidate = performSkillCheck('vigore', 12); // Resisti all'intimidazione
+                          outcomeDesc += "\nLa tua bassa influenza non ha effetto. Ti circondano minacciosamente. Tentano di intimidirti.\nResistenza (Vigore):\n" + vigCheckIntimidate.text;
+                          if(!vigCheckIntimidate.success) { const damage = getRandomInt(1, 3); player.hp -= damage; statsChanged = true; outcomeDesc += `\nCedi alla pressione psicologica e fisica. Ti scacciano malamente (-${damage} HP).`; if(checkGameOver()){} }
+                          else { outcomeDesc += "\nNon ti lasci intimidire. Dopo un momento di tensione, ti lasciano andare, forse impressionati."; }
+                      }
+                  } else { outcomeTitle = "Aggiramento"; const agiCheckStealth = performSkillCheck('agilita', 11);
+                      outcomeDesc = "Decidi di fare un largo giro per evitare l'accampamento...\nFurtività (Agilità):\n" + agiCheckStealth.text;
+                      if (agiCheckStealth.success) { outcomeDesc += "\nRiesci a passare inosservato. Meglio non attirare attenzioni indesiderate."; }
+                      else { outcomeDesc += "\nFai troppo rumore! Ti hanno sentito, ma non sembrano seguirti... per ora. Ti allontani in fretta."; }
+                  }
+             }
+             else { outcomeDesc = "\nErrore: Contesto scelta non riconosciuto."; } // Fallback
+
+            if (statsChanged) { renderStats(); }
+             // Mostra popup risultato SE non è stato triggerato un altro evento (es. Predoni)
+             showEventPopup(outcomeTitle, outcomeDesc);
+        }
+
+        function checkGameOver() { if (player.hp <= 0 && gameActive) { player.hp = 0; addMessage("--- FINE DEL VIAGGIO ---", 'info', true); gameActive = false; disableControls(true); startGameButton.classList.remove('hidden'); startGameButton.disabled = false; startGameButton.textContent = "Ricomincia"; renderStats(); return true; } return false; }
+        function movePlayer(dx, dy) { if (!gameActive || eventScreenActive) return; const newX = player.x + dx; const newY = player.y + dy; if (newX < 0 || newX >= MAP_WIDTH || newY < 0 || newY >= MAP_HEIGHT) { addMessage("Un muro invisibile ti blocca."); return; } player.x = newX; player.y = newY; player.movesCounter++; let consumed = false; let penaltyApplied = false; if (player.movesCounter >= CONSUMPTION_RATE) { consumed = true; player.food = Math.max(0, player.food - 1); player.water = Math.max(0, player.water - 1); addMessage("Consumi provviste.", 'info', false); player.movesCounter = 0; if (player.food === 0) { player.hp = Math.max(0, player.hp - 1); addMessage("[ATTENZIONE] Fame! La debolezza ti consuma (-1 HP)", 'info', true); penaltyApplied = true; } if (player.water === 0) { player.hp = Math.max(0, player.hp - 1); addMessage("[ATTENZIONE] Sete! La gola brucia (-1 HP)", 'info', true); penaltyApplied = true; } } const currentTile = map[player.y][player.x]; const popupShown = handleTileEvent(currentTile); let statsNeedRender = consumed || penaltyApplied; if (statsNeedRender) { renderStats(); checkGameOver(); } if (!popupShown) { renderMap(); if(!statsNeedRender) renderStats(); /* Aggiorna pos se non già fatto */ } }
+        function handleKeyPress(event) { if (eventScreenActive && currentEventChoices.length > 0) { const choiceKey = event.key.toUpperCase(); const isValidChoice = currentEventChoices.some(choice => choice.key === choiceKey); if (isValidChoice) { event.preventDefault(); handleEventChoice(choiceKey); } } else if (gameActive && !eventScreenActive) { let dx = 0; let dy = 0; switch (event.key) { case "ArrowUp": case "w": dy = -1; break; case "ArrowDown": case "s": dy = 1; break; case "ArrowLeft": case "a": dx = -1; break; case "ArrowRight": case "d": dx = 1; break; default: return; } event.preventDefault(); movePlayer(dx, dy); } }
+        function setupInputListeners() { document.removeEventListener('keydown', handleKeyPress); document.addEventListener('keydown', handleKeyPress); }
+        window.onload = () => { mapDisplay.textContent = "Attendere..."; renderStats(); renderMessages(); renderLegend(); };
+
+    </script>
+
+</body>
+</html>
