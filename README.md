@@ -54,7 +54,51 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 ---
 
 # LOG
+## Ultimo aggiornamento
 
+09-04-2025 Ore 12.21 ITA
+
+
+Certamente! Ecco un riepilogo degli sviluppi sul file `IlViaggiatore_V0-601.html` da quando abbiamo iniziato a lavorarci, pensato per aggiornare i tuoi colleghi:
+
+**Log Sviluppi - Prototipo "Il Viaggiatore" (Base: V0-601.html)**
+
+**Obiettivo Iniziale:** Analizzare la versione base del file (`IlViaggiatore_V0-601.html`) per identificare problemi e aree di miglioramento.
+
+1.  **Analisi Iniziale e Correzioni di Sintassi:**
+    *   **Problema:** Il codice presentava errori di sintassi HTML (commenti non standard `{/* */}`, tag `</body>` e `</html>` duplicati) e un errore critico JavaScript nella funzione `handleKeyPress` (carattere `&¤t` errato) che impediva la gestione degli input negli eventi. Inoltre, si è notato che molte parti della logica degli eventi erano incomplete (commentate come `/* V12 */` o mancanti) e i testi finali erano placeholder.
+    *   **Azione:** Corretti gli errori di sintassi HTML e JavaScript. Il file è stato reso sintatticamente valido, ma la logica di gioco rimaneva incompleta.
+
+2.  **Ripristino Schermata Introduttiva:**
+    *   **Problema:** Mancava una schermata di prologo/introduzione testuale che doveva apparire dopo la schermata del titolo e prima dell'inizio del gioco vero e proprio.
+    *   **Azione:** È stato aggiunto un nuovo `div` (`#intro-screen`) con il testo del prologo e un pulsante "Inizia". Aggiunto il CSS necessario. Modificata la logica JavaScript: `startGame()` ora mostra l'introduzione, e una nuova funzione `proceedToGame()` (chiamata dal pulsante del prologo) gestisce l'effettiva inizializzazione del gioco (generazione personaggio/mappa, rendering UI, attivazione controlli).
+
+3.  **Implementazione Logica Eventi Base:**
+    *   **Problema:** Gli eventi di gioco (sia quelli legati alle caselle specifiche come Rifugi, Accampamenti, Rovine, sia quelli casuali) non erano funzionanti a causa della logica commentata/mancante.
+    *   **Azione:** Implementata la logica di base nelle funzioni `handleTileEvent`, `triggerRandomEvent`, e `handleEventChoice`. Sono stati attivati eventi per Rifugi (con recupero/loot basato su probabilità), Accampamenti (possibilità di evento ostile o loot), Rovine (alta probabilità di eventi casuali). Aggiunti eventi casuali comuni (`predoni`, `animale`, `tracce_strane`, `loot_semplice`, `villaggio_ostile`). Integrata la funzione `performSkillCheck` per gestire i tiri di dado basati sulle statistiche del giocatore e gli array di testo esistenti per descrizioni/esiti. Aggiunti testi finali generici (placeholder).
+
+4.  **Integrazione Funzionalità Avanzate e Raffinamenti (basato su Log Utente):**
+    *   **Problema:** Confrontando lo stato attuale con una visione più completa del progetto (fornita tramite un log dettagliato), mancavano diverse funzionalità chiave e rifiniture.
+    *   **Azione:**
+        *   **Testi Finali Specifici:** Sostituiti i testi placeholder di vittoria/sconfitta con le versioni narrative dettagliate fornite.
+        *   **Varietà Testuale:** Ampliati notevolmente *tutti* gli array di testo (`flavorTexts*`, `loreFragments`, `esiti*`, `descrizioni*`, ecc.) per aumentare la varietà e ridurre la ripetitività degli eventi e delle descrizioni ambientali.
+        *   **Nuovi Eventi/Scelte:**
+            *   Modificato l'evento del `Rifugio`: ora include un tiro su `Adattamento` e, in caso di successo, una possibile seconda scelta per ispezionare un dettaglio notato (con esiti variabili: loot, lore, trappola, nulla).
+            *   Aggiunto l'evento casuale `dilemma_morale` con scelte (Indaga/Ignora) e conseguenze basate su un tiro di `Presagio`.
+            *   Aggiunto l'evento casuale `pericolo_ambientale` (trappole, caduta massi) che richiede tiri su `Agilità` o `Presagio`.
+            *   Aggiunto l'evento casuale `lore` che mostra frammenti di storia.
+        *   **Bilanciamento Risorse:** Aumentate le risorse iniziali a 7/7 e la quantità massima ottenibile dall'evento `loot_semplice` a 3.
+        *   **Probabilità Eventi:** Ritoccate le probabilità degli eventi casuali su diverse tiles e inclusi i nuovi tipi di evento.
+
+5.  **Correzione Errori di Sintassi Post-Integrazione:**
+    *   **Problema:** L'aggiunta massiva di testi negli array aveva reintrodotto errori di sintassi JavaScript (apici, virgole, punti e virgola mancanti) che impedivano l'esecuzione dello script e il funzionamento del pulsante iniziale.
+    *   **Azione:** Identificati e corretti gli errori di sintassi nelle definizioni delle costanti e degli array, permettendo allo script di funzionare correttamente. Il pulsante iniziale è ora di nuovo operativo.
+
+**Stato Attuale:** Il prototipo ora include la schermata introduttiva, una logica di eventi molto più ricca e variegata con scelte multiple, elementi di lore diffusi, testi finali specifici e un bilanciamento delle risorse rivisto. Il codice è sintatticamente corretto e il flusso di gioco iniziale è ripristinato.
+
+Spero questo log sia utile per aggiornare il team!
+
+---
 09-04-2025 ore 10.08 ITA
 
 **Diario di Sviluppo: "The Safe Place" - Da V5 a V-Base (Reset V14)**
