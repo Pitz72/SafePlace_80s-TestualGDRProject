@@ -1,8 +1,6 @@
 # SafePlace_80s-TestualGDRProject
 Un progetto nato per sperimentare le potenzialità di Gemini 2.5 per lo sviluppo di codice, da profano, cercando di creare un prototipo di una idea che avevo da tempo, ossia un gdr in stile retrò Home Computer anni '80.
 
-Assolutamente! Ecco una bozza di post introduttivo che puoi usare per presentare il progetto al tuo team o a chiunque sia interessato.
-
 ---
 
 **Titolo Suggerito:** The Safe Place: Un Viaggio GDR Testuale tra le Rovine - Introduzione al Prototipo
@@ -55,4 +53,98 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 
 ---
 
-Spero questo post introduttivo catturi l'essenza del progetto e chiarisca lo stato attuale e le prossime mosse. Dimmi pure se vuoi modificare qualcosa!
+# LOG
+
+09-04-2025 ore 10.08 ITA
+
+**Diario di Sviluppo: "The Safe Place" - Da V5 a V-Base (Reset V14)**
+
+**Obiettivo Iniziale (Post V4):** Raffinare l'interfaccia, integrare il concept narrativo "The Safe Place", implementare nuove meccaniche (abilità, risorse) e migliorare l'esperienza utente.
+
+**Iterazione V5 (Implementazione Concept Iniziale)**
+
+*   **Richieste:** Schermata iniziale separata, mappa 4x più grande, popup eventi più chiari.
+*   **Implementazioni:**
+    *   Creata Splash Screen (`#splash-screen`) separata.
+    *   Aumentate dimensioni mappa (`MAP_WIDTH`, `MAP_HEIGHT` a 50x30).
+    *   Introdotto Viewport limitato in `renderMap` per gestire mappa grande.
+    *   Creato Popup Eventi (`#event-overlay`) per mostrare dettagli eventi/check.
+    *   Modificata logica eventi (`handleTileEvent`, `triggerRandomEvent`) per usare il popup.
+*   **Stato:** Funzionalità implementate. Potenziali problemi di performance/leggibilità con mappa molto grande.
+
+**Iterazione V6 (Divagazione C64 BASIC)**
+
+*   **Richiesta:** Conversione/Ricreazione del gioco in C64 BASIC V2.
+*   **Implementazione:** Fornito codice C64 BASIC che simulava le meccaniche base, evidenziando limiti di memoria/velocità e differenze architetturali. Fornite istruzioni per tokenizzazione in `.prg`.
+*   **Esito:** Esercizio tecnico completato. Decisione di tornare al progetto HTML.
+
+**Iterazione V7 (Ritorno HTML - UI & Intro/Fine Tuning)**
+
+*   **Richieste:** Dimensioni fisse/responsività per UI, attribuzione e pulsante lampeggiante su splash, legenda mappa, controlli tastiera, fix layout log, riflessione su combattimento e prossimi passi (lore).
+*   **Implementazioni:**
+    *   Introdotte `max-width`/`max-height` per `#game-container` e CSS `flexbox` per centrarlo.
+    *   Aggiunta `@media query` per layout verticale su mobile.
+    *   Inserita attribuzione e animazione `buttonBlink` su splash.
+    *   Aggiunta area Legenda (`#map-legend`) e funzione `renderLegend`.
+    *   Implementato input da tastiera (`handleKeyPress`, `setupInputListeners`).
+    *   Stabilizzato layout log con `flex-grow`.
+    *   Cambiato nome gioco in "The Safe Place", nome PG in "Ultimo", aggiornate abilità (`generateCharacter`, `renderStats`).
+    *   Mappa colorata per tipo di tile.
+*   **Stato:** Molte migliorie UI/UX e allineamento al concept base implementati con successo.
+
+**Iterazione V8 (Integrazione Meccaniche Core e Narrativa)**
+
+*   **Richieste:** Integrare pilastri (Sopravvivenza, Esplorazione), sistema risorse base (Cibo/Acqua), eventi con scelte, più lore e varietà testuale.
+*   **Implementazioni:**
+    *   Aggiunte variabili `player.food`, `player.water`.
+    *   Visualizzazione risorse in `renderStats` con classe `.low-resource`.
+    *   Logica consumo risorse in `movePlayer` (ogni `CONSUMPTION_RATE` passi).
+    *   Logica penalità HP per fame/sete.
+    *   Modificati eventi (`scavenging`, `villaggio`, `acqua_contaminata`) per dare/gestire risorse.
+    *   Implementato meccanismo per scelte via tastiera (`showEventPopup` modificata, `handleEventChoice`, `currentEventChoices`, `currentEventContext`).
+    *   Modificati eventi `'tracce_strane'` e `'villaggio_ostile'` per includere scelte.
+    *   Aggiunti array di testi (`descrizioniPredoni`, `esitiFugaPredoniOk`, ecc.) e `getRandomText` per aumentare varietà.
+    *   Aggiunti `flavorTexts` ambientali casuali nel log e `loreFragments` nello scavenging.
+    *   Riscritto testo finale (`END`) per renderlo più narrativo e aperto.
+*   **Stato:** Funzionalità chiave implementate. Questa versione è considerata la **base stabile** da cui ripartire.
+
+**Iterazione V9-V11 (Tentativo Suspense Dado e Bug Fixing)**
+
+*   **Richieste (Iterative):** Introdurre delay su esito dadi, colore rosso per fallimento, risolvere bug ("Contesto Scelta Non Valido", mappa vuota "ERR Player", "ERRORE INIT", testo intro non visibile, commenti HTML errati).
+*   **Tentativi Implementazione/Correzione:**
+    *   Introdotto `setTimeout` e `updateRollOutcome` per ritardare visualizzazione SUCCESSO/FALLIMENTO e conseguenza.
+    *   Modificate funzioni evento per gestire stato asincrono (es. passare `consequenceText` separatamente).
+    *   Tentativi di ristrutturare `startGame` per risolvere errori INIT.
+    *   Aggiunti controlli di robustezza in `renderMap`, `renderStats`, `generateMap`, `generateCharacter`.
+    *   Rimossi commenti HTML spuri.
+*   **Problemi Emersi/Irrisolti (Gravi):**
+    *   La gestione dello stato asincrono con `setTimeout` si è rivelata complessa e ha introdotto **bug sulla visualizzazione delle conseguenze** e l'errore **"Contesto Scelta Non Valido"**.
+    *   I tentativi di fixare l'ordine in `startGame` hanno portato all'errore **"ERRORE CRITICO INIT"** o a schermate che rimanevano su **"Attendere..."**, indicando fallimento nella generazione dati o nel rendering iniziale.
+    *   La funzione dell'**intro testuale (`typeIntroText`) ha smesso di funzionare correttamente**, bloccandosi o non mostrando il testo.
+    *   Nonostante i tentativi, **commenti HTML errati continuavano ad apparire**.
+
+**Iterazione V12 (Tentativo Reset Veloce - Fallito)**
+
+*   **Obiettivo:** Ripristinare funzionalità base tornando a logica V8/V9 ma mantenendo fix HTML.
+*   **Esito:** Fallito. L'immagine ha mostrato un errore CSS totale, indicando problemi ancora più profondi o errori di copia/incolla massicci da parte mia.
+
+**Iterazione V13/V14 (Stable Reset - Ritorno a V-Base)**
+
+*   **Decisione:** Abbandonare le versioni V9-V12 instabili.
+*   **Azione:** Hai fornito il codice della versione V8/V9 funzionante (nominato `IlViaggiatore_V0-601_NoBug.html`).
+*   **Stato Attuale:** Siamo ripartiti da questa V-Base verificata.
+
+---
+
+**Prossimi Passi (Basati sulla V-Base):**
+
+1.  ✅ **Effetto Scrittura Intro:** Re-implementare `typeIntroText` in modo stabile.
+2.  ✅ **Schermata Finale Dedicata:** Implementare `#end-screen` e `showEndGameMessage`.
+3.  ❓ **Suspense Tiro Dadi:** Re-implementare con cautela il delay e il colore rosso per FALLIMENTO (considerare se priorità alta o bassa ora).
+4.  ➡️ **Varietà Testuale:** Continuare ad aggiungere testi alternativi per eventi/conseguenze.
+5.  ➡️ **Più Scelte:** Aggiungere altri eventi che offrono scelte al giocatore.
+6.  ➡️ **Bilanciamento:** Testare e aggiustare consumo/guadagno risorse, difficoltà check.
+7.  ➡️ **Lore Diffusa:** Aggiungere più flavor text e frammenti.
+8.  ➡️ **Pulizia HTML/Semantica:** Applicare `<main>`, `<section>`.
+
+Spero questo log sia utile al tuo team. Procediamo ora con il **Punto 1: Effetto Scrittura Intro** sulla base del codice V-Base che hai fornito?
