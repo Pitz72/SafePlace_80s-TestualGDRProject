@@ -56,6 +56,54 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+10-04-2025 ore 9.16 ITA
+
+
+Fantastico! Sono felice che ora funzioni tutto correttamente. A volte basta un piccolo dettaglio o un ripristino del listener per risolvere.
+
+Ecco il changelog aggiornato per `IlViaggiatore_V0-6043.html`, includendo le ultime correzioni:
+
+```log
+CHANGELOG - Il Viaggiatore Prototipo
+
+Modifica più Recente (Fix Controlli e UI):
+-----------------------------------------
+- Risolto problema con i controlli da tastiera (WASD/Frecce) che non venivano rilevati correttamente.
+    - Assicurata la corretta registrazione dell'event listener `keydown`.
+    - Aggiunti (e poi rimossi) log di debug in `handleKeyPress` per verifica.
+- Aggiunto indicatore visivo del tempo rimanente nell'interfaccia utente (area statistiche).
+    - Creato elemento HTML `<li>` con ID `stat-day-time-li`.
+    - Aggiunta variabile `statDayTime` in JavaScript.
+    - Aggiornata la funzione `renderStats` per visualizzare i passi rimanenti di giorno o "Notte".
+
+Modifica Precedente (Ciclo Giorno/Notte):
+-------------------------------------
+- Implementato un ciclo Giorno/Notte.
+- Aggiunte variabili di stato: 'isDay' (true/false), 'dayNightCounter' (conta i passi diurni), 'daysSurvived' (conta i giorni).
+- Aggiunta costante 'DAY_LENGTH_MOVES' per definire la durata del giorno (in passi).
+- La funzione 'movePlayer' ora incrementa 'dayNightCounter' di giorno e gestisce la transizione Giorno -> Notte.
+- La funzione 'handleTileEvent':
+    - Aumenta la probabilità e la pericolosità degli eventi casuali durante la notte.
+    - Gestisce l'ingresso nei Rifugi ('R') in modo differenziato:
+        - Notte: Termina la notte, avanza al giorno successivo, consuma le risorse giornaliere (cibo/acqua), applica penalità fame/sete, offre potenziale recupero HP.
+        - Giorno: Fa passare una piccola quantità di tempo, mostra tempo rimanente, offre piccola chance di loot rapido (check Adattamento).
+- La funzione 'triggerRandomEvent':
+    - Seleziona eventi da un pool specifico (e più pericoloso) durante la notte.
+    - Applica un modificatore di difficoltà agli eventi notturni.
+- La funzione 'handleEventChoice' ora applica il modificatore di difficoltà notturno ai check delle abilità.
+- Aggiunti nuovi testi descrittivi e tipi di eventi specifici per la notte (es. 'animale_notturno', 'orrore_indicibile').
+- Il consumo di risorse è stato spostato: avviene principalmente al mattino dopo aver passato la notte in un rifugio.
+
+Modifica Precedente (Scelte Evento Interattive):
+-----------------------------------------------
+- Migliorata l'accessibilità su dispositivi touch e mobile.
+- La funzione 'showEventPopup' ora genera pulsanti HTML ('<button>') per ogni scelta disponibile durante un evento, invece di semplici lettere/testo.
+- Ogni pulsante chiama direttamente la funzione 'handleEventChoice' con la chiave corretta al click/tocco.
+- Aggiornati gli stili CSS per rendere i pulsanti di scelta visivamente chiari e facili da premere su schermi piccoli.
+- Mantenuta la funzionalità 'handleKeyPress' per consentire l'uso delle scorciatoie da tastiera (lettere corrispondenti) su desktop.
+```
+
+---
 09-04-2025 ore 17.01 ITA
 
 Log richiesto a Gemini 2.5 e relativa risposta:
