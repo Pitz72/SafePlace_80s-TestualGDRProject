@@ -56,6 +56,78 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+12-04-2025 ore 10.06 ITA
+
+**Log di Sviluppo - Sessione Completa**
+
+1.  **Problema Iniziale:** Errore `ReferenceError: STARTING_FOOD is not defined` all'avvio (`game_logic.js`).
+    *   **Analisi:** La costante `STARTING_FOOD` (e `STARTING_WATER`) veniva utilizzata in `generateCharacter` senza essere definita.
+    *   **Azione (Temporanea):** Aggiunte definizioni `const STARTING_FOOD = 10;` etc. in `game_logic.js`.
+
+2.  **Correzione Errore Sintassi e Dipendenze:**
+    *   **Problema:** Errori `Unexpected token '<'` in `game_data.js:1063` e `ReferenceError: MAP_HEIGHT is not defined` in `game_logic.js`.
+    *   **Analisi:** Un tag `</rewritten_file>` errato alla fine di `game_data.js` impediva il caricamento del file e delle sue costanti.
+    *   **Azione:** Rimozione manuale (richiesta all'utente) della riga errata da `game_data.js`.
+
+3.  **Correzione Dichiarazione Duplicata:**
+    *   **Problema:** Errore `Identifier 'STARTING_FOOD' has already been declared`.
+    *   **Analisi:** `STARTING_FOOD` veniva definita sia in `game_data.js` (ora caricato correttamente) sia in `game_logic.js` (dall'azione al punto 1).
+    *   **Azione:** Rimosse le definizioni duplicate da `game_logic.js`, mantenendo quelle in `game_data.js`.
+
+4.  **Verifica Contenuti Testuali:**
+    *   **Richiesta:** Controllare se 4 prompt dettagliati relativi all'aggiunta di testi (flavor, lore, eventi) fossero stati implementati in `game_data.js`.
+    *   **Azione:** Lettura completa di `game_data.js`.
+    *   **Risultato:** Confermato che tutti gli array testuali erano stati popolati adeguatamente.
+
+5.  **Discussione Varietà Testi e Cache:**
+    *   **Problema:** L'utente non percepiva nel gioco la varietà testuale presente nei dati.
+    *   **Analisi:** Discusse possibili cause (cache del browser, errori logici).
+    *   **Azione Consigliata:** Effettuare un hard refresh del browser (Ctrl+Shift+R).
+
+6.  **Implementazione Sistema di Status Semplice ("Ferito", "Malato"):**
+    *   **Obiettivo:** Introdurre stati negativi con impatto sulle abilità e meccanismo di recupero.
+    *   **Azione (Dati - `game_logic.js`):** Aggiunti flag booleani `isInjured` e `isSick` (inizializzati a `false`) all'oggetto `player` in `generateCharacter`.
+    *   **Azione (UI - `index.html`):** Aggiunto un elemento `<li>Condizione: <span id="stat-condition"></span></li>` nel pannello statistiche.
+    *   **Azione (UI - `style.css`):** Aggiunte classi CSS (`.status-normal`, `.status-warning`, `.status-danger`) per la visualizzazione dello status.
+    *   **Azione (Logica - `game_logic.js` - `renderStats`):** Aggiornata la funzione per impostare testo e classe CSS di `#stat-condition` in base ai flag `isInjured`/`isSick`.
+    *   **Azione (Logica - `game_logic.js` - `handleEventChoice`):** Modificata la funzione per impostare `player.isInjured = true` negli esiti negativi di eventi che causano danno fisico (Predoni, Animali, Pericoli Ambientali, Trappole Rifugio/Ritrovamento, fallimento Indaga Dilemma). Aggiunto messaggio testuale appropriato.
+    *   **Azione (Logica - `game_logic.js` - Nuovo Evento):**
+        *   Aggiunto il tipo di evento `acqua_contaminata` al `dayPool` in `triggerRandomEvent`.
+        *   Definito il `case 'acqua_contaminata'` in `triggerRandomEvent` (titolo, descrizione, scelte).
+        *   Definito il `case 'acqua_contaminata'` in `handleEventChoice` per gestire le scelte: Ignora (nessun effetto) o Bevi (check su Vigore; successo: +acqua; fallimento: `player.isSick = true`).
+    *   **Azione (Logica - `game_logic.js` - `performSkillCheck`):** Modificata la funzione per aggiungere una penalità (+2) alla `difficulty` dei check di Potenza/Agilità se `isInjured`, e dei check di Vigore/Adattamento se `isSick`. Aggiornato il testo del risultato per mostrare la difficoltà modificata.
+    *   **Azione (Logica - `game_logic.js` - `handleTileEvent`):** Modificato il blocco di codice per il riposo notturno in un Rifugio (`REST_STOP`): aggiunta una probabilità (~30-35%) di resettare `isInjured` o `isSick` a `false`. Impedito il recupero di HP base se il giocatore è Ferito o Malato.
+
+7.  **Bilanciamento Difficoltà Iniziale:**
+    *   **Richiesta:** Analizzare costanti di gioco e probabilità eventi per aggiustare la difficoltà iniziale.
+    *   **Analisi:** Valutati i valori attuali. Le risorse iniziali (7/7) con costi notturni (2/2) risultavano già sfidanti.
+    *   **Azione:** Per aumentare *leggermente* la sfida, modificato `game_data.js` impostando `STARTING_FOOD = 6;` e `STARTING_WATER = 6;`.
+
+8.  **Risoluzione Errore `getRandomInt is not defined`:**
+    *   **Problema:** Errore JavaScript all'avvio.
+    *   **Analisi:** Funzione helper mancante in `game_logic.js`.
+    *   **Azione:** Aggiunta la definizione di `getRandomInt` all'inizio di `game_logic.js`.
+
+9.  **Risoluzione Errore `addMessage is not defined`:**
+    *   **Problema:** Errore JavaScript successivo.
+    *   **Analisi:** Funzioni helper `addMessage` e `getRandomText` mancanti in `game_logic.js`.
+    *   **Azione:** Aggiunte le definizioni di `addMessage` e `getRandomText` all'inizio di `game_logic.js`.
+
+10. **Ristrutturazione Interfaccia Utente (Layout a 3 Colonne):**
+    *   **Richiesta:** Migliorare l'organizzazione spostando Risorse/Status in una nuova colonna sinistra.
+    *   **Azione (HTML/CSS):** Modificati `index.html` e `style.css` per creare `#left-panel`, `#map-panel`, `#info-panel`, spostando gli elementi e applicando stili flexbox per il layout a tre colonne e la responsività.
+
+11. **Correzione Visualizzazione Intestazione "Risorse":**
+    *   **Problema:** L'intestazione `<h3>Risorse</h3>` non appariva.
+    *   **Azione (CSS):** Applicate regole CSS più robuste e specifiche per gli `h3` e i loro contenitori nei pannelli laterali per forzarne la visibilità (reset margini/padding, `display: block !important`, `min-height`, `overflow: visible !important`, ecc.).
+
+12. **Aggiustamento Dimensione Font:**
+    *   **Richiesta:** Ridurre la dimensione dei font nei pannelli laterali, mantenendo quella della mappa.
+    *   **Azione (CSS):** Impostato `font-size: 0.9em` per `#game-container`, mantenuto `font-size` esplicito per `#map-display`, aggiustati margini/gap/font relativi.
+
+**Stato Attuale:** Il codice include le definizioni delle funzioni helper necessarie. L'interfaccia utente è strutturata su tre colonne. È stato implementato un sistema base di status "Ferito" e "Malato" che influenza i check di abilità e può essere recuperato riposando nei rifugi. Il bilanciamento iniziale è stato leggermente aumentato riducendo le scorte di partenza. Sono state applicate correzioni per garantire la corretta visualizzazione di tutti gli elementi dell'interfaccia.
+
+---
 12-04-2025 ore 00.29 ITA
 
 Suddivisione del gioco in una cartella progetto con file multipli, riorganizzati a seconda delle specifiche porzioni di codice
