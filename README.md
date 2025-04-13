@@ -56,6 +56,69 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+13-04-2025 ore 8.53 ITA
+
+**Obiettivo Principale:** Implementazione del sistema di inventario e degli stati di condizione (Ferito, Malato).
+
+**Modifiche Apportate:**
+
+1.  **Definizione Dati Oggetti (`game_data.js`):**
+    *   Introdotta la costante globale `ITEM_DATA`.
+    *   Definiti diversi tipi di oggetti con proprietà `id`, `name`, `desc`, `type`, `effect`, `usable`, `stackable`:
+        *   Risorse utilizzabili (es. `water_purified_small`, `canned_food`) con effetto `add_resource`.
+        *   Oggetti curativi (es. `bandages_dirty`, `medicine_crude`) con effetto `heal_status` e `chance` di successo.
+        *   Materiali (es. `scrap_metal`) non utilizzabili al momento.
+        *   Oggetti Lore (es. `lore_fragment_item`) con effetto `show_lore` (attualmente gestito alla raccolta).
+
+2.  **Logica Inventario (`game_logic.js`):**
+    *   Aggiunto l'array `inventory` all'oggetto `player` in `generateCharacter()`. Ogni elemento dell'inventario ha `itemId` e `quantity`.
+    *   Creata la funzione `renderInventory()` per visualizzare l'inventario nella UI (pannello sinistro).
+    *   Modificato `initializeGame()` e `window.onload` per chiamare `renderInventory()` all'avvio e dopo l'inizializzazione, assicurando che l'inventario sia visibile fin da subito.
+    *   Creata la funzione helper `addItemToInventory(itemId, quantity)` per aggiungere oggetti (gestendo l'impilamento per oggetti `stackable`).
+    *   Creata la funzione `showInventoryScreen()` per mostrare un overlay dedicato all'inventario, attivabile tramite pulsante o tasto 'I'. L'overlay mostra solo gli oggetti utilizzabili e permette la selezione.
+    *   Implementata la funzione `useItem(itemId)`:
+        *   Controlla se l'oggetto è posseduto e utilizzabile.
+        *   Applica l'effetto definito in `ITEM_DATA` (es. aggiunta risorse, cura status).
+        *   Gestisce la `chance` di successo per effetti come la cura degli status.
+        *   Rimuove l'oggetto dall'inventario dopo l'uso (decrementa quantità o rimuove lo slot).
+        *   Aggiorna la UI dell'inventario e delle statistiche/condizione.
+        *   Aggiunge messaggi di log sull'uso e l'esito.
+    *   Modificato l'evento `loot_semplice`: ora chiama `addItemToInventory` per dare un oggetto specifico invece di modificare direttamente le risorse del giocatore.
+
+3.  **Sistema Stati di Condizione (`game_logic.js`):**
+    *   Aggiunti i flag booleani `isInjured` e `isSick` all'oggetto `player` in `generateCharacter()`, inizializzati a `false`.
+    *   Modificata `performSkillCheck()`: applica una penalità alla difficoltà del check se il giocatore è `isInjured` (per Potenza/Agilità) o `isSick` (per Vigore/Adattamento), mostrando il motivo nel log del check.
+    *   Modificato l'evento di riposo in `handleTileEvent` (casella `REST_STOP` di notte): aggiunta una probabilità di guarire dagli stati `isInjured` o `isSick`. Il recupero HP è impedito se si è affetti da uno stato o si subiscono penalità per fame/sete.
+    *   Modificati gli esiti negativi di alcuni eventi (es. fallimento lotta/fuga contro predoni/animali, trappole ambientali) in `handleEventChoice` per impostare `isInjured = true`.
+    *   Aggiunto l'evento `acqua_contaminata` (attivabile su `RIVER` e `CITY`) che può causare lo stato `isSick` se si fallisce un check su `Vigore` bevendo.
+    *   Aggiunto il sottotipo `spoiled_food` all'evento `loot_semplice` (ora con scelte `Mangia`/`Lascia`) che può causare lo stato `isSick` fallendo un check su `Adattamento`.
+    *   Aggiornata `renderStats()` per mostrare lo stato corrente ("Normale", "Ferito", "Malato", "Ferito, Malato") con classi CSS appropriate per il colore.
+
+4.  **Interfaccia Utente (`index.html`, `style.css`):**
+    *   Riorganizzato `index.html` in una struttura a tre colonne (`left-panel`, `map-panel`, `info-panel`).
+    *   Creato il `left-panel` contenente:
+        *   Sezione Risorse (`stat-food`, `stat-water`).
+        *   Sezione Condizione (`stat-condition`).
+        *   Sezione Inventario con la lista `inventory-list`.
+    *   Spostate le statistiche di base nel `info-panel` a destra.
+    *   Aggiunta una sezione `game-info` nel pannello destro per Posizione, Luogo e Ora.
+    *   Aggiunto il pulsante "Inventario (I)" nei controlli.
+    *   Aggiornato `style.css` (non mostrato, ma necessario) per gestire il layout a tre colonne e lo stile dei nuovi elementi (inventario, condizione).
+
+5.  **Input Handling (`game_logic.js`):**
+    *   Modificata `handleKeyPress()`:
+        *   Aggiunta la gestione del tasto 'i' (o 'I') per aprire/chiudere la schermata dell'inventario (`showInventoryScreen`).
+        *   Aggiunta la gestione dei tasti numerici (1, 2, 3...) quando l'overlay dell'inventario è attivo per selezionare e usare un oggetto.
+        *   Aggiunta la gestione del tasto 'Esc' per chiudere l'overlay (sia evento che inventario).
+    *   Modificata `setupInputListeners()` per aggiungere l'event listener al nuovo pulsante "Inventario".
+
+**Problemi Risolti/Note:**
+*   Assicurato che l'inventario venga renderizzato correttamente all'inizio del gioco.
+*   L'uso degli oggetti ora consuma correttamente l'oggetto e applica effetti/status.
+*   Gli stati di condizione influenzano le prove abilità e possono essere curati tramite oggetti o riposo (con probabilità).
+*   L'interfaccia è stata riorganizzata per una migliore leggibilità e per ospitare le nuove informazioni.
+
+---
 12-04-2025 ore 10.06 ITA
 
 **Log di Sviluppo - Sessione Completa**
