@@ -56,6 +56,64 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+14-04-2025 ore 16.11 ITA
+
+**Log Modifiche Progetto "The Safe Place" - Funzionalità "Usa Oggetto"**
+
+**1. Riassunto Semplice (Per Tutti)**
+
+In questa fase del lavoro, abbiamo aggiunto una delle funzionalità principali del gioco: la possibilità per il giocatore di **usare gli oggetti** che ha raccolto nel suo inventario.
+
+Prima, l'inventario mostrava solo la lista degli oggetti posseduti. Ora, abbiamo reso **cliccabile** ogni oggetto nella lista:
+*   Passando il mouse sopra un oggetto, questo si evidenzia leggermente per far capire che è interattivo.
+*   Cliccando su un oggetto, si apre un piccolo **popup** che mostra:
+    *   Il **nome** e la **descrizione** dell'oggetto (abbiamo migliorato le descrizioni per renderle più utili).
+    *   Un pulsante **"Usa [Nome Oggetto]"** se l'oggetto ha un effetto (come cibo, acqua, bende, medicine).
+    *   Un pulsante **"Annulla"** per chiudere il popup senza fare nulla.
+
+Quando il giocatore clicca su "Usa":
+*   Il gioco applica l'**effetto** dell'oggetto: ad esempio, mangiare cibo aumenta la "Sazietà", bere acqua aumenta l'"Idratazione", usare bende può curare lo stato "Ferito", ecc.
+*   L'oggetto viene **consumato**: la sua quantità diminuisce di uno, e se era l'ultimo, sparisce dall'inventario.
+*   Un **messaggio** compare nel "DIARIO" per confermare l'uso dell'oggetto e il suo effetto (es. "Hai mangiato Cibo in Scatola (+4 Sazietà).").
+*   L'interfaccia (le statistiche di Sazietà/Idratazione e la lista dell'inventario) si **aggiorna** immediatamente.
+
+Abbiamo anche fatto pulizia rimuovendo il pulsante "Inventario (I)" dal pannello "AZIONI", dato che ora l'interazione con l'inventario avviene direttamente cliccando sulla lista degli oggetti.
+
+In sintesi, ora il giocatore può effettivamente interagire con gli oggetti raccolti per gestire la propria sopravvivenza.
+
+**2. Dettaglio Tecnico Modifiche**
+
+*   **Implementazione Funzionalità "Usa Oggetto":**
+    *   **Event Listener Inventario (`game_logic.js` - `setupInputListeners`):** Aggiunto un event listener di tipo 'click' all'elemento `ul#inventory`. Utilizzando event delegation (`event.target.closest('li')`), cattura i click sugli elementi `<li>` figli. Se un `<li>` cliccato possiede l'attributo `dataset.itemId`, viene recuperato l'ID dell'oggetto e chiamata la nuova funzione `showItemActionPopup(itemId)`.
+    *   **Popup Azioni Oggetto (`game_logic.js` - `showItemActionPopup`):** Creata la funzione `showItemActionPopup(itemId)`. Questa funzione recupera i dati dell'oggetto da `ITEM_DATA` e lo stato dall'inventario del giocatore (`player.inventory`). Costruisce un array `popupChoices` contenente:
+        *   Un oggetto `{ text: 'Usa ...', action: () => useItem(itemId) }` solo se `ITEM_DATA[itemId].usable` è `true`.
+        *   Un oggetto `{ text: 'Annulla', action: () => closeEventPopup() }`.
+        *   Chiama `showEventPopup` passando un oggetto di configurazione con un nuovo flag `isActionPopup: true`, il titolo (nome oggetto), la descrizione (descrizione oggetto) e l'array `popupChoices`.
+    *   **Modifica `showEventPopup` (`game_logic.js`):** Aggiornata la funzione per riconoscere il flag `isActionPopup`. Se `true`, itera sull'array `choices` e assegna direttamente la funzione `choice.action` all'evento `onclick` del pulsante generato, invece di chiamare `handleEventChoice`.
+    *   **Logica `useItem` (`game_logic.js`):** Implementata la funzione `useItem(itemId)`.
+        *   Verifica che l'oggetto esista in `ITEM_DATA`, sia `usable`, e sia presente nell'inventario (`player.inventory.findIndex`).
+        *   Recupera l'oggetto `effect` da `ITEM_DATA[itemId]`.
+        *   Utilizza uno `switch` sul `effect.type`:
+            *   `'add_resource'`: Verifica che `player` abbia la proprietà `effect.resource_type`. Aumenta `player[effect.resource_type]` di `effect.amount`. Costruisce messaggio di feedback con la risorsa modificata (usando Sazietà/Idratazione).
+            *   `'heal_status'`: Verifica che `player` abbia la proprietà `effect.status_cured` e che sia `true`. Applica `effect.chance` (default 1.0). Se successo, imposta `player[effect.status_cured]` a `false` e usa `effect.success_message`. Se fallisce, usa `effect.failure_message`.
+            *   Aggiunto caso `default` per gestire tipi di effetto sconosciuti.
+        *   **Consumo Oggetto:** Se `itemInfo.effect` era definito, decrementa `itemSlot.quantity`. Se `quantity <= 0`, rimuove l'oggetto dall'array `player.inventory` usando `splice(itemIndex, 1)`.
+        *   Chiama `addMessage` con il messaggio costruito (marcandolo come `success` se `effectApplied` è `true`).
+        *   Chiama `renderStats()` e `renderInventory()`.
+        *   Chiama `closeEventPopup()`.
+    *   **Dati Oggetto (`game_data.js`):**
+        *   Aggiunto `usable: true` agli oggetti `'water_purified_small'`, `'canned_food'`, `'berries'`.
+        *   Aggiunto `usable: false` (per chiarezza) a `'scrap_metal'`, `'lore_fragment_item'`, `'small_knife'`.
+        *   Aggiunte/migliorate le proprietà `description` per gli oggetti iniziali per evitare il messaggio generico "Qualcosa è successo...".
+
+*   **Miglioramenti UI/UX Inventario:**
+    *   **Indicatore Cliccabilità (`style.css`):** Aggiunte regole CSS per `#inventory li`: `cursor: pointer;` e una regola `:hover` per cambiare leggermente il `background-color`, rendendo più evidente l'interattività.
+    *   **Correzione Errore CSS (`style.css`):** Corretta una parentesi graffa mancante nella regola `#item-tooltip` introdotta durante la modifica precedente.
+    *   **Rimozione Pulsante Inventario:** Commentato il riferimento a `inventoryButton` e il relativo listener in `game_logic.js`. Commentato/Rimosso il pulsante `#btn-inventory` dall'HTML (`index.html`).
+
+---
+
+---
 13-04-2025 ore 8.53 ITA
 
 **Obiettivo Principale:** Implementazione del sistema di inventario e degli stati di condizione (Ferito, Malato).
