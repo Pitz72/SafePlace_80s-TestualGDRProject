@@ -56,6 +56,56 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+15/04/2025 ore 6.00 ITA
+
+Log Modifiche - Riepilogo Semplificato
+
+*   Errore di Avvio Risolto: Corretto un problema tecnico che impediva al gioco di avviarsi correttamente a causa di un errore nell'ordine di caricamento di alcuni dati interni (TILE_SYMBOLS e ITEM_DATA).
+*   Libertà di Movimento Notturna: Ora è possibile muoversi anche durante la notte quando ci si trova all'aperto. Prima il gioco si bloccava se la notte sopraggiungeva fuori da un rifugio.
+*   Pericolo Notturno: Muoversi di notte all'aperto ora comporta un piccolo costo in Punti Vita (HP) per ogni passo, rappresentando i pericoli dell'oscurità. Trovare un rifugio rimane la strategia migliore.
+*   Il Sole Sorge Sempre: La notte non dura più all'infinito se si è all'aperto. Dopo un certo numero di passi (attualmente 8), l'alba sorgerà automaticamente, permettendo di continuare l'esplorazione. Ovviamente, entrare in un rifugio fa passare subito la notte come prima.
+*   HP Senza Virgola: Risolto un piccolo problema grafico per cui i Punti Vita venivano visualizzati con i decimali. Ora appaiono sempre come numeri interi.
+*   Giornate Complete: Confermato che ogni nuovo giorno inizia sempre con il numero massimo di passi disponibili (18).
+
+Log Modifiche - Dettagli Tecnici
+
+*   Correzione `ReferenceError` in `game_data.js`:
+    *   Spostata la definizione della costante TILE_SYMBOLS prima del suo utilizzo nella definizione di SHELTER_TILES (riga 33 circa) per risolvere un errore di inizializzazione.
+    *   Ripristinata la definizione di TILE_DESC che era stata erroneamente rimossa durante una modifica precedente. Questo ha risolto anche l'errore conseguente ITEM_DATA is not defined in game_logic.js.
+*   Modifiche Logica Notturna in `game_logic.js`:
+    *   `movePlayer()`: Rimosso il blocco condizionale (if (!isDay && !SHELTER_TILES.includes(currentTile.type))) che impediva il movimento (return;). Inserita logica per applicare una penalità nightMovePenalty (0.15 HP) ad ogni passo notturno fuori da un rifugio, con controllo endGame(false) se HP <= 0. Aggiunto un avviso (player.hasBeenWarnedAboutNight) mostrato solo la prima volta.
+    *   `movePlayer()`: Aggiunta la gestione del nightMovesCounter. Viene incrementato ad ogni passo notturno. Se nightMovesCounter >= NIGHT_LENGTH_MOVES, viene chiamata transitionToDay().
+    *   `transitionToNight()`: Rimossa la chiamata disableControls(). Aggiunto reset nightMovesCounter = 0. Modificato il messaggio di avviso per quando si è all'aperto.
+    *   `transitionToDay()`: Aggiunto reset nightMovesCounter = 0. Confermato reset dayMovesCounter = 0 per garantire 18 passi al nuovo giorno.
+    *   Variabili Globali: Aggiunte let nightMovesCounter = 0; e const NIGHT_LENGTH_MOVES = 8;.
+*   Correzione Visualizzazione HP in `game_logic.js`:
+    *   `renderStats()`: Modificate le righe relative a statHp.textContent e statMaxHp.textContent per utilizzare Math.floor() e mostrare valori interi.
+ 
+Ore 10.51 ITA
+Log Modifiche Recenti
+
+Riepilogo Semplificato:
+
+*   Correzione Messaggi Diario: Sistemata la visualizzazione dei messaggi di esito (successo/fallimento) nel diario per eliminare ripetizioni testuali (es. "Successo!: Successo...").
+*   Messaggi di Stato Giocatore: Aggiunti messaggi descrittivi automatici nel diario che informano il giocatore quando è affamato, assetato, ferito, malato o in condizioni critiche (morente), migliorando la consapevolezza dello stato.
+
+Dettaglio Modifiche:
+
+1.  Gestione Esiti Eventi nel Diario:
+    *   Eventi Semplici (`handleEventChoice`): Per gli eventi specifici del tile (non complessi), l'assegnazione del testo di successo/fallimento (choice.successText / choice.failureText) a outcomeDescription ora avviene tramite assegnazione (=) invece che aggiunta (+=). Questo evita che il testo "Successo!" o "Fallimento..." venga aggiunto alla descrizione base, eliminando la duplicazione iniziale per questi eventi.
+    *   Log Finale Esito (`buildAndShowComplexEventOutcome`): La chiamata alla funzione addMessage che registra l'esito finale nel diario è stata modificata. Ora non include più il title ("Successo!", "Fallimento...") nel testo del messaggio. L'indicazione dell'esito è affidata al tipo di messaggio (messageType - che determina colore/icona) e alla descrizione stessa.
+
+2.  Implementazione Messaggi di Stato:
+    *   Nuova Funzione (`checkAndLogStatusMessages`):
+        *   È stata creata una nuova funzione dedicata a controllare lo stato attuale del giocatore.
+        *   Verifica i livelli di player.food e player.water. Se sono a 0 o meno, aggiunge al log un messaggio casuale (preso da STATO_MESSAGGI in game_data.js) relativo allo stato di AFFAMATO o ASSETATO (tipo warning).
+        *   Verifica gli stati player.isInjured e player.isSick. Se attivi, c'è una probabilità del 25% (statusMessageChance) per turno che venga aggiunto un messaggio casuale relativo allo stato FERITO o INFETTO (tipo warning), per evitare eccessiva ripetitività nel log.
+        *   Verifica se player.hp è al di sotto del 25% del player.maxHp (ma ancora > 0). In tal caso, aggiunge un messaggio casuale relativo allo stato MORENTE (tipo danger, contrassegnato come importante).
+    *   Integrazione nel Flusso di Gioco:
+        *   La funzione checkAndLogStatusMessages viene chiamata alla fine della funzione movePlayer, dopo che tutti gli altri processi del turno (attivazione eventi, consumo risorse, transizione giorno/notte) sono stati completati, ma prima che i controlli vengano eventualmente riabilitati. Questo assicura che i messaggi riflettano lo stato del giocatore alla conclusione del turno.
+
+---
+
 14-04-2025 ore 16.11 ITA
 
 **Log Modifiche Progetto "The Safe Place" - Funzionalità "Usa Oggetto"**
