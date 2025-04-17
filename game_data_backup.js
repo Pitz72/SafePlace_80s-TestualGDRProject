@@ -15,20 +15,6 @@ function getRandomInt(min, max) {
 // Rimane invariato rispetto alla versione precedente,
 // in quanto la pulizia ha riguardato principalmente la logica JavaScript.
 
-// Simboli e descrizioni delle caselle della mappa
-const TILE_SYMBOLS = {
-    PLAINS:'.',
-    MOUNTAIN:'M',
-    RIVER:'~',
-    FOREST:'F',
-    VILLAGE:'V',
-    CITY:'C',
-    REST_STOP:'R',
-    START:'S',
-    END:'E',
-    PLAYER:'@'
-};
-
 const MAP_WIDTH = 50;
 const MAP_HEIGHT = 30;
 const MAX_MESSAGES = 30; // Numero massimo di messaggi nel log
@@ -50,62 +36,6 @@ const SHELTER_TILES = [TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.CITY, TILE_SYMBOLS.RES
 // Costo in passi (tempo) per effettuare una ricerca in un evento
 const SEARCH_TIME_COST = 3;
 
-// Stati del giocatore
-const STATO = {
-    NORMALE: 'normale',    // Stato normale
-    AFFAMATO: 'affamato',  // Fame (sazietà a 0)
-    ASSETATO: 'assetato',  // Sete (idratazione a 0)
-    FERITO: 'ferito',      // Ferito
-    MORENTE: 'morente',    // HP sotto una certa soglia
-    INFETTO: 'infetto'     // Malato/infetto
-};
-
-// Messaggi di diario per i vari stati
-const STATO_MESSAGGI = {
-    // Stato affamato (sazietà a 0)
-    AFFAMATO: [
-        "Lo stomaco ti si contorce dolorosamente. Non mangi da troppo tempo.",
-        "La fame ti rende debole. Le gambe tremano ad ogni passo.",
-        "Devi mangiare qualcosa presto o inizierai a indebolirli seriamente.",
-        "L'assenza di cibo inizia a farti girare la testa. Devi mangiare."
-    ],
-    // Stato assetato (idratazione a 0)
-    ASSETATO: [
-        "La gola è secca come carta vetrata. Hai bisogno di acqua, subito.",
-        "La disidratazione ti rende confuso. La testa pulsa dolorosamente.",
-        "Le labbra screpolate sanguinano. La sete è insopportabile.",
-        "Senza acqua non resisterai a lungo. Ogni respiro è faticoso."
-    ],
-    // Stato ferito
-    FERITO: [
-        "Il dolore della ferita ti accompagna ad ogni movimento.",
-        "La fasciatura improvvisata si sta impregnando di sangue.",
-        "La ferita pulsa a ritmo col cuore. Potrebbe infettarsi se non trovi cure.",
-        "Il dolore acuto ti ricorda che devi trovare qualcosa per curarti."
-    ],
-    // Stato morente (HP bassi)
-    MORENTE: [
-        "Le forze ti stanno abbandonando. Se non migliori la tua condizione, non vedrai un altro giorno.",
-        "Ogni passo è una tortura. La fine è vicina se non trovi aiuto.",
-        "La vista si offusca a tratti. La tua vita sta scivolando via lentamente.",
-        "A malapena ti reggi in piedi. Sei più vicino alla morte che alla vita."
-    ],
-    // Stato infetto/malato
-    INFETTO: [
-        "La febbre ti fa tremare nonostante il caldo. Qualcosa non va nel tuo corpo.",
-        "Sudore freddo e brividi. L'infezione si sta diffondendo nel tuo sistema.",
-        "La nausea ti assale a ondate. Hai contratto qualche patogeno sconosciuto.",
-        "Tossisci sangue. La malattia sta progredendo rapidamente."
-    ],
-    // Penalità notturna all'aperto
-    NOTTE_APERTO: [
-        "La notte all'aperto è brutale. Senza riparo sei esposto agli elementi e ai pericoli.",
-        "L'oscurità nasconde minacce invisibili. Senti rumori inquietanti tutto intorno.",
-        "Il freddo notturno ti penetra nelle ossa. Rimanere all'aperto è stato un errore.",
-        "La lunga notte senza riparo mette a dura prova il tuo corpo già debilitato."
-    ]
-};
-
 // Probabilità eventi per tipo di casella (0 = mai, 1 = sempre)
 const EVENT_CHANCE = {
     PLAINS: 0.05, // Bassa probabilità in pianura
@@ -120,54 +50,24 @@ const EVENT_CHANCE = {
 // Dati degli eventi per tipo di casella
 const EVENT_DATA = {
     PLAINS: [
-        // Eventi Semplici per Pianure (senza scelte)
-        {
-            id: "plains_bones",
-            title: "Ossa Sbiancate",
-            description: "Ossa sbiancate dal sole, forse umane, affiorano dal terreno screpolato. Un macabro ricordo della fragilità della vita.",
-            choices: [] // Nessuna scelta, solo testo
-        },
-        {
-            id: "plains_carcass",
-            title: "Carcassa Lontana",
-            description: "Una carcassa di animale non identificabile giace lontana, divorata da sciami di insetti. Meglio non avvicinarsi.",
-            choices: []
-        },
-        {
-             id: "plains_wind", // Rinominato da Vento Solitario
-             title: "Vento Solitario",
-             description: "Il vento spazza la pianura desolata. Non c'è nulla qui, solo il silenzio e la polvere.",
-             choices: []
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse)
-        {
-            id: "generic_minor_find_resource",
-            title: "Oggetti Abbandonati",
-            description: "Frugando tra i detriti polverosi, trovi qualcosa di potenzialmente utile.",
-            choices: [],
-            directReward: { type: 'resource' } // Il tipo specifico (food/water) e quantità verranno gestiti dalla logica
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Noti qualcosa di insolito tra le rovine...",
-            choices: [],
-            directReward: { type: 'lore' }
+        { 
+            title: "Vento Solitario", 
+            description: "Il vento spazza la pianura desolata. Non c'è nulla qui, solo il silenzio.",
+            choices: [] // Nessuna scelta, solo continua
         }
+        // Aggiungere altri eventi per PLAINS?
     ],
     FOREST: [
-        // Evento 1: Rumori nel bosco (Già esistente, verificato)
         {
-            id: "forest_noises",
+            id: "forest_noises", // ID univoco per l'evento
             title: "Strani Rumori",
-            description: "Il silenzio innaturale della foresta è rotto da un fruscio sospetto tra i cespugli vicini. Potrebbe essere un animale... o qualcos'altro. Vale la pena rischiare per indagare?",
+            description: "Il silenzio innaturale della foresta è rotto da un fruscio sospetto tra i cespugli vicini. Potrebbe essere un animale... o qualcos\'altro. Vale la pena rischiare per indagare?",
             choices: [
                 {
                     text: "Avvicinati furtivamente (Tracce)",
                     skillCheck: { stat: 'tracce', difficulty: 12 },
-                    successText: "Ti muovi come un'ombra e scopri la fonte del rumore... era solo un grosso ratto mutato, ma vicino trovi delle bacche.",
-                    successReward: { itemId: 'berries', quantity: getRandomInt(1, 3) },
+                    successText: "Ti muovi come un\'ombra e scopri la fonte del rumore...",
+                    successReward: { itemId: 'berries', quantity: getRandomInt(1, 3) }, // Ricompensa implementata
                     failureText: "Pesti un ramo secco! Qualsiasi cosa fosse, è fuggita nel sottobosco."
                 },
                 {
@@ -176,211 +76,98 @@ const EVENT_DATA = {
                 }
             ]
         },
-        // Evento 2: Albero Caduto (Già esistente, verificato)
         {
             id: "forest_fallen_tree",
             title: "Albero Caduto",
             description: "Un enorme albero sradicato blocca completamente il sentiero. La corteccia è stranamente annerita. Puoi provare a scavalcarlo o perdere tempo per aggirarlo.",
             choices: [
                  {
-                     text: "Scavalca l'ostacolo (Agilità)",
+                     text: "Scavalca l\'ostacolo (Agilità)",
                      skillCheck: { stat: 'agilita', difficulty: 11 },
-                     successText: "Con un balzo agile e un po' di fortuna, superi il tronco senza problemi.",
-                     successReward: { itemId: 'scrap_metal', quantity: 1 }, // Ricompensa simbolica per lo sforzo
-                     failureText: "Perdi l'equilibrio e scivoli sulla corteccia umida, cadendo goffamente. Perdi tempo e forse ti sei fatto male..."
-                     // Aggiungere penalità danno?
+                     successText: "Con un balzo agile e un po\' di fortuna, superi il tronco senza problemi.",
+                     successReward: { itemId: 'scrap_metal', quantity: 1 }, // Ricompensa implementata
+                     failureText: "Perdi l\'equilibrio e scivoli sulla corteccia umida, cadendo goffamente. Perdi tempo e forse ti sei fatto male..."
                  },
                  {
                      text: "Cerca un percorso alternativo",
                      outcome: "Ti addentri nel bosco fitto, perdendo tempo prezioso ma evitando il rischio immediato."
                  }
             ]
-        },
-        // Evento 3: Flora Ostile (Nuovo)
-        {
-            id: "forest_hostile_flora",
-            title: "Flora Ostile",
-            description: "Piante rampicanti spinose e dall'aspetto aggressivo bloccano il passaggio. Sembrano quasi muoversi... Forse contengono qualcosa di utile o sono solo un pericolo.",
-            choices: [
-                {
-                    text: "Esamina le piante (Adattamento)",
-                    skillCheck: { stat: 'adattamento', difficulty: 11 },
-                    successText: "Noti che le spine secernono una linfa utile per creare medicine grezze.",
-                    successReward: { itemId: 'medicine_crude', quantity: 1 }, // Ricompensa specifica
-                    failureText: "Le piante sembrano impenetrabili e forse velenose. Meglio non toccarle."
-                },
-                {
-                    text: "Forza il passaggio (Potenza)", // Alternativa più rischiosa
-                    skillCheck: { stat: 'potenza', difficulty: 13 },
-                    successText: "Con forza bruta, strappi le piante e ti apri un varco, anche se ti pungi un po'.",
-                    // Nessuna ricompensa, solo passaggio
-                    failureText: "Le spine ti lacerano la pelle mentre cerchi di passare. Subisci lievi danni."
-                     // Aggiungere penalità danno?
-                },
-                {
-                    text: "Cerca un'altra via",
-                    outcome: "Decidi di non rischiare e perdi tempo cercando un percorso alternativo."
-                }
-            ]
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse)
-        {
-            id: "generic_minor_find_resource", // Stesso ID degli altri generici
-            title: "Oggetti Abbandonati",
-            description: "Sotto un mucchio di foglie marce, intravedi qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Un simbolo strano inciso su un albero attira la tua attenzione...",
-            choices: [],
-            directReward: { type: 'lore' }
         }
     ],
     RIVER: [
-         {
+         { 
             id: "river_flow",
-            title: "Il Fiume Scorre",
-            description: "L'acqua del fiume scorre lenta e torbida, trasportando detriti irriconoscibili. Sembra innaturale, forse contaminata. Raccoglierla potrebbe essere rischioso.",
+            title: "Il Fiume Scorre", 
+            description: "L\'acqua del fiume scorre lenta e torbida, trasportando detriti irriconoscibili. Sembra innaturale, forse contaminata. Raccoglierla potrebbe essere rischioso.",
             choices: [
                 {
-                    text: "Raccogli un po' d'acqua (Rischioso)",
-                    outcome: "Riempi la borraccia con acqua dall'aspetto sospetto. Non berla senza purificarla!",
-                    successReward: { itemId: 'water_dirty', quantity: 1 } // Confermato
+                    text: "Raccogli un po\' d\'acqua (Rischioso)",
+                    outcome: "Riempi la borraccia con acqua dall\'aspetto sospetto. Non berla senza purificarla!",
+                    // Aggiunta azione per dare acqua sporca
+                    successReward: { itemId: 'water_dirty', quantity: 1 } // Nota: water_dirty deve esistere in ITEM_DATA
                 },
                 {
                     text: "Osserva il flusso",
-                    outcome: "Osservi l'acqua per un po'. Non sembra esserci un pericolo immediato, ma nemmeno nulla di utile."
+                    outcome: "Osservi l\'acqua per un po\'. Non sembra esserci un pericolo immediato, ma nemmeno nulla di utile."
                 }
             ]
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse) - Meno probabile vicino al fiume?
-        {
-            id: "generic_minor_find_resource",
-            title: "Relitto sulla Riva",
-            description: "Qualcosa è stato trascinato a riva dalla corrente.",
-            choices: [],
-            directReward: { type: 'resource' }
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Una vecchia bottiglia incastrata nel fango contiene un messaggio arrotolato...",
-            choices: [],
-            directReward: { type: 'lore' }
         }
     ],
     VILLAGE: [
-        // Evento 1: Rovine del Villaggio (Già esistente, verificato)
         {
             id: "village_ruins",
             title: "Resti di un Villaggio",
-            description: "Le rovine silenziose di quello che un tempo era un piccolo villaggio. Tende strappate e rifugi improvvisati vuoti. Chissà cosa è successo qui... ma forse c'è ancora qualcosa tra le macerie.",
+            description: "Le rovine silenziose di quello che un tempo era un piccolo villaggio. Tende strappate e rifugi improvvisati vuoti. Chissà cosa è successo qui... ma forse c\'è ancora qualcosa tra le macerie.",
             choices: [
                 {
                     text: "Fruga tra le macerie (Tracce)",
                     skillCheck: { stat: 'tracce', difficulty: 11 },
-                    successText: "Dopo un'attenta ricerca tra i detriti... trovi del cibo in scatola intatto!",
-                    successReward: { itemId: 'canned_food', quantity: 1 },
+                    successText: "Dopo un\'attenta ricerca tra i detriti...",
+                    successReward: { itemId: 'canned_food', quantity: 1 }, // Ricompensa implementata
                     failureText: "Trovi solo polvere, vetri rotti e ricordi spezzati. Nulla di utile.",
-                    isSearchAction: true
+                    isSearchAction: true // Flag ricerca
                 },
                 {
                     text: "Riposati brevemente",
-                    outcome: "Ti siedi all'ombra di un muro diroccato, recuperando un po' il fiato, ma rimanendo all'erta."
+                    outcome: "Ti siedi all\'ombra di un muro diroccato, recuperando un po\' il fiato, ma rimanendo all\'erta."
                 }
             ]
-        },
-        // Evento 2: Silenzio Pesante (Nuovo)
-        {
-            id: "village_heavy_silence",
-            title: "Silenzio Pesante",
-            description: "Un silenzio innaturale grava su questo luogo. Non si sente nemmeno il vento. Hai una brutta sensazione.",
-            choices: [
-                {
-                    text: "Esamina i dintorni (Presagio)",
-                    skillCheck: { stat: 'presagio', difficulty: 12 },
-                    successText: "Il tuo istinto ti guida verso una tenda collassata. All'interno, trovi delle bende dimenticate.",
-                    successReward: { itemId: 'bandages_dirty', quantity: getRandomInt(1,2) },
-                    failureText: "Non noti nulla di particolare, ma la sensazione di disagio rimane.",
-                    isSearchAction: true
-                },
-                {
-                    text: "Allontanati rapidamente",
-                    outcome: "Ascolti il tuo istinto e ti allontani in fretta da questo luogo opprimente."
-                }
-            ]
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse)
-        {
-            id: "generic_minor_find_resource",
-            title: "Resti di un Accampamento",
-            description: "Qualcuno ha lasciato qualcosa qui, forse per errore.",
-            choices: [],
-            directReward: { type: 'resource' }
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Una scritta sbiadita su un muro attira la tua attenzione...",
-            choices: [],
-            directReward: { type: 'lore' }
         }
     ],
     CITY: [
-         {
+         { 
             id: "city_shadows",
-            title: "Ombre nella Città Morta",
+            title: "Ombre nella Città Morta", 
             description: "I resti scheletrici dei grattacieli incombono su di te. Il vento fischia attraverso le finestre rotte come un lamento. Ogni angolo potrebbe nascondere un pericolo o un tesoro dimenticato.",
             choices: [
                  {
                      text: "Entra in un palazzo vicino (Presagio)",
                      skillCheck: { stat: 'presagio', difficulty: 13 },
-                     successText: "Il tuo istinto ti guida. Senti che questo edificio è relativamente sicuro... per ora. All'interno trovi...",
+                     successText: "Il tuo istinto ti guida. Senti che questo edificio è relativamente sicuro... per ora. All\'interno trovi...",
                      successReward: { itemId: 'scrap_metal', quantity: getRandomInt(1, 2) }, // Ricompensa implementata
-                     failureText: "Un brivido freddo ti percorre la schiena. Qualcosa non va in questo posto. Meglio non entrare. Perdi l'occasione.",
+                     failureText: "Un brivido freddo ti percorre la schiena. Qualcosa non va in questo posto. Meglio non entrare. Perdi l\'occasione.",
                      isSearchAction: true // Flag ricerca
                  },
                  {
                      text: "Attraversa la strada velocemente",
-                     outcome: "Corri attraverso lo spazio aperto, sentendo mille occhi invisibili addosso dalle finestre vuote. Raggiungi l'altro lato senza incidenti."
+                     outcome: "Corri attraverso lo spazio aperto, sentendo mille occhi invisibili addosso dalle finestre vuote. Raggiungi l\'altro lato senza incidenti."
                  }
             ]
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse)
-        {
-            id: "generic_minor_find_resource",
-            title: "Negozio Saccheggiato",
-            description: "Le vetrine in frantumi di questo negozio rivelano scaffali rovesciati e detriti. Potrebbe esserci ancora qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Un terminale rotto su un bancone mostra ancora frammenti di testo...",
-            choices: [],
-            directReward: { type: 'lore' }
         }
     ],
      REST_STOP: [
-         {
+         { 
             id: "rest_stop_gas_station",
-            title: "Stazione di Servizio Abbandonata",
-            description: "Una carcassa arrugginita di una stazione di servizio. Le pompe sono divelte, l'interno è buio e pieno di detriti. Potrebbe offrire riparo o nascondere sorprese sgradite.",
+            title: "Stazione di Servizio Abbandonata", 
+            description: "Una carcassa arrugginita di una stazione di servizio. Le pompe sono divelte, l\'interno è buio e pieno di detriti. Potrebbe offrire riparo o nascondere sorprese sgradite.",
             choices: [
                  {
-                     text: "Ispeziona l'interno (Tracce)",
+                     text: "Ispeziona l\'interno (Tracce)",
                      skillCheck: { stat: 'tracce', difficulty: 10 },
                      successText: "Frugando con attenzione tra gli scaffali rovesciati e i rifiuti...",
                      successReward: { itemId: 'bandages_dirty', quantity: 1 }, // Ricompensa implementata
-                     failureText: "L'interno è stato saccheggiato a fondo. Non trovi nulla che valga la pena raccogliere.",
+                     failureText: "L\'interno è stato saccheggiato a fondo. Non trovi nulla che valga la pena raccogliere.",
                      isSearchAction: true // Flag ricerca
                  },
                  {
@@ -388,30 +175,23 @@ const EVENT_DATA = {
                      outcome: "Decidi che non merita il rischio o il tempo. Continui per la tua strada."
                  }
             ]
-        },
-        // Evento Generico: Ritrovamento Minore (Risorse)
-        {
-            id: "generic_minor_find_resource",
-            title: "Giaciglio Improvvisato",
-            description: "Qualcuno ha dormito qui di recente. Forse ha dimenticato qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
-        },
-        // Evento Generico: Eco dal Passato (Lore)
-        {
-            id: "generic_lore_find",
-            title: "Eco dal Passato",
-            description: "Una scritta inquietante lasciata sul muro attira il tuo sguardo...",
-            choices: [],
-            directReward: { type: 'lore' }
         }
     ]
 };
 
-// --- DEFINIZIONE OGGETTI GLOBALI ---
-// Database degli oggetti presenti nel gioco
-
-// Ripristino di TILE_DESC che è stato rimosso
+// Simboli e descrizioni delle caselle della mappa
+const TILE_SYMBOLS = {
+    PLAINS:'.',
+    MOUNTAIN:'M',
+    RIVER:'~',
+    FOREST:'F',
+    VILLAGE:'V',
+    CITY:'C',
+    REST_STOP:'R',
+    START:'S',
+    END:'E',
+    PLAYER:'@'
+};
 const TILE_DESC = {
     '.':'Pianura desolata',
     'M':'Montagne cicatrizzate',
@@ -425,6 +205,8 @@ const TILE_DESC = {
     '@':'Ultimo (Tu)'
 };
 
+// --- DEFINIZIONE OGGETTI GLOBALI ---
+// Database degli oggetti presenti nel gioco
 const ITEM_DATA = {
     // Risorse Utilizzabili
     'water_purified_small': {
@@ -527,51 +309,24 @@ const flavorTextsPlains = [
     "Lo scheletro arrugginito di un veicolo agricolo affonda nel terreno, inghiottito dalla polvere.",
     "Una colonna di fumo si alza pigramente in lontananza... fuoco amico o nemico?",
     "Nuvole basse corrono veloci, promettendo una pioggia acida che non arriva mai.",
-    "Schegge di vetro scintillano nella polvere, resti di finestre esplose chissà quando.",
-    // Nuovi flavor text pianure
-    "Lo scheletro arrugginito di una vecchia macchina agricola giace riverso, inghiottito dalla terra secca.",
-    "Uno stormo di uccelli neri come la pece si alza in volo all'improvviso, stridendo.",
-    "Il sole picchia implacabile, trasformando l'orizzonte in un miraggio tremolante.",
-    "Una folata di vento porta con sé un odore metallico e dolciastro... sangue vecchio.",
-    "Senti il terreno vibrare leggermente sotto i piedi. Qualcosa di grosso si muove, lontano.",
-    "Una singola antenna radio, piegata e silenziosa, si erge come un dito scheletrico verso il cielo pallido.",
-    "Le carcasse sbiancate di quelli che sembrano animali da fattoria mutati punteggiano il paesaggio.",
-    "Il silenzio è così profondo che riesci a sentire il battito del tuo stesso cuore.",
-    // Altri nuovi flavor text pianure
-    "Piccoli vortici di sabbia danzano come spettri sul terreno desolato.",
-    "Un sole pallido si riflette su una distesa di vetro fuso, residuo di un incendio devastante.",
-    "Frammenti di plastica colorata emergono dalla terra come strani fiori artificiali.",
-    "Il suolo sotto i tuoi piedi è innaturalmente caldo, come se covasse un fuoco sotterraneo.",
-    "Una serie di crateri poco profondi forma un pattern quasi geometrico sulla pianura.",
-    "Un cartellone pubblicitario sbiadito promette paradisi vacanzieri che non esistono più.",
-    "Resti di un vecchio sistema di irrigazione, ora contorti e arrugginiti, segnano quello che una volta era terreno fertile.",
-    "Una singola scarpa da bambino, perfettamente conservata, giace in mezzo al nulla."
+    "Schegge di vetro scintillano nella polvere, resti di finestre esplose chissà quando."
 ];
 const flavorTextsForest = [
-    "Alberi contorti si ergono come figure spettrali, i loro rami nudi simili a dita imploranti.",
-    "La luce filtra a malapena attraverso il fogliame malato, creando un crepuscolo perpetuo.",
-    "Funghi di dimensioni innaturali crescono sui tronchi caduti, alcuni pulsano debolmente.",
-    "Una nebbiolina grigia ristagna tra gli alberi, rendendo difficile vedere oltre pochi metri.",
-    "Senti movimenti furtivi nel sottobosco, ma quando guardi, non c'è niente di visibile.",
-    "Il suolo è ricoperto da uno strato di foglie marcescenti che emana un odore dolciastro e nauseante.",
-    "Vecchie trappole per animali arrugginite sono sparse qua e là, alcune ancora innescate.",
-    "Qualcuno ha inciso simboli inquietanti sulla corteccia di alcuni alberi. Sembrano recenti.",
-    "Una famiglia di cervi emaciati ti osserva da lontano, per poi svanire silenziosamente nel folto.",
-    "Colate di una sostanza simile a resina, ma di colore rossastro, scendono lungo alcuni tronchi.",
-    "Il vento tra le fronde produce un suono simile a gemiti sommessi e indistinti.",
-    "Resti di un accampamento abbandonato: cenere fredda e ossa spezzate, sparse da animali.",
-    "Teli di plastica logori pendono dagli alberi, residui di qualche rifugio improvvisato.",
-    "La corteccia di alcuni alberi presenta escrescenze simili a volti umani contorti dal dolore.",
-    "Un vecchio cartello arrugginito avverte: 'PERICOLO - ZONA CONTAMINATA - NON PROCEDERE'.",
-    // Nuovi flavor text foresta
-    "Ragnatele enormi, dai fili spessi come corde, si tendono tra gli alberi più alti.",
-    "Un albero è completamente ricoperto da farfalle nere immobili, come un sudario vivente.",
-    "Il terreno sotto i tuoi piedi è stranamente elastico e spugnoso, come se respirasse.",
-    "La neve radiattiva che cade dai rami ha un leggero bagliore bluastro al buio.",
-    "Un cerchio perfetto di funghi rosso sangue circonda quello che sembra un piccolo altare di pietre.",
-    "Un ruscello dal colore innaturalmente brillante serpeggia tra gli alberi, emanando vapori.",
-    "Vecchi manichini di negozio, mutilati e parzialmente sciolti, sono appesi ai rami degli alberi.",
-    "Trovi una pila ordinata di piccoli teschi animali in una radura. Sembrano disposti di recente."
+    "Rami secchi scricchiolano sinistramente sotto i tuoi stivali, annunciando la tua presenza.",
+    "Un odore pungente di decomposizione e muffa riempie l\'aria immobile, quasi soffocante.",
+    "Il silenzio è rotto solo dal tuo respiro affannoso e dal battito martellante del tuo cuore.",
+    "Intravedi un movimento fugace tra gli alberi fitti... un animale o qualcos\'altro che osserva?",
+    "Strani simboli luminescenti, quasi organici, pulsano debolmente sulla corteccia di un albero antico.",
+    "La luce del sole filtra a fatica, creando lunghe ombre danzanti che ingannano la vista.",
+    "Trovi i resti di un piccolo accampamento abbandonato in fretta, c\'è odore di paura nell\'aria.",
+    "Muschio pallido ricopre tronchi e rocce come un sudario umido e freddo.",
+    "Senti un basso ringhio provenire dalle profondità della foresta, troppo vicino per stare tranquillo.",
+    "L\'aria è pesante e immobile, sembra quasi difficile respirare in questa oscurità verde.",
+    "Ragnatele innaturalmente grandi e spesse bloccano il sentiero, tessute da ragni mostruosi?",
+    "Un fungo pallido e dall\'aspetto velenoso cresce alla base di un tronco marcio.",
+    "Il verso rauco di un corvo solitario ti fa sussultare, un presagio?",
+    "Un sentiero quasi invisibile si perde tra gli alberi, una promessa o una trappola?",
+    "Un albero cavo emana un debole bagliore verdastro dall\'interno, pulsando lentamente."
 ];
 const flavorTextsMountain = [
     "Un\'eco lontana risuona tra le vette aguzze, portando con sé un suono inquietante, forse un lamento.",
@@ -588,16 +343,7 @@ const flavorTextsMountain = [
     "Un passaggio stretto tra due pareti di roccia incombe su di te, minacciando di schiacciarti.",
     "Trovi vecchi segni di piccozza sulla roccia, testimonianza silenziosa di chi ti ha preceduto.",
     "Un rivolo d\'acqua gelida sgorga da una fessura, un piccolo miracolo in questo nulla arido.",
-    "Una croce fatta di tubi arrugginiti svetta su un picco vicino, monumento a una fede perduta o a un avvertimento?",
-    // Nuovi flavor text montagne
-    "Ghiaccio perenne, sporco e antico, si aggrappa alle rocce anche sotto il sole debole.",
-    "Una frana recente ha rivelato l'ingresso di una caverna oscura e profonda.",
-    "Il relitto di un piccolo velivolo è incastrato tra due picchi rocciosi.",
-    "Noti incisioni strane sulla roccia, non sembrano fatte da mano umana.",
-    "Il freddo è tagliente, penetra nei vestiti logori e arriva fino alle ossa.",
-    "Un passaggio stretto tra le rocce emana un tanfo nauseabondo.",
-    "Vedi i resti congelati di una spedizione, gli zaini ancora sulle spalle, gli occhi vitrei fissi sul nulla.",
-    "Il panorama sarebbe mozzafiato, se non fosse per il silenzio mortale che lo accompagna."
+    "Una croce fatta di tubi arrugginiti svetta su un picco vicino, monumento a una fede perduta o a un avvertimento?"
 ];
 const flavorTextsRiver = [
     "Detriti non identificabili e chiazze oleose galleggiano lentamente sull\'acqua torbida.",
@@ -614,16 +360,7 @@ const flavorTextsRiver = [
     "Sulla riva opposta, vedi delle luci deboli tremolare... altri sopravvissuti o un inganno?",
     "L\'acqua emana un leggero odore chimico che irrita le narici.",
     "Sulla riva melmosa, una scarpa spaiata è semisepolta, come se qualcuno fosse stato trascinato via.",
-    "Un banco di nebbia innaturale staziona sull\'acqua, anche se la giornata è limpida.",
-    // Nuovi flavor text fiumi
-    "L'acqua ha un colore innaturale, verdastro, e una strana patina oleosa galleggia in superficie.",
-    "Una barca da pesca squarciata è incagliata sulla riva, piena di fango e ossa di pesce.",
-    "Senti un movimento sotto la superficie torbida... qualcosa di grosso e viscido.",
-    "La nebbia sale dall'acqua, fredda e umida, limitando la visibilità.",
-    "Resti di un vecchio molo di cemento sporgono dall'acqua come denti rotti.",
-    "Un cartello arrugginito sulla riva dice: 'ATTENZIONE: ACQUA NON POTABILE - CONTAMINAZIONE BIOLOGICA'.",
-    "Vedi bolle salire in superficie a intervalli regolari, come se qualcosa respirasse lì sotto.",
-    "Qualcosa di grande si muove sotto la superficie, lasciando un'onda appena percettibile."
+    "Un banco di nebbia innaturale staziona sull\'acqua, anche se la giornata è limpida."
 ];
 const flavorTextsCity = [
     "Il vento geme lugubremente attraverso le finestre sfondate di grattacieli scheletrici.",
@@ -640,16 +377,7 @@ const flavorTextsCity = [
     "Un semaforo dondola precariamente da un palo piegato, bloccato su un rosso eterno.",
     "Un negozio di lusso saccheggiato, manichini nudi e vetrine infrante giacciono come corpi.",
     "La carcassa scheletrica di un autobus urbano giace su un fianco, le porte aperte come una bocca urlante.",
-    "Un vento freddo si incanala tra gli edifici, portando con sé suoni indistinti... voci o lamenti?",
-    // Nuovi flavor text città
-    "Il fruscio della plastica impigliata tra le macerie suona come passi furtivi.",
-    "Un palazzo di uffici ha un intero lato collassato, rivelando piani devastati come un alveare aperto.",
-    "Un semaforo dondola cigolando nel vento, le luci spente per sempre.",
-    "Senti il pianto soffocato di un bambino... ma quando ti avvicini, è solo il vento che fischia in un tubo rotto.",
-    "Manifesti sbiaditi promettono un futuro luminoso che non è mai arrivato.",
-    "Un orsacchiotto di peluche, sporco e senza un occhio, è seduto su una pila di macerie.",
-    "L'odore acre di bruciato persiste nell'aria, anche dopo anni.",
-    "Qualcosa stride e si trascina all'interno di un edificio abbandonato vicino."
+    "Un vento freddo si incanala tra gli edifici, portando con sé suoni indistinti... voci o lamenti?"
 ];
 const flavorTextsVillage = [
     "Tende strappate e ripari improvvisati fatti di lamiere sbattono tristemente al vento gelido.",
@@ -666,16 +394,7 @@ const flavorTextsVillage = [
     "Le tende vuote sembrano bocche spalancate che urlano in silenzio.",
     "Un giocattolo rotto, un orsacchiotto senza un occhio, giace nel fango vicino a una tenda squarciata.",
     "Bandiere stracciate di una nazione dimenticata sbattono debolmente su pali improvvisati.",
-    "Uno strano silenzio grava su questo luogo, come se tutti fossero scomparsi all'improvviso.",
-    // Nuovi flavor text villaggi
-    "Una pentola annerita dondola su un treppiede sopra le ceneri fredde di un fuoco.",
-    "Disegni infantili tracciati col carbone su un pezzo di lamiera raccontano storie di mostri e eroi.",
-    "Una fila di piccole tombe segnate da pietre rozze si trova ai margini dell'accampamento.",
-    "Qualcuno ha scritto 'SONO ANDATI A NORD' sulla parete di una baracca.",
-    "Un silenzio carico di attesa grava sul luogo, come se i precedenti occupanti potessero tornare da un momento all'altro.",
-    "Trovi una scacchiera improvvisata con pezzi fatti di tappi di bottiglia e bulloni arrugginiti.",
-    "Un vecchio diario gonfio d'acqua contiene pagine riempite di simboli indecifrabili.",
-    "Vedi tracce di un esodo affrettato, come se tutti fossero fuggiti in un istante senza preavviso."
+    "Uno strano silenzio grava su questo luogo, come se tutti fossero scomparsi all'improvviso."
 ];
 const flavorTextsRestStop = [
     "Il riparo è precario, un ammasso di lamiere contorte, teli laceri e detriti vari.",
@@ -692,16 +411,7 @@ const flavorTextsRestStop = [
     "Le pareti sono coperte di disegni infantili inquietanti e simboli sconosciuti.",
     "Una radio a manovella è appoggiata su un tavolo improvvisato, silenziosa. Chissà quali segnali potrebbe captare.",
     "Senti il rumore di gocce che cadono ritmicamente da qualche parte nel buio del rifugio.",
-    "La polvere qui dentro è così spessa che attutisce ogni suono, creando un silenzio innaturale.",
-    // Nuovi flavor text rifugi
-    "Qualcuno ha cercato di rendere questo posto accogliente, appendendo inutili tendine strappate.",
-    "Un graffito sul muro dice: 'Non dormire troppo profondamente'.",
-    "C'è un odore persistente di disinfettante chimico, quasi a coprire un altro odore peggiore.",
-    "Trovi un elenco di nomi graffiato sul metallo, molti sono cancellati.",
-    "La porta di questo rifugio sembra rinforzata dall'interno.",
-    "Una vecchia foto di famiglia è attaccata al muro con del nastro adesivo, i volti sono stati accuratamente cancellati.",
-    "Qualcuno ha accumulato provviste come se volesse resistere per mesi, ma ora sono rimaste solo scatole vuote.",
-    "Una vecchia cassetta del pronto soccorso pende aperta dal muro, il suo contenuto sparso sul pavimento."
+    "La polvere qui dentro è così spessa che attutisce ogni suono, creando un silenzio innaturale."
 ];
 
 // Flavor text per diversi tipi di tile (Notte)
@@ -720,16 +430,7 @@ const flavorTextsNightPlains = [
     "L\'orizzonte sembra infinito e vuoto, non c\'è riparo in vista.",
     "Le nuvole basse corrono veloci, oscurando a tratti la luna e rendendo le ombre ancora più profonde.",
     "Un odore metallico e acre ti colpisce le narici, portato da una brezza improvvisa.",
-    "Senti un suono basso e vibrante provenire da sottoterra, lontano ma distinto.",
-    // Nuovi flavor text notte pianure
-    "La temperatura precipita all'improvviso, facendo condensare il tuo respiro in nuvole spettrali.",
-    "Occhi luminosi appaiono e scompaiono tra l'erba alta, osservandoti con fredda indifferenza.",
-    "Un bagliore verdastro pulsa all'orizzonte, troppo ritmico per essere naturale.",
-    "Colonne di vapore salgono dal terreno in alcuni punti, come se la terra stessa stesse esalando.",
-    "Le tue ombre, proiettate dalla luce lunare, sembrano muoversi con un leggero ritardo rispetto a te.",
-    "Piccoli insetti luminescenti formano sciami che pulsano con una luce innaturale.",
-    "Un'eco distante porta frammenti di voci, conversazioni spezzate che non hanno senso.",
-    "La luce delle stelle sembra convergere in un punto specifico all'orizzonte."
+    "Senti un suono basso e vibrante provenire da sottoterra, lontano ma distinto."
 ];
 const flavorTextsNightForest = [
     "Ogni scricchiolio di ramo secco ti fa sobbalzare, il cuore in gola.",
@@ -800,39 +501,7 @@ const loreFragments = [
     "Ordine di fucilazione firmato da un 'Comandante della Milizia Popolare': Accusa di 'tradimento ideologico'.",
     "Ciondolo a forma di orsetto di metallo, leggermente radioattivo, stretto nella mano scheletrica di un bambino.",
     "Rapporto psichiatrico Volta 11: 'Paziente 042 mostra sintomi di paranoia acuta, parla di 'voci nel metallo' e 'occhi nei muri'. Sedazione aumentata.'",
-    "Chiave magnetica con etichetta sbiadita: 'Deposito Criogenico B-7'.",
-    // Nuovi frammenti di lore
-    "Registrazione su un vecchio data-slate crepato: 'Giorno 112. La mutazione si diffonde più velocemente del previsto. I sintomi neurologici sono... preoccupanti. Stiamo perdendo il controllo. La Volta 7 deve essere sigillata. Ripeto, sigillat...' *fine registrazione*.",
-    "Frammento di tessuto strappato da un'uniforme militare. C'è una mostrina sbiadita con un teschio alato e la scritta 'Angeli della Cenere'.",
-    "Pagina di un manuale tecnico illustrato: mostra lo schema di un 'Purificatore d'Acqua Modello Aqualux VII', ma diverse componenti cruciali sono illeggibili o strappate.",
-    "Graffito complesso tracciato con vernice spray fluorescente su un muro crollato: raffigura un labirinto che converge verso un occhio stilizzato.",
-    "Piccola scatola di metallo arrugginita. Dentro, una ciocca di capelli biondi legata con un nastro sbiadito e una nota: 'Tornerò. Promesso. - Papà'.",
-    "Chip dati militare. Inserendolo in un terminale funzionante, potresti accedere a vecchie mappe tattiche o rapporti classificati.",
-    "Libro di fiabe per bambini, 'Le Avventure di Capitano Cometa'. Le pagine sono rovinate dall'umidità, ma le illustrazioni colorate di razzi e pianeti alieni sono ancora visibili.",
-    "Messaggio lasciato in una bottiglia vicino a un fiume prosciugato: 'Se leggi questo, vai a Ovest. Evita le guglie di vetro. Cantano di notte. Non ascoltarle.'",
-    "Terminale medico portatile, schermo crepato. Log: Paziente 04-B - Esposizione a 'Nebbia Cinerea'. Sintomi: cristallizzazione epidermica, paranoia acuta. Prognosi: infausta. Ultimo aggiornamento: 8 anni fa.",
-    "Pezzo di ceramica dipinta, forse parte di un vaso antico. Raffigura figure umanoidi che adorano un sole nero.",
-    "'Guida Pratica alla Sopravvivenza nel Dopocrollo' - Edizione Pirata. Molte pagine sono dedicate a come cucinare ratti e riconoscere funghi velenosi.",
-    "Comunicazione radio intercettata e trascritta su un foglio: '...ripetere, Eco-Alfa-Uno, la Zona di Quarantena è compromessa. Protocollo Scudo Divino attivato. Che Dio ci perdoni...'",
-    "Schema tracciato su un tovagliolo di carta: mostra come modificare una batteria d'auto per creare un'arma a impulsi elettromagnetici. Sembra pericoloso.",
-    "Un dente innaturalmente grande e affilato, forse appartenuto a una creatura mutata. È stranamente caldo al tatto.",
-    "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'.",
-    // Ancora più frammenti di lore
-    "Mappa scolorita che mostra la posizione di 'Punti di Ancoraggio'. Una nota manuscritta dice: 'Non avvicinarsi durante le fluttuazioni armoniche'.",
-    "Diario di un guardiano della Volta: 'I sogni stanno diventando collettivi. Stanotte dieci persone hanno avuto lo stesso incubo sui corridoi che si allungano'.",
-    "Brochure turistica strappata: 'Visita il Nuovo Mondo Sotterraneo - Dove il futuro dell'umanità fiorisce al riparo dalle tempeste superficiali!'",
-    "Frammento di trasmissione militare: '...hanno modificato la gravità locale. Ripeto, le leggi fisiche sono alterate. Non entrare nel perimetro segnato dai monoliti neri...'",
-    "Scontrino di un negozio pre-guerra. Sul retro, scritto a mano: 'LORO possono vedere attraverso gli occhi degli animali. Non fidarti di nessuna creatura viva.'",
-    "Pagina di un rapporto scientifico: '...il fenomeno di risonanza quantistica tra gemelli esposti all'Agente V mostra transfer di coscienza con una probabilità del 78.3%...'",
-    "Vecchia fotografia: mostra una famiglia sorridente davanti a una casa. I loro occhi sono stati cancellati con un pennarello nero, e sul retro c'è scritto: 'Dimenticali'.",
-    "Pagina sgualcita di un manuale: 'Protocollo d'emergenza per contaminazione psico-reattiva: 1. Non pensare a forme geometriche complesse 2. Evitare specchi 3. Non nominare l'entità...'",
-    "Certificato di nascita strappato: 'Nome: [cancellato] Codice: XVZ-23 Tipo Genetico: Migliorato Serie C - Autorizzato da Ministero Evoluzione'",
-    "Amuleto di metallo a forma di insetto con sei ali. Quando lo tocchi, sembra vibrare leggermente, come se fosse vivo.",
-    "Vecchia locandina: 'Grande Celebrazione dell'Unificazione - 12 Maggio 2089 - Un Mondo, Una Mente, Un Futuro'",
-    "Frammento di un contratto: '...il firmatario cede tutti i diritti sul proprio codice genetico e sui relativi derivati alla NeoGenesis Corp per 99 anni...'",
-    "Taccuino coperto di numeri e simboli, apparentemente casuali. L'ultima pagina dice solo: 'La sequenza è completa. Il Portale si aprirà al tramonto.'",
-    "Registrazione rovinata: '...abbiamo scoperto che la melodia attira le creature, ma un tono specifico le rende passive. La frequenza esatta è...' *statica*",
-    "Diario di un esploratore: 'Giorno 340. Ho trovato un'altra Anomalia. Questa volta è una porta che conduce... da nessuna parte. O meglio, ogni volta che ci entro, esco in un luogo diverso.'"
+    "Chiave magnetica con etichetta sbiadita: 'Deposito Criogenico B-7'."
 ];
 
 // Messaggi radio casuali (evento 'eco_radio')
@@ -851,17 +520,7 @@ const radioMessages = [
     "...ripeto, coordinate [NUMERI INCOMPRENSIBILI]... punto di estrazione Alfa tra 10 minuti. Ultima chiamata. Che Dio ci assista...",
     "...non credete alle loro bugie! Il 'Safe Place' è una trappola! È [SEGNALE INTERROTTO BRUSCAMENTE]",
     "...[SOSPIRO PROFONDO]... A chiunque trovi questo messaggio... Dite a mia moglie... ditele che ho provato...",
-    "...[SEQUENZA NUMERICA RIPETUTA] ... 4 8 15 16 23 42 ... 4 8 15 16 23 42 ...",
-    // Nuovi messaggi radio
-    "...Attenzione, se potete sentirmi... Le Torri Arcologiche di Neo-Milano sono cadute. Il protocollo Inverno Nero è attivo. Non cercate rifugio nelle strutture governative...",
-    "...Ultimo avviso ai sopravvissuti nel Settore Est. La nebbia cromata si sta diffondendo. I sintomi includono euforia, allucinazioni visive e... e... [RISATA CRESCENTE] ...oh, è bellissima...",
-    "...qui Dottoressa Vargas, Centro Ricerche Alpine. Abbiamo isolato un ceppo resistente al Flagello Rosso. Ripeto, abbiamo un vaccino. Coordinate per il recupero: 47.3N, 9.2E...",
-    "...[INTERFERENZE RITMICHE]... Figli del Nuovo Ciclo, è giunta l'ora del Risveglio. I Sentieri Luminosi si apriranno al solstizio. Portate le offerte designate e...",
-    "...mayday, mayday! Qui aeromobile civile Sierra-Victor-9. Stiamo perdendo quota dopo aver attraversato... qualcosa nel cielo. Non era una nuvola, era... [STATICA PROLUNGATA]...",
-    "...[VOCE METALLICA, FORSE SINTETIZZATA]... L'ultimo esemplare umano non modificato è stato catalogato. Fine dell'operazione Arca Genetica. Iniziare fase due della Trasmutazione Globale...",
-    "...segnale automatico: questo messaggio indica che le capsule di stasi della Stazione Orbitale Europa hanno raggiunto il livello critico di energia. Risveglio forzato tra 3... 2... 1...",
-    "...attenzione viaggiatori! Il Convoglio della Salvezza partirà all'alba dal punto di raccolta Delta. Ultima possibilità prima della stagione delle tempeste di sabbia. Portate acqua per 10 giorni...",
-    "...è bellissimo qui... [SUONO DI ONDE]... l'acqua è tornata blu... i pesci sono normali... vieni a trovarci... [RISATA INQUIETANTE]... vieni a nuotare con noi..."
+    "...[SEQUENZA NUMERICA RIPETUTA] ... 4 8 15 16 23 42 ... 4 8 15 16 23 42 ..."
 ];
 
 // Descrizioni per eventi specifici (incontri, pericoli, etc.)
@@ -1689,57 +1348,4 @@ const esitiOrroreIndicibileAffrontaKo = [
     "Vieni posseduto temporaneamente da un'entità oscura."
 ];
 
-// Descrizioni per risultati di tracce
-const descrizioniTracceLoot = [
-    "Seguendo le tracce, hai trovato un nascondiglio con alcune risorse.",
-    "Una piccola tana di animali contiene tesori insospettabili.",
-    "Dietro un cespuglio trovi un piccolo zaino abbandonato, ancora con qualcosa dentro.",
-    "Le tracce conducono a una vecchia cassa mezza sepolta nel terreno.",
-    "Nella piccola caverna alla fine delle tracce, qualcuno aveva nascosto delle provviste.",
-    "Seguendo le impronte, trovi un cadavere riverso a terra, il suo zaino è ancora intatto.",
-    "Un vecchio campo base abbandonato contiene ancora risorse utilizzabili.",
-    "Sotto un albero cavo scopri un piccolo tesoro nascosto.",
-    "Le tracce portano a un veicolo ribaltato, alcune risorse sono ancora recuperabili.",
-    "In una piccola buca coperta da rami secchi, qualcuno aveva nascosto un piccolo deposito."
-];
-
-const descrizioniTracceLore = [
-    "Seguendo questa traccia, hai trovato un frammento del passato.",
-    "C'è qualcosa di strano in questo luogo, un eco di ciò che è stato.",
-    "Questi segni ti hanno portato a un pezzo di storia dimenticata.",
-    "Alla fine del sentiero, trovi qualcosa che parla di un mondo scomparso.",
-    "Le tracce conducono a un luogo inquietante dove il passato sembra più presente.",
-    "Ti sei imbattuto in un frammento di conoscenza seguendo questi indizi.",
-    "Questo percorso ti ha condotto a una scoperta inquietante sul passato.",
-    "Un messaggio dal passato attendeva alla fine di queste tracce.",
-    "In questo luogo, il velo tra presente e passato sembra più sottile.",
-    "La ricerca ti ha portato a una reliquia di tempi dimenticati."
-];
-
-const descrizioniTracceDanger = [
-    "Sei caduto dritto in un'imboscata!",
-    "Seguendo le tracce, ti sei ritrovato faccia a faccia con una minaccia.",
-    "Ti accorgi troppo tardi che le tracce erano un'esca...",
-    "Un rumore improvviso alle tue spalle. Ti sei messo in trappola da solo!",
-    "Le tracce portavano a una tana... e il suo proprietario è appena tornato.",
-    "Un sibilo malevolo ti avverte che hai commesso un errore fatale.",
-    "Le tracce ti hanno condotto in una zona pericolosa e ostile.",
-    "Ti rendi conto troppo tardi di aver seguito le tracce sbagliate.",
-    "Era una trappola. E tu ci sei cascato in pieno.",
-    "Le tracce si interrompono bruscamente. Poi senti un ringhio alle tue spalle..."
-];
-
-const descrizioniTracceNothing = [
-    "Le tracce svaniscono nel nulla, lasciandoti disorientato.",
-    "Dopo un'ora di ricerca, ti rendi conto di aver perso tempo prezioso.",
-    "Le tracce conducono a un vicolo cieco, frustrante ma inevitabile.",
-    "Segui le impronte per chilometri, ma alla fine perdono consistenza e svaniscono.",
-    "Era solo un falso allarme, le tracce non portano a nulla di interessante.",
-    "Ciò che sembrava una pista promettente si rivela inutile.",
-    "Le tracce si disperdono, impossibile continuare a seguirle.",
-    "Dopo un lungo inseguimento, perdi completamente il sentiero.",
-    "Una falsa pista, ma almeno non hai incontrato pericoli.",
-    "Niente di utile alla fine di questo percorso, solo delusione."
-];
-
-// ... existing code ...
+// ... Aggiungere altri array di testo qui se necessario ...
