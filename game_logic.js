@@ -68,6 +68,7 @@ const eventTitle = document.getElementById('event-title');
 const eventContent = document.getElementById('event-content');
 const legendList = document.getElementById('legend-list');
 const continueButton = eventOverlay.querySelector('.continue-button');
+const inventoryList = document.getElementById('inventory-list'); // Nuovo riferimento
 
 // --- FUNZIONI DI GIOCO ---
 
@@ -95,12 +96,12 @@ function initializeGame() {
 
     gameActive = true;
     eventOverlay.style.display = 'none';
-    endScreen.style.display = 'none';
     gameContainer.style.display = 'flex'; // Mostra l'interfaccia di gioco
 
     try {
         renderLegend();
         renderStats();
+        renderInventory(); // Prima chiamata qui
         renderMap();
         renderMessages(); // Pulisce log precedente se c'era
         addMessage(`Inizio viaggio. HP:${player.hp}, Cibo:${player.food}, Acqua:${player.water}. È Giorno.`);
@@ -113,6 +114,9 @@ function initializeGame() {
     if (gameActive) {
         enableControls();
         setupInputListeners();
+        renderInventory(); // Chiamata anche qui per sicurezza dopo setup?
+                           // O basta quella sopra?
+                           // Rimuoviamo questa, basta quella dopo generateCharacter.
     }
 }
 
@@ -132,10 +136,15 @@ function generateCharacter() {
         ammo: 0, // Non usata al momento?
         movesCounter: 0, // Non usata al momento?
         isInjured: false, // Flag Ferito
-        isSick: false    // Flag Malato
+        isSick: false,    // Flag Malato
+        inventory: [] // Array per l'inventario [ { itemId: 'id', quantity: N }, ... ]
     };
     player.maxHp = 10 + player.vigore;
     player.hp = player.maxHp;
+
+    // Aggiungi oggetti iniziali?
+    // addItemToInventory('bandages_dirty', 1);
+    // addItemToInventory('water_purified_small', 1);
 }
 
 function generateMap() {
@@ -373,11 +382,23 @@ function showEventPopup(title, content, choices = [], checkResult = null, conseq
         choices.forEach(choice => {
             choiceHTML += `<div class="event-choice"><button onclick="handleEventChoice('${choice.key}')">${choice.text}</button></div>`;
         });
-        continueButton.classList.add('hidden'); // Nasconde "Continua" se ci sono scelte
+        // Assicura che il pulsante Continua sia nascosto se ci sono scelte
+        if (continueButton) {
+            continueButton.style.display = 'none'; // Modo più diretto per nasconderlo
+            continueButton.classList.add('hidden'); // Manteniamo classe per coerenza
+        } else {
+             console.warn("Riferimento a continueButton perso!");
+        }
     } else {
         currentEventChoices = []; // Nessuna scelta
         currentEventContext = null; // Resetta contesto
-        continueButton.classList.remove('hidden'); // Mostra "Continua"
+        // Assicura che il pulsante Continua sia VISIBILE se NON ci sono scelte
+        if (continueButton) {
+            continueButton.style.display = 'block'; // Modo più diretto per mostrarlo
+            continueButton.classList.remove('hidden'); // Rimuoviamo comunque la classe
+        } else {
+             console.warn("Riferimento a continueButton perso durante il tentativo di mostrarlo!");
+        }
     }
 
     eventContent.innerHTML = fullHTML + choiceHTML; // Inserisce contenuto e pulsanti
@@ -419,19 +440,22 @@ function handleTileEvent(tile) {
     let popupShown = false;
     let statsChanged = false;
     let penaltyApplied = false;
+    let statusJustHealed = false; // Nuovo flag locale
 
     addMessage(`Entri: ${TILE_DESC[tileSymbol] || '???'}${(isDay ? '' : ' (Notte)')}`);
 
     // Probabilità base e pool eventi (giorno)
-    let baseEventChance = 0;
+    let baseEventChance = 0.15; // Default basso
     let allowedEventsOnTile = [];
-    switch(tileSymbol) {
+
+    switch (tileSymbol) {
         case TILE_SYMBOLS.PLAINS: baseEventChance = 0.15; allowedEventsOnTile = ['animale', 'loot_semplice', 'lore', 'tracce_strane', 'eco_radio']; break;
         case TILE_SYMBOLS.FOREST: baseEventChance = 0.30; allowedEventsOnTile = ['animale', 'tracce_strane', 'pericolo_ambientale', 'lore', 'dilemma_morale', 'ritrovamento_dubbio']; break;
         case TILE_SYMBOLS.MOUNTAIN: baseEventChance = 0.20; allowedEventsOnTile = ['animale', 'pericolo_ambientale', 'lore', 'tracce_strane']; break;
-        case TILE_SYMBOLS.RIVER: baseEventChance = 0.10; allowedEventsOnTile = ['loot_semplice']; break;
-        case TILE_SYMBOLS.CITY: baseEventChance = 0.65; allowedEventsOnTile = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'eco_radio', 'ritrovamento_dubbio']; break;
+        case TILE_SYMBOLS.RIVER: baseEventChance = 0.15; allowedEventsOnTile = ['loot_semplice', 'acqua_contaminata']; break; // Aggiunto acqua_contaminata, aumentata chance
+        case TILE_SYMBOLS.CITY: baseEventChance = 0.65; allowedEventsOnTile = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'eco_radio', 'ritrovamento_dubbio', 'acqua_contaminata']; break; // Aggiunto acqua_contaminata
         case TILE_SYMBOLS.VILLAGE: baseEventChance = 0.50; allowedEventsOnTile = ['villaggio_ostile', 'loot_semplice', 'lore', 'tracce_strane', 'dilemma_morale']; break;
+        // REST_STOP e END gestiti sopra
     }
 
     // Modifiche per la notte
@@ -467,21 +491,26 @@ function handleTileEvent(tile) {
     switch (tileSymbol) {
         case TILE_SYMBOLS.REST_STOP:
             if (!isDay) { // Notte: Riposo forzato
+                // Forza render mappa PRIMA del popup
+                renderMap();
+
                 immediateEvent = true;
                 specificEventTitle = "Rifugio Trovato (Notte)";
                 specificEventDesc = "Sei riuscito a trovare un rifugio appena in tempo! Puoi finalmente riposare fino all'alba.";
 
                 // Logica Recupero Status
                 let recoveredStatusMsg = "";
-                if (player.isInjured && Math.random() < 0.30) { // 30% chance recupero Ferito
+                if (player.isInjured && Math.random() < 0.30) {
                     player.isInjured = false;
                     recoveredStatusMsg += " La ferita sembra guarita.";
                     statsChanged = true;
+                    statusJustHealed = true; // Imposta flag locale
                 }
-                if (player.isSick && Math.random() < 0.35) { // 35% chance recupero Malato
+                if (player.isSick && Math.random() < 0.35) {
                     player.isSick = false;
                     recoveredStatusMsg += " La febbre è passata.";
                     statsChanged = true;
+                    statusJustHealed = true; // Imposta flag locale
                 }
 
                 // Passaggio Giorno/Notte
@@ -554,6 +583,10 @@ function handleTileEvent(tile) {
     if (statsChanged) {
          renderStats();
          if (checkGameOver()) return true; // Esce se game over
+     }
+     // Se lo status è stato curato specificamente, forza un render (in caso statsChanged fosse false per altri motivi)
+     else if (statusJustHealed) {
+        renderStats();
      }
 
     // Mostra popup evento specifico se necessario
@@ -645,12 +678,16 @@ function triggerRandomEvent(allowedTypes = []) {
             break;
         case 'loot_semplice':
             title = "Oggetti Abbandonati";
-            const lootType = Math.random() < 0.6 ? 'Cibo' : 'Acqua';
-            const amount = getRandomInt(1, 3);
-            desc = `Frugando tra i detriti, trovi ${amount} unità di ${lootType}.`;
-            if (lootType === 'Cibo') player.food += amount; else player.water += amount;
-            statsChanged = true; choices = []; cons = ""; // Nessuna scelta, conseguenza diretta
-            addMessage(`Hai trovato ${amount} ${lootType}.`, 'info');
+            // Scegli un oggetto casuale da dare
+            const possibleLoot = ['water_purified_small', 'canned_food', 'bandages_dirty', 'scrap_metal'];
+            const foundItemId = getRandomText(possibleLoot);
+            const foundQuantity = (ITEM_DATA[foundItemId]?.stackable) ? getRandomInt(1, 2) : 1;
+
+            // Descrizione e aggiunta inventario avvengono DOPO il popup
+            desc = `Frugando tra i detriti, noti qualcosa di potenzialmente utile...`;
+            choices = []; // Nessuna scelta, solo informativo
+            // Salviamo cosa trovare nel contesto per aggiungerlo dopo
+            currentEventContext = { event: eventType, itemToFind: foundItemId, quantityToFind: foundQuantity };
             break;
         case 'lore':
             title = "Eco dal Passato";
@@ -725,9 +762,7 @@ function triggerRandomEvent(allowedTypes = []) {
 function handleEventChoice(choiceKey) {
     let outcomeTitle = "Esito", outcomeDesc = "", statsChanged = false, outcomeChoices = [], checkResult = null, consequenceText = "";
     const context = currentEventContext; // Usa contesto salvato
-
-    // Nascosto popup precedente DOPO aver recuperato il contesto
-    // hideEventScreen(); // Chiamato qui causava flickering, lo lasciamo alla fine
+    let statusJustChanged = false; // Nuovo flag locale
 
     if (!context) {
         addMessage("Errore nell'elaborazione dell'evento.", 'warning');
@@ -750,6 +785,7 @@ function handleEventChoice(choiceKey) {
                         outcomeDesc = getRandomText(esitiFugaPredoniKo);
                         predoniDmg = getRandomInt(1, 3);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Vieni colpito e ferito! (-${predoniDmg} HP).`;
                     }
                     break;
@@ -762,6 +798,7 @@ function handleEventChoice(choiceKey) {
                         predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 1 : 2));
                         predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 1 : 2));
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Subisci danni e vieni ferito (-${predoniDmg} HP)`;
                         if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
                         if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
@@ -777,6 +814,7 @@ function handleEventChoice(choiceKey) {
                         predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 2 : 3));
                         predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 2 : 3));
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Ti attaccano e ti feriscono (-${predoniDmg} HP)`;
                         if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
                         if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
@@ -804,6 +842,7 @@ function handleEventChoice(choiceKey) {
                         outcomeDesc = getRandomText(esitiEvitaAnimaleKo);
                         animaleDmg = getRandomInt(isDay ? 1 : 2, isDay ? 2 : 3);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `L'animale ti attacca e ti ferisce! (-${animaleDmg} HP).`;
                     }
                     break;
@@ -815,6 +854,7 @@ function handleEventChoice(choiceKey) {
                         outcomeDesc = getRandomText(esitiSpaventaAnimaleKo);
                         animaleDmg = getRandomInt(1, 3);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `La bestia si infuria, attacca e ti ferisce! (-${animaleDmg} HP).`;
                     }
                     break;
@@ -825,6 +865,7 @@ function handleEventChoice(choiceKey) {
                         outcomeDesc = getRandomText(esitiAttaccoAnimaleKo);
                         animaleDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Vieni ferito nello scontro (-${animaleDmg} HP).`;
                     }
                     break;
@@ -836,6 +877,7 @@ function handleEventChoice(choiceKey) {
                          outcomeDesc = "Non riesci a capire cosa sia, e ti attacca alla sprovvista!";
                          animaleDmg = getRandomInt(2, 4);
                          player.isInjured = true; // Stato Ferito
+                         statusJustChanged = true; // Imposta flag locale
                          consequenceText = `Attacco improvviso e ferita! (-${animaleDmg} HP).`;
                         }
                      break;
@@ -911,6 +953,7 @@ function handleEventChoice(choiceKey) {
                 outcomeDesc = getRandomText(esitiPericoloAmbientaleColpito);
                 player.hp = Math.max(0, player.hp - hazardDmg);
                 player.isInjured = true; // Stato Ferito
+                statusJustChanged = true; // Imposta flag locale
                 consequenceText = `Subisci ${hazardDmg} HP di danno e rimani ferito.`;
                 statsChanged = true;
             }
@@ -932,6 +975,7 @@ function handleEventChoice(choiceKey) {
                      if (Math.random() < 0.5) { // 50% chance di danno
                         const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Vieni coinvolto e ferito (-${dmg} HP).`; statsChanged = true;
                      }
                 }
@@ -980,6 +1024,7 @@ function handleEventChoice(choiceKey) {
                     if (outcomeRoll < 0.5) { // Trappola
                         const dmg = getRandomInt(1, 2); player.hp = Math.max(0, player.hp - dmg);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         outcomeDesc = getRandomText(esitiRifugioIspezionaKoTrappola); consequenceText = `Scatta una trappola e ti ferisci! (-${dmg} HP).`; statsChanged = true;
                     } else { // Nulla
                         outcomeDesc = getRandomText(esitiRifugioIspezionaKoNulla); consequenceText = "Non trovi nulla di nascosto.";
@@ -1008,6 +1053,7 @@ function handleEventChoice(choiceKey) {
                     if (trapType < 0.6) { // Danno HP
                         const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
                         player.isInjured = true; // Stato Ferito
+                        statusJustChanged = true; // Imposta flag locale
                         consequenceText = `Vieni ferito dalla trappola! (-${dmg} HP).`; statsChanged = true;
                         addMessage("Era una trappola!", "warning", true);
                     } else { // Imboscata Predoni
@@ -1038,9 +1084,38 @@ function handleEventChoice(choiceKey) {
                 } else {
                     outcomeDesc = "L'acqua aveva un sapore strano... inizi a sentirti poco bene.";
                     player.isSick = true; // Stato Malato
+                    statusJustChanged = true; // Imposta flag locale
                     consequenceText = "Ti senti Malato.";
                     statsChanged = true; // Aggiorniamo le stats per mostrare lo stato malato
                 }
+            }
+            break;
+
+        case 'loot_semplice': // Gestire anche l'esito del cibo avariato
+            if (context.subType === 'spoiled_food') {
+                outcomeTitle = "Cibo Sospetto";
+                if (choiceKey === 'L') {
+                    outcomeDesc = "Decidi di non rischiare e lasci lì quel cibo dall'aspetto orribile.";
+                } else if (choiceKey === 'M') {
+                    checkResult = performSkillCheck('adattamento', context.difficulty || 11);
+                    if (checkResult.success) {
+                        outcomeDesc = "Mangi il cibo sospetto... Non era il massimo, ma sembra tutto a posto. Almeno hai messo qualcosa nello stomaco.";
+                        player.food += context.amount || 1; // Aggiunge cibo
+                        consequenceText = `Guadagni ${context.amount || 1} Cibo.`;
+                        statsChanged = true;
+                    } else {
+                        outcomeDesc = "Quel cibo era decisamente avariato! Inizi a sentirti molto male.";
+                        player.isSick = true; // Stato Malato
+                        statusJustChanged = true;
+                        consequenceText = "Ti senti Malato.";
+                        statsChanged = true;
+                    }
+                }
+            } else {
+                // Questo blocco non dovrebbe essere raggiunto se loot_semplice ha scelte,
+                // ma lo teniamo per sicurezza o per casi futuri.
+                outcomeTitle = "Oggetti Trovati";
+                outcomeDesc = context.cons || "Hai preso le provviste."; // Usa la conseguenza salvata prima
             }
             break;
 
@@ -1052,15 +1127,20 @@ function handleEventChoice(choiceKey) {
     }
 
     // --- Gestione comune fine evento ---
-    hideEventScreen(); // Nasconde il popup delle scelte QUI, prima di mostrare l'esito
+    hideEventScreen();
 
-    if (statsChanged) {
+    // Forza renderStats SE lo status è cambiato in QUESTA esecuzione
+    if (statusJustChanged) {
         renderStats();
-        if (checkGameOver()) return; // Esce se il giocatore muore dopo l'evento
+    }
+    // Mantieni la logica precedente per altri cambi (HP, Cibo, Acqua)
+    else if (statsChanged) {
+        renderStats();
     }
 
-    // Mostra popup finale dell'evento (con l'esito)
-    // Usa outcomeChoices che di solito è vuoto, a meno che un esito non porti ad altre scelte (raro)
+    if (checkGameOver()) return; // Esce se il giocatore muore dopo l'evento
+
+    // Mostra popup finale dell'evento
     showEventPopup(outcomeTitle, outcomeDesc, outcomeChoices, checkResult, consequenceText);
 }
 
@@ -1123,37 +1203,54 @@ function movePlayer(dx, dy) {
 }
 
 function handleKeyPress(event) {
-     // Ignora se tasto tenuto premuto
     if (event.repeat) return;
 
-    if (eventScreenActive && currentEventChoices.length > 0) {
-        // Gestione input per scelte evento
+    if (eventScreenActive) {
+        // Gestione TASTI DENTRO overlay (evento o inventario)
         const key = event.key.toUpperCase();
+        if (key === 'ESCAPE') { // Chiude sempre con ESC
+            event.preventDefault();
+            hideEventScreen();
+            return;
+        }
+        // Se è inventario, gestisci numeri (esempio)?
+        if (document.getElementById('event-title').textContent === "Zaino") {
+            const index = parseInt(key) - 1;
+            const usableItems = player.inventory.filter(slot => ITEM_DATA[slot.itemId]?.usable);
+            if (!isNaN(index) && index >= 0 && index < usableItems.length) {
+                event.preventDefault();
+                useItem(usableItems[index].itemId);
+                return;
+            }
+        }
+        // Se è evento normale, gestisci scelte lettera
         const choice = currentEventChoices.find(c => c.key === key);
         if (choice) {
-            event.preventDefault(); // Previene azione default (es. scroll pagina)
+            event.preventDefault();
             handleEventChoice(key);
         }
-         // Se il tasto non corrisponde a una scelta, non fare nulla
-    } else if (gameActive && !eventScreenActive) {
-        // Gestione input per movimento
-        let dx = 0, dy = 0;
-        let validMoveKey = false;
+    } else if (gameActive) {
+        // Gestione input FUORI overlay (movimento o apri inventario)
         const lowerCaseKey = event.key.toLowerCase();
-
-        switch (lowerCaseKey) {
-            case "arrowup": case "w": dy = -1; validMoveKey = true; break;
-            case "arrowdown": case "s": dy = 1; validMoveKey = true; break;
-            case "arrowleft": case "a": dx = -1; validMoveKey = true; break;
-            case "arrowright": case "d": dx = 1; validMoveKey = true; break;
-        }
-
-        if (validMoveKey) {
-            event.preventDefault(); // Previene scroll pagina con frecce
-            movePlayer(dx, dy);
+        if (lowerCaseKey === 'i') { // Apri inventario con 'I'
+            event.preventDefault();
+            showInventoryScreen();
+        } else {
+            // Gestione movimento (invariata)
+            let dx = 0, dy = 0;
+            let validMoveKey = false;
+            switch (lowerCaseKey) {
+                case "arrowup": case "w": dy = -1; validMoveKey = true; break;
+                case "arrowdown": case "s": dy = 1; validMoveKey = true; break;
+                case "arrowleft": case "a": dx = -1; validMoveKey = true; break;
+                case "arrowright": case "d": dx = 1; validMoveKey = true; break;
+            }
+            if (validMoveKey) {
+                event.preventDefault();
+                movePlayer(dx, dy);
+            }
         }
     }
-     // Ignora altri tasti se gioco non attivo o evento senza scelte attivo
 }
 
 function setupInputListeners() {
@@ -1161,10 +1258,220 @@ function setupInputListeners() {
     document.removeEventListener('keydown', handleKeyPress);
     // Aggiunge nuovo listener
     document.addEventListener('keydown', handleKeyPress);
+
+    // Aggiungi listener per continue button
+    if (continueButton) {
+        continueButton.addEventListener('click', () => {
+            // Chiudi solo se il popup è attivo e NON ci sono scelte attive
+            if (eventScreenActive && currentEventChoices.length === 0) {
+                hideEventScreen();
+            }
+        });
+    }
+
+    // Aggiungi listener per restart button
+    const restartButton = document.getElementById('restart-button');
+    if (restartButton) {
+        restartButton.addEventListener('click', () => {
+            window.location.reload(); // Ricarica la pagina
+        });
+    }
+
+    // Aggiungere listener anche per i bottoni di movimento se non già presenti
+
+    // Aggiungi listener per bottone Inventario
+    const inventoryButton = document.getElementById('btn-inventory');
+    if (inventoryButton) {
+        inventoryButton.addEventListener('click', showInventoryScreen);
+    }
+}
+
+// NUOVA FUNZIONE per renderizzare l'inventario
+function renderInventory() {
+    if (!inventoryList) return;
+    if (!player || !player.inventory) {
+        inventoryList.innerHTML = '<li>Errore inventario</li>';
+        return;
+    }
+
+    if (player.inventory.length === 0) {
+        inventoryList.innerHTML = '<li>-- Vuoto --</li>';
+        return;
+    }
+
+    inventoryList.innerHTML = ''; // Pulisce lista
+    player.inventory.forEach(slot => {
+        const itemInfo = ITEM_DATA[slot.itemId];
+        if (itemInfo) {
+            const li = document.createElement('li');
+            li.textContent = `${itemInfo.name} (${slot.quantity})`;
+            // Aggiungi data-* attribute per identificare l'oggetto nell'UI se serve per l'uso
+            li.dataset.itemId = slot.itemId;
+            inventoryList.appendChild(li);
+        } else {
+            // Oggetto non trovato nei dati globali? Loggare errore.
+            console.warn(`Oggetto con ID ${slot.itemId} nell'inventario non trovato in ITEM_DATA.`);
+        }
+    });
 }
 
 // Avvio del gioco all'onload
 window.onload = () => {
     mapDisplay.textContent = "Caricamento..."; // Messaggio iniziale
     initializeGame(); // Avvia direttamente il gioco
-}; 
+    renderInventory(); // Chiamata dopo INIT GAME
+};
+
+// Funzione per mostrare la schermata inventario/uso oggetti
+function showInventoryScreen() {
+    if (!gameActive || eventScreenActive) return; // Non mostrare se gioco non attivo o altro popup aperto
+
+    const usableItems = player.inventory.filter(slot => {
+        const itemData = ITEM_DATA[slot.itemId];
+        return itemData && itemData.usable;
+    });
+
+    let content = "Inventario:\n";
+    let choicesHTML = "";
+
+    if (usableItems.length === 0) {
+        content += "Nessun oggetto utilizzabile.";
+    } else {
+        content += "Seleziona un oggetto da usare:";
+        usableItems.forEach((slot, index) => {
+            const itemData = ITEM_DATA[slot.itemId];
+            // Usa indice + 1 come tasto (o altra logica se preferisci lettere)
+            const key = (index + 1).toString();
+            choicesHTML += `<div class="event-choice"><button onclick="useItem('${slot.itemId}')">[${key}] ${itemData.name} (${slot.quantity})</button> - ${itemData.desc}</div>`;
+            // Aggiungiamo anche gestione da tastiera?
+            // Potremmo aggiungere la key all'oggetto per handleKeyPress
+        });
+    }
+
+    // Aggiungi sempre scelta per chiudere
+    choicesHTML += `<div class="event-choice"><button onclick="hideEventScreen()">[Esc] Chiudi</button></div>`;
+
+    // Usa la struttura showEventPopup ma senza contesto evento
+    eventTitle.textContent = "Zaino";
+    eventContent.innerHTML = content.replace(/\n/g, '<br>') + choicesHTML;
+    if (continueButton) continueButton.style.display = 'none'; // Nascondi sempre continua qui
+
+    eventOverlay.style.display = 'block';
+    disableControls(true);
+    eventScreenActive = true; // Usa lo stesso flag dell'evento
+    currentEventChoices = []; // Resetta scelte evento normale
+    eventContent.scrollTop = 0;
+}
+
+// Funzione placeholder per usare l'oggetto (verrà implementata dopo)
+function useItem(itemId) {
+    if (!player || !player.inventory) return;
+    const itemData = ITEM_DATA[itemId];
+    if (!itemData || !itemData.usable) {
+        addMessage("Non puoi usare questo oggetto.", "warning");
+        hideEventScreen();
+        return;
+    }
+
+    const inventorySlotIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
+    if (inventorySlotIndex === -1) {
+        addMessage("Non hai questo oggetto!", "warning"); // Errore logico?
+        hideEventScreen();
+        return;
+    }
+
+    let effectApplied = false;
+    let success = true; // Assume successo se non c'è chance
+    let effectMsg = `Hai usato: ${itemData.name}.`;
+
+    // Applica effetto
+    if (itemData.effect) {
+        const effect = itemData.effect;
+        // Controlla chance di successo se presente
+        if (effect.chance !== undefined) {
+            success = Math.random() < effect.chance;
+        }
+
+        if (success) {
+            switch (effect.type) {
+                case 'add_resource':
+                    if (effect.resource_type === 'food') {
+                        player.food += effect.amount;
+                        effectMsg += ` Hai recuperato ${effect.amount} Cibo.`;
+                    } else if (effect.resource_type === 'water') {
+                        player.water += effect.amount;
+                        effectMsg += ` Hai recuperato ${effect.amount} Acqua.`;
+                    }
+                    renderStats(); // Aggiorna risorse UI
+                    effectApplied = true;
+                    break;
+                case 'heal_status':
+                    if (effect.status_cured === 'isInjured' && player.isInjured) {
+                        player.isInjured = false;
+                        effectMsg += " Ti senti meglio, la ferita è trattata.";
+                        renderStats(); // Aggiorna status UI
+                        effectApplied = true;
+                    } else if (effect.status_cured === 'isSick' && player.isSick) {
+                        player.isSick = false;
+                        effectMsg += " L'intruglio sembra aver funzionato, la malattia regredisce.";
+                        renderStats(); // Aggiorna status UI
+                        effectApplied = true;
+                    } else {
+                        effectMsg += " ...ma non ha avuto effetto (non eri ferito/malato).";
+                        // Non consideriamo l'oggetto consumato se non ha effetto?
+                        // Per ora sì, ma potremmo cambiarlo.
+                    }
+                    break;
+                case 'show_lore':
+                    // Questa logica è per oggetti lore 'usabili', ma i nostri sono non usabili
+                    // La lettura avviene in addItemToInventory per ora.
+                    break;
+                // Aggiungere altri tipi di effetto qui...
+            }
+        } else { // Fallimento effetto (basato su chance)
+            effectMsg += " ...ma non sembra aver funzionato questa volta.";
+            effectApplied = true; // L'oggetto è stato comunque tentato di usare
+        }
+    }
+
+    // Rimuovi oggetto dall'inventario se l'effetto è stato applicato (o tentato se fallito)
+    if (effectApplied) {
+        const slot = player.inventory[inventorySlotIndex];
+        slot.quantity -= 1;
+        if (slot.quantity <= 0) {
+            player.inventory.splice(inventorySlotIndex, 1); // Rimuove slot se vuoto
+        }
+        renderInventory(); // Aggiorna UI inventario
+    }
+
+    addMessage(effectMsg);
+    hideEventScreen(); // Chiude overlay inventario
+}
+
+// Funzione helper per aggiungere oggetti all'inventario
+function addItemToInventory(itemId, quantity = 1) {
+    if (!player || !player.inventory || quantity <= 0) return;
+    const itemData = ITEM_DATA[itemId];
+    if (!itemData) {
+        console.warn(`Tentativo di aggiungere oggetto inesistente: ${itemId}`);
+        return;
+    }
+
+    let added = false;
+    if (itemData.stackable) {
+        const existingSlot = player.inventory.find(slot => slot.itemId === itemId);
+        if (existingSlot) {
+            existingSlot.quantity += quantity;
+            added = true;
+        }
+    }
+
+    if (!added) {
+        // Aggiungi come nuovo slot (non impilabile o non trovato stack esistente)
+        // Potremmo aggiungere un limite all'inventario qui se necessario
+        player.inventory.push({ itemId: itemId, quantity: quantity });
+    }
+
+    addMessage(`Hai trovato: ${itemData.name} (${quantity})`, 'info');
+    renderInventory(); // Aggiorna UI inventario
+}

@@ -13,6 +13,68 @@ const THIRST_PENALTY_HP = 1; // Danno HP per notte senza acqua
 const TILE_SYMBOLS = { PLAINS:'.', MOUNTAIN:'M', RIVER:'~', FOREST:'F', VILLAGE:'V', CITY:'C', REST_STOP:'R', START:'S', END:'E', PLAYER:'@' };
 const TILE_DESC = { '.':'Pianura desolata', 'M':'Montagne cicatrizzate', '~':'Fiume lento', 'F':'Foresta opprimente', 'V':'Accampamento isolato', 'C':'Rovine di città', 'R':'Rifugio improvvisato', 'S':"Punto d'inizio", 'E':'Destinazione incerta', '@':'Ultimo (Tu)' };
 
+// --- DEFINIZIONE OGGETTI GLOBALI ---
+const ITEM_DATA = {
+    // Risorse Utilizzabili
+    'water_purified_small': {
+        id: 'water_purified_small',
+        name: "Acqua Purificata (P)",
+        desc: "Una piccola borraccia di acqua potabile.",
+        type: 'risorsa',
+        effect: { type: 'add_resource', resource_type: 'water', amount: 3 },
+        usable: true,
+        stackable: true
+    },
+    'canned_food': {
+        id: 'canned_food',
+        name: "Cibo in Scatola",
+        desc: "Una scatoletta ammaccata ma sigillata. Sembra commestibile.",
+        type: 'risorsa',
+        effect: { type: 'add_resource', resource_type: 'food', amount: 4 },
+        usable: true,
+        stackable: true
+    },
+    // Oggetti Curativi
+    'bandages_dirty': {
+        id: 'bandages_dirty',
+        name: "Bende Sporche",
+        desc: "Stracci usati come bende. Non ideali, ma meglio di niente.",
+        type: 'cura',
+        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.50 }, // 50% chance
+        usable: true,
+        stackable: true
+    },
+    'medicine_crude': {
+        id: 'medicine_crude',
+        name: "Medicina Grezza",
+        desc: "Un intruglio dall'odore pungente. Forse aiuta contro la malattia.",
+        type: 'cura',
+        effect: { type: 'heal_status', status_cured: 'isSick', chance: 0.65 }, // 65% chance
+        usable: true,
+        stackable: true
+    },
+    // Materiali / Lore
+    'scrap_metal': {
+        id: 'scrap_metal',
+        name: "Rottame Metallico",
+        desc: "Un pezzo di metallo contorto e arrugginito. Inutile ora, forse utile per riparazioni future?",
+        type: 'materiale',
+        effect: null,
+        usable: false,
+        stackable: true
+    },
+    'lore_fragment_item': {
+        id: 'lore_fragment_item',
+        name: "Nota Strappata",
+        desc: "Un pezzo di carta con scritte sbiadite.",
+        type: 'lore',
+        effect: { type: 'show_lore', text_array_ref: 'loreFragments' }, // Riferimento all'array di lore
+        usable: false, // Letto quando raccolto
+        stackable: false
+    }
+    // Aggiungere altri oggetti qui...
+};
+
 // --- Testi Variabili (Flavor, Lore, Eventi) ---
 // (Nota: Questi array sono lunghi e rimangono invariati rispetto all'originale,
 // la loro esternalizzazione è un passo successivo consigliato)
