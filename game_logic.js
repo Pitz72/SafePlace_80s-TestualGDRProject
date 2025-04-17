@@ -1,3 +1,31 @@
+// Funzione helper per numeri casuali interi (inclusivo)
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Funzione helper per selezionare un testo casuale da un array
+function getRandomText(textArray) {
+    if (!textArray || textArray.length === 0) return "";
+    return textArray[Math.floor(Math.random() * textArray.length)];
+}
+
+// Funzione per aggiungere messaggi al log e controllare il limite
+function addMessage(text, type = 'normal', important = false) {
+    if (!text) return;
+    let prefix = "";
+    if (type === 'warning') prefix = "<span class='msg-warning'>[!]</span> ";
+    else if (type === 'info') prefix = "<span class='msg-info'>[*]</span> ";
+    if (important) text = `<strong>${text}</strong>`;
+
+    messages.unshift(prefix + text); // Aggiunge all'inizio per visualizzare i più recenti in alto
+    if (messages.length > MAX_MESSAGES) {
+        messages.pop(); // Rimuove il messaggio più vecchio se si supera il limite
+    }
+    if (messagesList) renderMessages(); // Aggiorna la lista nel DOM
+}
+
 // --- Variabili di Stato ---
 let player = {};
 let map = [];
@@ -102,7 +130,9 @@ function generateCharacter() {
         maxHp: 0, hp: 0, x: undefined, y: undefined,
         food: STARTING_FOOD, water: STARTING_WATER,
         ammo: 0, // Non usata al momento?
-        movesCounter: 0 // Non usata al momento?
+        movesCounter: 0, // Non usata al momento?
+        isInjured: false, // Flag Ferito
+        isSick: false    // Flag Malato
     };
     player.maxHp = 10 + player.vigore;
     player.hp = player.maxHp;
@@ -168,6 +198,25 @@ function renderStats() {
         statFood.classList.toggle('low-resource', (player?.food ?? 99) <= 1);
         statWater.classList.toggle('low-resource', (player?.water ?? 99) <= 1);
         posX.textContent = player?.x ?? '--'; posY.textContent = player?.y ?? '--';
+
+        // Aggiorna Status Condizione
+        const conditionSpan = document.getElementById('stat-condition');
+        if (conditionSpan) {
+            let statusText = "Normale";
+            let statusClass = "status-normal";
+            if (player?.isInjured && player?.isSick) {
+                statusText = "Ferito, Malato";
+                statusClass = "status-danger";
+            } else if (player?.isInjured) {
+                statusText = "Ferito";
+                statusClass = "status-warning";
+            } else if (player?.isSick) {
+                statusText = "Malato";
+                statusClass = "status-warning";
+            }
+            conditionSpan.textContent = statusText;
+            conditionSpan.className = statusClass; // Rimuove classi vecchie e imposta la nuova
+        }
 
         if (gameActive && map?.[player?.y]?.[player?.x]) {
             const currentTile = map[player.y][player.x];
@@ -274,9 +323,33 @@ function performSkillCheck(statKey, difficulty) {
     const statValue = player[statKey] || 5; // Default a 5 se stat non trovata
     const roll = getRandomInt(1, 20);
     const bonus = Math.floor((statValue - 10) / 2); // Modificatore D&D style
+
+    // Applica penalità status
+    let difficultyPenalty = 0;
+    let penaltyReason = "";
+    if (player.isInjured && (statKey === 'potenza' || statKey === 'agilita')) {
+        difficultyPenalty = 2; // Penalità Ferito per Potenza/Agilità
+        penaltyReason = " (Ferito)";
+    }
+    if (player.isSick && (statKey === 'vigore' || statKey === 'adattamento')) {
+        difficultyPenalty = 2; // Penalità Malato per Vigore/Adattamento
+        // Se era già ferito, la penalità si somma?
+        // Per ora, la seconda penalità sovrascrive la prima se la stat è diversa.
+        // Se la stat è la stessa (improbabile qui), si potrebbe sommare.
+        // Scegliamo la penalità più alta se entrambe si applicano alla stessa stat?
+        // Per semplicità, ora si applica solo l'ultima condizione verificata.
+        // Possiamo affinare: se entrambe le condizioni sono vere e si applicano a stat diverse,
+        // si potrebbero applicare entrambe? No, il check è per una sola stat.
+        // Quindi, se la stat è Vigore e si è sia Feriti che Malati, si applica solo la penalità Malato.
+        // Facciamo che la penalità si applica SE lo stato impatta la stat specifica.
+        penaltyReason = " (Malato)";
+    }
+
+    const finalDifficulty = difficulty + difficultyPenalty;
     const total = roll + bonus;
-    const success = total >= difficulty;
-    const resultText = `Prova ${statKey.toUpperCase()}(Diff ${difficulty}): D20(${roll}) + Mod(${bonus}) = ${total} -> ${success ? "SUCCESSO!" : '<span class="danger-text">FALLIMENTO!</span>'}`;
+    const success = total >= finalDifficulty;
+    // Aggiorna testo risultato per mostrare la penalità
+    const resultText = `Prova ${statKey.toUpperCase()}(Diff ${difficulty}${penaltyReason !== "" ? `->${finalDifficulty}`: ""}${penaltyReason}): D20(${roll}) + Mod(${bonus}) = ${total} -> ${success ? "SUCCESSO!" : '<span class="danger-text">FALLIMENTO!</span>'}`;
     return { success: success, text: resultText };
 }
 
@@ -387,20 +460,35 @@ function handleTileEvent(tile) {
     }
 
     // Logica eventi specifici per tile / Flavor text
-    let specificEventTitle = "", specificEventDesc = "", specificEventChoices = [], specificEventCheck = null, specificEventCons = "", immediateEvent = false;
     let flavor = "";
+    let immediateEvent = false;
+    let specificEventTitle = "", specificEventDesc = "", specificEventChoices = [], specificEventCheck = null, specificEventCons = "";
 
     switch (tileSymbol) {
         case TILE_SYMBOLS.REST_STOP:
             if (!isDay) { // Notte: Riposo forzato
+                immediateEvent = true;
                 specificEventTitle = "Rifugio Trovato (Notte)";
                 specificEventDesc = "Sei riuscito a trovare un rifugio appena in tempo! Puoi finalmente riposare fino all'alba.";
-                immediateEvent = true;
 
+                // Logica Recupero Status
+                let recoveredStatusMsg = "";
+                if (player.isInjured && Math.random() < 0.30) { // 30% chance recupero Ferito
+                    player.isInjured = false;
+                    recoveredStatusMsg += " La ferita sembra guarita.";
+                    statsChanged = true;
+                }
+                if (player.isSick && Math.random() < 0.35) { // 35% chance recupero Malato
+                    player.isSick = false;
+                    recoveredStatusMsg += " La febbre è passata.";
+                    statsChanged = true;
+                }
+
+                // Passaggio Giorno/Notte
                 isDay = true;
                 dayMovesCounter = 0;
                 daysSurvived++;
-                addMessage(`[FASE] Hai passato la notte al sicuro. Sorge un nuovo Giorno (Giorno ${daysSurvived + 1}).`, 'info', true);
+                addMessage(`[FASE] Hai passato la notte. Sorge un nuovo Giorno (Giorno ${daysSurvived + 1}).${recoveredStatusMsg}`, 'info', true);
 
                 player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
                 player.water = Math.max(0, player.water - NIGHT_WATER_COST);
@@ -418,13 +506,15 @@ function handleTileEvent(tile) {
                     penaltyApplied = true;
                 }
 
-                if (player.hp < player.maxHp && !penaltyApplied) {
+                if (player.hp < player.maxHp && !penaltyApplied && !player.isInjured && !player.isSick) { // Recupero HP solo se non penalizzato e non Ferito/Malato
                     const recoveredHp = getRandomInt(1, 2);
                     player.hp = Math.min(player.maxHp, player.hp + recoveredHp);
                     specificEventCons = `Riprendi un po' di fiato (+${recoveredHp} HP).`;
                     statsChanged = true;
                 } else if (penaltyApplied) {
                     specificEventCons = "Sei esausto e affamato/assetato, il riposo non basta.";
+                } else if (player.isInjured || player.isSick) {
+                     specificEventCons = "Il riposo aiuta, ma senti ancora gli effetti della tua condizione.";
                 } else {
                     specificEventCons = "Passi la notte relativamente tranquillo.";
                 }
@@ -493,7 +583,7 @@ function triggerRandomEvent(allowedTypes = []) {
         }
         difficultyModifier = getRandomInt(1, 3); // Notte rende più difficile
     } else { // GIORNO
-         const dayPool = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'villaggio_ostile', 'eco_radio', 'ritrovamento_dubbio'];
+         const dayPool = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'villaggio_ostile', 'eco_radio', 'ritrovamento_dubbio', 'acqua_contaminata'];
          possibleEvents = allowedTypes.filter(type => dayPool.includes(type));
          if (possibleEvents.length === 0) return; // Nessun evento diurno possibile
     }
@@ -522,6 +612,7 @@ function triggerRandomEvent(allowedTypes = []) {
          case 'orrore_indicibile': baseDifficulty = 15; break;
          case 'eco_radio': baseDifficulty = 13; break;
          case 'ritrovamento_dubbio': baseDifficulty = 12; break;
+         case 'acqua_contaminata': baseDifficulty = 11; break; // Imposto difficoltà base
          // loot e lore non hanno difficoltà
          default: baseDifficulty = 12; break;
     }
@@ -610,6 +701,11 @@ function triggerRandomEvent(allowedTypes = []) {
             desc += "\n\nSembra troppo bello per essere vero. Cosa fai?";
             choices = [ { key: 'P', text: "Prendi la Scorta (Rischioso)" }, { key: 'L', text: "Lascia perdere (Sicuro)" }];
             break;
+        case 'acqua_contaminata':
+            title = "Fonte d'Acqua Sospetta";
+            desc = "Trovi una piccola pozza d'acqua dall'aspetto stagnante e un odore leggermente acre. Potrebbe essere rischioso berla, ma la sete si fa sentire.";
+            choices = [ { key: 'B', text: "Bevi (Rischio Malattia - Vigore)" }, { key: 'I', text: "Ignora (Sicuro)" }];
+            break;
         default: // Evento non gestito? Logga e non fare nulla
             console.warn(`Tipo evento casuale non gestito: ${eventType}`);
             return; // Esce senza mostrare popup
@@ -650,17 +746,42 @@ function handleEventChoice(choiceKey) {
                 case 'F': // Fuga
                     checkResult = performSkillCheck('agilita', effectiveDifficulty);
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiFugaPredoniOk); }
-                    else { outcomeDesc = getRandomText(esitiFugaPredoniKo); predoniDmg = getRandomInt(1, 3); consequenceText = `Vieni colpito (-${predoniDmg} HP).`; }
+                    else {
+                        outcomeDesc = getRandomText(esitiFugaPredoniKo);
+                        predoniDmg = getRandomInt(1, 3);
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Vieni colpito e ferito! (-${predoniDmg} HP).`;
+                    }
                     break;
                 case 'C': // Combatti
                     checkResult = performSkillCheck('potenza', effectiveDifficulty + 1); // Combattere è più difficile
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiLottaPredoniOk); }
-                    else { outcomeDesc = getRandomText(esitiLottaPredoniKo); predoniDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5); predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 1 : 2)); predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 1 : 2)); consequenceText = `Subisci danni (-${predoniDmg} HP)`; if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`; if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`; consequenceText += "."; }
+                    else {
+                        outcomeDesc = getRandomText(esitiLottaPredoniKo);
+                        predoniDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5);
+                        predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 1 : 2));
+                        predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 1 : 2));
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Subisci danni e vieni ferito (-${predoniDmg} HP)`;
+                        if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
+                        if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
+                        consequenceText += ".";
+                    }
                     break;
                 case 'P': // Parla
                     checkResult = performSkillCheck('influenza', effectiveDifficulty + 2); // Parlare è molto più difficile
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiParlaPredoniOk); }
-                    else { outcomeDesc = getRandomText(esitiParlaPredoniKo); predoniDmg = getRandomInt(isDay ? 1 : 2, isDay ? 3 : 4); predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 2 : 3)); predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 2 : 3)); consequenceText = `Ti attaccano (-${predoniDmg} HP)`; if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`; if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`; consequenceText += "."; }
+                    else {
+                        outcomeDesc = getRandomText(esitiParlaPredoniKo);
+                        predoniDmg = getRandomInt(isDay ? 1 : 2, isDay ? 3 : 4);
+                        predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 2 : 3));
+                        predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 2 : 3));
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Ti attaccano e ti feriscono (-${predoniDmg} HP)`;
+                        if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
+                        if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
+                        consequenceText += ".";
+                    }
                     break;
             }
             // Applica danni/perdite predoni
@@ -679,24 +800,44 @@ function handleEventChoice(choiceKey) {
                     const statToUse = (player.agilita > player.tracce ? 'agilita' : 'tracce');
                     checkResult = performSkillCheck(statToUse, effectiveDifficulty);
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiEvitaAnimaleOk); }
-                    else { outcomeDesc = getRandomText(esitiEvitaAnimaleKo); animaleDmg = getRandomInt(isDay ? 1 : 2, isDay ? 2 : 3); consequenceText = `L'animale ti attacca! (-${animaleDmg} HP).`; }
+                    else {
+                        outcomeDesc = getRandomText(esitiEvitaAnimaleKo);
+                        animaleDmg = getRandomInt(isDay ? 1 : 2, isDay ? 2 : 3);
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `L'animale ti attacca e ti ferisce! (-${animaleDmg} HP).`;
+                    }
                     break;
                 case 'S': // Spaventa (Solo giorno)
                     if (context.event === 'animale_notturno') { outcomeDesc = "Non puoi spaventare efficacemente ciò che non vedi bene..."; checkResult={text:"Azione inefficace di notte.", success:false}; break; }
                     checkResult = performSkillCheck('influenza', effectiveDifficulty);
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiSpaventaAnimaleOk); }
-                    else { outcomeDesc = getRandomText(esitiSpaventaAnimaleKo); animaleDmg = getRandomInt(1, 3); consequenceText = `La bestia si infuria e attacca! (-${animaleDmg} HP).`; }
+                    else {
+                        outcomeDesc = getRandomText(esitiSpaventaAnimaleKo);
+                        animaleDmg = getRandomInt(1, 3);
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `La bestia si infuria, attacca e ti ferisce! (-${animaleDmg} HP).`;
+                    }
                     break;
                 case 'A': // Attacca
                     checkResult = performSkillCheck('potenza', effectiveDifficulty);
                     if (checkResult.success) { outcomeDesc = getRandomText(esitiAttaccoAnimaleOk); }
-                    else { outcomeDesc = getRandomText(esitiAttaccoAnimaleKo); animaleDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5); consequenceText = `Vieni ferito (-${animaleDmg} HP).`; }
+                    else {
+                        outcomeDesc = getRandomText(esitiAttaccoAnimaleKo);
+                        animaleDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5);
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Vieni ferito nello scontro (-${animaleDmg} HP).`;
+                    }
                     break;
                  case 'O': // Osserva (Solo notte)
                      if (context.event === 'animale') { outcomeDesc = "Non c'è tempo per osservare!"; checkResult={text:"Azione non disponibile di giorno.", success:false}; break;}
                      checkResult = performSkillCheck('tracce', effectiveDifficulty -1); // Osservare è leggermente più facile
                      if (checkResult.success) { outcomeDesc = "Riesci a capire la natura della creatura e a evitarla senza combattere."; /* Potrebbe dare bonus Adattamento? */ }
-                     else { outcomeDesc = "Non riesci a capire cosa sia, e ti attacca alla sprovvista!"; animaleDmg = getRandomInt(2, 4); consequenceText = `Attacco improvviso! (-${animaleDmg} HP).`; }
+                     else {
+                         outcomeDesc = "Non riesci a capire cosa sia, e ti attacca alla sprovvista!";
+                         animaleDmg = getRandomInt(2, 4);
+                         player.isInjured = true; // Stato Ferito
+                         consequenceText = `Attacco improvviso e ferita! (-${animaleDmg} HP).`;
+                        }
                      break;
             }
              // Applica danni animale
@@ -769,7 +910,8 @@ function handleEventChoice(choiceKey) {
                 const hazardDmg = context.damage || getRandomInt(1,3); // Usa danno dal contesto o default
                 outcomeDesc = getRandomText(esitiPericoloAmbientaleColpito);
                 player.hp = Math.max(0, player.hp - hazardDmg);
-                consequenceText = `Subisci ${hazardDmg} HP di danno.`;
+                player.isInjured = true; // Stato Ferito
+                consequenceText = `Subisci ${hazardDmg} HP di danno e rimani ferito.`;
                 statsChanged = true;
             }
             break;
@@ -789,7 +931,8 @@ function handleEventChoice(choiceKey) {
                      outcomeDesc = getRandomText(esitiDilemmaMoraleIndagaOkNegativo);
                      if (Math.random() < 0.5) { // 50% chance di danno
                         const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
-                        consequenceText = `Vieni ferito (-${dmg} HP).`; statsChanged = true;
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Vieni coinvolto e ferito (-${dmg} HP).`; statsChanged = true;
                      }
                 }
             }
@@ -836,7 +979,8 @@ function handleEventChoice(choiceKey) {
                     const outcomeRoll = Math.random();
                     if (outcomeRoll < 0.5) { // Trappola
                         const dmg = getRandomInt(1, 2); player.hp = Math.max(0, player.hp - dmg);
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaKoTrappola); consequenceText = `Vieni ferito! (-${dmg} HP).`; statsChanged = true;
+                        player.isInjured = true; // Stato Ferito
+                        outcomeDesc = getRandomText(esitiRifugioIspezionaKoTrappola); consequenceText = `Scatta una trappola e ti ferisci! (-${dmg} HP).`; statsChanged = true;
                     } else { // Nulla
                         outcomeDesc = getRandomText(esitiRifugioIspezionaKoNulla); consequenceText = "Non trovi nulla di nascosto.";
                     }
@@ -863,7 +1007,8 @@ function handleEventChoice(choiceKey) {
                     const trapType = Math.random();
                     if (trapType < 0.6) { // Danno HP
                         const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
-                        consequenceText = `Vieni ferito! (-${dmg} HP).`; statsChanged = true;
+                        player.isInjured = true; // Stato Ferito
+                        consequenceText = `Vieni ferito dalla trappola! (-${dmg} HP).`; statsChanged = true;
                         addMessage("Era una trappola!", "warning", true);
                     } else { // Imboscata Predoni
                         consequenceText = "Sei caduto in un'imboscata!";
@@ -876,6 +1021,28 @@ function handleEventChoice(choiceKey) {
                 }
             }
              break; // <--- !! BREAK AGGIUNTO !!
+
+         // --- NUOVO EVENTO PER STATO MALATO --- (Semplificato per ora)
+        case 'acqua_contaminata':
+            outcomeTitle = "Acqua Sospetta";
+            if (choiceKey === 'I') { // Scelta Ignora
+                outcomeDesc = "Decidi saggiamente di non bere quell'acqua dall'aspetto terribile.";
+                // Nessuna conseguenza, nessuna stats cambiata
+            } else if (choiceKey === 'B') { // Scelta Bevi
+                checkResult = performSkillCheck('vigore', effectiveDifficulty); // Check su Vigore
+                if (checkResult.success) {
+                    outcomeDesc = "Bevi con cautela e non sembra avere effetti negativi. Ti senti rinfrescato.";
+                    player.water += 2; // Bonus acqua se resisti
+                    consequenceText = "Guadagni 2 Acqua.";
+                    statsChanged = true; // Aggiorniamo le stats perché l'acqua è cambiata
+                } else {
+                    outcomeDesc = "L'acqua aveva un sapore strano... inizi a sentirti poco bene.";
+                    player.isSick = true; // Stato Malato
+                    consequenceText = "Ti senti Malato.";
+                    statsChanged = true; // Aggiorniamo le stats per mostrare lo stato malato
+                }
+            }
+            break;
 
         default:
             console.warn(`Evento non gestito in handleEventChoice: ${context.event}`);

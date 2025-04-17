@@ -17,9 +17,100 @@ body { background-color: var(--bg-color); color: var(--fg-color); font-family: '
 #end-screen h2 { color: var(--accent-color); margin-bottom: 30px; }
 #end-screen button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 10px 20px; font-family: inherit; font-size: 1.1em; cursor: pointer; margin-top: 20px;}
 /* Game Container e Sezioni con TAG SEMANTICI */
-main#game-container { display: none; flex-direction: row; border: 2px solid var(--border-color); padding: 10px; box-sizing: border-box; position: relative; width: 100%; height: 100%; max-width: 1000px; max-height: 700px; background-color: var(--bg-color); overflow: hidden; }
-section#map-area { flex: 3; border-right: 1px dashed var(--border-color); padding-right: 10px; margin-right: 10px; display: flex; flex-direction: column; overflow: hidden; }
-#map-display { font-family: 'Courier New', Courier, monospace; white-space: pre; font-size: 18px; line-height: 1.1; margin-bottom: 10px; flex-grow: 1; overflow: auto; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; box-sizing: border-box; }
+main#game-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    border: 1px solid #555;
+    background-color: #222;
+    color: #ccc;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+#left-panel,
+#info-panel {
+    width: 25%;
+    padding: 15px;
+    border-right: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#info-panel {
+    border-right: none;
+    border-left: 1px solid #444;
+}
+
+#map-panel {
+    width: 50%;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+#left-panel h3,
+#map-panel h3,
+#info-panel h3 {
+    margin: 0 0 8px 0;
+    padding: 0 0 4px 0;
+    color: #aaa;
+    border-bottom: 1px solid #444;
+    font-size: 1.1em;
+    display: block !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 1.2em !important;
+    line-height: 1.2 !important;
+    overflow: visible !important;
+    position: static !important;
+}
+
+#left-panel ul,
+#info-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#left-panel li,
+#info-panel li {
+    margin-bottom: 4px;
+}
+
+#messages-panel {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 180px;
+    border-top: 1px solid #444;
+    padding-top: 8px;
+}
+
+#messages {
+    font-size: 1em;
+}
+
+#map-display {
+    flex-grow: 1;
+    background-color: #111;
+    padding: 10px;
+    border: 1px solid #333;
+    white-space: pre;
+    overflow: auto;
+    line-height: 1.1;
+    font-size: 16px;
+}
+
+#legend {
+    margin-top: 10px;
+}
+
+#legend-list li {
+    margin-bottom: 2px;
+    font-size: 1em;
+}
+
 /* Stili Colore Mappa */
 .tile-plains { color: var(--plains-color); } .tile-forest { color: var(--forest-color); } .tile-mountain { color: var(--mountain-color); } .tile-river { color: var(--water-color); } .tile-city, .tile-village { color: var(--ruin-color); } .tile-rest-stop, .tile-start { color: var(--special-color); } .tile-end { color: var(--end-color); font-weight: bold; }
 .visited { opacity: 0.6 !important; }
@@ -47,4 +138,59 @@ section#status-area { flex: 1; display: flex; flex-direction: column; overflow: 
  #event-overlay button.continue-button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.9em; cursor: pointer; margin-top: 10px; }
 .hidden { display: none !important; }
 /* Media Query Mobile */
-@media (max-width: 700px) { body{align-items:stretch;} main#game-container{flex-direction:column; max-width:100%; max-height:none; height:100%; padding:5px; border:none;} section#map-area{flex:1 1 55%; border-right:none; border-bottom:1px dashed var(--border-color); padding-right:0; margin-right:0; margin-bottom:10px;} #map-display{font-size:14px; line-height:1.0;} #controls{order:1; margin-bottom:10px;} section#status-area{flex:1 1 45%; min-width:unset; width:100%; order:2;} #map-legend{display:none;} #message-log{font-size:0.85em;} #event-overlay{width:95%; left:2.5%; height:90%; top:2.5%; font-size:0.9em;} } 
+@media (max-width: 900px) {
+    #game-container {
+        flex-direction: column;
+        max-width: 100%;
+        border: none;
+        margin: 0;
+    }
+
+    #left-panel,
+    #map-panel,
+    #info-panel {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #444;
+        padding: 10px;
+    }
+
+    #info-panel {
+        border-bottom: none;
+    }
+
+    #map-display {
+        max-height: 50vh;
+    }
+
+    #messages-panel {
+        max-height: 150px;
+    }
+}
+/* Aggiungi o modifica queste classi nel tuo file CSS */
+.status-normal {
+    color: inherit; /* Colore normale del testo */
+}
+
+.status-warning {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-danger {
+    color: red;
+    font-weight: bold;
+}
+
+/* Assicurati che anche low-resource sia definito */
+.low-resource {
+    color: red;
+    font-weight: bold;
+}
+
+/* Stili specifici per le sezioni interne dei pannelli */
+#left-panel > div,
+#info-panel > div {
+    overflow: visible !important;
+    min-height: 30px;
+} 
