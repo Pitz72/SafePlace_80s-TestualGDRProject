@@ -1,50 +1,108 @@
-// Funzione helper per numeri casuali interi (inclusivo)
+/**
+ * The Safe Place - Minimal Roguelike
+ * File: game_logic.js (Versione Pulita)
+ * Descrizione: Contiene la logica principale del gioco, la gestione degli eventi,
+ * il movimento, il rendering e le interazioni del giocatore.
+ * Le funzioni utility da utils.js sono state integrate qui.
+ * Il codice commentato obsoleto è stato rimosso.
+ */
+
+// --- FUNZIONI UTILITY (Integrate da utils.js e ottimizzate) ---
+
+/**
+ * Genera un numero intero casuale tra min e max (inclusi).
+ * @param {number} min - Il valore minimo.
+ * @param {number} max - Il valore massimo.
+ * @returns {number} Un numero intero casuale nell'intervallo specificato.
+ */
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Funzione helper per selezionare un testo casuale da un array
+/**
+ * Seleziona e restituisce un elemento testuale casuale da un array.
+ * @param {string[]} textArray - L'array di stringhe tra cui scegliere.
+ * @returns {string} Una stringa casuale dall'array, o "" se l'array è vuoto o non valido.
+ */
 function getRandomText(textArray) {
     if (!textArray || textArray.length === 0) return "";
     return textArray[Math.floor(Math.random() * textArray.length)];
 }
 
-// Funzione per aggiungere messaggi al log e controllare il limite
+/**
+ * Aggiunge un messaggio al log di gioco e aggiorna l'interfaccia.
+ * @param {string} text - Il testo del messaggio da aggiungere.
+ * @param {string} [type='normal'] - Il tipo di messaggio ('normal', 'warning', 'info', 'lore', 'success'). Influisce sullo stile.
+ * @param {boolean} [important=false] - Se true, il messaggio viene visualizzato in grassetto.
+ */
 function addMessage(text, type = 'normal', important = false) {
-    if (!text) return;
+    if (typeof text !== 'string') text = String(text); // Assicura che sia una stringa
+    if (!text || !messagesList) return; // Esce se non c'è testo o riferimento alla lista
+
     let prefix = "";
-    if (type === 'warning') prefix = "<span class='msg-warning'>[!]</span> ";
-    else if (type === 'info') prefix = "<span class='msg-info'>[*]</span> ";
+    let cssClass = ""; // Classe CSS per l'elemento <li>
+
+    switch(type) {
+        case 'warning':
+            prefix = "<span class='msg-warning'>[!]</span> ";
+            cssClass = "log-warning"; // Usa la classe definita per i warning
+            break;
+        case 'info':
+            prefix = "<span class='msg-info'>[*]</span> ";
+            cssClass = "info"; // Classe generica per info
+            break;
+        case 'lore':
+            prefix = ""; // Nessun prefisso per la lore
+            cssClass = "lore"; // Classe specifica per lore
+            break;
+        case 'success':
+             prefix = ""; // Nessun prefisso per successo
+             cssClass = "success"; // Classe specifica per successo
+             break;
+        // 'normal' non ha prefisso né classe speciale di default
+    }
+
+    // Applica grassetto se richiesto
     if (important) text = `<strong>${text}</strong>`;
 
-    messages.unshift(prefix + text); // Aggiunge all'inizio per visualizzare i più recenti in alto
+    // Aggiunge il messaggio alla FINE dell'array logico
+    messages.push({ text: prefix + text, class: cssClass });
+
+    // Mantiene il log entro la dimensione massima
     if (messages.length > MAX_MESSAGES) {
-        messages.pop(); // Rimuove il messaggio più vecchio se si supera il limite
+        // Rimuove il messaggio più vecchio (il primo dell'array)
+        messages.shift(); 
     }
-    if (messagesList) renderMessages(); // Aggiorna la lista nel DOM
+
+    // Aggiorna la visualizzazione nel DOM
+    renderMessages();
 }
 
-// --- Variabili di Stato ---
-let player = {};
-let map = [];
-let messages = [];
-let gameActive = false;
-let eventScreenActive = false;
-let currentEventChoices = [];
-let currentEventContext = null;
-let dayMovesCounter = 0; // Contatore passi diurni
-let isDay = true;       // Flag Giorno/Notte
-let daysSurvived = 0;   // Contatore giorni completati
 
-// --- Riferimenti DOM (Definiti subito) ---
+// --- VARIABILI DI STATO GLOBALI ---
+let player = {}; // Oggetto contenente i dati del giocatore
+let map = []; // Array bidimensionale rappresentante la mappa
+let messages = []; // Array contenente gli oggetti messaggio per il log {text: string, class: string}
+let gameActive = false; // Flag per indicare se il gioco è in corso
+let eventScreenActive = false; // Flag per indicare se un popup evento/inventario è attivo
+let currentEventChoices = []; // Array per memorizzare le scelte dell'evento corrente (per input tastiera)
+let currentEventContext = null; // Oggetto per memorizzare il contesto dell'evento corrente
+let dayMovesCounter = 0; // Contatore dei passi effettuati durante il giorno
+let isDay = true; // Flag per indicare se è giorno (true) o notte (false)
+let daysSurvived = 0; // Contatore dei giorni sopravvissuti
+
+
+// --- RIFERIMENTI AGLI ELEMENTI DEL DOM ---
+// Otteniamo i riferimenti agli elementi HTML una sola volta all'inizio per efficienza.
 const gameContainer = document.getElementById('game-container');
 const endScreen = document.getElementById('end-screen');
 const endTitle = document.getElementById('end-title');
 const endMessage = document.getElementById('end-message');
 const mapDisplay = document.getElementById('map-display');
-const statsList = document.getElementById('stats-list');
+// Riferimenti per le statistiche nella colonna destra
+const statsList = document.getElementById('stats-list'); // Non usato direttamente, ma utile per contesto
 const statHp = document.getElementById('stat-hp');
 const statMaxHp = document.getElementById('stat-maxhp');
 const statVig = document.getElementById('stat-vig');
@@ -55,25 +113,37 @@ const statInf = document.getElementById('stat-inf');
 const statPre = document.getElementById('stat-pre');
 const statAda = document.getElementById('stat-ada');
 const statAcq = document.getElementById('stat-acq');
+// Riferimenti per le risorse nella colonna sinistra
 const statFood = document.getElementById('stat-food');
 const statWater = document.getElementById('stat-water');
+const statCondition = document.getElementById('stat-condition'); // Riferimento per lo stato (Ferito/Malato)
+// Riferimenti per le info di gioco nella colonna destra
 const posX = document.getElementById('pos-x');
 const posY = document.getElementById('pos-y');
 const tileType = document.getElementById('tile-type');
 const statDayTime = document.getElementById('stat-day-time');
+// Riferimenti per log, controlli, overlay
 const messagesList = document.getElementById('messages');
-const moveButtons = document.querySelectorAll('#controls button');
+const moveButtons = document.querySelectorAll('#controls button:not(#btn-inventory)'); // Seleziona solo i bottoni di movimento
+// const inventoryButton = document.getElementById('btn-inventory'); // Commentato - Non più necessario
 const eventOverlay = document.getElementById('event-overlay');
+const eventPopup = document.getElementById('event-popup'); // Contenitore interno del popup
 const eventTitle = document.getElementById('event-title');
 const eventContent = document.getElementById('event-content');
-const legendList = document.getElementById('legend-list');
+const eventChoicesContainer = document.getElementById('event-choices'); // Contenitore scelte DENTRO il popup
+const legendList = document.getElementById('legend'); // ID CORRETTO
 const continueButton = eventOverlay.querySelector('.continue-button');
-const inventoryList = document.getElementById('inventory-list'); // Nuovo riferimento
+const inventoryList = document.getElementById('inventory'); // ID CORRETTO
+const restartButton = document.getElementById('restart-button');
 
-// --- FUNZIONI DI GIOCO ---
 
+// --- FUNZIONI PRINCIPALI DI GIOCO ---
+
+/**
+ * Inizializza lo stato del gioco, genera personaggio e mappa, e avvia il rendering iniziale.
+ */
 function initializeGame() {
-    // Pulisce stato precedente
+    // Pulisce lo stato precedente
     messages = [];
     player = {};
     map = [];
@@ -84,133 +154,232 @@ function initializeGame() {
     daysSurvived = 0;
 
     try {
+        // Genera personaggio e mappa (funzioni definite più avanti)
         generateCharacter();
-        if (!player || typeof player.vigore !== 'number') throw new Error("Generazione Personaggio Fallita");
+        if (!player || typeof player.vigore !== 'number') {
+            throw new Error("Generazione Personaggio Fallita o personaggio non valido.");
+        }
         generateMap();
-        if (!map || map.length === 0 || typeof player.x !== 'number') throw new Error("Generazione Mappa/Posizione Fallita");
+        if (!map || map.length === 0 || typeof player.x !== 'number' || typeof player.y !== 'number') {
+            throw new Error("Generazione Mappa Fallita o posizione giocatore non valida.");
+        }
     } catch(e) {
-        console.error("ERRORE INIZIALIZZAZIONE:", e);
-        if(mapDisplay) mapDisplay.textContent = `ERRORE INIZIALIZZAZIONE: ${e.message}`;
-        return; // Ferma se l'inizializzazione fallisce
+        console.error("ERRORE CRITICO INIZIALIZZAZIONE:", e);
+        // Mostra errore all'utente in modo più visibile
+        if(gameContainer) gameContainer.innerHTML = `<p style='color:red; padding: 20px;'>ERRORE INIZIALIZZAZIONE: ${e.message}. Impossibile avviare il gioco. Ricarica la pagina.</p>`;
+        return; // Ferma l'esecuzione se l'inizializzazione fallisce
     }
 
+    // Imposta il gioco come attivo
     gameActive = true;
-    eventOverlay.style.display = 'none';
-    gameContainer.style.display = 'flex'; // Mostra l'interfaccia di gioco
+    if(eventOverlay) eventOverlay.style.display = 'none';
+    if(endScreen) endScreen.style.display = 'none';
+    if(gameContainer) gameContainer.style.display = 'flex'; // Mostra l'interfaccia di gioco
 
+    // Effettua il rendering iniziale dell'interfaccia
     try {
         renderLegend();
-        renderStats();
-        renderInventory(); // Prima chiamata qui
-        renderMap();
-        renderMessages(); // Pulisce log precedente se c'era
-        addMessage(`Inizio viaggio. HP:${player.hp}, Cibo:${player.food}, Acqua:${player.water}. È Giorno.`);
+        renderStats(); // Renderizza statistiche e risorse
+        renderInventory(); // Renderizza l'inventario iniziale
+        renderMap(); // Renderizza la mappa
+        renderMessages(); // Pulisce il log precedente
+        addMessage(`Inizio del viaggio. HP:${player.hp}, Sazietà:${player.food}, Idratazione:${player.water}. È Giorno.`, 'info');
     } catch (e) {
         console.error("ERRORE RENDER INIZIALE:", e);
         if(mapDisplay) mapDisplay.textContent = "Errore nel rendering iniziale!";
         gameActive = false; // Impedisce di giocare se il rendering fallisce
     }
 
+    // Se tutto è andato bene, abilita i controlli e imposta i listener
     if (gameActive) {
         enableControls();
-        setupInputListeners();
-        renderInventory(); // Chiamata anche qui per sicurezza dopo setup?
-                           // O basta quella sopra?
-                           // Rimuoviamo questa, basta quella dopo generateCharacter.
+        setupInputListeners(); // Imposta listener per tastiera e pulsanti
     }
 }
 
-function generateCharacter() {
-    player = {
-        name: "Ultimo",
-        vigore: 9 + getRandomInt(0, 2),
-        potenza: 9 + getRandomInt(0, 2),
-        agilita: 14 + getRandomInt(0, 2),
-        tracce: 14 + getRandomInt(0, 2),
-        influenza: 6 + getRandomInt(0, 2),
-        presagio: 7 + getRandomInt(0, 2),
-        adattamento: 9 + getRandomInt(0, 2),
-        acquisita: 8 + getRandomInt(0, 2),
-        maxHp: 0, hp: 0, x: undefined, y: undefined,
-        food: STARTING_FOOD, water: STARTING_WATER,
-        ammo: 0, // Non usata al momento?
-        movesCounter: 0, // Non usata al momento?
-        isInjured: false, // Flag Ferito
-        isSick: false,    // Flag Malato
-        inventory: [] // Array per l'inventario [ { itemId: 'id', quantity: N }, ... ]
-    };
-    player.maxHp = 10 + player.vigore;
-    player.hp = player.maxHp;
+/**
+ * Aggiunge un oggetto all'inventario del giocatore o ne aumenta la quantità se già presente.
+ * @param {string} itemId - L'ID dell'oggetto da aggiungere (corrispondente a una chiave in itemData).
+ * @param {number} quantity - La quantità dell'oggetto da aggiungere.
+ */
+function addItemToInventory(itemId, quantity) {
+    if (!player || !player.inventory) {
+        console.error("Tentativo di aggiungere oggetto a inventario non inizializzato.");
+        return;
+    }
+    if (quantity <= 0) return; // Non aggiungere quantità nulle o negative
 
-    // Aggiungi oggetti iniziali?
-    // addItemToInventory('bandages_dirty', 1);
-    // addItemToInventory('water_purified_small', 1);
+    // Cerca se l'oggetto è già presente
+    const existingItem = player.inventory.find(item => item.itemId === itemId);
+
+    if (existingItem) {
+        // Se esiste, aumenta la quantità
+        existingItem.quantity += quantity;
+    } else {
+        // Se non esiste, aggiungi un nuovo oggetto all'inventario
+        // TODO: Potrebbe essere utile verificare se itemId esiste in itemData
+        player.inventory.push({ itemId: itemId, quantity: quantity });
+    }
+
+    // Aggiorna la visualizzazione dell'inventario se la funzione è già definita
+    if (typeof renderInventory === 'function') {
+        renderInventory();
+    }
 }
 
+/**
+ * Genera le statistiche e l'inventario iniziale del personaggio giocante.
+ */
+function generateCharacter() {
+    // Statistiche base con una piccola variazione casuale
+    player = {
+        name: "Ultimo",
+        vigore: 9 + getRandomInt(0, 2),      // Resistenza fisica, HP
+        potenza: 9 + getRandomInt(0, 2),     // Forza fisica, combattimento
+        agilita: 14 + getRandomInt(0, 2),    // Schivata, velocità, fuga
+        tracce: 14 + getRandomInt(0, 2),     // Seguire/nascondere tracce, furtività, osservazione
+        influenza: 6 + getRandomInt(0, 2),   // Interazione sociale, persuasione, intimidazione
+        presagio: 7 + getRandomInt(0, 2),    // Intuizione, percepire pericoli/opportunità nascoste
+        adattamento: 9 + getRandomInt(0, 2), // Resistenza a malattie/veleni, riparazioni?
+        acquisita: 8 + getRandomInt(0, 2),   // Conoscenza del mondo pre-collasso, tecnologia? (Non usata attivamente ora)
+
+        // Risorse e stato
+        maxHp: 0, // Calcolato dopo le stats base
+        hp: 0,
+        food: STARTING_FOOD,
+        water: STARTING_WATER,
+
+        // Posizione (verrà definita in generateMap)
+        x: undefined,
+        y: undefined,
+
+        // Stati negativi
+        isInjured: false, // Flag Ferito
+        isSick: false,    // Flag Malato
+
+        // Inventario: array di oggetti { itemId: string, quantity: number }
+        inventory: []
+    };
+
+    // Calcola HP massimi basati sul Vigore
+    player.maxHp = 10 + player.vigore;
+    player.hp = player.maxHp; // Inizia con HP pieni
+
+    // Aggiunge oggetti iniziali all'inventario
+    // Nota: La funzione addItemToInventory è definita più avanti, ma JS gestisce l'hoisting.
+    addItemToInventory('bandages_dirty', 2);
+    addItemToInventory('water_purified_small', 1);
+    addItemToInventory('canned_food', 1);
+    addItemToInventory('medicine_crude', 1);
+}
+
+/**
+ * Genera la mappa di gioco con diversi tipi di terreno e posiziona Start ed End.
+ */
 function generateMap() {
-    map = [];
-    let startPos = null;
-    // Genera mappa base
+    map = []; // Resetta la mappa
+    let startPos = null; // Posizione di partenza
+    let endPos = null;   // Posizione di arrivo
+
+    // 1. Genera mappa base con terreni casuali
     for (let y = 0; y < MAP_HEIGHT; y++) {
         map[y] = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
-            let tileType = TILE_SYMBOLS.PLAINS;
-            const rand = Math.random();
-            if (rand < 0.10) tileType = TILE_SYMBOLS.MOUNTAIN;
-            else if (rand < 0.20) tileType = TILE_SYMBOLS.FOREST;
-            else if (rand < 0.26) tileType = TILE_SYMBOLS.RIVER;
-            else if (rand < 0.30) tileType = TILE_SYMBOLS.VILLAGE;
-            else if (rand < 0.32) tileType = TILE_SYMBOLS.CITY;
-            else if (rand < 0.35) tileType = TILE_SYMBOLS.REST_STOP;
-            map[y][x] = { type: tileType, visited: false };
+            let tileSymbol = TILE_SYMBOLS.PLAINS; // Default a pianura
+            const rand = Math.random(); // Numero casuale tra 0 e 1
+
+            // Assegna tipo di tile in base a probabilità
+            if (rand < 0.10) tileSymbol = TILE_SYMBOLS.MOUNTAIN;
+            else if (rand < 0.20) tileSymbol = TILE_SYMBOLS.FOREST;
+            else if (rand < 0.26) tileSymbol = TILE_SYMBOLS.RIVER;
+            else if (rand < 0.30) tileSymbol = TILE_SYMBOLS.VILLAGE;
+            else if (rand < 0.32) tileSymbol = TILE_SYMBOLS.CITY;
+            else if (rand < 0.35) tileSymbol = TILE_SYMBOLS.REST_STOP;
+            // Altrimenti rimane PLAINS
+
+            map[y][x] = { type: tileSymbol, visited: false }; // Crea oggetto tile
         }
     }
-    // Posiziona Start ('S')
+
+    // 2. Posiziona il punto di Start ('S')
     let startX, startY, attempts = 0;
+    const maxAttempts = 100;
+    // Cerca una posizione valida (pianura nella parte sinistra della mappa)
     do {
-        startX = getRandomInt(1, Math.floor(MAP_WIDTH / 4));
-        startY = getRandomInt(1, Math.floor(MAP_HEIGHT / 4));
+        startX = getRandomInt(1, Math.floor(MAP_WIDTH / 4)); // Preferibilmente a sinistra
+        startY = getRandomInt(1, Math.floor(MAP_HEIGHT / 4)); // Preferibilmente in alto
         attempts++;
-    } while ((!map[startY]?.[startX] || map[startY][startX].type !== TILE_SYMBOLS.PLAINS) && attempts < 100);
-    if (attempts >= 100) { startX = 1; startY = 1; } // Fallback
-    map[startY][startX] = { type: TILE_SYMBOLS.START, visited: true };
+    } while (
+        (!map[startY]?.[startX] || map[startY][startX].type !== TILE_SYMBOLS.PLAINS) // Deve essere pianura valida
+        && attempts < maxAttempts
+    );
+    // Se non trova una posizione valida dopo N tentativi, usa un fallback sicuro
+    if (attempts >= maxAttempts) { startX = 1; startY = 1; console.warn("Posizione Start fallback utilizzata."); }
+    map[startY][startX] = { type: TILE_SYMBOLS.START, visited: true }; // Imposta tile Start
     startPos = { x: startX, y: startY };
 
-    // Posiziona End ('E')
+    // 3. Posiziona il punto di End ('E')
     let endX, endY;
     attempts = 0;
+    // Cerca una posizione valida (non montagna/fiume, lontana dallo start, nella parte destra)
     do {
-        endX = getRandomInt(Math.floor(MAP_WIDTH * 3 / 4), MAP_WIDTH - 2);
-        endY = getRandomInt(Math.floor(MAP_HEIGHT * 3 / 4), MAP_HEIGHT - 2);
+        endX = getRandomInt(Math.floor(MAP_WIDTH * 3 / 4), MAP_WIDTH - 2); // Preferibilmente a destra
+        endY = getRandomInt(Math.floor(MAP_HEIGHT * 3 / 4), MAP_HEIGHT - 2); // Preferibilmente in basso
         attempts++;
-        if (attempts > 100) { endX = MAP_WIDTH - 2; endY = MAP_HEIGHT - 2; break; } // Fallback
-    } while (!map[endY]?.[endX] || map[endY][endX].type === TILE_SYMBOLS.MOUNTAIN || map[endY][endX].type === TILE_SYMBOLS.RIVER || (endX === startX && endY === startY));
+        if (attempts > maxAttempts) { // Fallback se non trova posizione ideale
+             endX = MAP_WIDTH - 2; endY = MAP_HEIGHT - 2;
+             console.warn("Posizione End fallback utilizzata.");
+             break;
+        }
+    } while (
+        !map[endY]?.[endX] // Deve essere una casella valida
+        || map[endY][endX].type === TILE_SYMBOLS.MOUNTAIN // Non su montagna
+        || map[endY][endX].type === TILE_SYMBOLS.RIVER   // Non su fiume
+        || (endX === startX && endY === startY) // Non sulla stessa casella dello start
+    );
 
+    // Assicura che la casella di End esista prima di modificarla
     if (map[endY]?.[endX]) {
         map[endY][endX] = { type: TILE_SYMBOLS.END, visited: false };
+        endPos = { x: endX, y: endY };
     } else { // Fallback estremo se le coordinate generate non sono valide
+         console.error("ERRORE CRITICO: Impossibile posizionare End. Uso fallback estremo.");
          map[MAP_HEIGHT - 2][MAP_WIDTH - 2] = { type: TILE_SYMBOLS.END, visited: false };
+         endPos = { x: MAP_WIDTH - 2, y: MAP_HEIGHT - 2 };
     }
 
+    // 4. Assegna posizione iniziale al giocatore
     player.x = startPos.x;
     player.y = startPos.y;
 }
 
+/**
+ * Aggiorna la visualizzazione delle statistiche, risorse e stato del giocatore nell'interfaccia.
+ */
 function renderStats() {
+    // Usa try-catch per evitare errori fatali se un elemento non viene trovato
     try {
-        statHp.textContent = player?.hp ?? '--'; statMaxHp.textContent = player?.maxHp ?? '--';
-        statVig.textContent = player?.vigore ?? '--'; statPot.textContent = player?.potenza ?? '--';
-        statAgi.textContent = player?.agilita ?? '--'; statTra.textContent = player?.tracce ?? '--';
-        statInf.textContent = player?.influenza ?? '--'; statPre.textContent = player?.presagio ?? '--';
-        statAda.textContent = player?.adattamento ?? '--'; statAcq.textContent = player?.acquisita ?? '--';
-        statFood.textContent = player?.food ?? '--'; statWater.textContent = player?.water ?? '--';
+        // Aggiorna statistiche principali (colonna dx)
+        statHp.textContent = player?.hp ?? '--';
+        statMaxHp.textContent = player?.maxHp ?? '--';
+        statVig.textContent = player?.vigore ?? '--';
+        statPot.textContent = player?.potenza ?? '--';
+        statAgi.textContent = player?.agilita ?? '--';
+        statTra.textContent = player?.tracce ?? '--';
+        statInf.textContent = player?.influenza ?? '--';
+        statPre.textContent = player?.presagio ?? '--';
+        statAda.textContent = player?.adattamento ?? '--';
+        statAcq.textContent = player?.acquisita ?? '--';
+
+        // Aggiorna risorse (colonna sx)
+        statFood.textContent = player?.food ?? '--';
+        statWater.textContent = player?.water ?? '--';
+        // Applica/rimuove classe 'low-resource' per effetto visivo (es. rosso lampeggiante)
         statFood.classList.toggle('low-resource', (player?.food ?? 99) <= 1);
         statWater.classList.toggle('low-resource', (player?.water ?? 99) <= 1);
-        posX.textContent = player?.x ?? '--'; posY.textContent = player?.y ?? '--';
 
-        // Aggiorna Status Condizione
-        const conditionSpan = document.getElementById('stat-condition');
-        if (conditionSpan) {
+        // Aggiorna stato condizione (colonna sx)
+        if (statCondition) {
             let statusText = "Normale";
             let statusClass = "status-normal";
             if (player?.isInjured && player?.isSick) {
@@ -223,1255 +392,763 @@ function renderStats() {
                 statusText = "Malato";
                 statusClass = "status-warning";
             }
-            conditionSpan.textContent = statusText;
-            conditionSpan.className = statusClass; // Rimuove classi vecchie e imposta la nuova
+            statCondition.textContent = statusText;
+            statCondition.className = statusClass; // Imposta la classe corretta per lo stile CSS
         }
 
+        // Aggiorna info di gioco (colonna dx)
+        posX.textContent = player?.x ?? '--';
+        posY.textContent = player?.y ?? '--';
+
+        // Aggiorna tipo di luogo corrente
         if (gameActive && map?.[player?.y]?.[player?.x]) {
             const currentTile = map[player.y][player.x];
-            tileType.textContent = TILE_DESC[currentTile.type] || '???';
+            tileType.textContent = TILE_DESC[currentTile.type] || 'Sconosciuto';
         } else if (gameActive) {
-            tileType.textContent = 'Inizio...';
+            tileType.textContent = 'Inizio...'; // Messaggio iniziale prima del primo movimento
         } else {
-            tileType.textContent = '--';
+            tileType.textContent = '--'; // Se gioco non attivo
         }
 
+        // Aggiorna indicatore Giorno/Notte
         if (statDayTime) {
             if (isDay) {
-                statDayTime.textContent = `${DAY_LENGTH_MOVES - dayMovesCounter} p.`;
+                // Mostra passi rimanenti nel giorno
+                statDayTime.textContent = `Giorno (${DAY_LENGTH_MOVES - dayMovesCounter} p.)`;
             } else {
                 statDayTime.textContent = 'Notte';
             }
         }
     } catch (e) {
-        console.error("Errore rendering statistiche:", e);
-        if (tileType) tileType.textContent = 'ERR STATS';
+        console.error("Errore durante il rendering delle statistiche:", e);
+        if (tileType) tileType.textContent = 'ERR STATS'; // Indica errore nell'UI
     }
 }
 
+/**
+ * Aggiorna la visualizzazione del log dei messaggi.
+ */
 function renderMessages() {
-    try { messagesList.innerHTML = messages.map(msg => `<li>${msg}</li>`).join(''); }
-    catch (e) { console.error("Errore rendering messaggi:", e); }
-}
-
-function renderLegend() {
+    if (!messagesList) return;
     try {
-        legendList.innerHTML = '';
-        const legendItems = [
-            { s: TILE_SYMBOLS.PLAYER, d: TILE_DESC['@'] }, { s: TILE_SYMBOLS.PLAINS, d: TILE_DESC['.'] },
-            { s: TILE_SYMBOLS.FOREST, d: TILE_DESC['F'] }, { s: TILE_SYMBOLS.MOUNTAIN, d: TILE_DESC['M'] },
-            { s: TILE_SYMBOLS.RIVER, d: TILE_DESC['~'] }, { s: TILE_SYMBOLS.VILLAGE, d: TILE_DESC['V'] },
-            { s: TILE_SYMBOLS.CITY, d: TILE_DESC['C'] }, { s: TILE_SYMBOLS.REST_STOP, d: TILE_DESC['R'] },
-            { s: TILE_SYMBOLS.START, d: TILE_DESC['S'] }, { s: TILE_SYMBOLS.END, d: TILE_DESC['E'] }
-        ];
-        legendItems.forEach(item => {
-            const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === item.s);
-            const tileClass = `tile-${tileKey ? tileKey.toLowerCase().replace(/_/g, '-') : 'unk'}`;
-            const endClass = item.s === TILE_SYMBOLS.END ? 'tile-end' : '';
-            legendList.innerHTML += `<li><span class="legend-symbol ${tileClass} ${endClass}">${item.s}</span> = ${item.d}</li>`;
-        });
-    } catch (e) { console.error("Errore rendering legenda:", e); }
-}
-
-function renderMap() {
-    const display = mapDisplay; if (!display) return;
-    if (!player || typeof player.x !== 'number') { display.textContent = "ERRORE: Player non valido"; return; }
-    if (!map || !map.length) { display.textContent = "ERRORE: Mappa non valida"; return; }
-
-    player.x = Math.max(0, Math.min(MAP_WIDTH - 1, player.x));
-    player.y = Math.max(0, Math.min(MAP_HEIGHT - 1, player.y));
-
-    let mapString = "";
-    const viewWidth = 40, viewHeight = 25; // Dimensioni viewport mappa
-    const halfWidth = Math.floor(viewWidth / 2);
-    const halfHeight = Math.floor(viewHeight / 2);
-
-    // Calcola coordinate start viewport, centrate sul giocatore ma limitate dai bordi mappa
-    let startX = Math.max(0, player.x - halfWidth);
-    let startY = Math.max(0, player.y - halfHeight);
-    startX = Math.min(startX, MAP_WIDTH - viewWidth);
-    startY = Math.min(startY, MAP_HEIGHT - viewHeight);
-    startX = Math.max(0, startX); // Assicura non sia < 0 dopo la correzione
-    startY = Math.max(0, startY); // Assicura non sia < 0 dopo la correzione
-
-    let endX = Math.min(MAP_WIDTH, startX + viewWidth);
-    let endY = Math.min(MAP_HEIGHT, startY + viewHeight);
-
-    try {
-        for (let y = startY; y < endY; y++) {
-            if (y < 0 || y >= map.length) continue; // Sicurezza extra
-            for (let x = startX; x < endX; x++) {
-                if (x < 0 || !map[y] || x >= map[y].length) continue; // Sicurezza extra
-
-                if (x === player.x && y === player.y) {
-                    mapString += `<span class="player-marker">${TILE_SYMBOLS.PLAYER}</span>`;
-                } else {
-                    const tile = map[y][x];
-                    const symbol = tile?.type || '?';
-                    const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === symbol);
-                    let tileClass = `tile-${tileKey ? tileKey.toLowerCase().replace(/_/g, '-') : 'unk'}`;
-                    let visitedClass = tile?.visited ? 'visited' : '';
-                    let endClass = symbol === TILE_SYMBOLS.END ? 'tile-end' : '';
-                    mapString += `<span class="${tileClass} ${visitedClass} ${endClass}">${symbol}</span>`;
-                }
-            }
-            mapString += "\n"; // Nuova riga alla fine di ogni riga della mappa
-        }
+        // Ricostruisce l'HTML della lista messaggi basandosi sull'array 'messages'
+        messagesList.innerHTML = messages.map(msg => `<li class="${msg.class || ''}">${msg.text}</li>`).join('');
     } catch (e) {
-        console.error("Errore loop rendering mappa:", e);
-        display.textContent = "Errore Rendering Mappa!";
-        return;
-    }
-    display.innerHTML = mapString; // Usa innerHTML per interpretare gli span
-}
-
-function disableControls(disabled = true) { moveButtons.forEach(btn => btn.disabled = disabled); }
-function enableControls() { if (gameActive) moveButtons.forEach(btn => btn.disabled = false); }
-
-function performSkillCheck(statKey, difficulty) {
-    const statValue = player[statKey] || 5; // Default a 5 se stat non trovata
-    const roll = getRandomInt(1, 20);
-    const bonus = Math.floor((statValue - 10) / 2); // Modificatore D&D style
-
-    // Applica penalità status
-    let difficultyPenalty = 0;
-    let penaltyReason = "";
-    if (player.isInjured && (statKey === 'potenza' || statKey === 'agilita')) {
-        difficultyPenalty = 2; // Penalità Ferito per Potenza/Agilità
-        penaltyReason = " (Ferito)";
-    }
-    if (player.isSick && (statKey === 'vigore' || statKey === 'adattamento')) {
-        difficultyPenalty = 2; // Penalità Malato per Vigore/Adattamento
-        // Se era già ferito, la penalità si somma?
-        // Per ora, la seconda penalità sovrascrive la prima se la stat è diversa.
-        // Se la stat è la stessa (improbabile qui), si potrebbe sommare.
-        // Scegliamo la penalità più alta se entrambe si applicano alla stessa stat?
-        // Per semplicità, ora si applica solo l'ultima condizione verificata.
-        // Possiamo affinare: se entrambe le condizioni sono vere e si applicano a stat diverse,
-        // si potrebbero applicare entrambe? No, il check è per una sola stat.
-        // Quindi, se la stat è Vigore e si è sia Feriti che Malati, si applica solo la penalità Malato.
-        // Facciamo che la penalità si applica SE lo stato impatta la stat specifica.
-        penaltyReason = " (Malato)";
-    }
-
-    const finalDifficulty = difficulty + difficultyPenalty;
-    const total = roll + bonus;
-    const success = total >= finalDifficulty;
-    // Aggiorna testo risultato per mostrare la penalità
-    const resultText = `Prova ${statKey.toUpperCase()}(Diff ${difficulty}${penaltyReason !== "" ? `->${finalDifficulty}`: ""}${penaltyReason}): D20(${roll}) + Mod(${bonus}) = ${total} -> ${success ? "SUCCESSO!" : '<span class="danger-text">FALLIMENTO!</span>'}`;
-    return { success: success, text: resultText };
-}
-
-function showEventPopup(title, content, choices = [], checkResult = null, consequenceText = "") {
-    if (!gameActive && !(title.includes("Fine") || title.includes("Destinazione"))) return; // Permette popup fine gioco
-
-    eventTitle.textContent = title;
-    let fullHTML = content.replace(/\n/g, '<br>'); // Gestisce newline nel testo
-
-    if (checkResult) {
-        fullHTML += `<br><br>${checkResult.text}`; // Mostra risultato check
-    }
-    if (consequenceText) {
-         // Aggiunge nuova riga solo se c'è già testo risultato check, altrimenti usa la prima
-        fullHTML += `${checkResult ? '<br>' : '<br><br>'}${consequenceText.replace(/\n/g, '<br>')}`;
-    }
-
-    let choiceHTML = "";
-    if (choices?.length > 0) {
-        currentEventChoices = choices; // Salva scelte per input tastiera
-        choices.forEach(choice => {
-            choiceHTML += `<div class="event-choice"><button onclick="handleEventChoice('${choice.key}')">${choice.text}</button></div>`;
-        });
-        // Assicura che il pulsante Continua sia nascosto se ci sono scelte
-        if (continueButton) {
-            continueButton.style.display = 'none'; // Modo più diretto per nasconderlo
-            continueButton.classList.add('hidden'); // Manteniamo classe per coerenza
-        } else {
-             console.warn("Riferimento a continueButton perso!");
-        }
-    } else {
-        currentEventChoices = []; // Nessuna scelta
-        currentEventContext = null; // Resetta contesto
-        // Assicura che il pulsante Continua sia VISIBILE se NON ci sono scelte
-        if (continueButton) {
-            continueButton.style.display = 'block'; // Modo più diretto per mostrarlo
-            continueButton.classList.remove('hidden'); // Rimuoviamo comunque la classe
-        } else {
-             console.warn("Riferimento a continueButton perso durante il tentativo di mostrarlo!");
-        }
-    }
-
-    eventContent.innerHTML = fullHTML + choiceHTML; // Inserisce contenuto e pulsanti
-    eventOverlay.style.display = 'block';
-    disableControls(true); // Disabilita controlli mappa
-    eventScreenActive = true;
-    eventContent.scrollTop = 0; // Scrolla all'inizio
-}
-
-function hideEventScreen() {
-    if (!eventScreenActive) return;
-    eventOverlay.style.display = 'none';
-    eventScreenActive = false;
-    currentEventChoices = [];
-    currentEventContext = null;
-    if (gameActive) enableControls(); // Riabilita controlli mappa se il gioco è attivo
-}
-
-function showEndGameMessage(isVictory) {
-    gameActive = false;
-    disableControls(true);
-    eventOverlay.style.display = 'none';
-    gameContainer.style.display = 'none';
-
-    if (isVictory) {
-        endTitle.textContent = "Destinazione Raggiunta...";
-        endMessage.innerHTML = `...Sei arrivato. Davanti a te, una vecchia porta blindata semi-sepolta, con uno strano simbolo inciso... Il simbolo di tuo padre... L\'aria all\'interno è viziata... Un terminale spento è incassato nella parete... È questo il \'Safe Place\'? ...Il tuo viaggio per ora termina qui, Ultimo. Ma la storia... sembra appena iniziata. (Fine del Prototipo - Capitolo 1)`.replace(/\n/g, '<br>');
-    } else {
-        endTitle.textContent = "Il Viaggio Termina Qui";
-        endMessage.textContent = "Le ferite, la fame, la disperazione... Questo mondo non perdona. Sei caduto, Ultimo. Le rovine reclamano un\'altra vita. La ricerca del Safe Place finisce nell\'oblio.";
-    }
-    endScreen.style.display = 'flex';
-}
-
-function handleTileEvent(tile) {
-    if (!tile || !gameActive) return false;
-    tile.visited = true;
-    const tileSymbol = tile.type;
-    let popupShown = false;
-    let statsChanged = false;
-    let penaltyApplied = false;
-    let statusJustHealed = false; // Nuovo flag locale
-
-    addMessage(`Entri: ${TILE_DESC[tileSymbol] || '???'}${(isDay ? '' : ' (Notte)')}`);
-
-    // Probabilità base e pool eventi (giorno)
-    let baseEventChance = 0.15; // Default basso
-    let allowedEventsOnTile = [];
-
-    switch (tileSymbol) {
-        case TILE_SYMBOLS.PLAINS: baseEventChance = 0.15; allowedEventsOnTile = ['animale', 'loot_semplice', 'lore', 'tracce_strane', 'eco_radio']; break;
-        case TILE_SYMBOLS.FOREST: baseEventChance = 0.30; allowedEventsOnTile = ['animale', 'tracce_strane', 'pericolo_ambientale', 'lore', 'dilemma_morale', 'ritrovamento_dubbio']; break;
-        case TILE_SYMBOLS.MOUNTAIN: baseEventChance = 0.20; allowedEventsOnTile = ['animale', 'pericolo_ambientale', 'lore', 'tracce_strane']; break;
-        case TILE_SYMBOLS.RIVER: baseEventChance = 0.15; allowedEventsOnTile = ['loot_semplice', 'acqua_contaminata']; break; // Aggiunto acqua_contaminata, aumentata chance
-        case TILE_SYMBOLS.CITY: baseEventChance = 0.65; allowedEventsOnTile = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'eco_radio', 'ritrovamento_dubbio', 'acqua_contaminata']; break; // Aggiunto acqua_contaminata
-        case TILE_SYMBOLS.VILLAGE: baseEventChance = 0.50; allowedEventsOnTile = ['villaggio_ostile', 'loot_semplice', 'lore', 'tracce_strane', 'dilemma_morale']; break;
-        // REST_STOP e END gestiti sopra
-    }
-
-    // Modifiche per la notte
-    if (!isDay) {
-        baseEventChance *= 1.8; // Aumenta probabilità di notte
-        const nightEventPool = ['predoni', 'animale_notturno', 'pericolo_ambientale_notturno', 'orrore_indicibile', 'tracce_strane'];
-        // Filtra gli eventi possibili di notte basandosi su quelli permessi sulla tile
-        const possibleNightEvents = allowedEventsOnTile.filter(type => nightEventPool.includes(type));
-        if (possibleNightEvents.length > 0) {
-            allowedEventsOnTile = possibleNightEvents;
-        } else {
-            // Se la tile non ha eventi notturni specifici, usa il pool generico notturno con bassa probabilità
-             if (Math.random() < 0.1) { // Bassa chance di evento generico notturno
-                allowedEventsOnTile = nightEventPool;
-            } else {
-                baseEventChance = 0; // Nessun evento casuale se non specifici per la notte
-            }
-        }
-        if (allowedEventsOnTile.length === 0) baseEventChance = 0;
-    }
-
-    // Controlla evento casuale sulla tile (se non Start, End, Rest Stop)
-    if (tileSymbol !== TILE_SYMBOLS.START && tileSymbol !== TILE_SYMBOLS.END && tileSymbol !== TILE_SYMBOLS.REST_STOP && baseEventChance > 0 && Math.random() < baseEventChance) {
-        triggerRandomEvent(allowedEventsOnTile);
-        return true; // Evento casuale ha mostrato un popup
-    }
-
-    // Logica eventi specifici per tile / Flavor text
-    let flavor = "";
-    let immediateEvent = false;
-    let specificEventTitle = "", specificEventDesc = "", specificEventChoices = [], specificEventCheck = null, specificEventCons = "";
-
-    switch (tileSymbol) {
-        case TILE_SYMBOLS.REST_STOP:
-            if (!isDay) { // Notte: Riposo forzato
-                // Forza render mappa PRIMA del popup
-                renderMap();
-
-                immediateEvent = true;
-                specificEventTitle = "Rifugio Trovato (Notte)";
-                specificEventDesc = "Sei riuscito a trovare un rifugio appena in tempo! Puoi finalmente riposare fino all'alba.";
-
-                // Logica Recupero Status
-                let recoveredStatusMsg = "";
-                if (player.isInjured && Math.random() < 0.30) {
-                    player.isInjured = false;
-                    recoveredStatusMsg += " La ferita sembra guarita.";
-                    statsChanged = true;
-                    statusJustHealed = true; // Imposta flag locale
-                }
-                if (player.isSick && Math.random() < 0.35) {
-                    player.isSick = false;
-                    recoveredStatusMsg += " La febbre è passata.";
-                    statsChanged = true;
-                    statusJustHealed = true; // Imposta flag locale
-                }
-
-                // Passaggio Giorno/Notte
-                isDay = true;
-                dayMovesCounter = 0;
-                daysSurvived++;
-                addMessage(`[FASE] Hai passato la notte. Sorge un nuovo Giorno (Giorno ${daysSurvived + 1}).${recoveredStatusMsg}`, 'info', true);
-
-                player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
-                player.water = Math.max(0, player.water - NIGHT_WATER_COST);
-                addMessage(`[CONSUMO] Il riposo ha richiesto energie (-${NIGHT_FOOD_COST} Cibo, -${NIGHT_WATER_COST} Acqua).`, 'info');
-                statsChanged = true;
-
-                if (player.food === 0) {
-                    player.hp = Math.max(0, player.hp - HUNGER_PENALTY_HP);
-                    addMessage(`[ATTENZIONE] Fame! Hai passato la notte senza cibo (-${HUNGER_PENALTY_HP} HP)`, 'info', true);
-                    penaltyApplied = true;
-                }
-                if (player.water === 0) {
-                    player.hp = Math.max(0, player.hp - THIRST_PENALTY_HP);
-                    addMessage(`[ATTENZIONE] Sete! Hai passato la notte senz'acqua (-${THIRST_PENALTY_HP} HP)`, 'info', true);
-                    penaltyApplied = true;
-                }
-
-                if (player.hp < player.maxHp && !penaltyApplied && !player.isInjured && !player.isSick) { // Recupero HP solo se non penalizzato e non Ferito/Malato
-                    const recoveredHp = getRandomInt(1, 2);
-                    player.hp = Math.min(player.maxHp, player.hp + recoveredHp);
-                    specificEventCons = `Riprendi un po' di fiato (+${recoveredHp} HP).`;
-                    statsChanged = true;
-                } else if (penaltyApplied) {
-                    specificEventCons = "Sei esausto e affamato/assetato, il riposo non basta.";
-                } else if (player.isInjured || player.isSick) {
-                     specificEventCons = "Il riposo aiuta, ma senti ancora gli effetti della tua condizione.";
-                } else {
-                    specificEventCons = "Passi la notte relativamente tranquillo.";
-                }
-                specificEventChoices = [];
-
-            } else { // Giorno: Possibilità di ispezionare
-                flavor = getRandomText(flavorTextsRestStop);
-                specificEventTitle = "Rifugio Esplorato (Giorno)";
-                specificEventDesc = `${flavor ? flavor + '\n\n' : ''}Trovi un rifugio. Potrebbe essere utile fermarsi più tardi.\n${getRandomText(descrizioniRifugioStrano)}\nCosa fai?`;
-                immediateEvent = true;
-                specificEventChoices = [
-                    { key: 'I', text: "Ispeziona (Tracce)" },
-                    { key: 'L', text: "Lascia perdere" }
-                ];
-                currentEventContext = { event: 'rifugio_scelta', difficulty: 11 };
-            }
-            break;
-
-        case TILE_SYMBOLS.END:
-            if (gameActive) showEndGameMessage(true);
-            return false; // Nessun popup evento qui, gestito da showEndGameMessage
-
-        // Aggiungi flavor text per altre caselle se non c'è stato evento casuale
-        case TILE_SYMBOLS.PLAINS: flavor = getRandomText(isDay ? flavorTextsPlains : flavorTextsNightPlains); break;
-        case TILE_SYMBOLS.FOREST: flavor = getRandomText(isDay ? flavorTextsForest : flavorTextsNightForest); break;
-        case TILE_SYMBOLS.MOUNTAIN: flavor = getRandomText(flavorTextsMountain); break;
-        case TILE_SYMBOLS.RIVER: flavor = getRandomText(flavorTextsRiver); break;
-        case TILE_SYMBOLS.CITY: flavor = getRandomText(flavorTextsCity); break;
-        case TILE_SYMBOLS.VILLAGE: flavor = getRandomText(flavorTextsVillage); break;
-    }
-
-    if (flavor && !immediateEvent) { // Mostra flavor solo se non c'è già un evento specifico immediato
-        addMessage(flavor);
-    }
-
-    // Gestione statistiche e game over dopo eventi specifici (es. riposo notturno)
-    if (statsChanged) {
-         renderStats();
-         if (checkGameOver()) return true; // Esce se game over
-     }
-     // Se lo status è stato curato specificamente, forza un render (in caso statsChanged fosse false per altri motivi)
-     else if (statusJustHealed) {
-        renderStats();
-     }
-
-    // Mostra popup evento specifico se necessario
-    if (immediateEvent && !eventScreenActive) {
-         showEventPopup(specificEventTitle, specificEventDesc, specificEventChoices, specificEventCheck, specificEventCons);
-         return true; // Popup mostrato
-    }
-
-    return false; // Nessun popup mostrato da questa funzione
-}
-
-function triggerRandomEvent(allowedTypes = []) {
-    if (!gameActive || eventScreenActive || allowedTypes.length === 0) return;
-
-    let eventType = "";
-    let difficultyModifier = 0; // Modificatore difficoltà base (es. per notte)
-    let baseDifficulty = 12;    // Difficoltà base generica
-
-    // Filtra eventi permessi e applica modificatore notte
-    let possibleEvents = [];
-    if (!isDay) { // NOTTE
-        const nightPool = ['predoni', 'animale_notturno', 'pericolo_ambientale_notturno', 'orrore_indicibile', 'tracce_strane'];
-        possibleEvents = allowedTypes.filter(type => nightPool.includes(type));
-        if (possibleEvents.length === 0) { // Fallback se tile non ha eventi notturni specifici
-            possibleEvents = nightPool.filter(type => allowedTypes.includes(type)); // Cerca nel pool generale notturno
-            if (possibleEvents.length === 0) return; // Nessun evento notturno possibile
-        }
-        difficultyModifier = getRandomInt(1, 3); // Notte rende più difficile
-    } else { // GIORNO
-         const dayPool = ['predoni', 'animale', 'tracce_strane', 'loot_semplice', 'lore', 'pericolo_ambientale', 'dilemma_morale', 'villaggio_ostile', 'eco_radio', 'ritrovamento_dubbio', 'acqua_contaminata'];
-         possibleEvents = allowedTypes.filter(type => dayPool.includes(type));
-         if (possibleEvents.length === 0) return; // Nessun evento diurno possibile
-    }
-
-    eventType = getRandomText(possibleEvents);
-
-     // Log evento scelto (esclusi loot e lore che loggano dopo l'esito)
-    if (eventType !== 'loot_semplice' && eventType !== 'lore') {
-        addMessage(`[EVENTO] ${isDay ? '' : '[NOTTE] '}${eventType.replace(/_/g, ' ')}!`, 'info', true);
-    }
-
-    let title = "Evento Inaspettato", desc = "", choices = [], check = null, cons = "";
-    let statsChanged = false;
-    currentEventContext = { event: eventType, difficultyMod: difficultyModifier }; // Imposta contesto base
-
-    // Definisci difficoltà specifiche per evento
-    switch (eventType) {
-         case 'predoni': baseDifficulty = 12; break;
-         case 'animale': baseDifficulty = 11; break;
-         case 'animale_notturno': baseDifficulty = 13; break;
-         case 'tracce_strane': baseDifficulty = 13; break;
-         case 'villaggio_ostile': baseDifficulty = 14; break;
-         case 'pericolo_ambientale': baseDifficulty = 12; break; // Sarà sovrascritto dal sottotipo
-         case 'pericolo_ambientale_notturno': baseDifficulty = 13; break; // Sarà sovrascritto dal sottotipo
-         case 'dilemma_morale': baseDifficulty = 12; break;
-         case 'orrore_indicibile': baseDifficulty = 15; break;
-         case 'eco_radio': baseDifficulty = 13; break;
-         case 'ritrovamento_dubbio': baseDifficulty = 12; break;
-         case 'acqua_contaminata': baseDifficulty = 11; break; // Imposto difficoltà base
-         // loot e lore non hanno difficoltà
-         default: baseDifficulty = 12; break;
-    }
-     currentEventContext.difficulty = baseDifficulty; // Salva difficoltà base nel contesto
-
-    // Logica specifica per tipo di evento
-    switch (eventType) {
-        case 'predoni':
-            title = isDay ? "Predoni!" : "Imboscata Notturna!";
-            desc = `${getRandomText(isDay ? descrizioniPredoni : descrizioniPredoniNotturni)}\n${getRandomText(vociPredoni)}`;
-            choices = [{ key: 'F', text: "Fuggi (Agilità)" },{ key: 'C', text: "Combatti (Potenza)" },{ key: 'P', text: "Parla (Influenza)" }];
-            break;
-        case 'animale':
-            title = "Animale Selvatico!";
-            desc = `Un ${getRandomText(descrizioniAnimali)} ti sbarra il passo, ringhiando.`;
-            choices = [{ key: 'E', text: "Evita (Agilità/Tracce)" },{ key: 'S', text: "Spaventa (Influenza)" },{ key: 'A', text: "Attacca (Potenza)" }];
-            break;
-        case 'animale_notturno':
-            title = "Bestia Notturna!";
-            desc = getRandomText(descrizioniAnimaleNotturno);
-            choices = [ { key: 'E', text: "Evita furtivamente (Agilità)" }, { key: 'A', text: "Attacca nell'ombra (Potenza)" }, { key: 'O', text: "Osserva da lontano (Tracce)" }];
-            break;
-        case 'tracce_strane':
-            title = "Tracce Strane"; desc = getRandomText(descrizioniTracce);
-            choices = [{ key: 'I', text: "Ignora" },{ key: 'S', text: "Segui (Tracce)" }];
-            break;
-        case 'villaggio_ostile':
-            title = "Accampamento Ostile"; desc = getRandomText(descrizioniVillaggioOstile);
-            choices = [{ key: 'A', text: "Allontanati" },{ key: 'N', text: "Negozia (Influenza)" }];
-            break;
-        case 'loot_semplice':
-            title = "Oggetti Abbandonati";
-            // Scegli un oggetto casuale da dare
-            const possibleLoot = ['water_purified_small', 'canned_food', 'bandages_dirty', 'scrap_metal'];
-            const foundItemId = getRandomText(possibleLoot);
-            const foundQuantity = (ITEM_DATA[foundItemId]?.stackable) ? getRandomInt(1, 2) : 1;
-
-            // Descrizione e aggiunta inventario avvengono DOPO il popup
-            desc = `Frugando tra i detriti, noti qualcosa di potenzialmente utile...`;
-            choices = []; // Nessuna scelta, solo informativo
-            // Salviamo cosa trovare nel contesto per aggiungerlo dopo
-            currentEventContext = { event: eventType, itemToFind: foundItemId, quantityToFind: foundQuantity };
-            break;
-        case 'lore':
-            title = "Eco dal Passato";
-            desc = `Trovi un frammento di conoscenza perduta:\n"${getRandomText(loreFragments)}"`;
-            addMessage("Hai trovato un frammento di lore.", 'info'); choices = []; cons = "";
-            break;
-        case 'pericolo_ambientale':
-            title = "Pericolo Improvviso!";
-            if (Math.random() < 0.5) {
-                 desc = getRandomText(descrizioniPericoloAmbientaleAgilita); choices = [ { key: 'S', text: "Schiva (Agilità)" } ];
-                 currentEventContext.subType = 'agilita_check'; currentEventContext.difficulty = 12; currentEventContext.damage = getRandomInt(1, 2);
-            } else {
-                desc = getRandomText(descrizioniPericoloAmbientalePresagio); choices = [ { key: 'R', text: "Reagisci (Presagio)" } ];
-                currentEventContext.subType = 'presagio_check'; currentEventContext.difficulty = 13; currentEventContext.damage = getRandomInt(1, 3);
-            }
-            break;
-        case 'pericolo_ambientale_notturno':
-             title = "Pericolo nell'Ombra!";
-             desc = getRandomText(descrizioniPericoloAmbientaleNotturno);
-             if (Math.random() < 0.5) {
-                 choices = [ { key: 'S', text: "Balza via (Agilità)" } ];
-                 currentEventContext.subType = 'agilita_check'; currentEventContext.difficulty = 13; currentEventContext.damage = getRandomInt(1, 3);
-             } else {
-                 choices = [ { key: 'P', text: "Percepisci (Presagio)" } ];
-                 currentEventContext.subType = 'presagio_check'; currentEventContext.difficulty = 14; currentEventContext.damage = getRandomInt(2, 3);
-             }
-             break;
-        case 'dilemma_morale':
-             title = "Dilemma Morale"; desc = getRandomText(descrizioniDilemmaMorale);
-             choices = [{ key: 'I', text: "Indaga / Intervieni (Rischioso)" },{ key: 'N', text: "Non è affar mio / Ignora" }];
-             break;
-        case 'orrore_indicibile':
-             title = "Orrore Indicibile"; desc = getRandomText(descrizioniOrroreIndicibile);
-             choices = [ { key: 'F', text: "Fuggi disperatamente (Agilità)" }, { key: 'A', text: "Affronta l'ignoto (Vigore)" }];
-             currentEventContext.sanityDamage = getRandomInt(1, 2);
-             break;
-         case 'eco_radio':
-             title = getRandomText(["Eco Radio Debole", "Segnale Intermittente", "Voce nella Statica"]);
-             desc = getRandomText(["Senti un debole crepitio radio.", "Una vecchia radio emette strani suoni.", "Un frammento di voce metallica..."]);
-             check = performSkillCheck('adattamento', currentEventContext.difficulty + currentEventContext.difficultyMod); // Applica mod notte qui
-             if (check.success) { cons = `Riesci a sentire:\n'${getRandomText(radioMessages)}'`; }
-             else { cons = getRandomText(["Solo statica.", "Troppo danneggiato.", "Segnale perso."]); }
-             choices = []; // Nessuna scelta, solo risultato
-             break;
-        case 'ritrovamento_dubbio':
-            title = getRandomText(["Ritrovamento Dubbio", "Offerta Inaspettata?"]);
-            desc = getRandomText(["Trovi un fagotto avvolto con cura.", "Una borraccia quasi nuova è appesa a un ramo.", "Vedi una figura scomparire, lasciando cadere qualcosa."]);
-            desc += "\n\nSembra troppo bello per essere vero. Cosa fai?";
-            choices = [ { key: 'P', text: "Prendi la Scorta (Rischioso)" }, { key: 'L', text: "Lascia perdere (Sicuro)" }];
-            break;
-        case 'acqua_contaminata':
-            title = "Fonte d'Acqua Sospetta";
-            desc = "Trovi una piccola pozza d'acqua dall'aspetto stagnante e un odore leggermente acre. Potrebbe essere rischioso berla, ma la sete si fa sentire.";
-            choices = [ { key: 'B', text: "Bevi (Rischio Malattia - Vigore)" }, { key: 'I', text: "Ignora (Sicuro)" }];
-            break;
-        default: // Evento non gestito? Logga e non fare nulla
-            console.warn(`Tipo evento casuale non gestito: ${eventType}`);
-            return; // Esce senza mostrare popup
-    }
-
-    // Aggiorna stats se l'evento ha avuto effetto immediato (loot)
-    if (statsChanged) {
-        renderStats();
-        if (checkGameOver()) return; // Esce se game over dopo loot
-    }
-
-    // Mostra il popup dell'evento
-    showEventPopup(title, desc, choices, check, cons);
-}
-
-
-function handleEventChoice(choiceKey) {
-    let outcomeTitle = "Esito", outcomeDesc = "", statsChanged = false, outcomeChoices = [], checkResult = null, consequenceText = "";
-    const context = currentEventContext; // Usa contesto salvato
-    let statusJustChanged = false; // Nuovo flag locale
-
-    if (!context) {
-        addMessage("Errore nell'elaborazione dell'evento.", 'warning');
-        hideEventScreen(); // Nasconde comunque il popup se c'è errore
-        return;
-    }
-
-    const baseDifficulty = context.difficulty || 12;
-    const effectiveDifficulty = baseDifficulty + (context.difficultyMod || 0);
-
-    switch (context.event) {
-        case 'predoni':
-            outcomeTitle = "Scontro con Predoni";
-            let predoniDmg = 0, predoniFoodLoss = 0, predoniWaterLoss = 0;
-            switch (choiceKey) {
-                case 'F': // Fuga
-                    checkResult = performSkillCheck('agilita', effectiveDifficulty);
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiFugaPredoniOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiFugaPredoniKo);
-                        predoniDmg = getRandomInt(1, 3);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Vieni colpito e ferito! (-${predoniDmg} HP).`;
-                    }
-                    break;
-                case 'C': // Combatti
-                    checkResult = performSkillCheck('potenza', effectiveDifficulty + 1); // Combattere è più difficile
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiLottaPredoniOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiLottaPredoniKo);
-                        predoniDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5);
-                        predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 1 : 2));
-                        predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 1 : 2));
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Subisci danni e vieni ferito (-${predoniDmg} HP)`;
-                        if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
-                        if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
-                        consequenceText += ".";
-                    }
-                    break;
-                case 'P': // Parla
-                    checkResult = performSkillCheck('influenza', effectiveDifficulty + 2); // Parlare è molto più difficile
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiParlaPredoniOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiParlaPredoniKo);
-                        predoniDmg = getRandomInt(isDay ? 1 : 2, isDay ? 3 : 4);
-                        predoniFoodLoss = Math.min(player.food, getRandomInt(0, isDay ? 2 : 3));
-                        predoniWaterLoss = Math.min(player.water, getRandomInt(0, isDay ? 2 : 3));
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Ti attaccano e ti feriscono (-${predoniDmg} HP)`;
-                        if (predoniFoodLoss > 0) consequenceText += `, perdi cibo (-${predoniFoodLoss})`;
-                        if (predoniWaterLoss > 0) consequenceText += `, perdi acqua (-${predoniWaterLoss})`;
-                        consequenceText += ".";
-                    }
-                    break;
-            }
-            // Applica danni/perdite predoni
-            if (predoniDmg > 0) player.hp = Math.max(0, player.hp - predoniDmg);
-            if (predoniFoodLoss > 0) player.food -= predoniFoodLoss;
-            if (predoniWaterLoss > 0) player.water -= predoniWaterLoss;
-            if (predoniDmg > 0 || predoniFoodLoss > 0 || predoniWaterLoss > 0) statsChanged = true;
-            break;
-
-        case 'animale':
-        case 'animale_notturno':
-            outcomeTitle = context.event === 'animale' ? "Incontro con Animale" : "Incontro Notturno";
-            let animaleDmg = 0;
-             switch (choiceKey) {
-                case 'E': // Evita
-                    const statToUse = (player.agilita > player.tracce ? 'agilita' : 'tracce');
-                    checkResult = performSkillCheck(statToUse, effectiveDifficulty);
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiEvitaAnimaleOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiEvitaAnimaleKo);
-                        animaleDmg = getRandomInt(isDay ? 1 : 2, isDay ? 2 : 3);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `L'animale ti attacca e ti ferisce! (-${animaleDmg} HP).`;
-                    }
-                    break;
-                case 'S': // Spaventa (Solo giorno)
-                    if (context.event === 'animale_notturno') { outcomeDesc = "Non puoi spaventare efficacemente ciò che non vedi bene..."; checkResult={text:"Azione inefficace di notte.", success:false}; break; }
-                    checkResult = performSkillCheck('influenza', effectiveDifficulty);
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiSpaventaAnimaleOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiSpaventaAnimaleKo);
-                        animaleDmg = getRandomInt(1, 3);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `La bestia si infuria, attacca e ti ferisce! (-${animaleDmg} HP).`;
-                    }
-                    break;
-                case 'A': // Attacca
-                    checkResult = performSkillCheck('potenza', effectiveDifficulty);
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiAttaccoAnimaleOk); }
-                    else {
-                        outcomeDesc = getRandomText(esitiAttaccoAnimaleKo);
-                        animaleDmg = getRandomInt(isDay ? 2 : 3, isDay ? 4 : 5);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Vieni ferito nello scontro (-${animaleDmg} HP).`;
-                    }
-                    break;
-                 case 'O': // Osserva (Solo notte)
-                     if (context.event === 'animale') { outcomeDesc = "Non c'è tempo per osservare!"; checkResult={text:"Azione non disponibile di giorno.", success:false}; break;}
-                     checkResult = performSkillCheck('tracce', effectiveDifficulty -1); // Osservare è leggermente più facile
-                     if (checkResult.success) { outcomeDesc = "Riesci a capire la natura della creatura e a evitarla senza combattere."; /* Potrebbe dare bonus Adattamento? */ }
-                     else {
-                         outcomeDesc = "Non riesci a capire cosa sia, e ti attacca alla sprovvista!";
-                         animaleDmg = getRandomInt(2, 4);
-                         player.isInjured = true; // Stato Ferito
-                         statusJustChanged = true; // Imposta flag locale
-                         consequenceText = `Attacco improvviso e ferita! (-${animaleDmg} HP).`;
-                        }
-                     break;
-            }
-             // Applica danni animale
-            if (animaleDmg > 0) { player.hp = Math.max(0, player.hp - animaleDmg); statsChanged = true; }
-            break;
-
-        case 'tracce_strane':
-            outcomeTitle = "Seguendo le Tracce";
-            if (choiceKey === 'I') { outcomeDesc = "Decidi di non rischiare e prosegui."; }
-            else if (choiceKey === 'S') {
-                checkResult = performSkillCheck('tracce', effectiveDifficulty);
-                if (checkResult.success) {
-                    const outcomeRoll = Math.random();
-                    if (isDay && outcomeRoll < 0.35) { // Loot (giorno)
-                        const foundLootType = Math.random() < 0.5 ? 'Cibo' : 'Acqua'; const foundAmount = getRandomInt(1, 3);
-                        outcomeDesc = `${getRandomText(esitiSeguiTracceOkLoot)} Trovi ${foundAmount} ${foundLootType}.`;
-                        if (foundLootType === 'Cibo') player.food += foundAmount; else player.water += foundAmount; statsChanged = true;
-                    } else if (isDay && outcomeRoll < 0.55) { // Lore (giorno)
-                        outcomeDesc = `${getRandomText(esitiSeguiTracceOkLore)}\n"${getRandomText(loreFragments)}"`;
-                        addMessage("Hai trovato della lore seguendo le tracce.", 'info');
-                    } else if (outcomeRoll < 0.80) { // Pericolo (Predoni/Animale Notturno)
-                        outcomeDesc = getRandomText(esitiSeguiTracceOkPredoni);
-                        // Mostra esito tracce, poi triggera nuovo evento
-                        showEventPopup(outcomeTitle, outcomeDesc, [], checkResult, consequenceText);
-                        triggerRandomEvent(isDay ? ['predoni'] : ['predoni', 'animale_notturno']);
-                        return; // Esce, l'evento successivo gestirà il flusso
-                    } else { // Nulla
-                        outcomeDesc = getRandomText(esitiSeguiTracceOkNulla);
-                    }
-                } else { // Fallimento check Tracce
-                    outcomeDesc = getRandomText(esitiSeguiTracceKo);
-                    if(Math.random() < (isDay ? 0.3 : 0.5)) { // Penalità per fallimento
-                        const dmg = 1; player.hp = Math.max(0, player.hp - dmg);
-                        consequenceText = `La disattenzione ti costa (-${dmg} HP).`; statsChanged = true;
-                    }
-                }
-            }
-            break;
-
-        case 'villaggio_ostile':
-            outcomeTitle = "Accampamento Guardingo";
-            if (choiceKey === 'A') { outcomeDesc = getRandomText(esitiVillaggioOstileAllontanati); }
-            else if (choiceKey === 'N') {
-                checkResult = performSkillCheck('influenza', effectiveDifficulty);
-                if (checkResult.success) { outcomeDesc = getRandomText(esitiVillaggioOstileNegoziaOk); }
-                else {
-                    outcomeDesc = getRandomText(esitiVillaggioOstileNegoziaKo);
-                    if(Math.random() < 0.4) { // 40% chance di attacco dopo fallimento
-                        consequenceText = "Ti attaccano!";
-                        // Mostra esito negoziazione fallita, poi triggera attacco
-                        showEventPopup(outcomeTitle, outcomeDesc, [], checkResult, consequenceText);
-                        triggerRandomEvent(['predoni']); // Usa evento predoni standard
-                        return; // Esce
-                    }
-                }
-            }
-            break;
-
-        case 'pericolo_ambientale':
-        case 'pericolo_ambientale_notturno':
-            outcomeTitle = "Esito Pericolo";
-            let skill = 'agilita'; // Default
-            if (context.subType === 'presagio_check') skill = 'presagio';
-            // Usa la difficoltà specifica del sottotipo salvata nel contesto
-            let hazardDifficulty = (context.subType === 'agilita_check' ? (isDay ? 12 : 13) : (isDay ? 13 : 14));
-            hazardDifficulty += (context.difficultyMod || 0); // Aggiunge mod generico (notte)
-            checkResult = performSkillCheck(skill, hazardDifficulty);
-            if (checkResult.success) { outcomeDesc = getRandomText(esitiPericoloAmbientaleEvitato); }
-            else {
-                const hazardDmg = context.damage || getRandomInt(1,3); // Usa danno dal contesto o default
-                outcomeDesc = getRandomText(esitiPericoloAmbientaleColpito);
-                player.hp = Math.max(0, player.hp - hazardDmg);
-                player.isInjured = true; // Stato Ferito
-                statusJustChanged = true; // Imposta flag locale
-                consequenceText = `Subisci ${hazardDmg} HP di danno e rimani ferito.`;
-                statsChanged = true;
-            }
-            break;
-
-        case 'dilemma_morale':
-            outcomeTitle = "Conseguenze";
-            if (choiceKey === 'N') { outcomeDesc = getRandomText(esitiDilemmaMoraleIgnora); }
-            else if (choiceKey === 'I') {
-                checkResult = performSkillCheck('presagio', effectiveDifficulty); // Prova su Presagio per intuire la situazione
-                if (checkResult.success) { // Intuito corretto -> esito positivo
-                    outcomeDesc = getRandomText(esitiDilemmaMoraleIndagaOkPositivo);
-                    if (Math.random() < 0.5) { // 50% chance di loot bonus
-                        const res = Math.random() < 0.5 ? 'food' : 'water'; const amt = getRandomInt(1, 2);
-                        player[res] += amt; consequenceText = `Trovi ${amt} ${res}.`; statsChanged = true;
-                    }
-                } else { // Intuito fallito -> esito negativo
-                     outcomeDesc = getRandomText(esitiDilemmaMoraleIndagaOkNegativo);
-                     if (Math.random() < 0.5) { // 50% chance di danno
-                        const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Vieni coinvolto e ferito (-${dmg} HP).`; statsChanged = true;
-                     }
-                }
-            }
-            break;
-
-        case 'orrore_indicibile':
-            outcomeTitle = "Confronto con l'Ignoto";
-            let sanityDmg = 0;
-            switch(choiceKey) {
-                case 'F': // Fuga (Agilità)
-                    checkResult = performSkillCheck('agilita', effectiveDifficulty);
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiOrroreIndicibileFugaOk); }
-                    else { outcomeDesc = getRandomText(esitiOrroreIndicibileFugaKo); sanityDmg = context.sanityDamage || 1; consequenceText = `Il terrore ti sfianca (-${sanityDmg} HP).`; }
-                    break;
-                case 'A': // Affronta (Vigore)
-                    checkResult = performSkillCheck('vigore', effectiveDifficulty + 1); // Affrontare è più difficile
-                    if (checkResult.success) { outcomeDesc = getRandomText(esitiOrroreIndicibileAffrontaOk); }
-                    else { outcomeDesc = getRandomText(esitiOrroreIndicibileAffrontaKo); sanityDmg = (context.sanityDamage || 1) * 2; consequenceText = `La tua mente vacilla (-${sanityDmg} HP).`; }
-                    break;
-            }
-             // Applica danni "sanità" (HP)
-            if (sanityDmg > 0) { player.hp = Math.max(0, player.hp - sanityDmg); statsChanged = true; }
-            break;
-
-        case 'rifugio_scelta': // Evento ispezione rifugio (giorno)
-            if (choiceKey === 'L') {
-                outcomeTitle = "Prudenza";
-                outcomeDesc = "Decidi di non rischiare e lasci perdere.";
-            } else if (choiceKey === 'I') {
-                outcomeTitle = "Ispezione Rifugio";
-                checkResult = performSkillCheck('tracce', context.difficulty || 11); // Usa difficoltà dal contesto
-                if (checkResult.success) {
-                    const outcomeRoll = Math.random();
-                    if (outcomeRoll < 0.4) { // Loot
-                        const resType = Math.random() < 0.5 ? 'food' : 'water'; const foundAmount = getRandomInt(1, 2);
-                        player[resType] += foundAmount;
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaOkLoot); consequenceText = `Trovi ${foundAmount} ${resType}.`; statsChanged = true;
-                    } else if (outcomeRoll < 0.7) { // Lore
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaOkLore); consequenceText = `"${getRandomText(loreFragments)}"`;
-                    } else { // Nulla
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaKoNulla); consequenceText = "Non trovi nulla di valore.";
-                    }
-                } else { // Fallimento check Tracce
-                    const outcomeRoll = Math.random();
-                    if (outcomeRoll < 0.5) { // Trappola
-                        const dmg = getRandomInt(1, 2); player.hp = Math.max(0, player.hp - dmg);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaKoTrappola); consequenceText = `Scatta una trappola e ti ferisci! (-${dmg} HP).`; statsChanged = true;
-                    } else { // Nulla
-                        outcomeDesc = getRandomText(esitiRifugioIspezionaKoNulla); consequenceText = "Non trovi nulla di nascosto.";
-                    }
-                }
-            }
-            break; // Fine case 'rifugio_scelta'
-
-        case 'ritrovamento_dubbio':
-            if (choiceKey === 'L') {
-                outcomeTitle = "Prudenza";
-                outcomeDesc = "Il tuo istinto ti dice di diffidare. Prosegui.";
-            } else if (choiceKey === 'P') {
-                outcomeTitle = "Rischio Calcolato";
-                outcomeDesc = "Ti avvicini con cautela...";
-                checkResult = performSkillCheck('presagio', effectiveDifficulty);
-                if (checkResult.success) { // Successo Presagio - Loot!
-                    const lootType = Math.random() < 0.5 ? 'food' : 'water'; const amount = getRandomInt(1, 2);
-                    player[lootType] += amount;
-                    outcomeDesc += `\n${getRandomText(["Sembra tutto a posto. Trovi provviste utili!", "È un colpo di fortuna!", "Il contenuto è genuino."])}`;
-                    consequenceText = `Hai trovato ${amount} ${lootType}.`; statsChanged = true;
-                    addMessage("Ritrovamento fortunato!", "info");
-                } else { // Fallimento Presagio - Trappola/Pericolo!
-                    outcomeDesc += `\n${getRandomText(["Appena tocchi l'oggetto, scatta una trappola!", "Era un'esca!", "Qualcosa non torna..."])}`;
-                    const trapType = Math.random();
-                    if (trapType < 0.6) { // Danno HP
-                        const dmg = getRandomInt(1, 3); player.hp = Math.max(0, player.hp - dmg);
-                        player.isInjured = true; // Stato Ferito
-                        statusJustChanged = true; // Imposta flag locale
-                        consequenceText = `Vieni ferito dalla trappola! (-${dmg} HP).`; statsChanged = true;
-                        addMessage("Era una trappola!", "warning", true);
-                    } else { // Imboscata Predoni
-                        consequenceText = "Sei caduto in un'imboscata!";
-                        addMessage("Imboscata!", "warning", true);
-                        // Mostra esito fallimento, poi triggera predoni
-                        showEventPopup(outcomeTitle, outcomeDesc, [], checkResult, consequenceText);
-                        triggerRandomEvent(['predoni']);
-                        return; // Esce
-                    }
-                }
-            }
-             break; // <--- !! BREAK AGGIUNTO !!
-
-         // --- NUOVO EVENTO PER STATO MALATO --- (Semplificato per ora)
-        case 'acqua_contaminata':
-            outcomeTitle = "Acqua Sospetta";
-            if (choiceKey === 'I') { // Scelta Ignora
-                outcomeDesc = "Decidi saggiamente di non bere quell'acqua dall'aspetto terribile.";
-                // Nessuna conseguenza, nessuna stats cambiata
-            } else if (choiceKey === 'B') { // Scelta Bevi
-                checkResult = performSkillCheck('vigore', effectiveDifficulty); // Check su Vigore
-                if (checkResult.success) {
-                    outcomeDesc = "Bevi con cautela e non sembra avere effetti negativi. Ti senti rinfrescato.";
-                    player.water += 2; // Bonus acqua se resisti
-                    consequenceText = "Guadagni 2 Acqua.";
-                    statsChanged = true; // Aggiorniamo le stats perché l'acqua è cambiata
-                } else {
-                    outcomeDesc = "L'acqua aveva un sapore strano... inizi a sentirti poco bene.";
-                    player.isSick = true; // Stato Malato
-                    statusJustChanged = true; // Imposta flag locale
-                    consequenceText = "Ti senti Malato.";
-                    statsChanged = true; // Aggiorniamo le stats per mostrare lo stato malato
-                }
-            }
-            break;
-
-        case 'loot_semplice': // Gestire anche l'esito del cibo avariato
-            if (context.subType === 'spoiled_food') {
-                outcomeTitle = "Cibo Sospetto";
-                if (choiceKey === 'L') {
-                    outcomeDesc = "Decidi di non rischiare e lasci lì quel cibo dall'aspetto orribile.";
-                } else if (choiceKey === 'M') {
-                    checkResult = performSkillCheck('adattamento', context.difficulty || 11);
-                    if (checkResult.success) {
-                        outcomeDesc = "Mangi il cibo sospetto... Non era il massimo, ma sembra tutto a posto. Almeno hai messo qualcosa nello stomaco.";
-                        player.food += context.amount || 1; // Aggiunge cibo
-                        consequenceText = `Guadagni ${context.amount || 1} Cibo.`;
-                        statsChanged = true;
-                    } else {
-                        outcomeDesc = "Quel cibo era decisamente avariato! Inizi a sentirti molto male.";
-                        player.isSick = true; // Stato Malato
-                        statusJustChanged = true;
-                        consequenceText = "Ti senti Malato.";
-                        statsChanged = true;
-                    }
-                }
-            } else {
-                // Questo blocco non dovrebbe essere raggiunto se loot_semplice ha scelte,
-                // ma lo teniamo per sicurezza o per casi futuri.
-                outcomeTitle = "Oggetti Trovati";
-                outcomeDesc = context.cons || "Hai preso le provviste."; // Usa la conseguenza salvata prima
-            }
-            break;
-
-        default:
-            console.warn(`Evento non gestito in handleEventChoice: ${context.event}`);
-            outcomeTitle = "Evento Sconosciuto";
-            outcomeDesc = "L'esito non è chiaro...";
-            break;
-    }
-
-    // --- Gestione comune fine evento ---
-    hideEventScreen();
-
-    // Forza renderStats SE lo status è cambiato in QUESTA esecuzione
-    if (statusJustChanged) {
-        renderStats();
-    }
-    // Mantieni la logica precedente per altri cambi (HP, Cibo, Acqua)
-    else if (statsChanged) {
-        renderStats();
-    }
-
-    if (checkGameOver()) return; // Esce se il giocatore muore dopo l'evento
-
-    // Mostra popup finale dell'evento
-    showEventPopup(outcomeTitle, outcomeDesc, outcomeChoices, checkResult, consequenceText);
-}
-
-function checkGameOver() {
-    if (player.hp <= 0 && gameActive) {
-        showEndGameMessage(false);
-        return true;
-    }
-    return false;
-}
-
-function movePlayer(dx, dy) {
-    if (!gameActive || eventScreenActive) return;
-
-    const nextX = player.x + dx;
-    const nextY = player.y + dy;
-
-    // Controllo confini mappa
-    if (nextX < 0 || nextX >= MAP_WIDTH || nextY < 0 || nextY >= MAP_HEIGHT) {
-        addMessage("Non puoi andare in quella direzione.");
-        return;
-    }
-
-    // Aggiorna posizione giocatore
-    player.x = nextX;
-    player.y = nextY;
-
-    // Gestione ciclo Giorno/Notte
-    if (isDay) {
-        dayMovesCounter++;
-        if (dayMovesCounter >= DAY_LENGTH_MOVES) {
-            isDay = false;
-            dayMovesCounter = 0; // Resetta contatore
-            addMessage("[FASE] Il sole tramonta. È calata la NOTTE. Cerca un rifugio!", 'info', true);
-            renderMap(); // Aggiorna mappa per possibile cambio stile notturno
-            renderStats(); // Aggiorna UI per indicare Notte
-        }
-    } else {
-        // Azioni per ogni passo notturno? (Al momento la difficoltà è gestita negli eventi)
-    }
-
-    const currentTile = map[player.y]?.[player.x];
-    if (!currentTile) {
-        console.error("ERRORE: Casella non valida a", player.x, player.y);
-        addMessage("Errore nel terreno!", "warning");
-        return;
-    }
-
-    // Gestisce evento sulla casella (che può mostrare un popup)
-    // handleTileEvent gestisce anche il passaggio da Notte a Giorno nel rifugio
-    const popupWasShownByEvent = handleTileEvent(currentTile);
-
-    // Render mappa/stats solo se NON è stato mostrato un popup dall'evento
-    // e se il gioco è ancora attivo (non game over)
-    if (!popupWasShownByEvent && gameActive) {
-        renderMap();
-        renderStats(); // Render stats dopo movimento SE non c'è popup
-    }
-    // checkGameOver è già chiamato all'interno di handleTileEvent se necessario
-}
-
-function handleKeyPress(event) {
-    if (event.repeat) return;
-
-    if (eventScreenActive) {
-        // Gestione TASTI DENTRO overlay (evento o inventario)
-        const key = event.key.toUpperCase();
-        if (key === 'ESCAPE') { // Chiude sempre con ESC
-            event.preventDefault();
-            hideEventScreen();
-            return;
-        }
-        // Se è inventario, gestisci numeri (esempio)?
-        if (document.getElementById('event-title').textContent === "Zaino") {
-            const index = parseInt(key) - 1;
-            const usableItems = player.inventory.filter(slot => ITEM_DATA[slot.itemId]?.usable);
-            if (!isNaN(index) && index >= 0 && index < usableItems.length) {
-                event.preventDefault();
-                useItem(usableItems[index].itemId);
-                return;
-            }
-        }
-        // Se è evento normale, gestisci scelte lettera
-        const choice = currentEventChoices.find(c => c.key === key);
-        if (choice) {
-            event.preventDefault();
-            handleEventChoice(key);
-        }
-    } else if (gameActive) {
-        // Gestione input FUORI overlay (movimento o apri inventario)
-        const lowerCaseKey = event.key.toLowerCase();
-        if (lowerCaseKey === 'i') { // Apri inventario con 'I'
-            event.preventDefault();
-            showInventoryScreen();
-        } else {
-            // Gestione movimento (invariata)
-            let dx = 0, dy = 0;
-            let validMoveKey = false;
-            switch (lowerCaseKey) {
-                case "arrowup": case "w": dy = -1; validMoveKey = true; break;
-                case "arrowdown": case "s": dy = 1; validMoveKey = true; break;
-                case "arrowleft": case "a": dx = -1; validMoveKey = true; break;
-                case "arrowright": case "d": dx = 1; validMoveKey = true; break;
-            }
-            if (validMoveKey) {
-                event.preventDefault();
-                movePlayer(dx, dy);
-            }
-        }
+        console.error("Errore durante il rendering dei messaggi:", e);
+        if (messagesList) messagesList.innerHTML = '<li>Errore nel log!</li>';
     }
 }
 
-function setupInputListeners() {
-    // Rimuove listener precedente per sicurezza (evita duplicati)
-    document.removeEventListener('keydown', handleKeyPress);
-    // Aggiunge nuovo listener
-    document.addEventListener('keydown', handleKeyPress);
-
-    // Aggiungi listener per continue button
-    if (continueButton) {
-        continueButton.addEventListener('click', () => {
-            // Chiudi solo se il popup è attivo e NON ci sono scelte attive
-            if (eventScreenActive && currentEventChoices.length === 0) {
-                hideEventScreen();
-            }
-        });
-    }
-
-    // Aggiungi listener per restart button
-    const restartButton = document.getElementById('restart-button');
-    if (restartButton) {
-        restartButton.addEventListener('click', () => {
-            window.location.reload(); // Ricarica la pagina
-        });
-    }
-
-    // Aggiungere listener anche per i bottoni di movimento se non già presenti
-
-    // Aggiungi listener per bottone Inventario
-    const inventoryButton = document.getElementById('btn-inventory');
-    if (inventoryButton) {
-        inventoryButton.addEventListener('click', showInventoryScreen);
-    }
-}
-
-// NUOVA FUNZIONE per renderizzare l'inventario
+/**
+ * Aggiorna la visualizzazione dell'inventario nella colonna sinistra.
+ */
 function renderInventory() {
-    if (!inventoryList) return;
-    if (!player || !player.inventory) {
+    if (!inventoryList) return; // Verifica che l'elemento esista
+    if (!player || !Array.isArray(player.inventory)) {
         inventoryList.innerHTML = '<li>Errore inventario</li>';
+        console.error("Errore: player.inventory non è un array valido.");
         return;
     }
+
+    // Pulisce la lista precedente
+    inventoryList.innerHTML = '';
 
     if (player.inventory.length === 0) {
         inventoryList.innerHTML = '<li>-- Vuoto --</li>';
         return;
     }
 
-    inventoryList.innerHTML = ''; // Pulisce lista
+    // Aggiunge un elemento <li> per ogni oggetto nell'inventario
     player.inventory.forEach(slot => {
-        const itemInfo = ITEM_DATA[slot.itemId];
+        const itemInfo = ITEM_DATA[slot.itemId]; // Recupera dati oggetto da game_data.js
         if (itemInfo) {
             const li = document.createElement('li');
             li.textContent = `${itemInfo.name} (${slot.quantity})`;
-            // Aggiungi data-* attribute per identificare l'oggetto nell'UI se serve per l'uso
+            // Aggiunge un data attribute per identificare l'oggetto (utile per interazioni future)
             li.dataset.itemId = slot.itemId;
             inventoryList.appendChild(li);
         } else {
-            // Oggetto non trovato nei dati globali? Loggare errore.
+            // Logga un avviso se un oggetto nell'inventario non esiste in ITEM_DATA
             console.warn(`Oggetto con ID ${slot.itemId} nell'inventario non trovato in ITEM_DATA.`);
+            const li = document.createElement('li');
+            li.textContent = `Oggetto Sconosciuto (${slot.quantity})`;
+            li.style.color = 'red'; // Evidenzia l'errore
+            inventoryList.appendChild(li);
         }
     });
 }
 
-// Avvio del gioco all'onload
-window.onload = () => {
-    mapDisplay.textContent = "Caricamento..."; // Messaggio iniziale
-    initializeGame(); // Avvia direttamente il gioco
-    renderInventory(); // Chiamata dopo INIT GAME
-};
+/**
+ * Aggiorna la visualizzazione della legenda della mappa.
+ */
+function renderLegend() {
+    console.log("renderLegend: Inizio"); // DEBUG
+    if (!legendList) {
+        console.error("renderLegend: Errore - Elemento legendList non trovato!");
+        return;
+    }
+    try {
+        legendList.innerHTML = ''; // Pulisce legenda precedente
+        // Definisce gli elementi della legenda
+        const legendItems = [
+            { s: TILE_SYMBOLS.PLAYER, d: TILE_DESC['@'] },
+            { s: TILE_SYMBOLS.PLAINS, d: TILE_DESC['.'] },
+            { s: TILE_SYMBOLS.FOREST, d: TILE_DESC['F'] },
+            { s: TILE_SYMBOLS.MOUNTAIN, d: TILE_DESC['M'] },
+            { s: TILE_SYMBOLS.RIVER, d: TILE_DESC['~'] },
+            { s: TILE_SYMBOLS.VILLAGE, d: TILE_DESC['V'] },
+            { s: TILE_SYMBOLS.CITY, d: TILE_DESC['C'] },
+            { s: TILE_SYMBOLS.REST_STOP, d: TILE_DESC['R'] },
+            { s: TILE_SYMBOLS.START, d: TILE_DESC['S'] },
+            { s: TILE_SYMBOLS.END, d: TILE_DESC['E'] }
+        ];
+        // Crea un elemento <li> per ogni voce della legenda
+        legendItems.forEach(item => {
+            // Trova la chiave corrispondente al simbolo per applicare la classe CSS corretta
+            const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === item.s);
+            const tileClass = `tile-${tileKey ? tileKey.toLowerCase().replace(/_/g, '-') : 'unk'}`;
+            // Aggiunge classe speciale per il simbolo del giocatore e della fine
+            const specialClass = item.s === TILE_SYMBOLS.PLAYER ? 'player-marker' : (item.s === TILE_SYMBOLS.END ? 'tile-end' : '');
 
-// Funzione per mostrare la schermata inventario/uso oggetti
-function showInventoryScreen() {
-    if (!gameActive || eventScreenActive) return; // Non mostrare se gioco non attivo o altro popup aperto
+            legendList.innerHTML += `<li><span class="legend-symbol ${tileClass} ${specialClass}">${item.s}</span> = ${item.d}</li>`;
+        });
+        console.log("renderLegend: Fine (Successo)"); // DEBUG
+    } catch (e) {
+        console.error("renderLegend: Errore durante il rendering:", e);
+        if (legendList) legendList.innerHTML = '<li>Errore legenda</li>';
+    }
+}
 
-    const usableItems = player.inventory.filter(slot => {
-        const itemData = ITEM_DATA[slot.itemId];
-        return itemData && itemData.usable;
+/**
+ * Renderizza la porzione visibile della mappa di gioco centrata sul giocatore.
+ */
+function renderMap() {
+    const display = mapDisplay;
+    if (!display) { console.error("Elemento map-display non trovato!"); return; }
+    if (!player || typeof player.x !== 'number' || typeof player.y !== 'number') {
+        display.textContent = "ERRORE: Dati giocatore non validi per rendering mappa.";
+        console.error("Dati giocatore mancanti o non validi:", player);
+        return;
+    }
+    if (!map || !Array.isArray(map) || map.length === 0) {
+        display.textContent = "ERRORE: Mappa non valida o non generata.";
+        console.error("Mappa non valida:", map);
+        return;
+    }
+
+    // Assicura che le coordinate del giocatore siano nei limiti della mappa
+    player.x = Math.max(0, Math.min(MAP_WIDTH - 1, player.x));
+    player.y = Math.max(0, Math.min(MAP_HEIGHT - 1, player.y));
+
+    let mapString = ""; // Stringa HTML che conterrà la mappa renderizzata
+    const viewWidth = 40; // Larghezza della visuale della mappa (in caratteri)
+    const viewHeight = 25; // Altezza della visuale della mappa (in caratteri)
+    const halfWidth = Math.floor(viewWidth / 2);
+    const halfHeight = Math.floor(viewHeight / 2);
+
+    // Calcola le coordinate di inizio della visuale (viewport)
+    // Centra sul giocatore, ma limita ai bordi della mappa fisica
+    let startX = Math.max(0, player.x - halfWidth);
+    let startY = Math.max(0, player.y - halfHeight);
+    // Assicura che la viewport non vada oltre i bordi destri/inferiori
+    startX = Math.min(startX, MAP_WIDTH - viewWidth);
+    startY = Math.min(startY, MAP_HEIGHT - viewHeight);
+    // Ricontrolla che non sia < 0 dopo la correzione precedente (importante per mappe piccole)
+    startX = Math.max(0, startX);
+    startY = Math.max(0, startY);
+
+    // Calcola le coordinate di fine della visuale
+    let endX = Math.min(MAP_WIDTH, startX + viewWidth);
+    let endY = Math.min(MAP_HEIGHT, startY + viewHeight);
+
+    // Cicla sulle righe e colonne della porzione di mappa visibile
+    try {
+        for (let y = startY; y < endY; y++) {
+            // Sicurezza extra: salta righe non valide (non dovrebbe succedere con i calcoli sopra)
+            if (y < 0 || y >= map.length || !map[y]) continue;
+
+            for (let x = startX; x < endX; x++) {
+                // Sicurezza extra: salta colonne non valide
+                if (x < 0 || x >= map[y].length || !map[y][x]) continue;
+
+                // Se è la posizione del giocatore, usa il simbolo del giocatore
+                if (x === player.x && y === player.y) {
+                    mapString += `<span class="player-marker">${TILE_SYMBOLS.PLAYER}</span>`;
+                } else {
+                    // Altrimenti, usa il simbolo della casella
+                    const tile = map[y][x];
+                    const symbol = tile?.type || '?'; // Usa '?' se il tipo non è definito
+                    // Trova la chiave corrispondente al simbolo per la classe CSS
+                    const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === symbol);
+                    let tileClass = `tile-${tileKey ? tileKey.toLowerCase().replace(/_/g, '-') : 'unk'}`;
+                    // Aggiunge classe 'visited' se la casella è stata visitata
+                    let visitedClass = tile?.visited ? 'visited' : '';
+                    // Aggiunge classe 'tile-end' per la casella finale
+                    let endClass = symbol === TILE_SYMBOLS.END ? 'tile-end' : '';
+
+                    mapString += `<span class="${tileClass} ${visitedClass} ${endClass}">${symbol}</span>`;
+                }
+            }
+            mapString += "\n"; // Aggiunge newline alla fine di ogni riga della mappa
+        }
+        // Aggiorna l'HTML del display della mappa
+        display.innerHTML = mapString;
+    } catch (e) {
+        console.error("Errore durante il loop di rendering della mappa:", e);
+        display.textContent = "Errore Rendering Mappa!";
+    }
+}
+
+/**
+ * Disabilita o abilita i controlli di movimento.
+ * @param {boolean} [disabled=true] - Se true, disabilita i controlli, altrimenti li abilita.
+ */
+function disableControls(disabled = true) {
+    if (!moveButtons) return;
+    moveButtons.forEach(btn => btn.disabled = disabled);
+    // if(inventoryButton) inventoryButton.disabled = disabled; // Disabilita/Abilita anche bottone inventario
+}
+
+/**
+ * Abilita i controlli di movimento (se il gioco è attivo).
+ */
+function enableControls() {
+    if (gameActive) {
+       disableControls(false); // Chiama disableControls con false per abilitare
+    }
+}
+
+/**
+ * Esegue un check su una statistica del giocatore contro una difficoltà.
+ * Applica penalità basate sullo stato (Ferito/Malato).
+ * @param {string} statKey - La chiave della statistica da usare (es. 'agilita', 'vigore').
+ * @param {number} difficulty - La difficoltà base del check.
+ * @returns {{success: boolean, text: string}} Oggetto con l'esito (successo/fallimento) e una stringa descrittiva del tiro.
+ */
+function performSkillCheck(statKey, difficulty) {
+    // Ottiene il valore della statistica, con fallback a 5 se non trovata
+    const statValue = player[statKey] || 5;
+    // Calcola il modificatore stile D&D (bonus/malus ogni 2 punti sopra/sotto 10)
+    const bonus = Math.floor((statValue - 10) / 2);
+    // Tira un dado a 20 facce
+    const roll = getRandomInt(1, 20);
+
+    // Applica penalità basate sullo stato del giocatore
+    let difficultyPenalty = 0;
+    let penaltyReason = "";
+    // Penalità se Ferito e il check usa Potenza o Agilità
+    if (player.isInjured && (statKey === 'potenza' || statKey === 'agilita')) {
+        difficultyPenalty = 2;
+        penaltyReason = " (Ferito)";
+    }
+    // Penalità se Malato e il check usa Vigore o Adattamento
+    // Nota: Se entrambe le condizioni si applicano alla stessa stat (improbabile),
+    // questa logica applica solo la penalità per Malato. Si potrebbe modificare per sommarle.
+    if (player.isSick && (statKey === 'vigore' || statKey === 'adattamento')) {
+        difficultyPenalty = 2; // Potrebbe sovrascrivere la penalità 'Ferito' se la stat è la stessa
+        penaltyReason = " (Malato)";
+    }
+
+    // Calcola la difficoltà finale e l'esito
+    const finalDifficulty = difficulty + difficultyPenalty;
+    const total = roll + bonus;
+    const success = total >= finalDifficulty;
+
+    // Costruisce la stringa descrittiva del tiro
+    const checkText = `Tiro ${statKey.charAt(0).toUpperCase() + statKey.slice(1)}: ${roll} + ${bonus} (bonus) = ${total} vs Difficoltà ${difficulty}${penaltyReason ? penaltyReason : ''} = ${finalDifficulty}`;
+
+    // Ritorna l'oggetto con l'esito e la stringa
+    return { success: success, text: checkText };
+}
+
+// --- LOGICA DI GIOCO E MOVIMENTO ---
+
+/**
+ * Controlla se una casella è attraversabile dal giocatore.
+ * @param {object} tile - L'oggetto tile della mappa.
+ * @returns {boolean} True se la casella è attraversabile, false altrimenti.
+ */
+function isWalkable(tile) {
+    if (!tile) return false;
+    // Per ora, solo le montagne non sono attraversabili.
+    return tile.type !== TILE_SYMBOLS.MOUNTAIN;
+}
+
+/**
+ * Muove il giocatore sulla mappa, aggiorna lo stato e il rendering.
+ * @param {number} dx - Lo spostamento orizzontale (-1, 0, 1).
+ * @param {number} dy - Lo spostamento verticale (-1, 0, 1).
+ */
+function movePlayer(dx, dy) {
+    if (!gameActive || eventScreenActive || (dx === 0 && dy === 0)) {
+        return; // Non muovere se gioco non attivo, evento aperto, o movimento nullo
+    }
+
+    const newX = player.x + dx;
+    const newY = player.y + dy;
+
+    // Controllo limiti mappa
+    if (newX < 0 || newX >= MAP_WIDTH || newY < 0 || newY >= MAP_HEIGHT) {
+        addMessage("Non puoi andare oltre i confini del mondo conosciuto.", "warning");
+        return;
+    }
+
+    const targetTile = map[newY]?.[newX];
+
+    // Controllo se la casella è attraversabile
+    if (!targetTile || !isWalkable(targetTile)) {
+        addMessage("Non puoi passare di qui.", "warning");
+        return;
+    }
+
+    // Movimento valido
+    disableControls(); // Disabilita controlli durante l'elaborazione
+
+    player.x = newX;
+    player.y = newY;
+    targetTile.visited = true;
+
+    addMessage(`Ti muovi verso (${newX}, ${newY}). Luogo: ${TILE_DESC[targetTile.type] || '???'}`);
+
+    // Attiva evento PRIMA di consumare risorse/tempo?
+    triggerTileEvent(targetTile);
+
+    // Se un evento NON è attivo, procedi con consumo risorse e tempo
+    if (!eventScreenActive) {
+        // TODO: Consumo risorse (cibo/acqua)
+        // TODO: Controllo giorno/notte (dayMovesCounter, isDay)
+        // TODO: Controllo vittoria (se targetTile.type === TILE_SYMBOLS.END)
+        enableControls(); // Riabilita i controlli SOLO se non c'è un evento
+    }
+
+    // Aggiorna l'interfaccia (mappa e stats vengono aggiornate anche se evento si attiva)
+    renderMap();
+    renderStats();
+
+    // enableControls(); // Spostato sopra, nel blocco !eventScreenActive
+}
+
+// --- GESTIONE EVENTI ---
+
+/**
+ * Attiva un evento casuale basato sulla casella corrente, se applicabile.
+ * @param {object} tile - L'oggetto tile su cui si trova il giocatore.
+ */
+function triggerTileEvent(tile) {
+    if (!tile || tile.type === TILE_SYMBOLS.START || tile.type === TILE_SYMBOLS.END) {
+        return; // Nessun evento su Start, End o caselle non valide
+    }
+
+    let eventPool = [];
+    let eventChance = 0;
+
+    // Recupera pool eventi e chance da game_data (se esistono)
+    try {
+        const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === tile.type);
+        if (tileKey && EVENT_DATA && EVENT_DATA[tileKey]) {
+            eventPool = EVENT_DATA[tileKey];
+        }
+        if (tileKey && EVENT_CHANCE && typeof EVENT_CHANCE[tileKey] === 'number') {
+            eventChance = EVENT_CHANCE[tileKey];
+        }
+    } catch (e) {
+        console.warn("Dati eventi (EVENT_DATA/EVENT_CHANCE) non trovati o non validi in game_data.js", e);
+        return; // Esce se mancano i dati fondamentali
+    }
+
+    // Controlla la probabilità
+    if (eventPool.length > 0 && Math.random() < eventChance) {
+        const randomEvent = getRandomText(eventPool);
+        if (randomEvent) {
+            showEventPopup(randomEvent);
+        } else {
+             console.warn(`Tentativo di attivare evento per ${tile.type}, ma l'evento selezionato non è valido.`);
+        }
+    }
+}
+
+/**
+ * Mostra il popup dell'evento con titolo, descrizione e scelte.
+ * @param {object} eventData - L'oggetto evento da visualizzare.
+ */
+function showEventPopup(eventData) {
+    if (!eventOverlay || !eventTitle || !eventContent || !eventChoicesContainer) {
+        console.error("Elementi del popup evento non trovati nel DOM.");
+        return;
+    }
+    if (!eventData) {
+        console.error("showEventPopup chiamata senza eventData valido.");
+        return;
+    }
+
+    disableControls();
+    eventScreenActive = true;
+    currentEventContext = eventData; // Salva contesto/dati base evento
+
+    eventTitle.textContent = eventData.title || "Evento";
+
+    // Costruisce il contenuto HTML
+    let contentHTML = eventData.description || "Qualcosa è successo...";
+    
+    // Se sono presenti dettagli del check (passati da handleEventChoice)
+    if (eventData.checkDetails) {
+        contentHTML += `<br><br><span class="log-dim">(${eventData.checkDetails})</span>`; // Aggiunge dettagli check
+    }
+    // Se sono presenti conseguenze specifiche (passate da handleEventChoice)
+    if (eventData.consequences) {
+        contentHTML += `<br><span class="log-info">${eventData.consequences}</span>`; // Aggiunge conseguenze
+    }
+    eventContent.innerHTML = contentHTML;
+
+    eventChoicesContainer.innerHTML = '';
+    const choices = eventData.choices || [];
+    currentEventChoices = choices; // Salva per gestione tastiera eventi standard
+
+    // Distingue tra popup evento standard e popup azioni oggetto
+    if (!eventData.isActionPopup && choices.length > 0 && !eventData.isOutcome) {
+        // Popup evento standard con scelte
+        choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.textContent = `${index + 1}. ${choice.text}`;
+            button.onclick = () => handleEventChoice(index); // Chiama handleEventChoice
+            if (choice.cssClass) button.classList.add(choice.cssClass);
+            eventChoicesContainer.appendChild(button);
+        });
+        if(continueButton) continueButton.style.display = 'none';
+    } else if (eventData.isActionPopup) {
+        // Popup azioni oggetto (Usa, Annulla, etc.)
+         choices.forEach((choice) => { // Non serve l'indice numerico qui
+            const button = document.createElement('button');
+            button.textContent = choice.text;
+            button.onclick = choice.action; // Chiama direttamente l'azione definita
+            if (choice.cssClass) button.classList.add(choice.cssClass);
+            eventChoicesContainer.appendChild(button);
+        });
+         if(continueButton) continueButton.style.display = 'none';
+    } else {
+        // Popup di risultato evento o evento senza scelte
+         if(continueButton) {
+             continueButton.style.display = 'inline-block';
+             continueButton.onclick = () => closeEventPopup(); 
+         }
+    }
+
+    eventOverlay.style.display = 'flex';
+}
+
+/**
+ * Gestisce la selezione di una scelta nell'evento.
+ * @param {number} choiceIndex - L'indice della scelta selezionata.
+ */
+function handleEventChoice(choiceIndex) {
+    if (!currentEventChoices || choiceIndex < 0 || choiceIndex >= currentEventChoices.length) {
+        console.error("Indice scelta evento non valido:", choiceIndex);
+        closeEventPopup(); // Chiude comunque per sicurezza
+        return;
+    }
+
+    const choice = currentEventChoices[choiceIndex];
+    const baseEventTitle = currentEventContext.title || "Evento"; // Titolo evento originale
+
+    let outcomeTitle = "Risultato";
+    let outcomeDescription = `Hai scelto: ${choice.text}.`;
+    let outcomeCheckDetails = null;
+    let outcomeConsequences = "";
+    let messageType = 'info'; // Per il log nel diario
+
+    // --- LOGICA ESECUZIONE SCELTA --- 
+    if (choice.outcome) {
+        // Outcome semplice predefinito
+        outcomeDescription += ` ${choice.outcome}`;
+        addMessage(`${baseEventTitle}: ${choice.text}. ${choice.outcome}`, messageType, true); // Log nel diario
+
+    } else if (choice.skillCheck) {
+        // Esegue il check abilità
+        const checkResult = performSkillCheck(choice.skillCheck.stat, choice.skillCheck.difficulty);
+        outcomeCheckDetails = checkResult.text; // Salva dettagli check per popup
+
+        if(checkResult.success) {
+            outcomeTitle = "Successo!";
+            outcomeDescription += ` ${choice.successText || "Ce l'hai fatta!"}`;
+            messageType = 'success';
+            
+            // --- Applica Conseguenze Successo ---
+            // Esempio specifico per "Strani Rumori -> Indaga (Tracce)"
+            if (choice.skillCheck.stat === 'tracce' && choice.text.includes("Indaga")) {
+                addItemToInventory('berries', 1);
+                outcomeConsequences = "Hai raccolto delle Bacche!"; 
+            } else {
+                // Placeholder generico per altri successi
+                outcomeConsequences = "(Placeholder: Conseguenza positiva)";
+            }
+            // TODO: Aggiungere logica per altre scelte/eventi
+
+        } else {
+            outcomeTitle = "Fallimento...";
+            outcomeDescription += ` ${choice.failureText || "Non è andata bene..."}`;
+            messageType = 'warning';
+            
+            // --- Applica Conseguenze Fallimento ---
+            // Esempio specifico per "Strani Rumori -> Indaga (Tracce)"
+             if (choice.skillCheck.stat === 'tracce' && choice.text.includes("Indaga")) {
+                outcomeConsequences = "Non trovi nulla di utile.";
+             } else {
+                 // Placeholder generico per altri fallimenti
+                 outcomeConsequences = "(Placeholder: Conseguenza negativa)";
+             }
+            // TODO: Aggiungere logica per altre scelte/eventi
+        }
+        // Log nel diario (include check ma non conseguenze dettagliate)
+         addMessage(`${baseEventTitle}: ${choice.text}. ${outcomeCheckDetails}. Esito: ${checkResult.success ? 'Successo' : 'Fallimento'}.`, messageType, true);
+
+    } else {
+         // Scelta senza outcome o check definito
+         outcomeDescription += " (Nessuna conseguenza particolare)";
+         addMessage(`${baseEventTitle}: ${choice.text}. (Nessuna conseguenza particolare)`, messageType, true); // Log nel diario
+    }
+    // --- FINE LOGICA ESECUZIONE SCELTA ---
+
+    // Mostra il risultato in un NUOVO popup evento
+    showEventPopup({
+        isOutcome: true, // Flag per indicare che è un popup di risultato
+        title: outcomeTitle,
+        description: outcomeDescription,
+        checkDetails: outcomeCheckDetails, // Passa dettagli check
+        consequences: outcomeConsequences // Passa conseguenze
+        // choices: [] // Nessuna scelta nel popup di risultato
     });
 
-    let content = "Inventario:\n";
-    let choicesHTML = "";
+    // Non chiudiamo il popup qui, lo fa l'utente cliccando 'Continua' nel nuovo popup
+    // closeEventPopup(); 
+}
 
-    if (usableItems.length === 0) {
-        content += "Nessun oggetto utilizzabile.";
-    } else {
-        content += "Seleziona un oggetto da usare:";
-        usableItems.forEach((slot, index) => {
-            const itemData = ITEM_DATA[slot.itemId];
-            // Usa indice + 1 come tasto (o altra logica se preferisci lettere)
-            const key = (index + 1).toString();
-            choicesHTML += `<div class="event-choice"><button onclick="useItem('${slot.itemId}')">[${key}] ${itemData.name} (${slot.quantity})</button> - ${itemData.desc}</div>`;
-            // Aggiungiamo anche gestione da tastiera?
-            // Potremmo aggiungere la key all'oggetto per handleKeyPress
+/**
+ * Chiude il popup dell'evento e riattiva i controlli.
+ */
+function closeEventPopup() {
+    if (eventOverlay) eventOverlay.style.display = 'none';
+    eventScreenActive = false;
+    currentEventChoices = [];
+    currentEventContext = null;
+    enableControls();
+}
+
+
+// --- GESTIONE INPUT --- 
+
+/**
+ * Gestisce la pressione dei tasti per il movimento e altre azioni.
+ * @param {KeyboardEvent} event - L'oggetto evento della tastiera.
+ */
+function handleKeyPress(event) {
+    // Gestione input per SCELTE EVENTO (se popup attivo)
+    if (eventScreenActive && currentEventChoices.length > 0) {
+        const choiceIndex = parseInt(event.key) - 1; // Converte tasto numerico (1, 2, ...) in indice (0, 1, ...)
+        if (!isNaN(choiceIndex) && choiceIndex >= 0 && choiceIndex < currentEventChoices.length) {
+            handleEventChoice(choiceIndex);
+            return; // Impedisce ulteriore elaborazione del tasto
+        }
+    }
+
+    // Gestione input MOVIMENTO (se gioco attivo e popup NON attivo)
+    if (!gameActive || eventScreenActive) {
+         return; // Ignora input se gioco non attivo o se popup evento è aperto
+    }
+
+    const key = event.key.toUpperCase(); // Converte il tasto in maiuscolo per consistenza
+
+    // TODO: Implementare la logica di movimento e azioni
+    switch (key) {
+        case 'W':
+        case 'ARROWUP':
+            movePlayer(0, -1); // Muovi su
+            break;
+        case 'S':
+        case 'ARROWDOWN':
+            movePlayer(0, 1); // Muovi giù
+            break;
+        case 'A':
+        case 'ARROWLEFT':
+            movePlayer(-1, 0); // Muovi sinistra
+            break;
+        case 'D':
+        case 'ARROWRIGHT':
+            movePlayer(1, 0); // Muovi destra
+            break;
+        case 'I':
+            console.log("Azione: Inventario (da implementare)");
+            break;
+        // Aggiungere altri tasti se necessario (es. 'E' per Interagisci, 'C' per Scheda Personaggio)
+    }
+}
+
+/**
+ * Imposta gli event listener per l'input da tastiera e dai pulsanti su schermo.
+ */
+function setupInputListeners() {
+    // Listener per la tastiera
+    document.addEventListener('keydown', handleKeyPress);
+
+    // Listener per click sull'inventario (event delegation)
+    if (inventoryList) {
+        inventoryList.addEventListener('click', (event) => {
+            const clickedLi = event.target.closest('li'); // Trova l'elemento <li> cliccato
+            if (clickedLi && clickedLi.dataset.itemId) { // Assicurati che sia un LI con un itemId
+                const itemId = clickedLi.dataset.itemId;
+                showItemActionPopup(itemId); // Mostra le opzioni per l'oggetto cliccato
+            }
         });
     }
 
-    // Aggiungi sempre scelta per chiudere
-    choicesHTML += `<div class="event-choice"><button onclick="hideEventScreen()">[Esc] Chiudi</button></div>`;
+    /* // Listener per bottone Inventario (I) - Commentato
+    if(inventoryButton) {
+        inventoryButton.addEventListener('click', () => {
+             console.log("Azione: Inventario Bottone (da implementare - es. toggle visibilità pannello?)");
+        });
+    } 
+    */
 
-    // Usa la struttura showEventPopup ma senza contesto evento
-    eventTitle.textContent = "Zaino";
-    eventContent.innerHTML = content.replace(/\n/g, '<br>') + choicesHTML;
-    if (continueButton) continueButton.style.display = 'none'; // Nascondi sempre continua qui
-
-    eventOverlay.style.display = 'block';
-    disableControls(true);
-    eventScreenActive = true; // Usa lo stesso flag dell'evento
-    currentEventChoices = []; // Resetta scelte evento normale
-    eventContent.scrollTop = 0;
+    // TODO: Aggiungere listener per i pulsanti su schermo se necessario,
+    // ad esempio collegando i bottoni a movePlayer o showInventory.
+    // Esempio:
+    // const btnUp = document.getElementById('btn-up');
+    // if (btnUp) btnUp.addEventListener('click', () => movePlayer(0, -1));
 }
 
-// Funzione placeholder per usare l'oggetto (verrà implementata dopo)
+/**
+ * Mostra un popup con le azioni disponibili per un oggetto dell'inventario.
+ * @param {string} itemId - L'ID dell'oggetto selezionato.
+ */
+function showItemActionPopup(itemId) {
+    const itemInfo = ITEM_DATA[itemId];
+    const itemInInventory = player.inventory.find(slot => slot.itemId === itemId);
+
+    if (!itemInfo || !itemInInventory) {
+        console.error(`showItemActionPopup: Oggetto ${itemId} non trovato o non nell'inventario.`);
+        addMessage("Errore nel selezionare l'oggetto.", "warning");
+        return;
+    }
+
+    const popupTitle = itemInfo.name;
+    const popupDescription = itemInfo.description;
+    const popupChoices = [];
+
+    // Aggiunge il pulsante "Usa" se l'oggetto è utilizzabile
+    if (itemInfo.usable) {
+        popupChoices.push({
+            text: `Usa ${itemInfo.name}`, // Testo del pulsante
+            action: () => useItem(itemId) // Funzione da chiamare al click
+        });
+    }
+
+    // Aggiunge il pulsante "Annulla"
+    popupChoices.push({
+        text: "Annulla",
+        action: () => closeEventPopup() // Semplice chiusura popup
+    });
+
+    // Modifichiamo showEventPopup per accettare azioni dirette nei choices
+    showEventPopup({
+        isActionPopup: true, // Nuovo flag per distinguere da eventi normali
+        title: popupTitle,
+        description: popupDescription,
+        choices: popupChoices // Passa le scelte con le azioni associate
+    });
+}
+
+/**
+ * Applica l'effetto di un oggetto utilizzabile.
+ * @param {string} itemId - L'ID dell'oggetto da usare.
+ */
 function useItem(itemId) {
-    if (!player || !player.inventory) return;
-    const itemData = ITEM_DATA[itemId];
-    if (!itemData || !itemData.usable) {
-        addMessage("Non puoi usare questo oggetto.", "warning");
-        hideEventScreen();
+    const itemInfo = ITEM_DATA[itemId];
+    const itemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
+
+    // Verifica esistenza, usabilità e quantità
+    if (!itemInfo || !itemInfo.usable || itemIndex === -1) {
+        console.error(`useItem: Impossibile usare l'oggetto ${itemId}. Non trovato, non usabile o non nell'inventario.`);
+        addMessage(`Non puoi usare ${itemInfo?.name || 'questo oggetto'}.`, "warning");
+        closeEventPopup();
         return;
     }
 
-    const inventorySlotIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
-    if (inventorySlotIndex === -1) {
-        addMessage("Non hai questo oggetto!", "warning"); // Errore logico?
-        hideEventScreen();
-        return;
-    }
-
+    const itemSlot = player.inventory[itemIndex];
+    let message = `Hai usato ${itemInfo.name}.`;
     let effectApplied = false;
-    let success = true; // Assume successo se non c'è chance
-    let effectMsg = `Hai usato: ${itemData.name}.`;
 
     // Applica effetto
-    if (itemData.effect) {
-        const effect = itemData.effect;
-        // Controlla chance di successo se presente
-        if (effect.chance !== undefined) {
-            success = Math.random() < effect.chance;
-        }
-
-        if (success) {
-            switch (effect.type) {
-                case 'add_resource':
-                    if (effect.resource_type === 'food') {
-                        player.food += effect.amount;
-                        effectMsg += ` Hai recuperato ${effect.amount} Cibo.`;
-                    } else if (effect.resource_type === 'water') {
-                        player.water += effect.amount;
-                        effectMsg += ` Hai recuperato ${effect.amount} Acqua.`;
-                    }
-                    renderStats(); // Aggiorna risorse UI
+    if (itemInfo.effect) {
+        const effect = itemInfo.effect;
+        switch (effect.type) {
+            case 'add_resource':
+                if (player.hasOwnProperty(effect.resource_type)) {
+                    const currentValue = player[effect.resource_type];
+                    // Calcola nuovo valore, clampando al massimo se necessario (es. 10? da definire)
+                    // Per ora, non clampiamo. TODO: Definire MAX_FOOD, MAX_WATER?
+                    player[effect.resource_type] += effect.amount;
+                    message += ` (+${effect.amount} ${effect.resource_type === 'food' ? 'Sazietà' : 'Idratazione'})`;
                     effectApplied = true;
-                    break;
-                case 'heal_status':
-                    if (effect.status_cured === 'isInjured' && player.isInjured) {
-                        player.isInjured = false;
-                        effectMsg += " Ti senti meglio, la ferita è trattata.";
-                        renderStats(); // Aggiorna status UI
-                        effectApplied = true;
-                    } else if (effect.status_cured === 'isSick' && player.isSick) {
-                        player.isSick = false;
-                        effectMsg += " L'intruglio sembra aver funzionato, la malattia regredisce.";
-                        renderStats(); // Aggiorna status UI
-                        effectApplied = true;
-                    } else {
-                        effectMsg += " ...ma non ha avuto effetto (non eri ferito/malato).";
-                        // Non consideriamo l'oggetto consumato se non ha effetto?
-                        // Per ora sì, ma potremmo cambiarlo.
-                    }
-                    break;
-                case 'show_lore':
-                    // Questa logica è per oggetti lore 'usabili', ma i nostri sono non usabili
-                    // La lettura avviene in addItemToInventory per ora.
-                    break;
-                // Aggiungere altri tipi di effetto qui...
-            }
-        } else { // Fallimento effetto (basato su chance)
-            effectMsg += " ...ma non sembra aver funzionato questa volta.";
-            effectApplied = true; // L'oggetto è stato comunque tentato di usare
+                } else {
+                    message += " Ma non ha avuto effetto.";
+                    console.warn(`Effetto add_resource per ${itemId}: tipo risorsa ${effect.resource_type} non trovato nel player.`);
+                }
+                break;
+
+            case 'heal_status':
+                if (player.hasOwnProperty(effect.status_cured) && player[effect.status_cured]) {
+                     const healChance = effect.chance || 1.0; // Assume 100% se non specificato
+                     if (Math.random() < healChance) {
+                         player[effect.status_cured] = false;
+                         message += ` ${effect.success_message || 'Ti senti meglio!'}`;
+                         effectApplied = true;
+                     } else {
+                         message += ` ${effect.failure_message || 'Non ha funzionato...'}`;
+                         // Non consideriamo l'effetto applicato se il check fallisce
+                     }
+                } else {
+                    // Se lo stato non esiste o non è attivo, non fa nulla
+                    message += " Ma non ne avevi bisogno.";
+                }
+                break;
+            
+            // TODO: Aggiungere altri tipi di effetto (es. heal_hp)
+
+            default:
+                 message += " Ma il suo effetto è sconosciuto.";
+                 console.warn(`Effetto non gestito per ${itemId}: tipo ${effect.type}`);
         }
+    } else {
+        message += " Ma non sembra avere alcun effetto.";
     }
 
-    // Rimuovi oggetto dall'inventario se l'effetto è stato applicato (o tentato se fallito)
-    if (effectApplied) {
-        const slot = player.inventory[inventorySlotIndex];
-        slot.quantity -= 1;
-        if (slot.quantity <= 0) {
-            player.inventory.splice(inventorySlotIndex, 1); // Rimuove slot se vuoto
+    // Consuma oggetto solo se l'effetto è stato applicato (o se non c'era effetto specifico ma l'oggetto è usabile)
+    // O forse consumare sempre se usabile? Dipende dal design.
+    // Per ora, consumiamo se usabile e un effetto è stato tentato.
+    if (itemInfo.effect) { // Consumiamo se c'era un effetto definito
+        itemSlot.quantity -= 1;
+        if (itemSlot.quantity <= 0) {
+            player.inventory.splice(itemIndex, 1); // Rimuove oggetto se quantità è 0
         }
-        renderInventory(); // Aggiorna UI inventario
+    } else {
+        // Se non c'era effetto, potremmo comunque voler consumare item usabili senza effetto? O loggare? 
+        // Decidiamo di non consumarlo per ora.
+         console.log(`Oggetto ${itemId} usato ma senza effetto definito. Non consumato.`);
     }
 
-    addMessage(effectMsg);
-    hideEventScreen(); // Chiude overlay inventario
+    addMessage(message, effectApplied ? 'success' : 'info', true);
+    renderStats();
+    renderInventory();
+    closeEventPopup(); // Chiude il popup dopo l'uso
 }
 
-// Funzione helper per aggiungere oggetti all'inventario
-function addItemToInventory(itemId, quantity = 1) {
-    if (!player || !player.inventory || quantity <= 0) return;
-    const itemData = ITEM_DATA[itemId];
-    if (!itemData) {
-        console.warn(`Tentativo di aggiungere oggetto inesistente: ${itemId}`);
-        return;
-    }
+// --- AVVIO GIOCO --- 
 
-    let added = false;
-    if (itemData.stackable) {
-        const existingSlot = player.inventory.find(slot => slot.itemId === itemId);
-        if (existingSlot) {
-            existingSlot.quantity += quantity;
-            added = true;
-        }
+window.onload = function() {
+    try {
+        initializeGame(); // Chiamata alla funzione originale
+    } catch (e) {
+        console.error("ERRORE CATTURATO direttamente nell'wrapper onload:", e);
+        // Potrebbe essere utile mostrare l'errore nel DOM se la console non è visibile
+        if(gameContainer) gameContainer.innerHTML = `<p style='color:red; padding: 20px;'>ERRORE FATALE ONLOAD: ${e.message}. Impossibile avviare. Controlla la console.</p>`;
     }
-
-    if (!added) {
-        // Aggiungi come nuovo slot (non impilabile o non trovato stack esistente)
-        // Potremmo aggiungere un limite all'inventario qui se necessario
-        player.inventory.push({ itemId: itemId, quantity: quantity });
-    }
-
-    addMessage(`Hai trovato: ${itemData.name} (${quantity})`, 'info');
-    renderInventory(); // Aggiorna UI inventario
-}
+};

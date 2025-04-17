@@ -7,43 +7,49 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Modificato game-container per ospitare 3 colonne -->
-    <div id="game-container">
-        <!-- NUOVA COLONNA SINISTRA -->
-        <div id="left-panel">
-            <div id="resources">
-                <h3>Risorse</h3>
+    <main id="game-container">
+
+        <aside id="left-panel">
+            <section id="survival-panel" class="panel">
+                <h2>SOPRAVVIVENZA</h2>
                 <ul>
-                    <li>Cibo: <span id="stat-food">--</span></li>
-                    <li>Acqua: <span id="stat-water">--</span></li>
+                    <li>Sazietà: <span id="stat-food">--</span></li>
+                    <li>Idratazione: <span id="stat-water">--</span></li>
                 </ul>
-            </div>
-            <div id="condition">
-                 <h3>Condizione</h3>
+            </section>
+            <section id="condition" class="panel">
+                 <h2>CONDIZIONE</h2>
                  <p><span id="stat-condition" class="status-normal">Normale</span></p>
-            </div>
-            <!-- NUOVA SEZIONE INVENTARIO -->
-            <div id="inventory">
-                <h3>Inventario</h3>
-                <ul id="inventory-list"><li>-- Vuoto --</li></ul>
-            </div>
-        </div>
+            </section>
+            <section id="inventory-panel" class="panel">
+                 <h2>INVENTARIO</h2>
+                 <ul id="inventory"></ul>
+                 <div id="item-tooltip"></div>
+             </section>
+            <section id="messages-panel" class="panel">
+                 <h2>DIARIO</h2>
+                 <ul id="messages"></ul>
+             </section>
+        </aside>
 
-        <!-- COLONNA CENTRALE (Mappa) - Invariata -->
-        <div id="map-panel">
-            <h3>Mappa</h3>
+        <section id="map-panel" class="panel">
+            <h2>MAPPA</h2>
             <pre id="map-display">Caricamento...</pre>
-            <div id="legend">
-                <h3>Legenda</h3>
-                <ul id="legend-list"></ul>
-            </div>
-        </div>
+            
+            <div id="controls" class="panel panel-map-controls">
+                <h2>AZIONI</h2>
+                <div class="control-grid">
+                    <button id="btn-up" onclick="movePlayer(0, -1)">Su (W)</button>
+                    <button id="btn-left" onclick="movePlayer(-1, 0)">Sinistra (A)</button>
+                    <button id="btn-down" onclick="movePlayer(0, 1)">Giù (S)</button>
+                    <button id="btn-right" onclick="movePlayer(1, 0)">Destra (D)</button>
+                </div>
+             </div>
+        </section>
 
-        <!-- COLONNA DESTRA (Info) - Riorganizzata -->
-        <div id="info-panel">
-             <div id="stats">
-                 <h3>Statistiche</h3>
-                 <!-- Rimosso Cibo, Acqua, Condizione -->
+        <aside id="right-panel">
+             <section id="stats" class="panel">
+                 <h2>STATISTICHE</h2>
                  <ul id="stats-list">
                      <li>HP: <span id="stat-hp">--</span> / <span id="stat-maxhp">--</span></li>
                      <li class="separator">---</li>
@@ -56,47 +62,33 @@
                      <li>Adattamento: <span id="stat-ada">--</span></li>
                      <li>Acquisita: <span id="stat-acq">--</span></li>
                  </ul>
-             </div>
-             <div id="game-info"> <!-- Nuovo div per Posizione, Luogo, Ora -->
-                 <h3>Info Gioco</h3>
+             </section>
+             <section id="legend-panel" class="panel">
+                 <h2>LEGENDA</h2>
+                 <ul id="legend"></ul>
+             </section>
+             <section id="game-info" class="panel">
+                 <h2>INFO GIOCO</h2>
                  <ul>
                     <li>Pos: (<span id="pos-x">--</span>, <span id="pos-y">--</span>)</li>
                     <li>Luogo: <span id="tile-type">--</span></li>
                     <li>Ora: <span id="stat-day-time">--</span></li>
                  </ul>
-             </div>
-             <div id="controls">
-                 <h3>Azioni</h3>
-                 <button id="btn-up">Su (W)</button>
-                 <button id="btn-left">Sinistra (A)</button>
-                 <button id="btn-down">Giù (S)</button>
-                 <button id="btn-right">Destra (D)</button>
-                 <button id="btn-inventory">Inventario (I)</button>
-             </div>
-             <div id="messages-panel">
-                 <h3>Log Eventi</h3>
-                 <ul id="messages"></ul>
-             </div>
-         </div>
-    </div>
+             </section>
+         </aside>
 
-    <!-- Overlay Eventi e Schermata Fine (Invariati) -->
+    </main>
+
     <div id="event-overlay" style="display: none;">
         <div id="event-popup">
-            <h2 id="event-title">Evento</h2>
-            <p id="event-content">Descrizione evento...</p>
-            <div id="event-choices"></div>
-            <button class="continue-button" style="display: none;">Continua...</button>
+            <h2 id="event-title">Evento</h2> <p id="event-content">Descrizione evento...</p> <div id="event-choices"></div> <button class="continue-button" style="display: none;">Continua...</button>
         </div>
     </div>
-    <div id="end-screen" style="display: none;">
-        <h1 id="end-title">Fine del Viaggio</h1>
-        <p id="end-message">Sei morto...</p>
-        <button id="restart-button">Ricomincia</button>
-    </div>
 
-    <!-- Script (Invariati) -->
+    <div id="end-screen" style="display: none;">
+        <h1 id="end-title">Fine del Viaggio</h1> <p id="end-message">Sei morto...</p> <button id="restart-button">Ricomincia</button> </div>
+
     <script src="game_data.js"></script>
     <script src="game_logic.js"></script>
-</body>
-</html> 
+    </body>
+</html>

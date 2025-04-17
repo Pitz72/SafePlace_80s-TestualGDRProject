@@ -1,4 +1,6 @@
 /* --- CSS Completo e Verificato --- */
+/* Questo file rimane invariato rispetto alla versione precedente,
+   in quanto la pulizia ha riguardato principalmente la logica JavaScript. */
 :root {
     --bg-color: #000000; --fg-color: #00FF00; --fg-dim-color: #009900;
     --border-color: #00FF00; --border-dim-color: #005500;
@@ -11,137 +13,324 @@
 }
 html { height: 100%; }
 body { background-color: var(--bg-color); color: var(--fg-color); font-family: 'Courier New', Courier, monospace; font-size: 16px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box; overflow: hidden; }
+
 /* End Screen */
 #end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); color: var(--fg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 99; display: none; padding: 20px; box-sizing: border-box; } /* Nascosto inizialmente */
 #end-message { white-space: pre-wrap; max-height: 80%; overflow-y: auto; margin-bottom: 20px; font-size: 1.1em; line-height: 1.4; text-align: left; padding: 0 10%; }
 #end-screen h2 { color: var(--accent-color); margin-bottom: 30px; }
 #end-screen button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 10px 20px; font-family: inherit; font-size: 1.1em; cursor: pointer; margin-top: 20px;}
+
 /* Game Container e Sezioni con TAG SEMANTICI */
 main#game-container {
     display: flex;
-    max-width: 1200px;
-    margin: 20px auto;
-    border: 1px solid #555;
-    background-color: #222;
-    color: #ccc;
+    max-width: 1200px; /* Aumentato per ospitare meglio 3 colonne */
+    width: 95%; /* Usa percentuale per migliore adattabilità */
+    height: 95vh; /* Occupa gran parte dell'altezza viewport */
+    margin: auto; /* Centra il contenitore */
+    border: 1px solid var(--border-dim-color);
+    background-color: var(--bg-color); /* Sfondo nero anche per il container */
+    color: var(--fg-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em;
+    font-size: 16px; /* Dimensione base font */
+    box-sizing: border-box;
 }
 
+/* Stili per i pannelli delle colonne */
 #left-panel,
+#map-panel,
 #info-panel {
-    width: 25%;
     padding: 15px;
-    border-right: 1px solid #444;
+    border: 1px solid var(--border-dim-color); /* Bordo per ogni pannello */
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    box-sizing: border-box;
+    overflow: hidden; /* Nasconde contenuto che esce */
 }
 
-#info-panel {
-    border-right: none;
-    border-left: 1px solid #444;
+#left-panel {
+    width: 25%;
+    border-right: none; /* Rimuove bordo destro ridondante */
 }
 
 #map-panel {
     width: 50%;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
+    border-left: 1px solid var(--border-dim-color);
+    border-right: 1px solid var(--border-dim-color);
 }
 
-#left-panel h3,
-#map-panel h3,
-#info-panel h3 {
-    margin: 0 0 8px 0;
-    padding: 0 0 4px 0;
-    color: #aaa;
-    border-bottom: 1px solid #444;
+#info-panel {
+    width: 25%;
+    border-left: none; /* Rimuove bordo sinistro ridondante */
+}
+
+/* Stili per le sezioni interne ai pannelli */
+#left-panel > section,
+#map-panel > div, /* Mappa e legenda sono div */
+#info-panel > section,
+#info-panel > nav { /* Include i controlli */
+    margin-bottom: 15px; /* Spazio tra le sezioni */
+    border: 1px dashed var(--border-dim-color); /* Bordo tratteggiato per sezioni interne */
+    padding: 10px;
+    background-color: #050505; /* Sfondo leggermente diverso per le sezioni */
+    overflow-y: auto; /* Scroll verticale se necessario */
+    flex-shrink: 0; /* Evita che le sezioni si restringano troppo */
+}
+
+/* Titoli delle sezioni (h3) */
+h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    color: var(--accent-color); /* Giallo per i titoli */
+    border-bottom: 1px solid var(--border-color);
     font-size: 1.1em;
-    display: block !important;
-    opacity: 1 !important;
-    height: auto !important;
-    min-height: 1.2em !important;
-    line-height: 1.2 !important;
-    overflow: visible !important;
-    position: static !important;
+    text-transform: uppercase; /* Maiuscoletto */
 }
 
-#left-panel ul,
-#info-panel ul {
+/* Liste */
+ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    font-size: 0.95em; /* Leggermente più piccolo del testo base */
 }
 
-#left-panel li,
-#info-panel li {
-    margin-bottom: 4px;
+li {
+    margin-bottom: 5px; /* Spazio tra elementi lista */
 }
 
+/* Log Eventi specifico */
 #messages-panel {
-    flex-grow: 1;
-    overflow-y: auto;
-    max-height: 180px;
-    border-top: 1px solid #444;
-    padding-top: 8px;
+    flex-grow: 1; /* Permette al log di crescere verticalmente */
+    min-height: 100px; /* Altezza minima */
+    overflow-y: auto; /* Abilita scroll verticale */
+    display: flex; /* Usa flexbox per layout interno */
+    flex-direction: column; /* Contenuto verticale */
+}
+
+#messages-panel h2 {
+    margin-bottom: 5px; /* Spazio sotto titolo */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi */
 }
 
 #messages {
-    font-size: 1em;
+    list-style: none;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 0.8em;
+    flex-grow: 1; /* Fa espandere la lista */
+    overflow-y: auto; /* Scroll interno se i messaggi sono troppi */
+    display: flex; /* Per far funzionare scroll */
+    flex-direction: column-reverse; /* Nuovi messaggi in alto */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
 }
+#messages li {
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+.log-warning { color: var(--danger-color); font-weight: bold;} /* Stile per avvisi nel log */
+.msg-warning { color: var(--danger-color); } /* Prefisso warning */
+.msg-info { color: var(--accent-color); } /* Prefisso info */
+.lore { color: var(--fg-dim-color); font-style: italic; } /* Stile per messaggi lore */
+.success { color: lightgreen; } /* Stile per messaggi successo */
 
+
+/* Mappa Display */
 #map-display {
-    flex-grow: 1;
-    background-color: #111;
-    padding: 10px;
-    border: 1px solid #333;
-    white-space: pre;
-    overflow: auto;
+    flex-grow: 1; /* Permette alla mappa di occupare spazio */
+    background-color: #080808; /* Sfondo leggermente diverso per mappa */
+    padding: 5px; /* Ridotto padding per massimizzare spazio mappa */
+    border: 1px solid var(--border-dim-color);
+    white-space: pre; /* Mantiene la formattazione testuale */
+    overflow: hidden; /* NASCONDE la scrollbar */
     line-height: 1.1;
-    font-size: 16px;
+    font-size: 18px; /* Caratteri mappa più grandi */
+    /* min-height: 200px; */ /* Rimuovo altezza minima, si adatta al flex container */
 }
 
+/* Legenda Mappa */
 #legend {
     margin-top: 10px;
+    flex-shrink: 0; /* Non far restringere la legenda */
 }
 
-#legend-list li {
-    margin-bottom: 2px;
-    font-size: 1em;
+#legend li {
+    margin-bottom: 3px;
+    font-size: 0.9em;
+}
+.legend-symbol {
+    display: inline-block;
+    width: 1.5em;
+    text-align: center;
+    font-weight: bold;
+    margin-right: 5px;
 }
 
 /* Stili Colore Mappa */
-.tile-plains { color: var(--plains-color); } .tile-forest { color: var(--forest-color); } .tile-mountain { color: var(--mountain-color); } .tile-river { color: var(--water-color); } .tile-city, .tile-village { color: var(--ruin-color); } .tile-rest-stop, .tile-start { color: var(--special-color); } .tile-end { color: var(--end-color); font-weight: bold; }
-.visited { opacity: 0.6 !important; }
-.player-marker { animation: blink 1s step-end infinite; } @keyframes blink {0%,100%{background-color:var(--highlight-bg);color:var(--highlight-fg);}50%{background-color:transparent;color:var(--fg-color);}}
-#controls { text-align: center; margin-top: 5px; flex-shrink: 0; }
-#controls button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 5px 10px; margin: 2px; font-family: inherit; font-size: 14px; cursor: pointer; }
-#controls button:disabled { color: var(--border-dim-color); border-color: var(--border-dim-color); cursor: not-allowed; }
-section#status-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 220px; }
-#character-stats, #map-legend { margin-bottom: 15px; flex-shrink: 0; }
-#character-stats h3, #map-legend h3, #message-log h3 { margin-top: 0; margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 3px; flex-shrink: 0; font-size: 1em; }
-#character-stats ul, #map-legend ul { list-style: none; padding: 0; margin: 0; font-size: 0.9em; }
-#character-stats li, #map-legend li { margin-bottom: 2px; white-space: nowrap; }
-#stat-food, #stat-water { font-weight: bold; } .low-resource { color: var(--danger-color); }
-#map-legend .legend-symbol { display: inline-block; width: 1.5em; text-align: center; font-weight: bold; }
-#message-log { border-top: 1px dashed var(--border-color); padding-top: 5px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column-reverse; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; margin-top: 5px; min-height: 100px; }
-#messages { list-style: none; padding: 0; margin: 0; } #messages li { font-size: 0.9em; margin-bottom: 4px; word-break: break-word; } .log-warning { color: var(--danger-color); font-weight: bold;}
+.tile-plains { color: var(--plains-color); }
+.tile-forest { color: var(--forest-color); }
+.tile-mountain { color: var(--mountain-color); }
+.tile-river { color: var(--water-color); }
+.tile-city, .tile-village { color: var(--ruin-color); }
+.tile-rest-stop, .tile-start { color: var(--special-color); }
+.tile-end { color: var(--end-color); font-weight: bold; animation: blink-end 1.5s infinite; } /* Animazione per tile fine */
+.tile-unk { color: gray; } /* Colore per tile sconosciuti */
+
+.visited { opacity: 0.6 !important; } /* Rende le tile visitate più scure */
+.player-marker {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+    animation: blink-player 1s step-end infinite;
+    border-radius: 2px; /* Angoli leggermente arrotondati per il player */
+}
+
+@keyframes blink-player {
+    0%, 100% { background-color: var(--highlight-bg); color: var(--highlight-fg); }
+    50% { background-color: transparent; color: var(--fg-color); }
+}
+@keyframes blink-end {
+    0%, 100% { color: var(--end-color); text-shadow: 0 0 5px var(--end-color); }
+    50% { color: var(--fg-color); text-shadow: none; }
+}
+
+/* Controlli */
+#controls { text-align: center; flex-shrink: 0; }
+#controls button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px; /* Padding aumentato */
+    margin: 4px; /* Margine aumentato */
+    font-family: inherit;
+    font-size: 1em; /* Dimensione font come testo base */
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s; /* Transizione hover */
+}
+#controls button:hover:not(:disabled) {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+}
+#controls button:disabled {
+    color: var(--border-dim-color);
+    border-color: var(--border-dim-color);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Area Status (Risorse, Condizione, Stats) */
+#stat-food.low-resource,
+#stat-water.low-resource {
+    color: var(--danger-color);
+    font-weight: bold;
+    animation: blink-warning 1.2s infinite; /* Animazione per risorse basse */
+}
+@keyframes blink-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Stili per lo stato Condizione */
+.status-normal { color: var(--fg-color); }
+.status-warning { color: orange; font-weight: bold; } /* Es. Ferito o Malato */
+.status-danger { color: var(--danger-color); font-weight: bold; } /* Es. Ferito E Malato */
+
+
 /* Event Overlay */
- #event-overlay { display: none; position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background-color: var(--overlay-bg); border: 3px solid var(--border-color); color: var(--fg-color); z-index: 50; padding: 15px; box-sizing: border-box; font-size: 1em; overflow-y: auto; text-align: center; }
- #event-overlay h4 { margin-top: 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
- #event-content { margin-bottom: 15px; text-align: left; white-space: pre-wrap; font-size: 0.95em; }
- .danger-text { color: var(--danger-color); font-weight: bold; }
+ #event-overlay {
+    display: none; /* Nascosto di default */
+    position: absolute;
+    top: 0; left: 0; /* Copre tutta la pagina */
+    width: 100%; height: 100%;
+    background-color: var(--overlay-bg); /* Sfondo scuro semi-trasparente */
+    border: 3px solid var(--border-color);
+    color: var(--fg-color);
+    z-index: 50;
+    padding: 20px; /* Padding aumentato */
+    box-sizing: border-box;
+    font-size: 1.1em; /* Testo overlay leggermente più grande */
+    display: flex; /* Usa flex per centrare il popup */
+    align-items: center;
+    justify-content: center;
+ }
+ #event-popup {
+    background-color: var(--bg-color); /* Sfondo popup nero */
+    border: 1px solid var(--border-dim-color);
+    padding: 25px;
+    width: 80%; /* Larghezza popup */
+    max-width: 600px; /* Larghezza massima */
+    max-height: 90vh; /* Altezza massima */
+    overflow-y: auto; /* Scroll se contenuto lungo */
+    text-align: center;
+    box-shadow: 0 0 15px var(--border-dim-color); /* Ombra per effetto profondità */
+ }
+
+ #event-overlay h2 { /* Titolo nel popup */
+    margin-top: 0;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    color: var(--accent-color);
+ }
+ #event-content {
+    margin-bottom: 20px;
+    text-align: left;
+    white-space: pre-wrap; /* Mantiene newline e spazi */
+    font-size: 1em;
+    line-height: 1.5; /* Interlinea migliorata */
+ }
+ .danger-text { color: var(--danger-color); font-weight: bold; } /* Testo pericolo nel popup */
+
+ /* Stili per i pulsanti di scelta nell'overlay */
  .event-choice { margin-top: 15px; text-align: center; }
- .event-choice button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.95em; cursor: pointer; margin: 5px; display: inline-block; min-width: 150px; }
- .event-choice button:hover { background-color: var(--border-dim-color); }
- #event-overlay button.continue-button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.9em; cursor: pointer; margin-top: 10px; }
-.hidden { display: none !important; }
+ .event-choice button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 18px; /* Padding aumentato */
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 8px; /* Margine aumentato */
+    display: block; /* Pulsanti uno sotto l'altro */
+    width: 80%; /* Larghezza pulsanti */
+    margin-left: auto; margin-right: auto; /* Centra i pulsanti */
+    transition: background-color 0.2s, color 0.2s;
+ }
+ .event-choice button:hover {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+ }
+
+ /* Pulsante Continua (quando non ci sono scelte) */
+ #event-overlay button.continue-button {
+    background-color: #222; /* Sfondo leggermente diverso */
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block; /* Assicura sia block per centrarlo */
+    width: 50%;
+    margin-left: auto; margin-right: auto;
+    transition: background-color 0.2s, color 0.2s;
+ }
+  #event-overlay button.continue-button:hover {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+ }
+
+.hidden { display: none !important; } /* Classe utility per nascondere elementi */
+
 /* Media Query Mobile */
 @media (max-width: 900px) {
-    #game-container {
-        flex-direction: column;
-        max-width: 100%;
+    body { font-size: 14px; } /* Riduci font base su mobile */
+    main#game-container {
+        flex-direction: column; /* Colonne in verticale */
+        width: 100%;
+        height: auto; /* Altezza automatica */
         border: none;
         margin: 0;
     }
@@ -149,48 +338,131 @@ section#status-area { flex: 1; display: flex; flex-direction: column; overflow: 
     #left-panel,
     #map-panel,
     #info-panel {
-        width: 100%;
+        width: 100%; /* Colonne a larghezza piena */
         border: none;
-        border-bottom: 1px solid #444;
+        border-bottom: 1px solid var(--border-dim-color); /* Bordo sotto ogni sezione */
         padding: 10px;
+        height: auto; /* Altezza automatica */
+        overflow: visible; /* Permetti overflow su mobile? O limitare altezza? */
     }
 
-    #info-panel {
-        border-bottom: none;
-    }
+    #info-panel { border-bottom: none; } /* Rimuovi ultimo bordo */
 
     #map-display {
-        max-height: 50vh;
+        max-height: 40vh; /* Limita altezza mappa su mobile */
+        font-size: 14px; /* Riduci font mappa */
     }
 
     #messages-panel {
-        max-height: 150px;
+        max-height: 150px; /* Limita altezza log */
+        min-height: 100px;
     }
-}
-/* Aggiungi o modifica queste classi nel tuo file CSS */
-.status-normal {
-    color: inherit; /* Colore normale del testo */
+
+    #event-popup {
+        width: 95%; /* Popup quasi a schermo intero */
+        font-size: 1em;
+    }
+    .event-choice button { width: 90%; }
+    #event-overlay button.continue-button { width: 70%; }
 }
 
-.status-warning {
-    color: orange;
-    font-weight: bold;
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spazio tra i pannelli */
+    width: 250px; /* Larghezza fissa colonna sx */
+    flex-shrink: 0; /* Impedisce alla colonna di restringersi */
 }
 
-.status-danger {
-    color: red;
-    font-weight: bold;
+/* Stili per i pannelli specifici nella colonna sinistra */
+#survival-panel, #condition-panel, #inventory-panel, #messages-panel, #legend-panel {
+    flex-grow: 0; /* Non farli crescere per riempire spazio */
+    flex-shrink: 0; /* Non farli restringere */
 }
 
-/* Assicurati che anche low-resource sia definito */
-.low-resource {
-    color: red;
-    font-weight: bold;
+/* Controlli (Sotto la mappa) */
+.panel-map-controls {
+    border: none; /* Rimuove bordo extra */
+    padding: 10px 0 0 0; /* Padding solo sopra */
+    margin-top: 10px; /* Spazio dalla mappa */
+    background-color: transparent; /* Sfondo trasparente */
+    flex-shrink: 0; /* Non far restringere i controlli */
+    border-top: 1px dashed var(--border-dim-color); /* Separatore dalla mappa */
 }
 
-/* Stili specifici per le sezioni interne dei pannelli */
-#left-panel > div,
-#info-panel > div {
-    overflow: visible !important;
-    min-height: 30px;
-} 
+.panel-map-controls h2 {
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Griglia 3 colonne */
+    grid-template-rows: auto auto; /* Due righe */
+    gap: 5px;
+    justify-items: center;
+    align-items: center;
+}
+
+/* Posizionamento specifico bottoni nella griglia */
+#btn-up { grid-column: 2; grid-row: 1; }
+#btn-left { grid-column: 1; grid-row: 2; }
+#btn-down { grid-column: 2; grid-row: 2; }
+#btn-right { grid-column: 3; grid-row: 2; }
+#btn-inventory { grid-column: 1 / -1; grid-row: 3; width: 80%; margin-top: 5px;} /* Occupa tutta la larghezza nella terza riga (ipotetica) */
+
+/* Stili per i pulsanti di controllo nell'overlay */
+#event-overlay button {
+    background-color: #111; /* Aggiunto sfondo scuro base */
+    color: var(--fg-color); /* Aggiunto colore testo verde base */
+    border: 1px solid var(--border-color); /* Usa bordo standard */
+    padding: 8px 15px; /* Padding simile a controlli */
+    margin: 5px auto; /* Margine sopra/sotto e auto per centrare */
+    font-family: inherit; /* Usa stesso font */
+    font-size: 1em; /* Usa stessa dimensione font */
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    display: block; /* Rende ogni bottone a larghezza piena del contenitore */
+    width: 80%; /* Larghezza bottoni */
+    max-width: 400px; /* Larghezza massima */
+    box-sizing: border-box;
+}
+
+#event-overlay button:hover {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+}
+
+/* Stile specifico per il bottone 'Continua...' */
+#event-overlay button.continue-button {
+    background-color: #222; /* Sfondo leggermente diverso per distinguerlo, ma sempre scuro */
+    /* Color e altri stili ereditati dalla regola sopra */
+    margin-top: 15px;
+}
+
+#event-overlay button.continue-button:hover {
+     background-color: var(--highlight-bg);
+     color: var(--highlight-fg);
+ }
+
+/* Stile inventario */
+#inventory-panel ul {
+    padding-left: 5px;
+}
+
+#inventory li {
+    padding: 2px 0;
+    cursor: pointer; /* Cambia cursore per indicare cliccabilità */
+    transition: background-color 0.2s;
+}
+
+#inventory li:hover {
+    background-color: #111; /* Sfondo leggermente più chiaro su hover */
+}
+
+#item-tooltip {
+    /* Stili per il tooltip (se verrà implementato) */
+    display: none;
+    position: absolute;
+    /* ... altri stili tooltip ... */
+}

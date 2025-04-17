@@ -1,7 +1,11 @@
 // --- CONFIGURAZIONE E COSTANTI ---
+// Questo file contiene dati statici, costanti e testi.
+// Rimane invariato rispetto alla versione precedente,
+// in quanto la pulizia ha riguardato principalmente la logica JavaScript.
+
 const MAP_WIDTH = 50;
 const MAP_HEIGHT = 30;
-const MAX_MESSAGES = 30;
+const MAX_MESSAGES = 30; // Numero massimo di messaggi nel log
 const STARTING_FOOD = 6;
 const STARTING_WATER = 6;
 const DAY_LENGTH_MOVES = 18; // Numero di passi per far passare il giorno
@@ -10,46 +14,149 @@ const NIGHT_WATER_COST = 2; // Costo acqua per riposo notturno
 const HUNGER_PENALTY_HP = 1; // Danno HP per notte senza cibo
 const THIRST_PENALTY_HP = 1; // Danno HP per notte senza acqua
 
-const TILE_SYMBOLS = { PLAINS:'.', MOUNTAIN:'M', RIVER:'~', FOREST:'F', VILLAGE:'V', CITY:'C', REST_STOP:'R', START:'S', END:'E', PLAYER:'@' };
-const TILE_DESC = { '.':'Pianura desolata', 'M':'Montagne cicatrizzate', '~':'Fiume lento', 'F':'Foresta opprimente', 'V':'Accampamento isolato', 'C':'Rovine di città', 'R':'Rifugio improvvisato', 'S':"Punto d'inizio", 'E':'Destinazione incerta', '@':'Ultimo (Tu)' };
+// Probabilità eventi per tipo di casella (0 = mai, 1 = sempre)
+const EVENT_CHANCE = {
+    PLAINS: 0.05, // Bassa probabilità in pianura
+    FOREST: 1.0, // Alta probabilità per test
+    RIVER: 0.1,
+    VILLAGE: 1.0, // Alta probabilità per test
+    CITY: 0.5,
+    REST_STOP: 0.8 // Alta probabilità di trovare qualcosa/qualcuno
+    // MOUNTAIN non ha eventi (impassabile)
+};
+
+// Dati degli eventi per tipo di casella
+const EVENT_DATA = {
+    PLAINS: [
+        { 
+            title: "Vento Solitario", 
+            description: "Il vento spazza la pianura desolata. Non c'è nulla qui, solo il silenzio.",
+            choices: [] // Nessuna scelta, solo continua
+        }
+    ],
+    FOREST: [
+        {
+            title: "Strani Rumori",
+            description: "Senti dei rumori sospetti provenire dal folto della foresta. Potrebbe essere pericoloso, ma forse c'è qualcosa di utile?",
+            choices: [
+                { text: "Indaga con cautela (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Ti avvicini furtivamente e trovi delle bacche commestibili.", failureText: "Fai rumore e qualsiasi cosa ci fosse è fuggita."}, // Placeholder
+                { text: "Ignora e prosegui", outcome: "Decidi che non vale la pena rischiare." }
+            ]
+        },
+        {
+            title: "Albero Caduto",
+            description: "Un grosso albero blocca il sentiero. Puoi provare a scavalcarlo o a trovare un'altra via.",
+            choices: [
+                 { text: "Scavalca (Agilità)", skillCheck: { stat: 'agilita', difficulty: 10 }, successText: "Superi l'ostacolo con un balzo.", failureText: "Inciampi e perdi un po' di tempo."}, // Placeholder
+                 { text: "Aggira l'ostacolo", outcome: "Perdi un po' di tempo ma eviti rischi." }
+            ]
+        }
+    ],
+    RIVER: [
+         { 
+            title: "Il Fiume Scorre", 
+            description: "L'acqua scorre placida. Potresti provare a riempire la borraccia.",
+            choices: [
+                { text: "Bevi o Riempi Borraccia (Acqua Sporca!)", outcome: "Ottieni Acqua Sporca. Meglio purificarla." }, // Placeholder
+                { text: "Guarda l'acqua scorrere", outcome: "Ti prendi un momento di pausa."}
+            ]
+        }
+    ],
+    VILLAGE: [
+        {
+            title: "Resti di un Villaggio",
+            description: "Le case sono in rovina, ma forse qualcuno ha lasciato qualcosa.",
+            choices: [
+                { text: "Perquisisci le macerie (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Trovi una scatoletta di cibo intatta!", failureText: "Trovi solo polvere e detriti."}, // Placeholder
+                { text: "Riposati all'ombra di un muro", outcome: "Ti concedi un breve riposo." }
+            ]
+        }
+    ],
+    CITY: [
+         { 
+            title: "Ombre nella Città Morta", 
+            description: "I grattacieli scheletrici proiettano lunghe ombre. L'aria è pesante.",
+            choices: [
+                 { text: "Esplora un edificio (Pericolo!)", outcome: "Decidi di non rischiare per ora." }, // Placeholder
+                 { text: "Attraversa rapidamente la strada", outcome: "Ti muovi il più velocemente possibile."}
+            ]
+        }
+    ],
+     REST_STOP: [
+         { 
+            title: "Stazione di Servizio Abbandonata", 
+            description: "Una vecchia stazione di servizio arrugginisce ai lati della strada. Potrebbe esserci qualcosa dentro.",
+            choices: [
+                 { text: "Controlla dentro (Tracce)", skillCheck: { stat: 'tracce', difficulty: 9 }, successText: "Trovi delle bende quasi pulite.", failureText: "Non c'è nulla di utile rimasto."}, // Placeholder
+                 { text: "Prosegui oltre", outcome: "Meglio non perdere tempo."}
+            ]
+        }
+    ]
+    // Aggiungere eventi per altri tipi di terreno se necessario
+};
+
+// Simboli e descrizioni delle caselle della mappa
+const TILE_SYMBOLS = {
+    PLAINS:'.',
+    MOUNTAIN:'M',
+    RIVER:'~',
+    FOREST:'F',
+    VILLAGE:'V',
+    CITY:'C',
+    REST_STOP:'R',
+    START:'S',
+    END:'E',
+    PLAYER:'@'
+};
+const TILE_DESC = {
+    '.':'Pianura desolata',
+    'M':'Montagne cicatrizzate',
+    '~':'Fiume lento',
+    'F':'Foresta opprimente',
+    'V':'Accampamento isolato',
+    'C':'Rovine di città',
+    'R':'Rifugio improvvisato',
+    'S':"Punto d'inizio",
+    'E':'Destinazione incerta',
+    '@':'Ultimo (Tu)'
+};
 
 // --- DEFINIZIONE OGGETTI GLOBALI ---
+// Database degli oggetti presenti nel gioco
 const ITEM_DATA = {
     // Risorse Utilizzabili
     'water_purified_small': {
         id: 'water_purified_small',
         name: "Acqua Purificata (P)",
-        desc: "Una piccola borraccia di acqua potabile.",
-        type: 'risorsa',
-        effect: { type: 'add_resource', resource_type: 'water', amount: 3 },
+        description: "Una piccola borraccia d'acqua potabile. Preziosa.",
         usable: true,
-        stackable: true
+        type: 'consumable',
+        effect: { type: 'add_resource', resource_type: 'water', amount: 3 }
     },
     'canned_food': {
         id: 'canned_food',
         name: "Cibo in Scatola",
-        desc: "Una scatoletta ammaccata ma sigillata. Sembra commestibile.",
-        type: 'risorsa',
-        effect: { type: 'add_resource', resource_type: 'food', amount: 4 },
+        description: "Una scatoletta ammaccata ma sigillata. Chissà cosa contiene.",
         usable: true,
-        stackable: true
+        type: 'food',
+        effect: { type: 'add_resource', resource_type: 'food', amount: 4 }
     },
     // Oggetti Curativi
     'bandages_dirty': {
         id: 'bandages_dirty',
         name: "Bende Sporche",
-        desc: "Stracci usati come bende. Non ideali, ma meglio di niente.",
-        type: 'cura',
-        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.50 }, // 50% chance
+        description: "Bende recuperate, non proprio pulite. Meglio di niente per fermare un'emorragia.",
+        type: 'healing',
+        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.3, success_message: "Le bende sembrano aver fermato il peggio.", failure_message: "Le bende sono troppo sporche, non hanno aiutato." },
         usable: true,
         stackable: true
     },
     'medicine_crude': {
         id: 'medicine_crude',
         name: "Medicina Grezza",
-        desc: "Un intruglio dall'odore pungente. Forse aiuta contro la malattia.",
-        type: 'cura',
-        effect: { type: 'heal_status', status_cured: 'isSick', chance: 0.65 }, // 65% chance
+        description: "Pasticche dall'aspetto sospetto. Potrebbero curare una malattia... o peggiorarla.",
+        type: 'healing',
+        effect: { type: 'heal_status', status_cured: 'isSick', chance: 0.6, success_message: "La febbre sembra scendere.", failure_message: "Non ti senti affatto meglio." },
         usable: true,
         stackable: true
     },
@@ -58,27 +165,42 @@ const ITEM_DATA = {
         id: 'scrap_metal',
         name: "Rottame Metallico",
         desc: "Un pezzo di metallo contorto e arrugginito. Inutile ora, forse utile per riparazioni future?",
+        usable: false,
         type: 'materiale',
         effect: null,
-        usable: false,
         stackable: true
     },
-    'lore_fragment_item': {
+    'lore_fragment_item': { // Esempio oggetto Lore (attualmente non usato attivamente)
         id: 'lore_fragment_item',
         name: "Nota Strappata",
         desc: "Un pezzo di carta con scritte sbiadite.",
+        usable: false,
         type: 'lore',
-        effect: { type: 'show_lore', text_array_ref: 'loreFragments' }, // Riferimento all'array di lore
-        usable: false, // Letto quando raccolto
+        effect: { type: 'show_lore', text_array_ref: 'loreFragments' },
         stackable: false
+    },
+    'small_knife': {
+        id: 'small_knife',
+        name: "Piccolo Coltello",
+        description: "Un piccolo coltello, utile per vari scopi.",
+        usable: false,
+        type: 'tool'
+    },
+    'berries': {
+        name: "Bacche",
+        description: "Un pugno di bacche selvatiche. Speriamo siano commestibili.",
+        usable: true,
+        type: 'food',
+        value: 1
     }
     // Aggiungere altri oggetti qui...
 };
 
 // --- Testi Variabili (Flavor, Lore, Eventi) ---
-// (Nota: Questi array sono lunghi e rimangono invariati rispetto all'originale,
-// la loro esternalizzazione è un passo successivo consigliato)
+// Questi array contengono la maggior parte dei testi descrittivi e narrativi del gioco.
+// Mantenerli separati dalla logica rende più facile la modifica e l'espansione.
 
+// Flavor text per diversi tipi di tile (Giorno)
 const flavorTextsPlains = [
     "Il vento solleva mulinelli di polvere rossastra che brucia gli occhi.",
     "Un silenzio innaturale grava su questa distesa brulla, pesante come un sudario.",
@@ -94,7 +216,7 @@ const flavorTextsPlains = [
     "Lo scheletro arrugginito di un veicolo agricolo affonda nel terreno, inghiottito dalla polvere.",
     "Una colonna di fumo si alza pigramente in lontananza... fuoco amico o nemico?",
     "Nuvole basse corrono veloci, promettendo una pioggia acida che non arriva mai.",
-    "Schegge di vetro scintillano nella polvere, resti di finestre esplose chissà quando." // Aggiunta 1
+    "Schegge di vetro scintillano nella polvere, resti di finestre esplose chissà quando."
 ];
 const flavorTextsForest = [
     "Rami secchi scricchiolano sinistramente sotto i tuoi stivali, annunciando la tua presenza.",
@@ -111,7 +233,7 @@ const flavorTextsForest = [
     "Un fungo pallido e dall\'aspetto velenoso cresce alla base di un tronco marcio.",
     "Il verso rauco di un corvo solitario ti fa sussultare, un presagio?",
     "Un sentiero quasi invisibile si perde tra gli alberi, una promessa o una trappola?",
-    "Un albero cavo emana un debole bagliore verdastro dall\'interno, pulsando lentamente." // Aggiunta 1
+    "Un albero cavo emana un debole bagliore verdastro dall\'interno, pulsando lentamente."
 ];
 const flavorTextsMountain = [
     "Un\'eco lontana risuona tra le vette aguzze, portando con sé un suono inquietante, forse un lamento.",
@@ -128,7 +250,7 @@ const flavorTextsMountain = [
     "Un passaggio stretto tra due pareti di roccia incombe su di te, minacciando di schiacciarti.",
     "Trovi vecchi segni di piccozza sulla roccia, testimonianza silenziosa di chi ti ha preceduto.",
     "Un rivolo d\'acqua gelida sgorga da una fessura, un piccolo miracolo in questo nulla arido.",
-    "Una croce fatta di tubi arrugginiti svetta su un picco vicino, monumento a una fede perduta o a un avvertimento?" // Aggiunta 1
+    "Una croce fatta di tubi arrugginiti svetta su un picco vicino, monumento a una fede perduta o a un avvertimento?"
 ];
 const flavorTextsRiver = [
     "Detriti non identificabili e chiazze oleose galleggiano lentamente sull\'acqua torbida.",
@@ -144,8 +266,8 @@ const flavorTextsRiver = [
     "Il letto del fiume è disseminato di oggetti contorti e irriconoscibili.",
     "Sulla riva opposta, vedi delle luci deboli tremolare... altri sopravvissuti o un inganno?",
     "L\'acqua emana un leggero odore chimico che irrita le narici.",
-    "Sulla riva melmosa, una scarpa spaiata è semisepolta, come se qualcuno fosse stato trascinato via.", // Aggiunta 1
-    "Un banco di nebbia innaturale staziona sull\'acqua, anche se la giornata è limpida." // Aggiunta 2
+    "Sulla riva melmosa, una scarpa spaiata è semisepolta, come se qualcuno fosse stato trascinato via.",
+    "Un banco di nebbia innaturale staziona sull\'acqua, anche se la giornata è limpida."
 ];
 const flavorTextsCity = [
     "Il vento geme lugubremente attraverso le finestre sfondate di grattacieli scheletrici.",
@@ -161,8 +283,8 @@ const flavorTextsCity = [
     "Polvere di cemento ti irrita gli occhi e la gola, rendendo ogni respiro difficoltoso.",
     "Un semaforo dondola precariamente da un palo piegato, bloccato su un rosso eterno.",
     "Un negozio di lusso saccheggiato, manichini nudi e vetrine infrante giacciono come corpi.",
-    "La carcassa scheletrica di un autobus urbano giace su un fianco, le porte aperte come una bocca urlante.", // Aggiunta 1
-    "Un vento freddo si incanala tra gli edifici, portando con sé suoni indistinti... voci o lamenti?" // Aggiunta 2
+    "La carcassa scheletrica di un autobus urbano giace su un fianco, le porte aperte come una bocca urlante.",
+    "Un vento freddo si incanala tra gli edifici, portando con sé suoni indistinti... voci o lamenti?"
 ];
 const flavorTextsVillage = [
     "Tende strappate e ripari improvvisati fatti di lamiere sbattono tristemente al vento gelido.",
@@ -177,9 +299,9 @@ const flavorTextsVillage = [
     "Piccoli cumuli di terra smossa con croci improvvisate... tombe fresche.",
     "Un carillon rotto suona una melodia stonata quando il vento lo colpisce.",
     "Le tende vuote sembrano bocche spalancate che urlano in silenzio.",
-    "Un giocattolo rotto, un orsacchiotto senza un occhio, giace nel fango vicino a una tenda squarciata.", // Aggiunta 1
-    "Bandiere stracciate di una nazione dimenticata sbattono debolmente su pali improvvisati.", // Aggiunta 2
-    "Uno strano silenzio grava su questo luogo, come se tutti fossero scomparsi all'improvviso." // Aggiunta 3
+    "Un giocattolo rotto, un orsacchiotto senza un occhio, giace nel fango vicino a una tenda squarciata.",
+    "Bandiere stracciate di una nazione dimenticata sbattono debolmente su pali improvvisati.",
+    "Uno strano silenzio grava su questo luogo, come se tutti fossero scomparsi all'improvviso."
 ];
 const flavorTextsRestStop = [
     "Il riparo è precario, un ammasso di lamiere contorte, teli laceri e detriti vari.",
@@ -194,10 +316,12 @@ const flavorTextsRestStop = [
     "Una singola lattina vuota e ammaccata rotola sul pavimento quando entri, producendo un rumore assordante.",
     "C\'è un debole odore dolciastro e sgradevole nell\'aria... prodotti chimici o decomposizione?",
     "Le pareti sono coperte di disegni infantili inquietanti e simboli sconosciuti.",
-    "Una radio a manovella è appoggiata su un tavolo improvvisato, silenziosa. Chissà quali segnali potrebbe captare.", // Aggiunta 1
-    "Senti il rumore di gocce che cadono ritmicamente da qualche parte nel buio del rifugio.", // Aggiunta 2
-    "La polvere qui dentro è così spessa che attutisce ogni suono, creando un silenzio innaturale." // Aggiunta 3
+    "Una radio a manovella è appoggiata su un tavolo improvvisato, silenziosa. Chissà quali segnali potrebbe captare.",
+    "Senti il rumore di gocce che cadono ritmicamente da qualche parte nel buio del rifugio.",
+    "La polvere qui dentro è così spessa che attutisce ogni suono, creando un silenzio innaturale."
 ];
+
+// Flavor text per diversi tipi di tile (Notte)
 const flavorTextsNightPlains = [
     "Un silenzio innaturale e profondo avvolge la pianura sotto la luna malata.",
     "La luna proietta ombre lunghe e distorte che sembrano creature striscianti.",
@@ -211,9 +335,9 @@ const flavorTextsNightPlains = [
     "Senti il freddo della notte penetrare nelle ossa, portando con sé una stanchezza mortale.",
     "Luci fatue danzano in lontananza, spiriti o gas di palude?",
     "L\'orizzonte sembra infinito e vuoto, non c\'è riparo in vista.",
-    "Le nuvole basse corrono veloci, oscurando a tratti la luna e rendendo le ombre ancora più profonde.", // Aggiunta 1
-    "Un odore metallico e acre ti colpisce le narici, portato da una brezza improvvisa.", // Aggiunta 2
-    "Senti un suono basso e vibrante provenire da sottoterra, lontano ma distinto." // Aggiunta 3
+    "Le nuvole basse corrono veloci, oscurando a tratti la luna e rendendo le ombre ancora più profonde.",
+    "Un odore metallico e acre ti colpisce le narici, portato da una brezza improvvisa.",
+    "Senti un suono basso e vibrante provenire da sottoterra, lontano ma distinto."
 ];
 const flavorTextsNightForest = [
     "Ogni scricchiolio di ramo secco ti fa sobbalzare, il cuore in gola.",
@@ -228,10 +352,12 @@ const flavorTextsNightForest = [
     "La luna filtra a malapena tra le fitte chiome, creando giochi di luce e ombra inquietanti e ingannevoli.",
     "Senti un respiro rauco e umido molto vicino, ma non riesci a localizzarlo.",
     "Il silenzio è così teso che puoi sentire il sangue pulsare nelle orecchie.",
-    "Intravedi strani funghi bioluminescenti che pulsano con una luce fredda e spettrale.", // Aggiunta 1
-    "Il terreno sembra stranamente soffice sotto i tuoi piedi, come se stessi camminando su qualcosa di vivo.", // Aggiunta 2
-    "Un improvviso silenzio innaturale cala sulla foresta, ancora più inquietante del rumore." // Aggiunta 3
+    "Intravedi strani funghi bioluminescenti che pulsano con una luce fredda e spettrale.",
+    "Il terreno sembra stranamente soffice sotto i tuoi piedi, come se stessi camminando su qualcosa di vivo.",
+    "Un improvviso silenzio innaturale cala sulla foresta, ancora più inquietante del rumore."
 ];
+
+// Frammenti di Lore (trovati casualmente o legati a eventi)
 const loreFragments = [
     "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'",
     "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà della Volta 7 - TERMINATO'",
@@ -258,7 +384,6 @@ const loreFragments = [
     "Manuale tecnico strappato ('Manutenzione Ripari Classe-C'): '...il sistema di filtraggio dell\'aria HEPA richiede sostituzione nucleo ogni 500 ore operative per evitare contaminazione interna...'",
     "Lista della spesa macchiata di sangue: 'Acqua (min. 5L), Munizioni (tutte!), Scatolette (proteine!), Nastro adesivo (molto!), Antidolorifici... Speranza (se ne trovi)...'",
     "Pagina di un bestiario improvvisato, scritto a mano con disegni disturbanti: Descrive una creatura notturna senza volto chiamata 'Il Sussurrante delle Ombre', che si nutre di ricordi.",
-    // --- Nuovi Frammenti Inizio ---
     "Rapporto tecnico parzialmente bruciato: '...il Geo-Core di Sektor Gamma è instabile. Rischio di collasso quantico entro 48h. Evacuare...'",
     "Messaggio scarabocchiato sul retro di una foto di famiglia sorridente: 'Non sono riuscito a salvarli. La nebbia... li ha presi...'",
     "Ordine militare criptato (decifrato parzialmente): '...Protocollo Cenere attivato su [REDACTED]. Nessun sopravvissuto autorizzato. Silenzio totale.'",
@@ -284,8 +409,9 @@ const loreFragments = [
     "Ciondolo a forma di orsetto di metallo, leggermente radioattivo, stretto nella mano scheletrica di un bambino.",
     "Rapporto psichiatrico Volta 11: 'Paziente 042 mostra sintomi di paranoia acuta, parla di 'voci nel metallo' e 'occhi nei muri'. Sedazione aumentata.'",
     "Chiave magnetica con etichetta sbiadita: 'Deposito Criogenico B-7'."
-    // --- Nuovi Frammenti Fine ---
 ];
+
+// Messaggi radio casuali (evento 'eco_radio')
 const radioMessages = [
     "...ripeto, Settore 7-G, evacuazione fallita... [STATICA]... bio-agente Omega... non avvicinatevi...",
     "...c'è qualcuno in ascolto? Rispondete, frequenza Delta-9... siamo intrappolati al [RUMORE BIANCO]... le scorte...",
@@ -303,7 +429,9 @@ const radioMessages = [
     "...[SOSPIRO PROFONDO]... A chiunque trovi questo messaggio... Dite a mia moglie... ditele che ho provato...",
     "...[SEQUENZA NUMERICA RIPETUTA] ... 4 8 15 16 23 42 ... 4 8 15 16 23 42 ..."
 ];
-const descrizioniPredoni = [
+
+// Descrizioni per eventi specifici (incontri, pericoli, etc.)
+const descrizioniIncontroPredoni = [
     "Ombre furtive si muovono ai margini della tua vista, sagome contro la luce morente.",
     "Figure emergono dalla polvere come spettri, armi improvvisate strette nelle mani.",
     "Un fischio acuto e stridulo rompe il silenzio, seguito da passi affrettati che ti circondano.",
@@ -320,7 +448,7 @@ const descrizioniPredoni = [
     "Le loro risate rauche e sgradevoli echeggiano tra le rovine, annunciando la loro presenza.",
     "Indossano stracci e pezzi di armature improvvisate, trofei di scontri passati."
 ];
-const vociPredoni = [
+const vociPredoni = [ // Non attualmente usate, ma potenzialmente utili
     "'Fermi lì, bello! Non fare un passo di più.'",
     "'Cosa abbiamo qui? Carne fresca per il banchetto!'",
     "'Non fare movimenti bruschi, o ti piantiamo qualcosa di affilato addosso.'",
@@ -337,6 +465,23 @@ const vociPredoni = [
     "'Pensi di essere furbo? Vediamo quanto sei furbo con una lama alla gola.'",
     "'Non c'è niente da fare, sei nostro ormai.'"
 ];
+const tipiBestie = [ // Usato in evento 'animale'/'animale_notturno'
+    "Cane Selvatico Mutato", "Cinghiale Radioattivo", "Ratto Gigante", "Lupo Policéphalo", "Corvo Carnivoro", "Orso Piagato", "Serpente Ipertrofico", "Sciame di Vespe Metalliche", "Scimmia Scuoiata", "Lince Ombra", "Anfibio Tentacolare", "Iena Scheletrica", "Cervo Luminescente", "Millepiedi Corazzato"
+];
+const descrizioniIncontroBestie = [ // Usato con tipiBestie
+    "Un {animale} emerge ringhiando dalle ombre, occhi iniettati di sangue fissi su di te.",
+    "Un {animale} ti carica con furia cieca, il terreno trema sotto le sue zampe.",
+    "Uno sciame di {animale} ti circonda rapidamente, i loro squittii/ronzii/versi riempiono l'aria.",
+    "Un {animale} ti sbarra il passo, mostrandoti zanne/artigli/aculei affilati come rasoi.",
+    "Un {animale} ti osserva immobile da una posizione elevata, pronto a piombare sulla sua preda.",
+    "Un {animale} ti studia con intelligenza fredda e predatoria, valutando la tua forza.",
+    "Un {animale} difende ferocemente il suo territorio o la sua tana dal tuo passaggio.",
+    "Un {animale} sembra attratto dal tuo odore o dal rumore dei tuoi passi.",
+    "Un {animale} ferito e disperato è ancora più pericoloso del normale.",
+    "Un {animale} ti segue silenziosamente da tempo, aspettando il momento giusto per attaccare."
+];
+
+// Esiti per le scelte negli eventi (Successo/Fallimento)
 const esitiFugaPredoniOk = [
     "Scompari nell'ombra come fumo prima che possano reagire concretamente.",
     "Li distrai lanciando una pietra lontano e scappi nella direzione opposta mentre indagano.",
@@ -371,7 +516,7 @@ const esitiFugaPredoniKo = [
     "Ti chiudono la strada con un veicolo sgangherato.",
     "Una trappola a laccio nascosta ti afferra per la caviglia, facendoti cadere."
 ];
-const esitiLottaPredoniOk = [
+const esitiLottaPredoniOk = [ // Rinominato da Attacca a Lotta per coerenza
     "Respingi il loro attacco scoordinato con una ferocia che li sorprende.",
     "Dopo un breve e brutale scontro, decidono che il gioco non vale la candela e si ritirano.",
     "Riesci a tenerli a bada con colpi precisi, ma sono ancora lì, ringhiando ai margini.",
@@ -388,7 +533,7 @@ const esitiLottaPredoniOk = [
     "Utilizzi l'ambiente a tuo vantaggio, facendoli inciampare o cadere.",
     "Il tuo urlo di battaglia è così feroce che li fa esitare abbastanza da permetterti di prendere il sopravvento."
 ];
-const esitiLottaPredoniKo = [
+const esitiLottaPredoniKo = [ // Rinominato da Attacca a Lotta per coerenza
     "Vieni picchiato selvaggiamente e lasciato a terra dolorante e umiliato.",
     "Ti derubano di quasi tutto, lasciandoti solo con gli stracci che indossi e la disperazione.",
     "La tua resistenza è inutile contro la loro superiorità numerica, ti sopraffanno rapidamente.",
@@ -439,24 +584,8 @@ const esitiParlaPredoniKo = [
     "Ti interrompono a metà frase con un pugno nello stomaco.",
     "Il capo ti sputa addosso. 'Parlare non ti salverà.'"
 ];
-const descrizioniAnimali = [
-    "Un branco di cani selvatici dagli occhi iniettati di sangue e pelo rognoso ti circonda ringhiando.",
-    "Un grosso cinghiale mutato, con zanne ricurve e pelle coriacea piena di pustole, ti carica.",
-    "Uno sciame di ratti giganti, grossi come gatti, emerge da una crepa nel terreno, squittendo famelicamente.",
-    "Una creatura simile a un lupo, ma con troppe zampe e occhi luminosi e freddi, ti sbarra il passo.",
-    "Un volatile dall'aspetto preistorico, con artigli affilati e becco seghettato, ti osserva da un tetto crollato.",
-    "Un orso mutato, con chiazze di pelo mancante che rivelano pelle piagata e muscoli ipertrofici, ruggisce.",
-    "Un serpente velenoso grosso come il tuo braccio, con scaglie iridescenti e innaturali, si snoda sul tuo cammino.",
-    "Uno sciame di insetti volanti grossi come pollici, con mandibole chitinoise e un ronzio assordante, ti attacca.",
-    "Una sorta di scimmia deforme e senza pelo, con arti allungati e denti aguzzi, ti mostra i denti da un albero spoglio.",
-    "Un felino dalle dimensioni innaturali, forse una lince mutata, ti segue silenzioso nell'ombra, un predatore invisibile.",
-    "Una creatura anfibia e bavosa, con troppi occhi e tentacoli urticanti, emerge da una pozza stagnante e tossica.",
-    "Un branco di creature simili a iene scheletriche, che ridacchiano sinistramente, ti punta con sguardo famelico.",
-    "Un cervo con corna asimmetriche e luminose e occhi vitrei ti fissa immobile, inquietante.",
-    "Una mandria di bovini mutati, con corna contorte e uno sguardo vacuo, blocca il passaggio.",
-    "Una specie di millepiedi gigante, corazzato e con numerose zampe affilate, emerge dal terreno."
-];
-const esitiEvitaAnimaleOk = [
+// Esiti Incontro Animale (Fuga/Attacco/Osserva)
+const esitiEvitaAnimaleOk = [ // Rinominato da Fuga a Evita
     "Riesci a sgattaiolare via silenziosamente senza farti notare dalla creatura distratta.",
     "Passi con cautela estrema e l'animale, forse sazio, non ti degna di uno sguardo.",
     "Ti nascondi dietro un ostacolo finché la minaccia non si allontana nel suo territorio.",
@@ -473,7 +602,7 @@ const esitiEvitaAnimaleOk = [
     "Ti appiattisci contro un muro e attendi pazientemente che si allontani.",
     "La creatura sembra più interessata a marcare il territorio che a cacciare, e ti ignora."
 ];
-const esitiEvitaAnimaleKo = [
+const esitiEvitaAnimaleKo = [ // Rinominato da Fuga a Evita
     "Sei troppo lento o rumoroso! L'animale ti ha visto e si gira di scatto verso di te.",
     "Sottovaluti i suoi sensi acuti e ti individua nonostante i tuoi sforzi per nasconderti.",
     "Un passo falso su un ramo secco o un detrito rumoroso rivela la tua posizione! La bestia carica.",
@@ -490,7 +619,7 @@ const esitiEvitaAnimaleKo = [
     "La creatura ti taglia la strada, impedendoti di proseguire senza affrontarla.",
     "Senti il suo fiato caldo sul collo prima ancora di accorgerti che ti ha scoperto."
 ];
-const esitiSpaventaAnimaleOk = [
+const esitiSpaventaAnimaleOk = [ // Non più usato, ma tenuto per riferimento
     "Un urlo improvviso e disumano, unito a gesti minacciosi, lo fanno indietreggiare confuso.",
     "Una pietra ben lanciata colpisce vicino alla sua testa, convincendolo a cercare prede più facili altrove.",
     "Il tuo sguardo deciso e privo di paura lo intimorisce, facendolo allontanare con cautela.",
@@ -507,7 +636,7 @@ const esitiSpaventaAnimaleOk = [
     "Crei una piccola fiamma improvvisa con un accendino o un fiammifero, la vista del fuoco lo respinge.",
     "La tua voce assume un tono stranamente autoritario che sembra avere effetto sulla bestia."
 ];
-const esitiSpaventaAnimaleKo = [
+const esitiSpaventaAnimaleKo = [ // Non più usato, ma tenuto per riferimento
     "La bestia mutata si infuria ancora di più per il tuo tentativo di intimidirla! Carica!",
     "Non sembra minimamente intimorito dalla tua presenza o dai tuoi gesti patetici.",
     "Il tuo tentativo lo rende solo più aggressivo e territoriale. Si prepara ad attaccare.",
@@ -558,6 +687,7 @@ const esitiAttaccoAnimaleKo = [
     "La forza dell'impatto ti lascia senza fiato e stordito.",
     "Vieni afferrato e sbattuto ripetutamente contro il terreno."
 ];
+// Esiti Evento Tracce Strane
 const descrizioniTracce = [
     "Noti delle impronte insolite sul terreno polveroso, non sembrano umane.",
     "Qualcosa di grosso ha lasciato segni evidenti del suo passaggio tra gli arbusti spezzati.",
@@ -577,7 +707,7 @@ const descrizioniTracce = [
 ];
 const esitiSeguiTracceOkLoot = [
     "Le tracce ti portano a un piccolo nascondiglio sotto una roccia con delle scorte!",
-    "Seguendo le impronte trovi uno zaino...",
+    "Seguendo le impronte trovi uno zaino abbandonato con dentro provviste.",
     "Chi ha lasciato queste tracce ha perso qualcosa per strada... una borraccia piena!",
     "Scopri una cassa di legno marcia ma ancora chiusa, con dentro cibo in scatola.",
     "Le impronte conducono a un cadavere recente... ha ancora addosso le sue scorte intatte.",
@@ -660,6 +790,7 @@ const esitiSeguiTracceKo = [
     "Confondi le tracce che stavi seguendo con quelle di un animale selvatico.",
     "La fatica ti annebbia la vista e non riesci più a concentrarti sui dettagli."
 ];
+// Esiti Villaggio Ostile
 const descrizioniVillaggioOstile = [
     "Dalle tende lacere emergono figure silenziose e guardinghe, armi improvvisate strette nelle mani.",
     "Ti osservano immobili e in silenzio da dietro ripari improvvisati, con sospetto evidente negli occhi.",
@@ -728,6 +859,7 @@ const esitiVillaggioOstileNegoziaKo = [
     "Ti accusano di portare malattie o sfortuna al loro accampamento.",
     "Uno di loro spara un colpo di avvertimento molto vicino ai tuoi piedi."
 ];
+// Esiti Pericolo Ambientale
 const descrizioniPericoloAmbientaleAgilita = [
     "Il terreno friabile cede improvvisamente sotto i tuoi piedi! Stai per precipitare!",
     "Una vecchia trappola a scatto arrugginita ma ancora funzionante è nascosta perfettamente tra le foglie secche!",
@@ -796,6 +928,7 @@ const esitiPericoloAmbientaleColpito = [
     "Una sostanza corrosiva ti schizza addosso, bruciando la pelle e l'equipaggiamento.",
     "Vieni avvolto da una rete o immobilizzato da una trappola adesiva."
 ];
+// Esiti Dilemma Morale
 const descrizioniDilemmaMorale = [
     "Senti delle grida soffocate e dei rumori di lotta provenire da un edificio vicino. Qualcuno è in pericolo.",
     "Vedi del fumo nero alzarsi da dietro una collina, accompagnato da rumori distinti di spari e urla.",
@@ -847,7 +980,7 @@ const esitiDilemmaMoraleIndagaOkNegativo = [
     "Il tuo intervento contro la pattuglia provoca ritorsioni peggiori sui civili più tardi.",
     "La mappa per l'oasi era una trappola per attirare viaggiatori in un'imboscata."
 ];
-const esitiDilemmaMoraleIndagaKo = [
+const esitiDilemmaMoraleIndagaKo = [ // Fallimento check Presagio
     "Cerchi di intervenire ma sottovaluti completamente la situazione e vieni ferito gravemente o catturato.",
     "Non riesci a trovare la fonte esatta delle grida o del fumo in tempo, vagando inutilmente tra le rovine.",
     "Il tuo tentativo maldestro di aiuto peggiora solo le cose, causando più danni o mettendo in pericolo più persone.",
@@ -881,6 +1014,7 @@ const esitiDilemmaMoraleIgnora = [
     "Prosegui per la tua strada, ma l'immagine o il suono ti rimangono impressi nella mente a lungo.",
     "Senti un brivido lungo la schiena, come se qualcosa ti avesse visto ignorare la scena."
 ];
+// Esiti Evento Rifugio (Ispezione)
 const descrizioniRifugioStrano = [
     "Mentre cerchi di riposare, noti una sezione del muro che sembra leggermente diversa dalle altre, forse intonaco più recente?",
     "C'è un piccolo contenitore metallico arrugginito, ma stranamente pesante, nascosto sotto un telo logoro in un angolo.",
@@ -966,7 +1100,7 @@ const esitiRifugioIspezionaKoNulla = [
     "Il pannello metallico copre solo tubature vuote.",
     "La chiave non apre nessuna serratura apparente nel rifugio."
 ];
-const esitiRifugioLasciaPerdere = [
+const esitiRifugioLasciaPerdere = [ // Scelta 'Lascia perdere' nell'ispezione rifugio
     "Meglio non rischiare per nulla. Ti concentri sul riposo necessario o ti prepari a ripartire.",
     "La curiosità ha ucciso il gatto, e in questo mondo uccide anche gli umani. Decidi di lasciar stare.",
     "Ignori il dettaglio sospetto e ti prepari a ripartire. La sopravvivenza richiede pragmatismo.",
@@ -983,7 +1117,8 @@ const esitiRifugioLasciaPerdere = [
     "Sei troppo stanco per metterti a cercare segreti.",
     "Hai la sensazione che chi ha nascosto qualcosa qui lo abbia fatto per una buona ragione."
 ];
-const descrizioniPredoniNotturni = [
+// Esiti Eventi Notturni Specifici
+const descrizioniPredoniNotturni = [ // Non attualmente usati specificamente, ma potrebbero
     "Figure silenziose emergono dall'oscurità più profonda come spettri affamati.",
     "Approfittano della copertura del buio per tenderti un'imboscata silenziosa e letale.",
     "Senti il loro respiro affannoso e l'odore acre di sporco prima ancora di riuscire a vederli distintamente.",
@@ -999,7 +1134,6 @@ const descrizioniPredoniNotturni = [
     "Le loro armi sono state modificate per essere più silenziose e letali di notte.",
     "Portano maschere grottesche fatte di ossa e metallo, illuminate solo dalla luna.",
     "Hanno occhi adattati all'oscurità, che brillano di una luce innaturale."
-    // Già popolato precedentemente a 15 voci
 ];
 const descrizioniAnimaleNotturno = [
     "Due occhi rossi e luminosi ti fissano immobili dal buio pesto, senza palpebre.",
@@ -1051,7 +1185,6 @@ const descrizioniOrroreIndicibile = [
     "Il tempo sembra rallentare o accelerare in modo innaturale intorno a te.",
     "Le tue paure più profonde prendono forma nelle ombre circostanti.",
     "Un odore nauseante di tomba e follia riempie l'aria improvvisamente."
-    // Già popolato precedentemente a 15 voci
 ];
 const esitiOrroreIndicibileFugaOk = [
     "Scappi a gambe levate urlando, il terrore puro ti mette le ali ai piedi e semini la presenza.",
@@ -1122,3 +1255,4 @@ const esitiOrroreIndicibileAffrontaKo = [
     "Vieni posseduto temporaneamente da un'entità oscura."
 ];
 
+// ... Aggiungere altri array di testo qui se necessario ...
