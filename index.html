@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it" style="height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Il Viaggiatore - Prototipo GDR</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="height: 100%;">
+
+    <!-- Schermata di Fine Gioco -->
+    <div id="end-screen">
+        <h2 id="end-title">...</h2>
+        <div id="end-message">...</div>
+        <button onclick="window.location.reload()">Ricomincia il Viaggio</button>
+    </div>
+
+    <!-- Contenuto Principale -->
+    <main id="game-container">
+        <section id="map-area">
+            <pre id="map-display">Attendere...</pre>
+            <div id="controls">
+                <button onclick="movePlayer(0, -1)" id="btn-up">Nord</button><br/>
+                <button onclick="movePlayer(-1, 0)" id="btn-left">Ovest</button>
+                <button onclick="movePlayer(1, 0)" id="btn-right">Est</button><br/>
+                <button onclick="movePlayer(0, 1)" id="btn-down">Sud</button>
+            </div>
+        </section>
+        <section id="status-area">
+             <div id="character-stats">
+                <h3>ULTIMO</h3>
+                <ul id="stats-list">
+                    <li>HP:<span id="stat-hp">--</span>/<span id="stat-maxhp">--</span></li>
+                    <li>Vigore:<span id="stat-vig">--</span></li>
+                    <li>Potenza:<span id="stat-pot">--</span></li>
+                    <li>Agilita':<span id="stat-agi">--</span></li>
+                    <li>Tracce:<span id="stat-tra">--</span></li>
+                    <li>Influenza:<span id="stat-inf">--</span></li>
+                    <li>Presagio:<span id="stat-pre">--</span></li>
+                    <li>Adattamento:<span id="stat-ada">--</span></li>
+                    <li>Acquisita:<span id="stat-acq">--</span></li>
+                    <li>Cibo:<span id="stat-food">--</span></li>
+                    <li>Acqua:<span id="stat-water">--</span></li>
+                    <li>Posizione:(<span id="pos-x">--</span>,<span id="pos-y">--</span>)</li>
+                    <li>Terreno:<span id="tile-type">--</span></li>
+                    <li id="stat-day-time-li">Tempo:<span id="stat-day-time">--</span></li>
+                </ul>
+            </div>
+             <div id="map-legend">
+                <h3>LEGENDA</h3>
+                <ul id="legend-list"></ul>
+            </div>
+             <div id="message-log">
+                <ul id="messages"></ul>
+                <h3>LOG EVENTI</h3>
+            </div>
+        </section>
+        <div id="event-overlay">
+            <h4 id="event-title">...</h4>
+            <div id="event-content">...</div>
+            <button onclick="hideEventScreen()" class="continue-button">Continua...</button>
+        </div>
+    </main>
+
+    <script src="game_data.js"></script>
+    <script src="utils.js"></script>
+    <script src="game_logic.js"></script>
+
+</body>
+</html> 

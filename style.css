@@ -1,0 +1,50 @@
+/* --- CSS Completo e Verificato --- */
+:root {
+    --bg-color: #000000; --fg-color: #00FF00; --fg-dim-color: #009900;
+    --border-color: #00FF00; --border-dim-color: #005500;
+    --highlight-bg: #00FF00; --highlight-fg: #000000;
+    --accent-color: #FFFF00; --danger-color: #FF4444;
+    --overlay-bg: rgba(0, 10, 0, 0.97);
+    --plains-color: #00BB00; --forest-color: #008800; --mountain-color: #339933;
+    --water-color: #008888; --ruin-color: #55AA55; --special-color: #AAAA00;
+    --end-color: var(--accent-color);
+}
+html { height: 100%; }
+body { background-color: var(--bg-color); color: var(--fg-color); font-family: 'Courier New', Courier, monospace; font-size: 16px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box; overflow: hidden; }
+/* End Screen */
+#end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); color: var(--fg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 99; display: none; padding: 20px; box-sizing: border-box; } /* Nascosto inizialmente */
+#end-message { white-space: pre-wrap; max-height: 80%; overflow-y: auto; margin-bottom: 20px; font-size: 1.1em; line-height: 1.4; text-align: left; padding: 0 10%; }
+#end-screen h2 { color: var(--accent-color); margin-bottom: 30px; }
+#end-screen button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 10px 20px; font-family: inherit; font-size: 1.1em; cursor: pointer; margin-top: 20px;}
+/* Game Container e Sezioni con TAG SEMANTICI */
+main#game-container { display: none; flex-direction: row; border: 2px solid var(--border-color); padding: 10px; box-sizing: border-box; position: relative; width: 100%; height: 100%; max-width: 1000px; max-height: 700px; background-color: var(--bg-color); overflow: hidden; }
+section#map-area { flex: 3; border-right: 1px dashed var(--border-color); padding-right: 10px; margin-right: 10px; display: flex; flex-direction: column; overflow: hidden; }
+#map-display { font-family: 'Courier New', Courier, monospace; white-space: pre; font-size: 18px; line-height: 1.1; margin-bottom: 10px; flex-grow: 1; overflow: auto; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; box-sizing: border-box; }
+/* Stili Colore Mappa */
+.tile-plains { color: var(--plains-color); } .tile-forest { color: var(--forest-color); } .tile-mountain { color: var(--mountain-color); } .tile-river { color: var(--water-color); } .tile-city, .tile-village { color: var(--ruin-color); } .tile-rest-stop, .tile-start { color: var(--special-color); } .tile-end { color: var(--end-color); font-weight: bold; }
+.visited { opacity: 0.6 !important; }
+.player-marker { animation: blink 1s step-end infinite; } @keyframes blink {0%,100%{background-color:var(--highlight-bg);color:var(--highlight-fg);}50%{background-color:transparent;color:var(--fg-color);}}
+#controls { text-align: center; margin-top: 5px; flex-shrink: 0; }
+#controls button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 5px 10px; margin: 2px; font-family: inherit; font-size: 14px; cursor: pointer; }
+#controls button:disabled { color: var(--border-dim-color); border-color: var(--border-dim-color); cursor: not-allowed; }
+section#status-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 220px; }
+#character-stats, #map-legend { margin-bottom: 15px; flex-shrink: 0; }
+#character-stats h3, #map-legend h3, #message-log h3 { margin-top: 0; margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 3px; flex-shrink: 0; font-size: 1em; }
+#character-stats ul, #map-legend ul { list-style: none; padding: 0; margin: 0; font-size: 0.9em; }
+#character-stats li, #map-legend li { margin-bottom: 2px; white-space: nowrap; }
+#stat-food, #stat-water { font-weight: bold; } .low-resource { color: var(--danger-color); }
+#map-legend .legend-symbol { display: inline-block; width: 1.5em; text-align: center; font-weight: bold; }
+#message-log { border-top: 1px dashed var(--border-color); padding-top: 5px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column-reverse; background-color: #050505; border: 1px solid var(--border-dim-color); padding: 5px; margin-top: 5px; min-height: 100px; }
+#messages { list-style: none; padding: 0; margin: 0; } #messages li { font-size: 0.9em; margin-bottom: 4px; word-break: break-word; } .log-warning { color: var(--danger-color); font-weight: bold;}
+/* Event Overlay */
+ #event-overlay { display: none; position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background-color: var(--overlay-bg); border: 3px solid var(--border-color); color: var(--fg-color); z-index: 50; padding: 15px; box-sizing: border-box; font-size: 1em; overflow-y: auto; text-align: center; }
+ #event-overlay h4 { margin-top: 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+ #event-content { margin-bottom: 15px; text-align: left; white-space: pre-wrap; font-size: 0.95em; }
+ .danger-text { color: var(--danger-color); font-weight: bold; }
+ .event-choice { margin-top: 15px; text-align: center; }
+ .event-choice button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.95em; cursor: pointer; margin: 5px; display: inline-block; min-width: 150px; }
+ .event-choice button:hover { background-color: var(--border-dim-color); }
+ #event-overlay button.continue-button { background-color: #111; color: var(--fg-color); border: 1px solid var(--border-color); padding: 8px 15px; font-family: inherit; font-size: 0.9em; cursor: pointer; margin-top: 10px; }
+.hidden { display: none !important; }
+/* Media Query Mobile */
+@media (max-width: 700px) { body{align-items:stretch;} main#game-container{flex-direction:column; max-width:100%; max-height:none; height:100%; padding:5px; border:none;} section#map-area{flex:1 1 55%; border-right:none; border-bottom:1px dashed var(--border-color); padding-right:0; margin-right:0; margin-bottom:10px;} #map-display{font-size:14px; line-height:1.0;} #controls{order:1; margin-bottom:10px;} section#status-area{flex:1 1 45%; min-width:unset; width:100%; order:2;} #map-legend{display:none;} #message-log{font-size:0.85em;} #event-overlay{width:95%; left:2.5%; height:90%; top:2.5%; font-size:0.9em;} } 
