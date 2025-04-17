@@ -56,6 +56,145 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+17/04/2025 ore 9.43 ITA
+
+Certamente. Questo log riassume l'intera sessione di sviluppo, dalle prime correzioni fino agli ultimi aggiornamenti, offrendo anche uno sguardo allo stato attuale e ai possibili passi futuri.
+
+**Log Semplificato (Panoramica dello Sviluppo)**
+
+Abbiamo iniziato risolvendo alcuni bug critici segnalati dai tester, come i controlli del mouse che si bloccavano e un evento che non dava ricompense chiare. Poi ci siamo concentrati sul migliorare il cuore del gioco:
+
+*   **Eventi e Scelte:** Abbiamo reso le scelte più significative mostrando al giocatore una valutazione della probabilità di successo (es. "Favorevole", "Rischioso") basata sulle sue statistiche. Abbiamo corretto errori nella logica degli eventi, bilanciato le ricompense e le difficoltà, e reso gli eventi dei rifugi più coerenti (riposo garantito di notte, evento sempre presente di giorno). Abbiamo anche aggiunto due eventi molto rari ("easter eggs") nelle città per i giocatori più fortunati ed esploratori.
+*   **Stati Negativi:** Abbiamo reso gli stati come Fame, Sete, Ferite e Malattia più impattanti, introducendo una piccola perdita di salute ad ogni passo, oltre ai loro altri effetti. Questo rende la gestione delle risorse e della salute più critica.
+*   **Guarigione:** Abbiamo notato che era troppo difficile recuperare salute. Per risolvere, abbiamo migliorato le Bende Sporche (più efficaci e con un minimo recupero HP garantito se feriti) e introdotto due nuovi oggetti: le Bende Pulite (più efficaci ma più rare) e le Vitamine (per un piccolo recupero HP diretto). Questi nuovi oggetti sono ora trovabili casualmente nel mondo.
+*   **Pulizia e Coerenza:** Abbiamo rimosso un file di backup obsoleto e sostituito la terminologia "Volta" con "Lab" per dare al gioco un'identità più unica.
+
+**Stato Attuale:** Il nucleo del gioco (movimento, mappa, statistiche, gestione risorse base, sistema di eventi con scelte e conseguenze, stati negativi con effetti passivi) è ora funzionale e più bilanciato rispetto all'inizio. Sono presenti contenuti testuali significativi (eventi, lore, descrizioni).
+
+**Prossimi Passi Suggeriti:** La fase più importante ora è il **playtesting approfondito** per affinare il bilanciamento (difficoltà, frequenza eventi, recupero HP, impatto status). Successivamente, si potrebbe pensare ad espandere i contenuti (più oggetti, eventi, magari nemici o crafting), migliorare l'interfaccia (specialmente su schermi diversi) e aggiungere effetti sonori.
+
+**Log Tecnico Ultra Dettagliato**
+
+*   **1. Bug Fix: Controlli Mouse Post-Annullamento Inventario**
+    *   **Scopo:** Risolvere bug per cui i pulsanti di movimento via mouse (`moveButtons`) venivano disabilitati cliccando un oggetto inventario e poi annullando l'azione, senza essere riabilitati.
+    *   **File Modificato:** `game_logic.js`
+    *   **Funzione Modificata:** `closeEventPopup`
+    *   **Modifica:** Aggiunta chiamata `disableControls(false);` alla fine della funzione per garantire la riabilitazione dei controlli al termine di qualsiasi evento o azione popup.
+
+*   **2. Analisi/Differimento Interfaccia Responsive**
+    *   **Scopo:** Discussi approcci per rendere l'UI scalabile (CSS Media Queries, Flexbox/Grid, unità relative, `transform: scale`, JS).
+    *   **Decisione:** Implementazione differita per concentrarsi sulla logica di base.
+
+*   **3. Analisi Logica Eventi/Status e Bilanciamento Iniziale**
+    *   **Scopo:** Valutare completezza logica eventi/status. Identificare e correggere errori, bilanciare esiti.
+    *   **File Modificati:** `game_logic.js`
+    *   **Funzioni Modificate:** `triggerComplexEvent`, `handleEventChoice`
+    *   **Modifiche:**
+        *   Corretto `skillCheck` in `triggerComplexEvent`: Sostituito `stat: 'carisma'` con `stat: 'influenza'` per azioni `parla` (PREDATOR) e `negozia` (VILLAGE_HOSTILE).
+        *   Bilanciamento `handleEventChoice`: Aumentato `lootQty` max a 3 (`getRandomInt(1,3)`) per loot PREDATOR(LottaOk), TRACKS(SeguiOk), SHELTER_INSPECT(IspezionaOk). Ridotta probabilità trappola (`failRoll < 0.5`) in SHELTER_INSPECT(Ko). Aumentata probabilità esito positivo (`outcomeRoll < 0.8`) in DILEMMA(IntervieniOk). Aggiunta chance lore a PREDATOR(ParlaOk) e chance perdita risorsa a PREDATOR(ParlaKo).
+
+*   **4. Implementazione Effetti Passivi Status Negativi**
+    *   **Scopo:** Introdurre penalità continue per stati negativi ad ogni passo.
+    *   **File Modificato:** `game_logic.js`
+    *   **Modifiche:**
+        *   Aggiunte costanti globali: `PASSIVE_HUNGER_DAMAGE`, `PASSIVE_THIRST_DAMAGE`, `PASSIVE_INJURY_DAMAGE`, `PASSIVE_SICKNESS_DAMAGE`, `SICKNESS_EXTRA_FOOD_COST`, `SICKNESS_EXTRA_WATER_COST`.
+        *   Modificata `movePlayer`: Inserito blocco logico dopo `consumeResourcesOnMove` (in `if (!eventScreenActive)`) per applicare consumo extra risorse (`isSick`) e danno HP (`water <= 0`, `food <= 0`, `isInjured`, `isSick`), con check `endGame(false)` e `return` immediato in caso di morte dopo ogni applicazione danno.
+
+*   **5. Gestione Ricompense Eventi Generici (Fix e Randomizzazione)**
+    *   **Scopo:** Correggere eventi generici che usavano `directReward` (non gestito) e implementare ricompense casuali.
+    *   **File Modificati:** `game_data.js`, `game_logic.js`
+    *   **Modifiche (`game_data.js`):** Modificati eventi con ID `generic_minor_find_resource` / `generic_lore_find` in PLAINS, FOREST, RIVER, VILLAGE, CITY, REST_STOP. Rimossa prop `directReward`. Aggiunto `choices` array con 1 opzione (es. "Ispeziona") con `outcome` testuale e `successReward` `{ type: 'random_common_resource', quantity: 1 }` o `{ type: 'random_lore_fragment' }`. *(Nota: L'applicazione automatica ha richiesto correzioni manuali per errori di sintassi)*.
+    *   **Modifiche (`game_logic.js`):**
+        *   Aggiunta funzione helper `applyChoiceReward(rewardObject)`: Gestisce logica per `rewardObject.type` 'random_common_resource' (seleziona item casuale da lista pesata, chiama `addItemToInventory`), 'random_lore_fragment' (chiama `findLoreFragment`), e `rewardObject.itemId` (per compatibilità). Restituisce `{consequences: string, messageType: string}`.
+        *   Modificata `handleEventChoice`: Chiama `applyChoiceReward` sia nel blocco `if (choice.outcome)` sia nel `default` del blocco `if (checkResult.success)`. Costruisce `finalOutcomeDescription` concatenando descrizione base, outcome, e conseguenze da `applyChoiceReward`. Passa `finalOutcomeDescription` a `buildAndShowComplexEventOutcome`. Aggiornato log `addMessage`.
+        *   Modificata `buildAndShowComplexEventOutcome`: Semplificata per accettare la `description` pre-costruita da `handleEventChoice`.
+
+*   **6. Aggiunta Eventi Unici (Easter Eggs)**
+    *   **Scopo:** Introdurre eventi rari e non ripetibili per aggiungere scoperta.
+    *   **File Modificati:** `game_data.js`, `game_logic.js`
+    *   **Modifiche (`game_data.js`):** Aggiunti due nuovi oggetti evento all'array `EVENT_DATA.CITY` con `id` univoci ("city_easter_egg_pixeldebh", "city_unique_webradio"), `title` e `description` specifici, `choices: []`, e `isUnique: true`.
+    *   **Modifiche (`game_logic.js`):**
+        *   Aggiunte variabili globali `easterEggPixelDebhFound` e `uniqueEventWebRadioFound` (default `false`).
+        *   Aggiunto reset di entrambi i flag in `initializeGame`.
+        *   Aggiunta costante `EASTER_EGG_CHANCE` (inizialmente 0.01, poi ridotta).
+        *   Modificata `triggerTileEvent`: Implementato check iniziale se `tileKey === 'CITY'`. Se vero, tenta di triggerare prima l'evento PixelDebh (se `!found` e `random < CHANCE`), poi l'evento WebRadio (se `!found` e `random < CHANCE`). Se uno viene trovato, setta il flag e fa `return`. Modificato filtro `eventPool` per escludere entrambi gli eventi se i rispettivi flag sono `true`.
+
+*   **7. Cambio Terminologia "Volta" -> "Lab"**
+    *   **Scopo:** Migliorare originalità world-building.
+    *   **File Modificato:** `game_data.js`
+    *   **Modifica:** Sostituite manualmente occorrenze specifiche di "Volta"/"della Volta" con "Lab"/"del Lab" negli array `loreFragments` e `radioMessages`, escludendo usi come verbo/avverbio.
+
+*   **8. Rimozione File Backup**
+    *   **Scopo:** Pulizia progetto.
+    *   **File Modificato:** `game_data_backup.js`
+    *   **Modifica:** File cancellato.
+
+*   **9. Miglioramento Feedback Scelte (Descrittori Qualitativi)**
+    *   **Scopo:** Aiutare il giocatore a fare scelte consapevoli senza rivelare percentuali esatte.
+    *   **File Modificato:** `game_logic.js`
+    *   **Modifiche:**
+        *   Aggiunta funzione helper `getSkillCheckLikelihood(statKey, difficulty)`: Calcola `targetRoll` necessario (considerando stat, bonus, penalità status) e restituisce stringa ("Molto Favorevole", "Favorevole", "Incerto", "Rischioso", etc.) basata su soglie predefinite.
+        *   Modificata `showEventPopup`: Nel loop `forEach` delle scelte, se `choice.skillCheck` esiste, chiama `getSkillCheckLikelihood` e appende il descrittore restituito al `buttonText`.
+
+*   **10. Miglioramento Recupero HP**
+    *   **Scopo:** Rendere il recupero HP più accessibile.
+    *   **File Modificati:** `game_data.js`, `game_logic.js`
+    *   **Modifiche:**
+        *   **`bandages_dirty` Efficacia:** Aumentata `chance` a 0.4 in `game_data.js`. Garantito +1 HP in `useItem` (se `isInjured`) spostando il recupero HP *prima* del check di probabilità per la rimozione dello status.
+        *   **Nuovo Oggetto `bandages_clean`:** Aggiunto a `ITEM_DATA` con `chance: 0.75` e prop `heal_hp_on_success: 2`. Aggiunta logica in `useItem` per gestire `heal_hp_on_success`. Aggiunto a `lootTypes` in `handleEventChoice` (PREDATOR, TRACKS, SHELTER_INSPECT).
+        *   **Nuovo Oggetto `vitamins`:** Aggiunto a `ITEM_DATA` con `effect: { type: 'heal_hp', amount_min: 2, amount_max: 3 }`. Aggiunto `case 'heal_hp'` in `useItem` per gestire l'effetto. Aggiunto a `lootTypes` negli stessi eventi di `bandages_clean`.
+
+*   **11. Tuning Rarità Eventi Unici**
+    *   **Scopo:** Rendere gli easter egg più rari basandosi su feedback.
+    *   **File Modificato:** `game_logic.js`
+    *   **Costante:** `EASTER_EGG_CHANCE`
+    *   **Modifica:** Valore cambiato da `0.005` a `0.003` (0.3%).
+
+**Stato Attuale del Progetto:**
+
+*   **Core Loop:** Funzionante (Movimento, Mappa, Risorse, Tempo Giorno/Notte).
+*   **Sistema Eventi:** Robusto, con gestione eventi semplici, complessi (con check abilità e conseguenze multiple), generici (con ricompense casuali implementate tramite helper) e unici (con trigger raro e flag di unicità). Descrittori qualitativi per i check sono implementati.
+*   **Sistema Status:** Funzionante, con applicazione via eventi, effetti passivi per passo (danno HP, consumo risorse extra per malattia) e cure tramite oggetti.
+*   **Contenuti:** Base di oggetti, eventi per diversi terreni, frammenti di lore e messaggi radio presenti.
+*   **Bilanciamento:** Effettuato un primo giro significativo di bilanciamento su eventi, status, ricompense e guarigione.
+*   **UI:** Funzionale ma non responsive/scalabile. Mancano feedback visivi avanzati (es. tooltip oggetti).
+
+**Indicazioni e Suggerimenti per Sviluppo Futuro:**
+
+1.  **Playtesting e Bilanciamento Approfonditi (Priorità Alta):**
+    *   Giocare estensivamente per valutare la curva di difficoltà.
+    *   Affinare: Difficoltà skill check, valori danno/cura/consumo, probabilità eventi/loot, frequenza status negativi.
+    *   Verificare che i nuovi metodi di cura siano sufficienti ma non banali.
+    *   Assicurarsi che la rarità degli eventi unici sia adeguata.
+2.  **Affinamento Contenuti Testuali:**
+    *   Rileggere tutti i testi (descrizioni eventi, esiti, lore, oggetti) per coerenza, chiarezza, stile e immersività. Correggere eventuali errori o frasi poco chiare.
+3.  **Gestione Ricompense Eventi Generici (Finalizzazione):**
+    *   Verificare/Implementare la logica in `closeEventPopup` (o un punto simile) per applicare `applyChoiceReward` per gli eventi che ora usano la struttura `{ choices: [], successReward: { type: 'random...' } }` solo dopo che il giocatore ha cliccato "Continua". Attualmente, `applyChoiceReward` potrebbe essere chiamato prematuramente in `triggerTileEvent` (come da ultima modifica) o non essere chiamato affatto se l'evento non ha `outcome` né `skillCheck` in `handleEventChoice`. Questo va sistemato per coerenza.
+4.  **Espansione Contenuti:**
+    *   **Oggetti:** Nuovi tipi di cibo/acqua, armi/attrezzi (se si implementa combattimento/crafting), oggetti di valore/baratto.
+    *   **Eventi:** Più varietà per ogni terreno, eventi a catena, incontri con PNG più complessi.
+    *   **Lore:** Approfondire la storia del mondo, delle fazioni, dei "Lab".
+    *   **Nemici/Combattimento (Se Previsto):** Definire statistiche nemici, meccaniche di attacco/difesa, IA base.
+    *   **Crafting (Se Previsto):** Definire ricette, risorse necessarie, stazioni di crafting.
+5.  **Miglioramenti UI/UX:**
+    *   **Responsività:** Implementare le tecniche discusse per adattare l'interfaccia a diverse risoluzioni.
+    *   **Tooltip Oggetti:** Mostrare descrizione/effetti al passaggio del mouse sull'inventario.
+    *   **Feedback Visivi:** Migliorare indicatori stato (es. barra HP che cambia colore), animazioni semplici per eventi/azioni.
+    *   **Mappa:** Valutare se la visuale attuale è ottimale o se servono opzioni zoom/scroll.
+6.  **Audio:**
+    *   Aggiungere effetti sonori per azioni (passi, uso oggetti, eventi) e musica d'atmosfera.
+7.  **Refactoring e Ottimizzazione:**
+    *   Riorganizzare codice se necessario (es. spostare tutte le costanti in `game_data.js`).
+    *   Ottimizzare funzioni critiche se si notano rallentamenti (improbabile con la tecnologia attuale, ma buona pratica).
+8.  **Persistenza:**
+    *   Implementare salvataggio e caricamento dello stato del gioco (es. usando `localStorage`).
+9.  **Funzionalità Avanzate (a lungo termine):**
+    *   Sistema di crafting più complesso.
+    *   Combattimento a turni o in tempo reale.
+    *   Gestione fazioni e reputazione.
+    *   PNG con dialoghi e quest.
+
+---
 15/04/2025 ore 6.00 ITA
 
 Log Modifiche - Riepilogo Semplificato
