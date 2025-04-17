@@ -83,6 +83,8 @@ let dayMovesCounter = 0; // Contatore dei passi effettuati durante il giorno
 let nightMovesCounter = 0; // Contatore dei passi effettuati durante la notte
 let isDay = true; // Flag per indicare se è giorno (true) o notte (false)
 let daysSurvived = 0; // Contatore dei giorni sopravvissuti
+let easterEggPixelDebhFound = false; // Flag per easter egg unico
+let uniqueEventWebRadioFound = false; // Flag per evento unico WebRadio
 
 // Costante per il numero di passi dopo i quali la notte passerà automaticamente al giorno
 const NIGHT_LENGTH_MOVES = 8; // Dopo 8 passi di notte, sorgerà il sole
@@ -107,6 +109,16 @@ const TRACCE_LOOT_CHANCE = 0.35;        // 35% probabilità di trovare loot
 const TRACCE_LORE_CHANCE = 0.25;        // 25% probabilità di trovare lore
 const TRACCE_DANGER_CHANCE = 0.15;      // 15% probabilità di finire in pericolo (testo)
 // Il restante 25% (100 - 35 - 25 - 15) sarà 'Nulla'
+
+// --- NUOVE COSTANTI PER EFFETTI PASSIVI STATUS ---
+const PASSIVE_HUNGER_DAMAGE = 0.1; // Danno HP per passo se Sazietà <= 0
+const PASSIVE_THIRST_DAMAGE = 0.15; // Danno HP per passo se Idratazione <= 0
+const PASSIVE_INJURY_DAMAGE = 0.05; // Danno HP per passo se Ferito
+const PASSIVE_SICKNESS_DAMAGE = 0.08; // Danno HP per passo se Malato
+const SICKNESS_EXTRA_FOOD_COST = 0.05; // Costo extra Sazietà per passo se Malato
+const SICKNESS_EXTRA_WATER_COST = 0.08; // Costo extra Idratazione per passo se Malato
+const EASTER_EGG_CHANCE = 0.003; // Probabilità (0.3%) per gli eventi unici (ridotta ulteriormente)
+// --- FINE NUOVE COSTANTI ---
 
 // --- RIFERIMENTI AGLI ELEMENTI DEL DOM ---
 // Otteniamo i riferimenti agli elementi HTML una sola volta all'inizio per efficienza.
@@ -167,6 +179,8 @@ function initializeGame() {
     nightMovesCounter = 0;
     isDay = true;
     daysSurvived = 0;
+    easterEggPixelDebhFound = false; // Resetta il flag a inizio partita
+    uniqueEventWebRadioFound = false; // Resetta flag evento WebRadio
 
     try {
         // Genera personaggio e mappa (funzioni definite più avanti)
@@ -675,6 +689,49 @@ function performSkillCheck(statKey, difficulty) {
     return { success: success, text: checkText };
 }
 
+/**
+ * Calcola e restituisce un descrittore qualitativo della probabilità di successo
+ * per un dato skill check, basato sullo stato attuale del giocatore.
+ * @param {string} statKey - La chiave della statistica da usare (es. 'agilita', 'vigore').
+ * @param {number} difficulty - La difficoltà base del check.
+ * @returns {string} Un descrittore testuale (es. "Favorevole", "Incerto", "Rischioso").
+ */
+function getSkillCheckLikelihood(statKey, difficulty) {
+    if (!player || typeof player[statKey] === 'undefined') {
+        // Se il giocatore o la statistica non sono validi, restituisce un valore generico
+        console.warn(`getSkillCheckLikelihood: Statistica '${statKey}' non trovata nel giocatore.`);
+        return "Incerto"; // O forse "Sconosciuto"?
+    }
+
+    const statValue = player[statKey];
+    const bonus = Math.floor((statValue - 10) / 2);
+
+    // Simula il calcolo delle penalità di performSkillCheck
+    let difficultyPenalty = 0;
+    if (player.isInjured && (statKey === 'potenza' || statKey === 'agilita')) {
+        difficultyPenalty = 2;
+    }
+    if (player.isSick && (statKey === 'vigore' || statKey === 'adattamento')) {
+        // Sovrascrive la penalità 'Ferito' se la stat è la stessa (come in performSkillCheck)
+        difficultyPenalty = 2;
+    }
+    const finalDifficulty = difficulty + difficultyPenalty;
+
+    // Calcola il tiro minimo necessario sul d20 per avere successo
+    // Successo se: roll + bonus >= finalDifficulty  =>  roll >= finalDifficulty - bonus
+    const targetRoll = finalDifficulty - bonus;
+
+    // Mappa il tiro necessario a descrittori qualitativi
+    // (Le soglie sono indicative e possono essere aggiustate con playtesting)
+    if (targetRoll <= 1) return "Garantito"; // Praticamente impossibile fallire (serve 1 o meno)
+    if (targetRoll <= 6) return "Molto Favorevole"; // Serve 6 o meno (75%+) - Alta probabilità
+    if (targetRoll <= 10) return "Favorevole";  // Serve 10 o meno (55%+) - Buona probabilità
+    if (targetRoll <= 13) return "Incerto";     // Serve 13 o meno (~40%) - Media probabilità
+    if (targetRoll <= 16) return "Rischioso";   // Serve 16 o meno (25%+) - Bassa probabilità
+    if (targetRoll <= 19) return "Molto Rischioso"; // Serve 19 o meno (10%+) - Bassissima probabilità
+    return "Quasi Impossibile"; // Serve 20 o più
+}
+
 // --- LOGICA DI GIOCO E MOVIMENTO ---
 
 /**
@@ -722,8 +779,13 @@ function movePlayer(dx, dy) {
     
     // Se è notte MA il giocatore è in un rifugio, la prima azione fa passare al giorno
     if (!isDay && currentTile && SHELTER_TILES.includes(currentTile.type)) {
-        transitionToDay();
-        // Dopo transitionToDay, isDay è true, quindi il resto della funzione procede normalmente
+        transitionToDay(); // Passa al giorno
+        // Dopo transitionToDay, isDay è true, ma vogliamo terminare qui l'azione del turno
+        // perché l'unico effetto dell'entrare in un rifugio di notte è riposare.
+        renderStats(); // Aggiorna UI dopo il cambio giorno
+        renderMap();   // Aggiorna mappa
+        enableControls(); // Riabilita subito i controlli per il nuovo giorno
+        return; // <<< AGGIUNTO: Esce dalla funzione movePlayer
     }
     
     // Impedisce movimento nullo
@@ -772,41 +834,95 @@ function movePlayer(dx, dy) {
         // Controlla sempre se viene trovato un frammento di lore (anche se c'è flavor)
         checkForLoreFragment();
 
-        consumeResourcesOnMove();
-        
-        if (isDay) { 
+        consumeResourcesOnMove(); // Consumo base
+
+        // --- INIZIO NUOVA LOGICA: Applicazione Effetti Passivi Status ---
+        let passiveDamageApplied = false; // Flag per sapere se è stato applicato danno
+
+        // Applica consumo extra risorse se Malato
+        if (player.isSick) {
+             player.food = Math.max(0, player.food - SICKNESS_EXTRA_FOOD_COST);
+             player.water = Math.max(0, player.water - SICKNESS_EXTRA_WATER_COST);
+        }
+
+        // Applica danno HP per Sete
+        if (player.water <= 0) {
+            player.hp -= PASSIVE_THIRST_DAMAGE;
+            passiveDamageApplied = true;
+            if (player.hp <= 0) {
+                endGame(false);
+                return; // Esce subito se morto
+            }
+        }
+
+        // Applica danno HP per Fame
+        if (player.food <= 0) {
+            player.hp -= PASSIVE_HUNGER_DAMAGE;
+            passiveDamageApplied = true;
+            if (player.hp <= 0) {
+                endGame(false);
+                return; // Esce subito se morto
+            }
+        }
+
+        // Applica danno HP per Ferita
+        if (player.isInjured) {
+            player.hp -= PASSIVE_INJURY_DAMAGE;
+            passiveDamageApplied = true;
+            if (player.hp <= 0) {
+                endGame(false);
+                return; // Esce subito se morto
+            }
+        }
+
+        // Applica danno HP per Malattia
+        if (player.isSick) {
+            player.hp -= PASSIVE_SICKNESS_DAMAGE;
+            passiveDamageApplied = true;
+            if (player.hp <= 0) {
+                endGame(false);
+                return; // Esce subito se morto
+            }
+        }
+        // --- FINE NUOVA LOGICA Effetti Passivi Status ---
+
+        // Logica Giorno/Notte (contatori, transizioni, etc.)
+        if (isDay) {
             dayMovesCounter++;
-            renderStats(); // Aggiorna subito i passi rimanenti
+            renderStats(); // Aggiorna subito i passi rimanenti (e anche HP/Risorse)
             if (dayMovesCounter >= DAY_LENGTH_MOVES) {
-                transitionToNight(); 
+                transitionToNight();
             } else {
-                 enableControls();
+                 // Non riabilitare i controlli qui, lo facciamo alla fine
             }
         } else {
             // Gestione movimenti durante la notte
             nightMovesCounter++;
-            renderStats(); 
-            
+            renderStats(); // Aggiorna anche qui
+
             if (nightMovesCounter >= NIGHT_LENGTH_MOVES) {
                 addMessage("La notte finalmente passa... il sole sorge all'orizzonte.", "info", true);
-                transitionToDay();
+                transitionToDay(); // transitionToDay potrebbe riabilitare i controlli
             } else {
-                enableControls(); 
+                 // Non riabilitare i controlli qui
             }
         }
 
-        if (targetTile.type === TILE_SYMBOLS.END) {
-             endGame(true); 
-             return; 
+        // Controlla se arrivato alla fine (dopo aver applicato danni e gestito giorno/notte)
+        // Aggiunto check gameActive perché endGame potrebbe averlo messo a false
+        if (targetTile.type === TILE_SYMBOLS.END && gameActive) {
+             endGame(true);
+             return;
         }
-    }
+
+    } // Fine if (!eventScreenActive)
 
     renderMap();
 
     // Controlla e logga messaggi di stato DOPO che tutte le azioni sono state completate
-    checkAndLogStatusMessages(); 
+    checkAndLogStatusMessages();
 
-    // Infine, riabilita i controlli se il gioco è ancora attivo
+    // Infine, riabilita i controlli se il gioco è ancora attivo e nessun evento è attivo
     if (gameActive && !eventScreenActive) {
          enableControls();
     }
@@ -945,16 +1061,51 @@ function triggerTileEvent(tile) {
         return; // Nessun evento su Start, End o caselle non valide
     }
 
+    const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === tile.type);
+    if (!tileKey) return; // Safety check
+
+    // --- CHECK EVENTI UNICI (CITY ONLY) ---
+    if (tileKey === 'CITY') {
+        // 1. Check Easter Egg PixelDebh
+        if (!easterEggPixelDebhFound && Math.random() < EASTER_EGG_CHANCE) {
+            const easterEggEvent = EVENT_DATA.CITY.find(event => event.id === "city_easter_egg_pixeldebh");
+            if (easterEggEvent) {
+                showEventPopup(easterEggEvent);
+                easterEggPixelDebhFound = true;
+                return; // Trovato PixelDebh, esci
+            } else {
+                 console.warn("Evento Easter Egg 'city_easter_egg_pixeldebh' non trovato in EVENT_DATA.CITY");
+            }
+        // 2. Check Evento Unico WebRadio (solo se PixelDebh non è stato trovato in questo check)
+        } else if (!uniqueEventWebRadioFound && Math.random() < EASTER_EGG_CHANCE) { // Usa la stessa chance rara
+             const webRadioEvent = EVENT_DATA.CITY.find(event => event.id === "city_unique_webradio");
+             if (webRadioEvent) {
+                showEventPopup(webRadioEvent);
+                uniqueEventWebRadioFound = true;
+                return; // Trovato WebRadio, esci
+             } else {
+                 console.warn("Evento Unico 'city_unique_webradio' non trovato in EVENT_DATA.CITY");
+             }
+        }
+    }
+    // --- FINE CHECK EVENTI UNICI ---
+
+    // --- Logica Eventi Standard --- (Modificata per filtrare entrambi gli unici)
     let eventPool = [];
     let eventChance = 0;
 
-    // Recupera pool eventi e chance da game_data (se esistono)
     try {
-        const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === tile.type);
-        if (tileKey && EVENT_DATA && EVENT_DATA[tileKey]) {
-            eventPool = EVENT_DATA[tileKey];
+        if (EVENT_DATA && EVENT_DATA[tileKey]) {
+            // Filtra via gli eventi unici se sono già stati trovati
+            eventPool = EVENT_DATA[tileKey].filter(event => {
+                const isPixelDebh = event.id === "city_easter_egg_pixeldebh";
+                const isWebRadio = event.id === "city_unique_webradio";
+                // Escludi se è PixelDebh E PixelDebh è stato trovato
+                // OPPURE se è WebRadio E WebRadio è stato trovato
+                return !( (isPixelDebh && easterEggPixelDebhFound) || (isWebRadio && uniqueEventWebRadioFound) );
+            });
         }
-        if (tileKey && EVENT_CHANCE && typeof EVENT_CHANCE[tileKey] === 'number') {
+        if (EVENT_CHANCE && typeof EVENT_CHANCE[tileKey] === 'number') {
             eventChance = EVENT_CHANCE[tileKey];
         }
     } catch (e) {
@@ -962,15 +1113,17 @@ function triggerTileEvent(tile) {
         return; // Esce se mancano i dati fondamentali
     }
 
-    // Controlla la probabilità
+    // Controlla la probabilità per gli eventi standard
     if (eventPool.length > 0 && Math.random() < eventChance) {
-        const randomEvent = getRandomText(eventPool);
+        const randomEvent = getRandomText(eventPool); // Seleziona casualmente dalla pool filtrata
         if (randomEvent) {
-            showEventPopup(randomEvent);
+             // Mostra evento normale con scelte (o senza se choices è vuoto)
+             showEventPopup(randomEvent);
         } else {
-             console.warn(`Tentativo di attivare evento per ${tile.type}, ma l'evento selezionato non è valido.`);
+             console.warn(`Tentativo di attivare evento standard per ${tile.type}, ma l'evento selezionato non è valido dalla pool filtrata.`);
         }
     }
+    // --- FINE Logica Eventi Standard ---
 }
 
 /**
@@ -1015,7 +1168,16 @@ function showEventPopup(eventData) {
         // Popup evento standard con scelte
         choices.forEach((choice, index) => {
             const button = document.createElement('button');
-            button.textContent = `${index + 1}. ${choice.text}`;
+            let buttonText = `${index + 1}. ${choice.text}`;
+
+            // --- NUOVO: Aggiungi descrittore probabilità se c'è skillCheck ---
+            if (choice.skillCheck) {
+                const likelihood = getSkillCheckLikelihood(choice.skillCheck.stat, choice.skillCheck.difficulty);
+                buttonText += ` (${likelihood})`; // Aggiunge es. " (Favorevole)"
+            }
+            // --- FINE NUOVO ---
+
+            button.textContent = buttonText;
             button.onclick = () => handleEventChoice(index); // Chiama handleEventChoice
             if (choice.cssClass) button.classList.add(choice.cssClass);
             eventChoicesContainer.appendChild(button);
@@ -1054,13 +1216,13 @@ function handleEventChoice(choiceIndex) {
     }
 
     const choice = currentEventChoices[choiceIndex];
-    const baseEventTitle = currentEventContext.title || "Evento"; 
+    const baseEventTitle = currentEventContext.title || "Evento";
     const eventType = currentEventContext.type; // Ottieni il tipo di evento complesso
 
     let outcomeTitle = "Risultato";
     let outcomeDescription = `Hai scelto: ${choice.text}.`;
     let outcomeCheckDetails = null;
-    let outcomeConsequences = "";
+    let outcomeConsequences = ""; // Manteniamo questa per accumulare conseguenze specifiche degli switch sotto
     let messageType = 'info';
     let timePassedMessage = ""; // Messaggio per il tempo passato
 
@@ -1079,11 +1241,31 @@ function handleEventChoice(choiceIndex) {
     }
 
     // --- LOGICA ESECUZIONE SCELTA --- 
+    let finalOutcomeDescription = outcomeDescription; // Descrizione completa per il popup
+    let rewardConsequences = ""; // Conseguenze specifiche dalla ricompensa
+    let rewardMessageType = 'info'; // Tipo messaggio dalla ricompensa
+
     if (choice.outcome) {
-        // Outcome semplice predefinito
-        outcomeDescription += ` ${getRandomText(choice.outcome)}`; // Es: esitiVillaggioOstileAllontanati
-        addMessage(`${baseEventTitle}: ${choice.text}. ${outcomeDescription}`, messageType, true); // Log nel diario
-        buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription, outcomeCheckDetails, outcomeConsequences, messageType);
+        // Outcome semplice predefinito (per eventi senza skill check)
+        finalOutcomeDescription += ` ${getRandomText(choice.outcome)}`;
+
+        // Applica la ricompensa (se presente)
+        const rewardResult = applyChoiceReward(choice.successReward); 
+        rewardConsequences = rewardResult.consequences;
+        rewardMessageType = rewardResult.messageType;
+        
+        if (rewardConsequences) {
+            finalOutcomeDescription += `\n${rewardConsequences}`; // Aggiunge conseguenze alla descr. popup
+        }
+        // Aggiorna il tipo di messaggio principale se la ricompensa lo richiede
+        if (rewardMessageType !== 'info') {
+             messageType = rewardMessageType;
+        }
+
+        // Log messaggio (ora include conseguenze ricompensa)
+        addMessage(`${baseEventTitle}: ${choice.text}. ${outcomeDescription}${rewardConsequences}`, messageType, true); 
+        // Mostra popup risultato
+        buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, null, null, messageType);
 
     } else if (choice.skillCheck) {
         // Esegue il check abilità
@@ -1105,9 +1287,10 @@ function handleEventChoice(choiceIndex) {
                         // Possibile loot (solo se si vince davvero)
                         let lootChance = 0.5;
                         if (Math.random() < lootChance) {
-                           const lootTypes = ['food', 'water', 'scrap_metal', 'bandages_dirty'];
+                           // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
+                           const lootTypes = ['food', 'water', 'scrap_metal', 'bandages_dirty', 'bandages_clean', 'vitamins'];
                            const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                           const lootQty = getRandomInt(1,2);
+                           const lootQty = getRandomInt(1,3); // Punto 2: Aumentato loot max a 3
                            addItemToInventory(lootId, lootQty);
                            outcomeConsequences = `Li hai respinti! Trovi ${lootQty} ${ITEM_DATA[lootId].name} tra le loro cose.`;
                         } else {
@@ -1116,6 +1299,11 @@ function handleEventChoice(choiceIndex) {
                     } else if (choice.actionKey === 'parla') {
                         outcomeDescription = getRandomText(esitiParlaPredoniOk);
                         outcomeConsequences = "Sei riuscito a convincerli a lasciarti in pace.";
+                        // Punto 5: Aggiunta chance di reward (lore)
+                        if (Math.random() < 0.20) { // 20% chance
+                            findLoreFragment();
+                            outcomeConsequences += " Nella conversazione, scopri qualcosa di interessante.";
+                        }
                     }
                     break;
                         
@@ -1138,9 +1326,10 @@ function handleEventChoice(choiceIndex) {
                         const outcomeRoll = Math.random();
                         if (outcomeRoll < 0.4) { // 40% Loot
                             outcomeDescription = getRandomText(descrizioniTracceLoot);
-                            const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude'];
+                            // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
+                            const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
                             const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                            const lootQty = getRandomInt(1,2);
+                            const lootQty = getRandomInt(1,3); // Punto 2: Aumentato loot max a 3
                             addItemToInventory(lootId, lootQty);
                             outcomeConsequences = `Le tracce ti portano a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
                         } else if (outcomeRoll < 0.65) { // 25% Lore
@@ -1153,7 +1342,7 @@ function handleEventChoice(choiceIndex) {
                             // Trigger immediato incontro predoni dopo chiusura popup?
                             // O messaggio che anticipa l'incontro al prossimo passo?
                             // Per ora, solo messaggio.
-                             addMessage("Senti un fischio e delle figure emergono dalle ombre!", 'danger', true); 
+                             addMessage("Senti un fischio e delle figure emergono dalle ombre!", 'danger', true);
                             // TODO: Potrebbe triggerare un vero incontro?
                         } else { // 15% Nulla
                             outcomeDescription = getRandomText(descrizioniTracceNothing);
@@ -1177,14 +1366,15 @@ function handleEventChoice(choiceIndex) {
                 case 'DILEMMA':
                     if (choice.actionKey === 'intervieni') {
                         const outcomeRoll = Math.random();
-                        if (outcomeRoll < 0.6) { // 60% Esito positivo
+                        // Punto 4: Ridotta probabilità esito negativo nel successo (80% positivo)
+                        if (outcomeRoll < 0.8) { // 80% Esito positivo
                             outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkPositivo);
                              // Ricompensa variabile (risorse, bonus stats temporaneo?)
                              const bonusType = Math.random() < 0.5 ? 'resource' : 'stat_bonus';
                              if (bonusType === 'resource') {
                                  const lootTypes = ['canned_food', 'water_purified_small', 'medicine_crude'];
                                  const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                                 const lootQty = getRandomInt(1,2);
+                                 const lootQty = getRandomInt(1,2); // Lasciamo 1-2 qui? O aumentiamo? Per ora lascio 1-2
                                  addItemToInventory(lootId, lootQty);
                                  outcomeConsequences = `La tua azione è stata ricompensata: ${lootQty} ${ITEM_DATA[lootId].name}!`;
                              } else {
@@ -1193,7 +1383,7 @@ function handleEventChoice(choiceIndex) {
                                  renderStats();
                                  outcomeConsequences = `Hai agito correttamente. Ti senti più forte. (Adattamento +${statBonus})`;
                              }
-                        } else { // 40% Esito negativo
+                        } else { // 20% Esito negativo
                             outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkNegativo);
                              // Penalità variabile (danno lieve, perdita risorse?)
                              const penaltyType = Math.random() < 0.6 ? 'damage' : 'resource_loss';
@@ -1223,17 +1413,18 @@ function handleEventChoice(choiceIndex) {
                          const findRoll = Math.random();
                          if (findRoll < 0.5) { // 50% Loot
                             outcomeDescription = getRandomText(esitiRifugioIspezionaOkLoot);
-                             const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude'];
+                             // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
+                             const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
                              const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                             const lootQty = getRandomInt(1,2);
+                             const lootQty = getRandomInt(1,3);
                              addItemToInventory(lootId, lootQty);
                              outcomeConsequences = `La tua ispezione porta a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
-                         } else if (findRoll < 0.75) { // 25% Lore
+                         } else if (findRoll < 0.75) { // 25% Lore -> Ora 50% -> 75%
                             outcomeDescription = getRandomText(esitiRifugioIspezionaOkLore);
                              findLoreFragment();
                              outcomeConsequences = "Scopri qualcosa di interessante sul passato di questo luogo.";
-                         } else { // 25% Nulla
-                            outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla);
+                         } else { // 25% Nulla -> Ora 75% -> 100%
+                            outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla); // Rinominato per coerenza? No, è OK
                              outcomeConsequences = "Non trovi nulla di particolare.";
                          }
                      }
@@ -1255,18 +1446,26 @@ function handleEventChoice(choiceIndex) {
                         
                 default:
                     // Fallback per eventi specifici del tile (non complessi)
-                    outcomeDescription = choice.successText || "Ce l'hai fatta!"; // CORREZIONE: Usa '=' invece di '+='
-                    if (choice.successReward) {
-                        const reward = choice.successReward;
-                        const rewardItemInfo = ITEM_DATA[reward.itemId];
-                        if (rewardItemInfo && reward.quantity > 0) {
-                            addItemToInventory(reward.itemId, reward.quantity);
-                            outcomeConsequences = `Hai trovato ${reward.quantity} x ${rewardItemInfo.name}!`;
-                        } else {
-                            console.warn(`Ricompensa definita per l'evento ${baseEventTitle} ma itemId '${reward.itemId}' non valido o quantità 0.`);
-                        }
+                    outcomeDescription = choice.successText || "Ce l'hai fatta!"; 
+                    finalOutcomeDescription = outcomeDescription; // Inizia la descrizione finale
+
+                    // Applica la ricompensa generica qui usando l'helper
+                    const defaultRewardResult = applyChoiceReward(choice.successReward);
+                    rewardConsequences = defaultRewardResult.consequences;
+                    rewardMessageType = defaultRewardResult.messageType;
+
+                    if (rewardConsequences) {
+                        finalOutcomeDescription += `\n${rewardConsequences}`; // Aggiunge conseguenze alla descr. popup
+                    }
+                    if (rewardMessageType !== 'info') {
+                         messageType = rewardMessageType; // Sovrascrive tipo messaggio se necessario
                     }
             }
+            // outcomeConsequences (la variabile locale di handleEventChoice) potrebbe essere stata riempita
+            // dai case specifici dello switch. La aggiungiamo alla descrizione finale se presente.
+             if (outcomeConsequences && !finalOutcomeDescription.includes(outcomeConsequences)) {
+                 finalOutcomeDescription += `\n${outcomeConsequences}`;
+             }
 
         } else {
             // --- Fallimento check abilità --- 
@@ -1274,7 +1473,7 @@ function handleEventChoice(choiceIndex) {
             messageType = 'warning';
             
              // Logica Esito Fallimento Evento Complesso
-            switch (eventType) {
+             switch (eventType) {
                 case 'PREDATOR':
                     if (choice.actionKey === 'fuga') {
                         outcomeDescription = getRandomText(esitiFugaPredoniKo);
@@ -1319,6 +1518,15 @@ function handleEventChoice(choiceIndex) {
                          player.hp -= damage;
                          player.isInjured = true;
                          outcomeConsequences += ` Ti colpiscono mentre cerchi di parlare (-${damage} HP).`;
+                         // Punto 5: Aggiunta chance (25%) di perdita risorse nel fallimento
+                         if (Math.random() < 0.25) {
+                             const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                             const lossAmount = 1;
+                              if (player[resourceLoss] >= lossAmount) {
+                                  player[resourceLoss] -= lossAmount;
+                                  outcomeConsequences += ` Nella confusione ti cade ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
+                              }
+                         }
                     }
                      if (player.hp <= 0) endGame(false);
                      renderStats();
@@ -1406,7 +1614,8 @@ function handleEventChoice(choiceIndex) {
                  case 'SHELTER_INSPECT':
                      if (choice.actionKey === 'ispeziona') {
                           const failRoll = Math.random();
-                          if (failRoll < 0.6) { // 60% Trappola
+                          // Punto 3: Ridotta probabilità trappola (50% invece di 60%)
+                          if (failRoll < 0.5) { // 50% Trappola
                               outcomeDescription = getRandomText(esitiRifugioIspezionaKoTrappola);
                                const damage = getRandomInt(5, 12);
                                player.hp -= damage;
@@ -1419,7 +1628,7 @@ function handleEventChoice(choiceIndex) {
                                 }
                                if (player.hp <= 0) endGame(false);
                                renderStats();
-                          } else { // 40% Nulla
+                          } else { // 50% Nulla (era 40%)
                              outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla);
                               outcomeConsequences = "L'ispezione non rivela nulla, né di buono né di cattivo.";
                           }
@@ -1448,49 +1657,49 @@ function handleEventChoice(choiceIndex) {
                         
                 default:
                     // Fallback per eventi specifici del tile (non complessi)
-                    outcomeDescription = choice.failureText || "Non è andata bene..."; // CORREZIONE: Usa '=' invece di '+='
-                    // Aggiungere eventuali penalità generiche di fallimento qui se necessario
+                    outcomeDescription = choice.failureText || "Non è andata bene..."; 
+                    finalOutcomeDescription = outcomeDescription; // Descrizione finale per il popup
+                    // outcomeConsequences rimane quella definita nei case sopra (se presente)
+                     if (outcomeConsequences && !finalOutcomeDescription.includes(outcomeConsequences)) {
+                         finalOutcomeDescription += `\n${outcomeConsequences}`;
+                     }
             }
         }
 
-        // Mostra il popup di risultato
-        buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription, outcomeCheckDetails, outcomeConsequences, messageType);
+        // Mostra il popup di risultato (costruito sopra)
+        // Log messaggio (spostato qui per loggare l'esito completo)
+        addMessage(`${baseEventTitle}: ${outcomeTitle}. ${outcomeDescription}${outcomeConsequences}${rewardConsequences}`, messageType, true);
+        buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, outcomeCheckDetails, null, messageType);
     }
 
-    // Aggiorna UI e log
-    // addMessage(`${baseEventTitle}: ${outcomeTitle}. ${outcomeDescription} ${outcomeConsequences || ''}`, messageType, true); // Log dettagliato?
     renderStats();
 }
 
 /**
  * Costruisce e mostra il popup di risultato per un evento (anche complesso).
  * @param {string} title Titolo del popup (es. Successo!, Fallimento...)
- * @param {string} description Descrizione principale dell'esito.
- * @param {string|null} checkDetails Dettagli del tiro abilità (es. "Tracce (15) vs Diff (12): Successo!")
- * @param {string} consequences Conseguenze meccaniche (es. "Hai trovato 2 Cibo in Scatola!")
+ * @param {string} description Descrizione completa dell'esito (inclusi dettagli check e conseguenze).
+ * @param {string|null} checkDetails Dettagli del tiro abilità (ora incorporati in description).
+ * @param {string|null} consequences Conseguenze meccaniche (ora incorporate in description).
  * @param {string} messageType Tipo messaggio (info, success, warning, danger) per stile
  */
-function buildAndShowComplexEventOutcome(title, description, checkDetails, consequences, messageType) {
+function buildAndShowComplexEventOutcome(title, description, checkDetails, _consequences, messageType) { // Mark consequences as unused
     let fullDescription = description;
-    if (checkDetails) {
-        fullDescription += `\n(${checkDetails})`;
-    }
-    if (consequences) {
-        fullDescription += `\n${consequences}`;
-    }
+    // Aggiunge i dettagli del check se non già inclusi nella descrizione principale
+    // (Assumiamo che ora siano inclusi da handleEventChoice)
+    // if (checkDetails && !fullDescription.includes(checkDetails)) {
+    //     fullDescription += `\n(${checkDetails})`;
+    // }
+    // Le conseguenze sono ora parte della 'description'
 
     showEventPopup({
         isOutcome: true, // Indica che è un popup di risultato
         title: title,
-        description: fullDescription,
+        description: fullDescription, // Mostra la descrizione completa
         choices: [], // Nessuna scelta, solo bottone Continua
         messageType: messageType // Passa il tipo per lo stile
     });
-
-    // Log nel diario - versione più sintetica?
-    // Rimuoviamo il titolo duplicato (Successo/Fallimento) dal log, 
-    // affidandoci al tipo di messaggio (colore/icona) e alla descrizione.
-    addMessage(`${currentEventContext.title || 'Evento'}: ${description.split('\n')[0]} ${consequences ? `(${consequences})` : ''}`, messageType, true); 
+    // Log messaggio spostato in handleEventChoice
 }
 
 /**
@@ -1504,6 +1713,7 @@ function closeEventPopup() {
     document.removeEventListener('keydown', handleEventKeyPress); // Rimuove listener tastiera evento
     document.addEventListener('keydown', handleKeyPress); // Riattiva listener movimento/inventario
     renderStats(); // Assicura che l'UI sia aggiornata dopo l'evento
+    disableControls(false); // <-- AGGIUNTA: Riabilita i controlli di movimento
 }
 
 /**
@@ -1688,13 +1898,46 @@ function useItem(itemId) {
             case 'heal_status':
                 if (player.hasOwnProperty(effect.status_cured) && player[effect.status_cured]) {
                      const healChance = effect.chance || 1.0; // Assume 100% se non specificato
+                     let hpHealedMessagePart = "";
+                     let hpActuallyHealed = 0;
+
+                     // --- NUOVO: Applica recupero HP GARANTITO per bende se ferito, PRIMA del check ---
+                     const HEAL_AMOUNT_BANDAGES = 1; // Quanto HP recuperano le bende
+                     if (effect.status_cured === 'isInjured') { // Controlla se l'oggetto è inteso per curare 'isInjured'
+                         const hpBeforeHeal = player.hp;
+                         player.hp = Math.min(player.maxHp, player.hp + HEAL_AMOUNT_BANDAGES);
+                         hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10;
+                         if (hpActuallyHealed > 0) {
+                            hpHealedMessagePart = ` (+${hpActuallyHealed} HP)`; // Prepara parte del messaggio
+                         }
+                     }
+                     // --- FINE NUOVO ---
+
+                     // Ora controlla se rimuove lo status
                      if (Math.random() < healChance) {
                          player[effect.status_cured] = false;
-                         message += ` ${effect.success_message || 'Ti senti meglio!'}`;
+                         // Costruisce messaggio successo: effetto base + eventuale cura HP base
+                         message += ` ${effect.success_message || 'Ti senti meglio!'}${hpHealedMessagePart}`;
+
+                         // --- NUOVO: Gestione heal_hp_on_success ---
+                         if (effect.heal_hp_on_success && effect.heal_hp_on_success > 0) {
+                             const hpBeforeBonusHeal = player.hp;
+                             player.hp = Math.min(player.maxHp, player.hp + effect.heal_hp_on_success);
+                             const hpBonusHealed = Math.round((player.hp - hpBeforeBonusHeal) * 10) / 10;
+                             if (hpBonusHealed > 0) {
+                                message += ` (+${hpBonusHealed} HP bonus)`; // Aggiunge info specifica
+                             }
+                         }
+                         // --- FINE NUOVO ---
+
                          effectApplied = true;
                      } else {
-                         message += ` ${effect.failure_message || 'Non ha funzionato...'}`;
-                         // Non consideriamo l'effetto applicato se il check fallisce
+                         // Costruisce messaggio fallimento: effetto base + eventuale cura HP (la cura HP avviene comunque)
+                         message += ` ${effect.failure_message || 'Non ha funzionato...'}${hpHealedMessagePart}`;
+                         // Consideriamo l'effetto applicato solo se lo status viene rimosso? O anche se cura solo HP?
+                         // Per ora, consideriamo effectApplied = true solo se rimuove lo status.
+                         // Ma l'oggetto viene comunque consumato perché ha tentato un effetto (cura HP).
+                         effectApplied = false; // Status non rimosso
                      }
                 } else {
                     // Se lo stato non esiste o non è attivo, non fa nulla
@@ -1702,7 +1945,25 @@ function useItem(itemId) {
                 }
                 break;
             
-            // TODO: Aggiungere altri tipi di effetto (es. heal_hp)
+            // --- NUOVO CASE per HEAL_HP ---
+            case 'heal_hp':
+                const minHeal = effect.amount_min || 1; // Fallback a 1 se non definito
+                const maxHeal = effect.amount_max || minHeal; // Fallback a minHeal se non definito
+                const healAmount = getRandomInt(minHeal, maxHeal); // Calcola HP casuali nel range
+                
+                const hpBeforeHeal = player.hp;
+                player.hp = Math.min(player.maxHp, player.hp + healAmount);
+                const hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10; // Arrotonda
+
+                if (hpActuallyHealed > 0) {
+                    message += ` Ti senti leggermente rinvigorito. (+${hpActuallyHealed} HP)`;
+                    effectApplied = true;
+                } else {
+                    message += " Ma non sembrano avere effetto su di te ora."; // Già al massimo HP
+                    effectApplied = false; // Nessun effetto reale applicato
+                }
+                break;
+            // --- FINE NUOVO CASE ---
 
             default:
                  message += " Ma il suo effetto è sconosciuto.";
@@ -1847,7 +2108,7 @@ function triggerComplexEvent(tile) {
                 eventChoices = [
                     { text: "Fuggi (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, actionKey: 'fuga' },
                     { text: "Combatti (Potenza)", skillCheck: { stat: 'potenza', difficulty: 14 }, actionKey: 'lotta' },
-                    { text: "Prova a parlare (Carisma?) ", skillCheck: { stat: 'carisma', difficulty: 13 }, actionKey: 'parla' } // TODO: Introdurre Carisma?
+                    { text: "Prova a parlare (Influenza)", skillCheck: { stat: 'influenza', difficulty: 13 }, actionKey: 'parla' } // Usa Influenza invece di Carisma
                 ];
                 break;
             case 'ANIMAL':
@@ -1874,7 +2135,7 @@ function triggerComplexEvent(tile) {
                  eventDescription = getRandomText(descrizioniVillaggioOstile);
                  eventChoices = [
                      { text: "Allontanati lentamente", outcome: esitiVillaggioOstileAllontanati, actionKey: 'allontanati' },
-                     { text: "Tenta di negoziare (Carisma?) ", skillCheck: { stat: 'carisma', difficulty: 12 }, actionKey: 'negozia' }
+                     { text: "Tenta di negoziare (Influenza)", skillCheck: { stat: 'influenza', difficulty: 12 }, actionKey: 'negozia' } // Usa Influenza invece di Carisma
                  ];
                  break;
             case 'ENVIRONMENTAL':
@@ -2051,4 +2312,75 @@ function checkAndLogStatusMessages() {
          const msg = getRandomText(STATO_MESSAGGI.MORENTE);
          if(msg) addMessage(msg, 'danger', true); // Messaggio importante
     }
+}
+
+/**
+ * Applica la ricompensa definita in un oggetto choice.successReward.
+ * @param {object | null} rewardObject L'oggetto successReward della scelta.
+ * @returns {{consequences: string, messageType: string}} Un oggetto con la stringa delle conseguenze e il tipo di messaggio.
+ */
+function applyChoiceReward(rewardObject) {
+    let consequences = "";
+    let messageType = 'info'; // Default
+
+    if (!rewardObject) return { consequences, messageType };
+
+    try {
+        if (rewardObject.type === 'random_common_resource') {
+            // Definisce le risorse comuni e le loro probabilità (pesi)
+            // scrap_metal (40%), bandages_dirty (30%), canned_food (15%), water_purified_small (15%)
+            const commonResources = [
+                { id: 'scrap_metal', weight: 40 },
+                { id: 'bandages_dirty', weight: 30 },
+                { id: 'canned_food', weight: 15 },
+                { id: 'water_purified_small', weight: 15 }
+            ];
+            const totalWeight = commonResources.reduce((sum, item) => sum + item.weight, 0);
+            let randomNum = Math.random() * totalWeight;
+            let randomItemId = commonResources[commonResources.length - 1].id; // Fallback all'ultimo
+
+            for (const item of commonResources) {
+                if (randomNum < item.weight) {
+                    randomItemId = item.id;
+                    break;
+                }
+                randomNum -= item.weight;
+            }
+
+            const quantity = rewardObject.quantity || 1;
+            addItemToInventory(randomItemId, quantity);
+            const itemInfo = ITEM_DATA[randomItemId];
+            if (itemInfo) {
+                 consequences = ` Trovi ${quantity} x ${itemInfo.name}!`;
+                 messageType = 'success';
+            } else {
+                 console.warn("Random resource generated invalid item ID:", randomItemId);
+                 consequences = " Trovi qualcosa, ma non riesci a identificarlo.";
+                 messageType = 'warning';
+            }
+        } else if (rewardObject.type === 'random_lore_fragment') {
+            findLoreFragment(); // Questa funzione logga già i messaggi di lore
+            consequences = " Scopri un frammento interessante del passato.";
+            messageType = 'info';
+        } else if (rewardObject.itemId) { // Gestisce ricompense specifiche esistenti
+            const itemInfo = ITEM_DATA[rewardObject.itemId];
+            const quantity = rewardObject.quantity || 1;
+            if (itemInfo && quantity > 0) {
+                addItemToInventory(rewardObject.itemId, quantity);
+                consequences = ` Hai trovato ${quantity} x ${itemInfo.name}!`;
+                messageType = 'success';
+            } else {
+                console.warn(`Reward defined with invalid itemId '${rewardObject.itemId}' or quantity 0.`);
+                consequences = " Trovi qualcosa di rotto o inutile.";
+                messageType = 'warning';
+            }
+        }
+        // Aggiungere altri tipi di ricompensa qui se necessario
+    } catch (e) {
+        console.error("Errore durante l'applicazione della ricompensa:", e, "Reward Object:", rewardObject);
+        consequences = " Si verifica un errore nel determinare la ricompensa.";
+        messageType = 'warning';
+    }
+
+    return { consequences, messageType };
 }

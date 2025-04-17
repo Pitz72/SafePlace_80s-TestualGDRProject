@@ -113,7 +113,7 @@ const EVENT_CHANCE = {
     RIVER: 0.1,
     VILLAGE: 1.0, // Alta probabilità per test
     CITY: 0.5,
-    REST_STOP: 0.8 // Alta probabilità di trovare qualcosa/qualcuno
+    REST_STOP: 1.0 // Alta probabilità di trovare qualcosa/qualcuno
     // MOUNTAIN non ha eventi (impassabile)
 };
 
@@ -139,21 +139,31 @@ const EVENT_DATA = {
              description: "Il vento spazza la pianura desolata. Non c'è nulla qui, solo il silenzio e la polvere.",
              choices: []
         },
-        // Evento Generico: Ritrovamento Minore (Risorse)
+        // Evento Generico: Ritrovamento Minore (Risorse) - Modificato per Random
         {
             id: "generic_minor_find_resource",
             title: "Oggetti Abbandonati",
-            description: "Frugando tra i detriti polverosi, trovi qualcosa di potenzialmente utile.",
-            choices: [],
-            directReward: { type: 'resource' } // Il tipo specifico (food/water) e quantità verranno gestiti dalla logica
+            description: "Frugando tra i detriti polverosi, noti qualcosa di potenzialmente utile.",
+            choices: [
+                {
+                    text: "Ispeziona",
+                    outcome: "Dai un'occhiata più da vicino...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Noti qualcosa di insolito tra le rovine...",
-            choices: [],
-            directReward: { type: 'lore' }
+            choices: [
+                {
+                    text: "Esamina",
+                    outcome: "Senti un legame con il passato...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
         }
     ],
     FOREST: [
@@ -223,21 +233,33 @@ const EVENT_DATA = {
                 }
             ]
         },
-        // Evento Generico: Ritrovamento Minore (Risorse)
+        // Evento Generico: Ritrovamento Minore (Risorse) - Già modificato (lasciamo scrap_metal fisso qui?)
+        // Manteniamo la modifica precedente con scrap_metal fisso per varietà? O randomizziamo anche questo?
+        // Per coerenza, randomizziamo anche questo.
         {
-            id: "generic_minor_find_resource", // Stesso ID degli altri generici
+            id: "generic_minor_find_resource",
             title: "Oggetti Abbandonati",
             description: "Sotto un mucchio di foglie marce, intravedi qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
+            choices: [
+                {
+                    text: "Ispeziona",
+                    outcome: "Frugando tra le foglie trovi...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Un simbolo strano inciso su un albero attira la tua attenzione...",
-            choices: [],
-            directReward: { type: 'lore' }
+             choices: [
+                {
+                    text: "Esamina",
+                    outcome: "Questo simbolo sembra antico...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
         }
     ],
     RIVER: [
@@ -257,21 +279,31 @@ const EVENT_DATA = {
                 }
             ]
         },
-        // Evento Generico: Ritrovamento Minore (Risorse) - Meno probabile vicino al fiume?
+        // Evento Generico: Ritrovamento Minore (Risorse) - Modificato per Random
         {
             id: "generic_minor_find_resource",
             title: "Relitto sulla Riva",
             description: "Qualcosa è stato trascinato a riva dalla corrente.",
-            choices: [],
-            directReward: { type: 'resource' }
+             choices: [
+                {
+                    text: "Ispeziona",
+                    outcome: "Tra i detriti portati dal fiume trovi...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Una vecchia bottiglia incastrata nel fango contiene un messaggio arrotolato...",
-            choices: [],
-            directReward: { type: 'lore' }
+             choices: [
+                {
+                    text: "Leggi", // Testo diverso per varietà
+                    outcome: "Il messaggio è quasi illeggibile ma rivela...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
         }
     ],
     VILLAGE: [
@@ -320,16 +352,26 @@ const EVENT_DATA = {
             id: "generic_minor_find_resource",
             title: "Resti di un Accampamento",
             description: "Qualcuno ha lasciato qualcosa qui, forse per errore.",
-            choices: [],
-            directReward: { type: 'resource' }
+            choices: [
+                {
+                    text: "Fruga", // Testo diverso
+                    outcome: "Tra gli oggetti abbandonati trovi...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Una scritta sbiadita su un muro attira la tua attenzione...",
-            choices: [],
-            directReward: { type: 'lore' }
+             choices: [
+                {
+                    text: "Decifra", // Testo diverso
+                    outcome: "La scritta dice...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
         }
     ],
     CITY: [
@@ -357,17 +399,44 @@ const EVENT_DATA = {
             id: "generic_minor_find_resource",
             title: "Negozio Saccheggiato",
             description: "Le vetrine in frantumi di questo negozio rivelano scaffali rovesciati e detriti. Potrebbe esserci ancora qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
+             choices: [
+                {
+                    text: "Cerca", // Testo diverso
+                    outcome: "Tra gli scaffali caduti trovi...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Un terminale rotto su un bancone mostra ancora frammenti di testo...",
-            choices: [],
-            directReward: { type: 'lore' }
+             choices: [
+                {
+                    text: "Analizza", // Testo diverso
+                    outcome: "Il terminale mostra...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
+        },
+        // --- NUOVO EVENTO EASTER EGG ---
+        {
+            id: "city_easter_egg_pixeldebh",
+            title: "Stranissimo ritrovamento",
+            description: "Rovistando velocemente tra i vari detriti di un edificio dall'aspetto antico, vedi uno stranissimo oggetto. Sembra una placca argentata con uno strano simbolo con una punta arrotondata rivolta verso destra e sotto la scritta PixelDebh. Il resto è troppo rovinato per essere leggibile",
+            choices: [], // Nessuna scelta, solo scoperta
+            isUnique: true // Flag per identificarlo
+        },
+        // --- NUOVO EVENTO UNICO WebRadio ---
+        {
+            id: "city_unique_webradio",
+            title: "Un frammento di libertà",
+            description: "Una stanza devastata, con pareti annerite e macerie sparse ovunque. Al centro, ancora visibile nonostante la distruzione, un tavolo circolare dove giacciono monitor infranti e sottili aste metalliche contorte. Sul muro sbrecciato, un'insegna parzialmente cancellata rivela solo poche lettere: 'R...me...adi'. Dal frammento superstite si intuisce che un tempo questo luogo ospitava una WebRadio, voce libera ormai ridotta al silenzio.", // Testo aggiornato
+            choices: [], // Nessuna scelta, solo scoperta
+            isUnique: true // Flag per identificarlo
         }
+        // --- FINE NUOVO EVENTO EASTER EGG ---
     ],
      REST_STOP: [
          {
@@ -394,16 +463,26 @@ const EVENT_DATA = {
             id: "generic_minor_find_resource",
             title: "Giaciglio Improvvisato",
             description: "Qualcuno ha dormito qui di recente. Forse ha dimenticato qualcosa.",
-            choices: [],
-            directReward: { type: 'resource' }
+            choices: [
+                {
+                    text: "Controlla", // Testo diverso
+                    outcome: "Vicino al giaciglio trovi...",
+                    successReward: { type: 'random_common_resource', quantity: 1 }
+                }
+            ]
         },
-        // Evento Generico: Eco dal Passato (Lore)
+        // Evento Generico: Eco dal Passato (Lore) - Modificato per Random
         {
             id: "generic_lore_find",
             title: "Eco dal Passato",
             description: "Una scritta inquietante lasciata sul muro attira il tuo sguardo...",
-            choices: [],
-            directReward: { type: 'lore' }
+             choices: [
+                {
+                    text: "Leggi",
+                    outcome: "La scritta recita...",
+                    successReward: { type: 'random_lore_fragment' }
+                }
+            ]
         }
     ]
 };
@@ -449,10 +528,21 @@ const ITEM_DATA = {
         name: "Bende Sporche",
         description: "Bende recuperate, non proprio pulite. Meglio di niente per fermare un'emorragia.",
         type: 'healing',
-        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.3, success_message: "Le bende sembrano aver fermato il peggio.", failure_message: "Le bende sono troppo sporche, non hanno aiutato." },
+        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.4, success_message: "Le bende sembrano aver fermato il peggio.", failure_message: "Le bende sono troppo sporche, non hanno aiutato." }, // Chance aumentata a 0.4
         usable: true,
         stackable: true
     },
+    // --- NUOVO OGGETTO: Bende Pulite ---
+    'bandages_clean': {
+        id: 'bandages_clean',
+        name: "Bende Pulite",
+        description: "Bende sterilizzate, ideali per medicare ferite e prevenire infezioni.",
+        type: 'healing',
+        effect: { type: 'heal_status', status_cured: 'isInjured', chance: 0.75, success_message: "Le bende pulite sono efficaci, la ferita migliora.", failure_message: "Nonostante le bende, la ferita è ancora brutta.", heal_hp_on_success: 2 }, // 75% chance, +2 HP SE cura status
+        usable: true,
+        stackable: true
+    },
+    // --- FINE NUOVO OGGETTO ---
     'medicine_crude': {
         id: 'medicine_crude',
         name: "Medicina Grezza",
@@ -462,6 +552,17 @@ const ITEM_DATA = {
         usable: true,
         stackable: true
     },
+    // --- NUOVO OGGETTO: Vitamine ---
+    'vitamins': {
+        id: 'vitamins',
+        name: "Vitamine",
+        description: "Pasticche colorate dall'aspetto sintetico. Promettono energia, forse aiutano a recuperare un po' di forze.",
+        type: 'consumable', // O 'healing'? Usiamo 'consumable' per ora.
+        usable: true,
+        stackable: true,
+        effect: { type: 'heal_hp', amount_min: 2, amount_max: 3 } // Nuovo tipo effetto: recupera 2-3 HP
+    },
+    // --- FINE NUOVO OGGETTO ---
     // Materiali / Lore
     'scrap_metal': {
         id: 'scrap_metal',
@@ -752,7 +853,7 @@ const flavorTextsNightForest = [
 // Frammenti di Lore (trovati casualmente o legati a eventi)
 const loreFragments = [
     "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'",
-    "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà della Volta 7 - TERMINATO'",
+    "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà del Lab 7 - TERMINATO'",
     "Ologramma tremolante da un dispositivo rotto: '...protocollo di contenimento fallito... bio-agente [CLASSIFICATO] fuori controllo... Evacuare immediatamente... che Dio ci aiuti...'",
     "Scheda dati danneggiata e macchiata: '...mutazione instabile di Tipo IV... aggressività esponenziale... protocollo suggerito: eliminare a vista con armi incendiarie...'",
     "Scarpa da bambino logora accanto a una piccola croce fatta di rametti e filo spinato.",
@@ -763,7 +864,7 @@ const loreFragments = [
     "Libro bruciacchiato ('Miti Pre-Collasso') con una sola pagina leggibile: '...e così gli Antichi Dei dormirono nelle profondità della terra e del cielo, lasciando il mondo al silenzio e ai loro figli distorti...'",
     "Audio-log recuperato da un registratore militare: '...Soggetto 17 mostra rigenerazione cellulare accelerata... ma anche psicosi acuta... aggressività incontrollabile... perdita contenimento imminente... sterilizzare l'area...'",
     "Biglietto scritto a mano con grafia tremante: 'Se leggi questo, sono andato a cercare acqua al Vecchio Impianto Idrico. Non seguirmi, è pieno di Quei Cosi. Trova il Safe Place. Ti voglio bene. Papà.'",
-    "Distintivo militare corroso dall'acido: Riporta il simbolo di un teschio alato e la scritta 'Guardiani della Volta - Unità Epurazione'.",
+    "Distintivo militare corroso dall'acido: Riporta il simbolo di un teschio alato e la scritta 'Guardiani del Lab - Unità Epurazione'.",
     "Terminale medico portatile, schermo rotto ma leggibile: Mostra una lettura parziale: 'Contaminazione Biologica Tipo Gamma - Necrosi Tessutale Rapida - Esposizione fatale entro 2 ore...'.",
     "Fotografia olografica incrinata e tremolante: Mostra una città vibrante e piena di luci volanti colorate, un'immagine quasi dolorosa da guardare ora.",
     "Bozza di messaggio non inviato, scritta su un tablet rotto: '...Eliza, non ce la faremo a raggiungerti. Le scorte bastano per uno solo. Prenditi cura di Ultimo... digli che la sua mamma era un'eroina... e che...'",
@@ -772,7 +873,7 @@ const loreFragments = [
     "Ritaglio di giornale pre-guerra ('Il Cronista Globale'): Titolo: 'Nuova Era di Prosperità o Fuga dalla Realtà? Le Volte Salveranno l'Umanità o la Divideranno per Sempre?'",
     "Piccolo carillon arrugginito a forma di stella. Quando lo apri, suona una melodia triste e rivela uno scomparto segreto con dentro una chiave minuscola e ossidata.",
     "Appunto scarabocchiato su un tovagliolo unto: 'Segui il fiume morto verso il sole calante. Cerca la roccia che piange. Lì troverai la porta... se oserai bussare.'",
-    "Chip dati incrinato e parzialmente fuso. Impossibile leggerlo senza l'attrezzatura di una Volta... o forse qualcosa di peggio.",
+    "Chip dati incrinato e parzialmente fuso. Impossibile leggerlo senza l'attrezzatura di un Lab... o forse qualcosa di peggio.",
     "Manuale tecnico strappato ('Manutenzione Ripari Classe-C'): '...il sistema di filtraggio dell\'aria HEPA richiede sostituzione nucleo ogni 500 ore operative per evitare contaminazione interna...'",
     "Lista della spesa macchiata di sangue: 'Acqua (min. 5L), Munizioni (tutte!), Scatolette (proteine!), Nastro adesivo (molto!), Antidolorifici... Speranza (se ne trovi)...'",
     "Pagina di un bestiario improvvisato, scritto a mano con disegni disturbanti: Descrive una creatura notturna senza volto chiamata 'Il Sussurrante delle Ombre', che si nutre di ricordi.",
@@ -781,8 +882,8 @@ const loreFragments = [
     "Ordine militare criptato (decifrato parzialmente): '...Protocollo Cenere attivato su [REDACTED]. Nessun sopravvissuto autorizzato. Silenzio totale.'",
     "Capsula medica vuota etichettata 'Naniti Riparatori - Prototipo X'. Sembra usata di recente.",
     "Frammento di trasmissione radio intercettata: '...i Corvi Neri hanno sfondato a ovest. Ripeto, i Corvi Neri... la Vecchia Capitale cadrà...'",
-    "Diario di un medico della Volta 9: 'Giorno 112. Le mutazioni accelerate nel Settore Delta sono... inaspettate. Aggressività fuori scala. Abbiamo creato mostri.'",
-    "Tessera d\'accesso corrosa: 'Volta 4 - Livello Sicurezza Alpha - Dott.ssa Eva Rostova'",
+    "Diario di un medico del Lab 9: 'Giorno 112. Le mutazioni accelerate nel Settore Delta sono... inaspettate. Aggressività fuori scala. Abbiamo creato mostri.'",
+    "Tessera d\'accesso corrosa: 'Lab 4 - Livello Sicurezza Alpha - Dott.ssa Eva Rostova'",
     "Manifesto propagandistico strappato: 'L\'Unione Pan-Europea garantisce sicurezza! Denunciate i dissidenti! Il futuro è ordine!'",
     "Lista di nomi incisa su un muro con un coltello: 'Hans, Greta, Lena, Karl... Perdonatemi.'",
     "Progetto tecnico di un\'arma energetica portatile chiamata 'Lancia Solare'. Manca la pagina del generatore.",
@@ -799,10 +900,10 @@ const loreFragments = [
     "Frammento di mappa stellare disegnata a mano su un pezzo di tela cerata, con note indecifrabili ai margini.",
     "Ordine di fucilazione firmato da un 'Comandante della Milizia Popolare': Accusa di 'tradimento ideologico'.",
     "Ciondolo a forma di orsetto di metallo, leggermente radioattivo, stretto nella mano scheletrica di un bambino.",
-    "Rapporto psichiatrico Volta 11: 'Paziente 042 mostra sintomi di paranoia acuta, parla di 'voci nel metallo' e 'occhi nei muri'. Sedazione aumentata.'",
+    "Rapporto psichiatrico Lab 11: 'Paziente 042 mostra sintomi di paranoia acuta, parla di 'voci nel metallo' e 'occhi nei muri'. Sedazione aumentata.'",
     "Chiave magnetica con etichetta sbiadita: 'Deposito Criogenico B-7'.",
     // Nuovi frammenti di lore
-    "Registrazione su un vecchio data-slate crepato: 'Giorno 112. La mutazione si diffonde più velocemente del previsto. I sintomi neurologici sono... preoccupanti. Stiamo perdendo il controllo. La Volta 7 deve essere sigillata. Ripeto, sigillat...' *fine registrazione*.",
+    "Registrazione su un vecchio data-slate crepato: 'Giorno 112. La mutazione si diffonde più velocemente del previsto. I sintomi neurologici sono... preoccupanti. Stiamo perdendo il controllo. Il Lab 7 deve essere sigillato. Ripeto, sigillat...' *fine registrazione*.",
     "Frammento di tessuto strappato da un'uniforme militare. C'è una mostrina sbiadita con un teschio alato e la scritta 'Angeli della Cenere'.",
     "Pagina di un manuale tecnico illustrato: mostra lo schema di un 'Purificatore d'Acqua Modello Aqualux VII', ma diverse componenti cruciali sono illeggibili o strappate.",
     "Graffito complesso tracciato con vernice spray fluorescente su un muro crollato: raffigura un labirinto che converge verso un occhio stilizzato.",
@@ -819,6 +920,7 @@ const loreFragments = [
     "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'.",
     // Ancora più frammenti di lore
     "Mappa scolorita che mostra la posizione di 'Punti di Ancoraggio'. Una nota manuscritta dice: 'Non avvicinarsi durante le fluttuazioni armoniche'.",
+    "Diario di un guardiano del Lab: 'I sogni stanno diventando collettivi. Stanotte dieci persone hanno avuto lo stesso incubo sui corridoi che si allungano'.",
     "Diario di un guardiano della Volta: 'I sogni stanno diventando collettivi. Stanotte dieci persone hanno avuto lo stesso incubo sui corridoi che si allungano'.",
     "Brochure turistica strappata: 'Visita il Nuovo Mondo Sotterraneo - Dove il futuro dell'umanità fiorisce al riparo dalle tempeste superficiali!'",
     "Frammento di trasmissione militare: '...hanno modificato la gravità locale. Ripeto, le leggi fisiche sono alterate. Non entrare nel perimetro segnato dai monoliti neri...'",
