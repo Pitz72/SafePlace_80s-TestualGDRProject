@@ -76,7 +76,8 @@ let player = {}; // Oggetto contenente i dati del giocatore
 let map = []; // Array bidimensionale rappresentante la mappa
 let messages = []; // Array contenente gli oggetti messaggio per il log {text: string, class: string}
 let gameActive = false; // Flag per indicare se il gioco è in corso
-let eventScreenActive = false; // Flag per indicare se un popup evento/inventario è attivo
+let eventScreenActive = false; // Flag per indicare se un popup evento/inventario è attivo VISIVAMENTE
+let gamePaused = false; // << NUOVO: Flag per bloccare input giocatore (eventi, animazioni, etc.)
 let currentEventChoices = []; // Array per memorizzare le scelte dell'evento corrente (per input tastiera)
 let currentEventContext = null; // Oggetto per memorizzare il contesto dell'evento corrente
 let dayMovesCounter = 0; // Contatore dei passi effettuati durante il giorno
@@ -150,7 +151,7 @@ const tileType = document.getElementById('tile-type');
 const statDayTime = document.getElementById('stat-day-time');
 // Riferimenti per log, controlli, overlay
 const messagesList = document.getElementById('messages');
-const moveButtons = document.querySelectorAll('#controls button:not(#btn-inventory)'); // Seleziona solo i bottoni di movimento
+const moveButtons = document.querySelectorAll('.control-grid button'); // Selettore più specifico per i bottoni nella griglia
 // const inventoryButton = document.getElementById('btn-inventory'); // Commentato - Non più necessario
 const eventOverlay = document.getElementById('event-overlay');
 const eventPopup = document.getElementById('event-popup'); // Contenitore interno del popup
@@ -175,6 +176,7 @@ function initializeGame() {
     map = [];
     gameActive = false;
     eventScreenActive = false;
+    gamePaused = false; // << RESET gamePaused
     dayMovesCounter = 0;
     nightMovesCounter = 0;
     isDay = true;
@@ -201,7 +203,9 @@ function initializeGame() {
 
     // Imposta il gioco come attivo
     gameActive = true;
-    if(eventOverlay) eventOverlay.style.display = 'none';
+    // Usa la classe 'visible' per gestire la visibilità con transizioni
+    if(eventOverlay) eventOverlay.classList.remove('visible');
+    if(gameContainer) gameContainer.classList.remove('overlay-active');
     if(endScreen) endScreen.style.display = 'none';
     if(gameContainer) gameContainer.style.display = 'flex'; // Mostra l'interfaccia di gioco
 
@@ -221,8 +225,15 @@ function initializeGame() {
 
     // Se tutto è andato bene, abilita i controlli e imposta i listener
     if (gameActive) {
-        enableControls();
-        setupInputListeners(); // Imposta listener per tastiera e pulsanti
+        setupInputListeners();
+
+        // --- NUOVO: Imposta focus esplicito --- 
+        try {
+            document.body.focus();
+            // console.log(">>> initializeGame: Focus impostato su document.body"); // RIMOSSO LOG
+        } catch (e) {
+            console.error("Errore nell'impostare il focus iniziale:", e);
+        }
     }
 }
 
@@ -628,21 +639,26 @@ function renderMap() {
 }
 
 /**
- * Disabilita o abilita i controlli di movimento.
- * @param {boolean} [disabled=true] - Se true, disabilita i controlli, altrimenti li abilita.
+ * Disabilita i controlli di movimento.
+ * Aggiunge un log per il debug.
  */
-function disableControls(disabled = true) {
+function disableControls() {
+    // console.log(">>> Disabilito Controlli Movimento"); // RIMOSSO DEBUG LOG
     if (!moveButtons) return;
-    moveButtons.forEach(btn => btn.disabled = disabled);
-    // if(inventoryButton) inventoryButton.disabled = disabled; // Disabilita/Abilita anche bottone inventario
+    moveButtons.forEach(btn => btn.disabled = true);
 }
 
 /**
- * Abilita i controlli di movimento (se il gioco è attivo).
+ * Abilita i controlli di movimento (se il gioco è attivo e non in pausa).
+ * Aggiunge un log per il debug.
  */
 function enableControls() {
-    if (gameActive) {
-       disableControls(false); // Chiama disableControls con false per abilitare
+    // console.log(">>> Abilito Controlli Movimento (Gioco attivo:", gameActive, ", Pausa:", gamePaused, ")"); // RIMOSSO DEBUG LOG
+    if (gameActive && !gamePaused) { // Controlla anche gamePaused
+        if (!moveButtons) return;
+        moveButtons.forEach(btn => btn.disabled = false);
+    } else {
+        // console.log("...Abilitazione controlli saltata (Gioco non attivo o in pausa)"); // RIMOSSO DEBUG LOG
     }
 }
 
@@ -751,8 +767,10 @@ function isWalkable(tile) {
  * @param {number} dy - Lo spostamento verticale (-1, 0, 1).
  */
 function movePlayer(dx, dy) {
-    if (!gameActive || eventScreenActive) {
-        return; // Non muovere se gioco non attivo o evento aperto
+    // console.log(`movePlayer Tentativo (${dx},${dy}). Gioco Attivo: ${gameActive}, Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
+    if (!gameActive || gamePaused) { 
+        // console.log("...Movimento bloccato."); // RIMOSSO DEBUG LOG
+        return; 
     }
 
     const currentTile = map[player.y]?.[player.x];
@@ -779,13 +797,11 @@ function movePlayer(dx, dy) {
     
     // Se è notte MA il giocatore è in un rifugio, la prima azione fa passare al giorno
     if (!isDay && currentTile && SHELTER_TILES.includes(currentTile.type)) {
-        transitionToDay(); // Passa al giorno
-        // Dopo transitionToDay, isDay è true, ma vogliamo terminare qui l'azione del turno
-        // perché l'unico effetto dell'entrare in un rifugio di notte è riposare.
-        renderStats(); // Aggiorna UI dopo il cambio giorno
-        renderMap();   // Aggiorna mappa
-        enableControls(); // Riabilita subito i controlli per il nuovo giorno
-        return; // <<< AGGIUNTO: Esce dalla funzione movePlayer
+        transitionToDay();
+        renderStats(); // transitionToDay già chiama renderStats
+        renderMap(); // Serve per aggiornare subito la mappa dopo il cambio tile (anche se non ci si sposta)
+        // enableControls(); // transitionToDay già chiama enableControls
+        return;
     }
     
     // Impedisce movimento nullo
@@ -809,7 +825,9 @@ function movePlayer(dx, dy) {
     }
 
     // Movimento valido
-    disableControls(); 
+    disableControls(); // Disabilita controlli *prima* di iniziare l'azione
+    gamePaused = true; // << IMPOSTA PAUSA per la durata dell'azione
+    // console.log(">>> Movimento Iniziato - gamePaused impostato a true"); // RIMOSSO DEBUG LOG
 
     player.x = newX;
     player.y = newY;
@@ -819,7 +837,7 @@ function movePlayer(dx, dy) {
 
     triggerTileEvent(targetTile); // Prima gli eventi specifici del tile
 
-    let specificEventTriggered = eventScreenActive; // Controlla se triggerTileEvent ha aperto un popup
+    let specificEventTriggered = eventScreenActive; // eventScreenActive viene messo a true da showEventPopup
 
     if (!specificEventTriggered) {
         triggerComplexEvent(targetTile); // Poi prova gli eventi complessi generici
@@ -827,7 +845,8 @@ function movePlayer(dx, dy) {
     
     let complexEventTriggered = eventScreenActive && !specificEventTriggered;
 
-    if (!eventScreenActive) { // Se NESSUN evento (specifico o complesso) è attivo
+    if (!eventScreenActive) { // Se NESSUN evento popup è stato attivato (eventScreenActive non è true)
+        // console.log("...Nessun evento popup attivato, procedo con azioni post-movimento."); // RIMOSSO DEBUG LOG
         // Mostra flavor text solo se NESSUN evento popup è stato attivato
         showRandomFlavorText(targetTile);
 
@@ -889,7 +908,7 @@ function movePlayer(dx, dy) {
         // Logica Giorno/Notte (contatori, transizioni, etc.)
         if (isDay) {
             dayMovesCounter++;
-            renderStats(); // Aggiorna subito i passi rimanenti (e anche HP/Risorse)
+            renderStats();
             if (dayMovesCounter >= DAY_LENGTH_MOVES) {
                 transitionToNight();
             } else {
@@ -898,11 +917,11 @@ function movePlayer(dx, dy) {
         } else {
             // Gestione movimenti durante la notte
             nightMovesCounter++;
-            renderStats(); // Aggiorna anche qui
+            renderStats();
 
             if (nightMovesCounter >= NIGHT_LENGTH_MOVES) {
                 addMessage("La notte finalmente passa... il sole sorge all'orizzonte.", "info", true);
-                transitionToDay(); // transitionToDay potrebbe riabilitare i controlli
+                transitionToDay();
             } else {
                  // Non riabilitare i controlli qui
             }
@@ -912,18 +931,25 @@ function movePlayer(dx, dy) {
         // Aggiunto check gameActive perché endGame potrebbe averlo messo a false
         if (targetTile.type === TILE_SYMBOLS.END && gameActive) {
              endGame(true);
-             return;
+             return; // Esce perché il gioco è finito
         }
 
-    } // Fine if (!eventScreenActive)
+        // Logica post-movimento completata (senza popup)
+        gamePaused = false; // << RIMUOVE PAUSA
+        // console.log(">>> Azioni Post-Movimento Completate - gamePaused impostato a false"); // RIMOSSO DEBUG LOG
+
+    } else {
+        // console.log("...Evento popup attivato, azioni post-movimento saltate."); // RIMOSSO DEBUG LOG
+        // Se un popup è attivo, NON resettiamo gamePaused qui.
+        // Sarà compito di closeEventPopup resettarlo quando l'utente chiude il popup.
+    }
 
     renderMap();
-
-    // Controlla e logga messaggi di stato DOPO che tutte le azioni sono state completate
     checkAndLogStatusMessages();
 
-    // Infine, riabilita i controlli se il gioco è ancora attivo e nessun evento è attivo
-    if (gameActive && !eventScreenActive) {
+    // Riabilita i controlli SOLO se il gioco è attivo e NON in pausa
+    // (gamePaused sarà false solo se non ci sono stati popup)
+    if (gameActive && !gamePaused) {
          enableControls();
     }
 }
@@ -1019,6 +1045,7 @@ function transitionToDay() {
  */
 function endGame(isVictory) {
     gameActive = false;
+    gamePaused = true; // << Imposta pausa anche a fine gioco
     disableControls();
     
     if (isVictory) {
@@ -1040,7 +1067,8 @@ Il tuo viaggio finisce qui, nell'oblio.`;
          addMessage("Sei morto... Il tuo viaggio è finito.", "warning", true);
     }
     
-    if(gameContainer) gameContainer.style.display = 'none'; // Nasconde interfaccia gioco
+    if(gameContainer) gameContainer.style.display = 'none';
+    if(gameContainer) gameContainer.classList.remove('overlay-active'); // Rimuove oscuramento se presente
     if(endScreen) endScreen.style.display = 'flex'; // Mostra schermata fine
     
     // Aggiungi listener al bottone restart solo una volta
@@ -1128,11 +1156,14 @@ function triggerTileEvent(tile) {
 
 /**
  * Mostra il popup dell'evento con titolo, descrizione e scelte.
+ * Imposta lo stato di pausa.
  * @param {object} eventData - L'oggetto evento da visualizzare.
  */
 function showEventPopup(eventData) {
-    if (!eventOverlay || !eventTitle || !eventContent || !eventChoicesContainer) {
-        console.error("Elementi del popup evento non trovati nel DOM.");
+    // console.log(">>> showEventPopup: Inizio esecuzione"); // <-- RIMOSSO LOG
+    // console.log("showEventPopup INIZIO - Stato Pausa Precedente:", gamePaused); // RIMOSSO DEBUG LOG
+    if (!eventOverlay || !eventTitle || !eventContent || !eventChoicesContainer || !gameContainer) {
+        console.error("Elementi del popup evento o gameContainer non trovati nel DOM.");
         return;
     }
     if (!eventData) {
@@ -1140,9 +1171,10 @@ function showEventPopup(eventData) {
         return;
     }
 
-    disableControls();
-    eventScreenActive = true;
-    currentEventContext = eventData; // Salva contesto/dati base evento
+    disableControls(); // Disabilita bottoni movimento
+    gamePaused = true; // << IMPOSTA PAUSA
+    eventScreenActive = true; // Indica che il popup è VISIVAMENTE attivo
+    currentEventContext = eventData;
 
     eventTitle.textContent = eventData.title || "Evento";
 
@@ -1178,22 +1210,58 @@ function showEventPopup(eventData) {
             // --- FINE NUOVO ---
 
             button.textContent = buttonText;
-            button.onclick = () => handleEventChoice(index); // Chiama handleEventChoice
+            // button.onclick = () => handleEventChoice(index); // RIMOSSO onclick DIRETTO
+            
+            // --- AGGIUNTO: data-choice-index per DELEGAZIONE --- 
+            button.dataset.choiceIndex = index;
+
             if (choice.cssClass) button.classList.add(choice.cssClass);
             eventChoicesContainer.appendChild(button);
         });
+
+        // --- NUOVO EVENT LISTENER sul CONTENITORE ---
+        // --- DEBUG LOG: Verifica Contenitore Scelte ---
+        if (eventChoicesContainer) {
+            // console.log("Verifica eventChoicesContainer prima di aggiungere listener:",
+            //     `Esiste: ${!!eventChoicesContainer}`,
+            //     `Ha figli (bottoni): ${eventChoicesContainer.children.length > 0}`,
+            //     `Visibile (display): ${window.getComputedStyle(eventChoicesContainer).display}`,
+            //     `Pointer Events: ${window.getComputedStyle(eventChoicesContainer).pointerEvents}`
+            // );
+        } else {
+            console.error("ERRORE CRITICO: eventChoicesContainer è null o undefined prima di aggiungere listener!");
+        }
+        // --- FINE DEBUG LOG ---
+        eventChoicesContainer.addEventListener('click', handleChoiceContainerClick);
+
         if(continueButton) continueButton.style.display = 'none';
     } else if (eventData.isActionPopup) {
         // Popup azioni oggetto (Usa, Annulla, etc.)
-         choices.forEach((choice) => { // Non serve l'indice numerico qui
+        // console.log("Creazione bottoni ActionPopup. Choices:", choices); // RIMOSSO DEBUG LOG
+         choices.forEach((choice) => { 
             const button = document.createElement('button');
             button.textContent = choice.text;
-            button.onclick = choice.action; // Chiama direttamente l'azione definita
-            if (choice.cssClass) button.classList.add(choice.cssClass);
-            eventChoicesContainer.appendChild(button);
-        });
+
+            // --- RIMUOVI onclick DIRETTO --- 
+             // button.onclick = (clickEvent) => { ... }; // RIMOSSO
+
+            // --- AGGIUNGI DATA ATTRIBUTES per DELEGAZIONE --- 
+            button.dataset.actionType = 'itemAction'; // Tipo generico
+            // Crea una chiave semplice per l'azione
+            if (choice.text.toLowerCase() === 'annulla') {
+                 button.dataset.actionKey = 'cancel';
+            } else if (choice.text.toLowerCase().startsWith('usa')) {
+                button.dataset.actionKey = 'use';
+                // Potremmo aggiungere l'itemId qui se servisse, ma è già in currentEventContext
+                // button.dataset.itemId = currentEventContext.itemId; // Esempio, ma non necessario ora
+            }
+            button.dataset.actionText = choice.text; // Mantiene il testo per riferimento/lookup
+
+             if (choice.cssClass) button.classList.add(choice.cssClass);
+             eventChoicesContainer.appendChild(button);
+         });
          if(continueButton) continueButton.style.display = 'none';
-    } else {
+     } else {
         // Popup di risultato evento o evento senza scelte
          if(continueButton) {
              continueButton.style.display = 'inline-block';
@@ -1201,7 +1269,12 @@ function showEventPopup(eventData) {
          }
     }
 
-    eventOverlay.style.display = 'flex';
+    // console.log(">>> showEventPopup: Prima di rendere visibile overlay"); // <-- RIMOSSO LOG
+    // Mostra overlay e oscura sfondo usando le classi CSS
+    gameContainer.classList.add('overlay-active');
+    eventOverlay.classList.add('visible');
+
+    // console.log("showEventPopup FINE - Stato Pausa:", gamePaused, "Overlay visibile:", eventOverlay.classList.contains('visible')); // RIMOSSO DEBUG LOG
 }
 
 /**
@@ -1704,16 +1777,21 @@ function buildAndShowComplexEventOutcome(title, description, checkDetails, _cons
 
 /**
  * Chiude il popup dell'evento.
+ * Rimuove lo stato di pausa e riabilita i controlli.
  */
 function closeEventPopup() {
-    eventOverlay.style.display = 'none';
-    eventScreenActive = false; // Resetta il flag
-    currentEventContext = null; // Pulisce contesto evento
-    currentEventChoices = null; // Pulisce scelte evento
-    document.removeEventListener('keydown', handleEventKeyPress); // Rimuove listener tastiera evento
-    document.addEventListener('keydown', handleKeyPress); // Riattiva listener movimento/inventario
-    renderStats(); // Assicura che l'UI sia aggiornata dopo l'evento
-    disableControls(false); // <-- AGGIUNTA: Riabilita i controlli di movimento
+    // console.log("closeEventPopup INIZIO - Stato Pausa Precedente:", gamePaused); // RIMOSSO DEBUG LOG
+    if(gameContainer) gameContainer.classList.remove('overlay-active');
+    if(eventOverlay) eventOverlay.classList.remove('visible');
+    eventScreenActive = false; 
+    gamePaused = false; 
+    currentEventContext = null; 
+    currentEventChoices = null; 
+    document.removeEventListener('keydown', handleEventKeyPress); 
+    document.addEventListener('keydown', handleKeyPress); 
+    renderStats(); 
+    enableControls(); 
+    // console.log("closeEventPopup FINE - Stato Pausa:", gamePaused, "Overlay visibile:", eventOverlay.classList.contains('visible')); // RIMOSSO DEBUG LOG
 }
 
 /**
@@ -1742,19 +1820,30 @@ function handleEventKeyPress(e) {
  * @param {KeyboardEvent} event - L'oggetto evento della tastiera.
  */
 function handleKeyPress(event) {
+    // console.log(`>>> handleKeyPress: Tasto premuto: ${event.key}`); // RIMOSSO LOG DI VERIFICA
+
     // Gestione input per SCELTE EVENTO (se popup attivo)
-    if (eventScreenActive && currentEventChoices.length > 0) {
+    if (eventScreenActive && currentEventChoices && currentEventChoices.length > 0) {
         const choiceIndex = parseInt(event.key) - 1; // Converte tasto numerico (1, 2, ...) in indice (0, 1, ...)
         if (!isNaN(choiceIndex) && choiceIndex >= 0 && choiceIndex < currentEventChoices.length) {
             handleEventChoice(choiceIndex);
             return; // Impedisce ulteriore elaborazione del tasto
         }
     }
+    // console.log(`handleKeyPress Tentativo: ${event.key.toUpperCase()}. Gioco Attivo: ${gameActive}, Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
+ 
+    // --- RIMOSSO LOG: Verifica Stato Gioco ---
+    // console.log(`>>> handleKeyPress: Verifico stato - gameActive: ${gameActive}, gamePaused: ${gamePaused}`);
 
     // Gestione input MOVIMENTO (se gioco attivo e popup NON attivo)
-    if (!gameActive || eventScreenActive) {
+    if (!gameActive || gamePaused) {
+         // --- RIMOSSO LOG: Controllo Blocco Input ---
+         // console.log(`>>> handleKeyPress: Input bloccato! (!gameActive: ${!gameActive}, gamePaused: ${gamePaused})`);
          return; // Ignora input se gioco non attivo o se popup evento è aperto
     }
+
+    // --- RIMOSSO LOG: Input Accettato ---
+    // console.log(`>>> handleKeyPress: Input accettato, procedo con switch.`);
 
     const key = event.key.toUpperCase(); // Converte il tasto in maiuscolo per consistenza
 
@@ -1788,6 +1877,8 @@ function handleKeyPress(event) {
  */
 function setupInputListeners() {
     // Listener per la tastiera
+    // console.log(">>> setupInputListeners: Aggiungo listener keydown a document"); // RIMOSSO LOG
+    document.removeEventListener('keydown', handleKeyPress); 
     document.addEventListener('keydown', handleKeyPress);
 
     // Listener per click sull'inventario (event delegation)
@@ -1855,6 +1946,16 @@ function showItemActionPopup(itemId) {
         description: popupDescription,
         choices: popupChoices // Passa le scelte con le azioni associate
     });
+
+    // --- NUOVO: Aggiungi listener QUI, DOPO aver chiamato showEventPopup --- 
+    if (eventChoicesContainer) {
+        // console.log("Aggiungo listener a eventChoicesContainer da showItemActionPopup"); // RIMOSSO Log
+        eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick); // Rimuovi eventuali listener precedenti per sicurezza
+        eventChoicesContainer.addEventListener('click', handleChoiceContainerClick);
+    } else {
+        console.error("ERRORE: Impossibile aggiungere listener da showItemActionPopup perché eventChoicesContainer non trovato!");
+    }
+    // --- FINE NUOVO ---
 }
 
 /**
@@ -1862,135 +1963,145 @@ function showItemActionPopup(itemId) {
  * @param {string} itemId - L'ID dell'oggetto da usare.
  */
 function useItem(itemId) {
+    // console.log(`useItem INIZIO - itemId: ${itemId}, Stato Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
     const itemInfo = ITEM_DATA[itemId];
     const itemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
-
+ 
     // Verifica esistenza, usabilità e quantità
     if (!itemInfo || !itemInfo.usable || itemIndex === -1) {
         console.error(`useItem: Impossibile usare l'oggetto ${itemId}. Non trovato, non usabile o non nell'inventario.`);
         addMessage(`Non puoi usare ${itemInfo?.name || 'questo oggetto'}.`, "warning");
+        // È importante chiamare closeEventPopup anche in caso di errore per sbloccare!
         closeEventPopup();
+        // console.log(`useItem ERRORE - itemId: ${itemId}, Chiamata closeEventPopup() effettuata.`); // DEBUG LOG
         return;
     }
-
+ 
     const itemSlot = player.inventory[itemIndex];
     let message = `Hai usato ${itemInfo.name}.`;
-    let effectApplied = false;
-
+    let effectAppliedSuccessfully = false; // Indica se l'effetto ha avuto successo (es. rimozione status)
+ 
     // Applica effetto
     if (itemInfo.effect) {
         const effect = itemInfo.effect;
-        switch (effect.type) {
-            case 'add_resource':
-                if (player.hasOwnProperty(effect.resource_type)) {
-                    const currentValue = player[effect.resource_type];
-                    // Calcola nuovo valore, clampando al massimo se necessario (es. 10? da definire)
-                    // Per ora, non clampiamo. TODO: Definire MAX_FOOD, MAX_WATER?
-                    player[effect.resource_type] += effect.amount;
-                    message += ` (+${effect.amount} ${effect.resource_type === 'food' ? 'Sazietà' : 'Idratazione'})`;
-                    effectApplied = true;
-                } else {
-                    message += " Ma non ha avuto effetto.";
-                    console.warn(`Effetto add_resource per ${itemId}: tipo risorsa ${effect.resource_type} non trovato nel player.`);
-                }
-                break;
+        try { // Aggiungo un try...catch qui per sicurezza
+            switch (effect.type) {
+                case 'add_resource':
+                    if (player.hasOwnProperty(effect.resource_type)) {
+                        const currentValue = player[effect.resource_type];
+                        // Calcola nuovo valore, clampando al massimo se necessario (es. 10? da definire)
+                        // Per ora, non clampiamo. TODO: Definire MAX_FOOD, MAX_WATER?
+                        player[effect.resource_type] += effect.amount;
+                        message += ` (+${effect.amount} ${effect.resource_type === 'food' ? 'Sazietà' : 'Idratazione'})`;
+                        effectAppliedSuccessfully = true;
+                    } else {
+                        message += " Ma non ha avuto effetto.";
+                        console.warn(`Effetto add_resource per ${itemId}: tipo risorsa ${effect.resource_type} non trovato nel player.`);
+                    }
+                    break;
 
-            case 'heal_status':
-                if (player.hasOwnProperty(effect.status_cured) && player[effect.status_cured]) {
-                     const healChance = effect.chance || 1.0; // Assume 100% se non specificato
-                     let hpHealedMessagePart = "";
-                     let hpActuallyHealed = 0;
+                case 'heal_status':
+                    if (player.hasOwnProperty(effect.status_cured) && player[effect.status_cured]) {
+                         const healChance = effect.chance || 1.0; // Assume 100% se non specificato
+                         let hpHealedMessagePart = "";
+                         let hpActuallyHealed = 0;
 
-                     // --- NUOVO: Applica recupero HP GARANTITO per bende se ferito, PRIMA del check ---
-                     const HEAL_AMOUNT_BANDAGES = 1; // Quanto HP recuperano le bende
-                     if (effect.status_cured === 'isInjured') { // Controlla se l'oggetto è inteso per curare 'isInjured'
-                         const hpBeforeHeal = player.hp;
-                         player.hp = Math.min(player.maxHp, player.hp + HEAL_AMOUNT_BANDAGES);
-                         hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10;
-                         if (hpActuallyHealed > 0) {
-                            hpHealedMessagePart = ` (+${hpActuallyHealed} HP)`; // Prepara parte del messaggio
-                         }
-                     }
-                     // --- FINE NUOVO ---
-
-                     // Ora controlla se rimuove lo status
-                     if (Math.random() < healChance) {
-                         player[effect.status_cured] = false;
-                         // Costruisce messaggio successo: effetto base + eventuale cura HP base
-                         message += ` ${effect.success_message || 'Ti senti meglio!'}${hpHealedMessagePart}`;
-
-                         // --- NUOVO: Gestione heal_hp_on_success ---
-                         if (effect.heal_hp_on_success && effect.heal_hp_on_success > 0) {
-                             const hpBeforeBonusHeal = player.hp;
-                             player.hp = Math.min(player.maxHp, player.hp + effect.heal_hp_on_success);
-                             const hpBonusHealed = Math.round((player.hp - hpBeforeBonusHeal) * 10) / 10;
-                             if (hpBonusHealed > 0) {
-                                message += ` (+${hpBonusHealed} HP bonus)`; // Aggiunge info specifica
+                         // --- NUOVO: Applica recupero HP GARANTITO per bende se ferito, PRIMA del check ---
+                         const HEAL_AMOUNT_BANDAGES = 1; // Quanto HP recuperano le bende
+                         if (effect.status_cured === 'isInjured') { // Controlla se l'oggetto è inteso per curare 'isInjured'
+                             const hpBeforeHeal = player.hp;
+                             player.hp = Math.min(player.maxHp, player.hp + HEAL_AMOUNT_BANDAGES);
+                             hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10;
+                             if (hpActuallyHealed > 0) {
+                                hpHealedMessagePart = ` (+${hpActuallyHealed} HP)`; // Prepara parte del messaggio
                              }
                          }
                          // --- FINE NUOVO ---
 
-                         effectApplied = true;
-                     } else {
-                         // Costruisce messaggio fallimento: effetto base + eventuale cura HP (la cura HP avviene comunque)
-                         message += ` ${effect.failure_message || 'Non ha funzionato...'}${hpHealedMessagePart}`;
-                         // Consideriamo l'effetto applicato solo se lo status viene rimosso? O anche se cura solo HP?
-                         // Per ora, consideriamo effectApplied = true solo se rimuove lo status.
-                         // Ma l'oggetto viene comunque consumato perché ha tentato un effetto (cura HP).
-                         effectApplied = false; // Status non rimosso
-                     }
-                } else {
-                    // Se lo stato non esiste o non è attivo, non fa nulla
-                    message += " Ma non ne avevi bisogno.";
-                }
-                break;
-            
-            // --- NUOVO CASE per HEAL_HP ---
-            case 'heal_hp':
-                const minHeal = effect.amount_min || 1; // Fallback a 1 se non definito
-                const maxHeal = effect.amount_max || minHeal; // Fallback a minHeal se non definito
-                const healAmount = getRandomInt(minHeal, maxHeal); // Calcola HP casuali nel range
+                         // Ora controlla se rimuove lo status
+                         if (Math.random() < healChance) {
+                             player[effect.status_cured] = false;
+                             // Costruisce messaggio successo: effetto base + eventuale cura HP base
+                             message += ` ${effect.success_message || 'Ti senti meglio!'}${hpHealedMessagePart}`;
+
+                             // --- NUOVO: Gestione heal_hp_on_success ---
+                             if (effect.heal_hp_on_success && effect.heal_hp_on_success > 0) {
+                                 const hpBeforeBonusHeal = player.hp;
+                                 player.hp = Math.min(player.maxHp, player.hp + effect.heal_hp_on_success);
+                                 const hpBonusHealed = Math.round((player.hp - hpBeforeBonusHeal) * 10) / 10;
+                                 if (hpBonusHealed > 0) {
+                                    message += ` (+${hpBonusHealed} HP bonus)`; // Aggiunge info specifica
+                                 }
+                             }
+                             // --- FINE NUOVO ---
+
+                             effectAppliedSuccessfully = true;
+                         } else {
+                             // Costruisce messaggio fallimento: effetto base + eventuale cura HP (la cura HP avviene comunque)
+                             message += ` ${effect.failure_message || 'Non ha funzionato...'}${hpHealedMessagePart}`;
+                             // Consideriamo l'effetto applicato solo se lo status viene rimosso? O anche se cura solo HP?
+                             // Per ora, consideriamo effectApplied = true solo se rimuove lo status.
+                             // Ma l'oggetto viene comunque consumato perché ha tentato un effetto (cura HP).
+                             effectAppliedSuccessfully = false; // Status non rimosso
+                         }
+                    } else {
+                        // Se lo stato non esiste o non è attivo, non fa nulla
+                        message += " Ma non ne avevi bisogno.";
+                    }
+                    break;
                 
-                const hpBeforeHeal = player.hp;
-                player.hp = Math.min(player.maxHp, player.hp + healAmount);
-                const hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10; // Arrotonda
+                // --- NUOVO CASE per HEAL_HP ---
+                case 'heal_hp':
+                    const minHeal = effect.amount_min || 1; // Fallback a 1 se non definito
+                    const maxHeal = effect.amount_max || minHeal; // Fallback a minHeal se non definito
+                    const healAmount = getRandomInt(minHeal, maxHeal); // Calcola HP casuali nel range
+                    
+                    const hpBeforeHeal = player.hp;
+                    player.hp = Math.min(player.maxHp, player.hp + healAmount);
+                    const hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10; // Arrotonda
 
-                if (hpActuallyHealed > 0) {
-                    message += ` Ti senti leggermente rinvigorito. (+${hpActuallyHealed} HP)`;
-                    effectApplied = true;
-                } else {
-                    message += " Ma non sembrano avere effetto su di te ora."; // Già al massimo HP
-                    effectApplied = false; // Nessun effetto reale applicato
-                }
-                break;
-            // --- FINE NUOVO CASE ---
+                    if (hpActuallyHealed > 0) {
+                        message += ` Ti senti leggermente rinvigorito. (+${hpActuallyHealed} HP)`;
+                        effectAppliedSuccessfully = true;
+                    } else {
+                        message += " Ma non sembrano avere effetto su di te ora."; // Già al massimo HP
+                        effectAppliedSuccessfully = false; // Nessun effetto reale applicato
+                    }
+                    break;
+                // --- FINE NUOVO CASE ---
 
-            default:
-                 message += " Ma il suo effetto è sconosciuto.";
-                 console.warn(`Effetto non gestito per ${itemId}: tipo ${effect.type}`);
+                default:
+                     message += " Ma il suo effetto è sconosciuto.";
+                     console.warn(`Effetto non gestito per ${itemId}: tipo ${effect.type}`);
+            }
+        } catch (e) {
+             console.error(`Errore durante l'applicazione dell'effetto per ${itemId}:`, e);
+             message += " Ma qualcosa è andato storto durante l'uso.";
+             effectAppliedSuccessfully = false;
         }
     } else {
         message += " Ma non sembra avere alcun effetto.";
+        console.log(`Oggetto ${itemId} usato ma senza effetto definito. Non consumato.`);
+        effectAppliedSuccessfully = false; // Nessun effetto
     }
 
-    // Consuma oggetto solo se l'effetto è stato applicato (o se non c'era effetto specifico ma l'oggetto è usabile)
-    // O forse consumare sempre se usabile? Dipende dal design.
-    // Per ora, consumiamo se usabile e un effetto è stato tentato.
-    if (itemInfo.effect) { // Consumiamo se c'era un effetto definito
+    // Consuma oggetto solo se l'effetto è stato applicato O se non c'era effetto ma era usabile?
+    // Modifichiamo per consumare SEMPRE se l'oggetto è usabile e l'azione è stata tentata.
+    if (itemInfo.usable) {
         itemSlot.quantity -= 1;
         if (itemSlot.quantity <= 0) {
             player.inventory.splice(itemIndex, 1); // Rimuove oggetto se quantità è 0
         }
-    } else {
-        // Se non c'era effetto, potremmo comunque voler consumare item usabili senza effetto? O loggare? 
-        // Decidiamo di non consumarlo per ora.
-         console.log(`Oggetto ${itemId} usato ma senza effetto definito. Non consumato.`);
     }
 
-    addMessage(message, effectApplied ? 'success' : 'info', true);
+    addMessage(message, effectAppliedSuccessfully ? 'success' : 'info', true);
     renderStats();
     renderInventory();
-    closeEventPopup(); // Chiude il popup dopo l'uso
+
+    // Chiama closeEventPopup ALLA FINE, dopo tutte le altre operazioni
+    closeEventPopup();
+
+    // console.log(`useItem FINE - itemId: ${itemId}, Chiamata closeEventPopup() effettuata.`); // RIMOSSO DEBUG LOG
 }
 
 // --- GESTIONE EVENTI AMBIENTALI E LORE ---
@@ -2383,4 +2494,129 @@ function applyChoiceReward(rewardObject) {
     }
 
     return { consequences, messageType };
+}
+
+// ----- Gestione Tooltip Inventario (Aggiunto da modifiche UI/UX) -----
+
+const itemTooltip = document.getElementById('item-tooltip');
+const tooltipItemName = document.getElementById('tooltip-item-name');
+const tooltipItemDesc = document.getElementById('tooltip-item-desc');
+// const tooltipActions = document.getElementById('tooltip-item-actions'); // Per futuri bottoni
+
+// Funzione per mostrare il tooltip
+function showItemTooltip(item, event) {
+    if (gamePaused || !item || !itemTooltip || !tooltipItemName || !tooltipItemDesc) return; // Non mostrare se gioco in pausa
+
+    tooltipItemName.textContent = item.name;
+    tooltipItemDesc.textContent = item.description || "Nessuna descrizione disponibile.";
+
+    // Posizionamento (Mantenuto esempio base, aggiustare se necessario)
+    const mainRect = gameContainer.getBoundingClientRect();
+    let x = event.clientX - mainRect.left + 15;
+    let y = event.clientY - mainRect.top + 15;
+    if (x + itemTooltip.offsetWidth > mainRect.width) x = mainRect.width - itemTooltip.offsetWidth - 10;
+    if (y + itemTooltip.offsetHeight > mainRect.height) y = mainRect.height - itemTooltip.offsetHeight - 10;
+    if (x < 10) x = 10; if (y < 10) y = 10;
+    itemTooltip.style.left = `${x}px`; itemTooltip.style.top = `${y}px`;
+
+    itemTooltip.classList.remove('hidden');
+}
+
+// Funzione per nascondere il tooltip
+function hideItemTooltip() { if (itemTooltip) itemTooltip.classList.add('hidden'); }
+
+// Aggiungere listener 'mouseover' e 'mouseout' a inventoryList (spostati qui da setupInputListeners per raggruppare)
+if (inventoryList) {
+     inventoryList.addEventListener('mouseover', (event) => {
+         const listItem = event.target.closest('li[data-item-id]');
+         if (listItem && !gamePaused) { // Non mostrare se gioco in pausa
+             const itemId = listItem.dataset.itemId;
+             const itemData = ITEM_DATA[itemId];
+             if (itemData) showItemTooltip(itemData, event);
+         }
+     });
+     inventoryList.addEventListener('mouseout', (event) => {
+         const listItem = event.target.closest('li[data-item-id]');
+         if (listItem) hideItemTooltip();
+     });
+     // Il listener 'click' è già stato modificato in setupInputListeners
+}
+// ----- Fine Gestione Tooltip Inventario -----
+
+// --- NUOVA FUNZIONE per gestire click sul CONTENITORE delle scelte ---
+function handleChoiceContainerClick(event) {
+    // Trova il BOTTONE specifico che è stato cliccato all'interno del contenitore
+    const clickedButton = event.target.closest('button');
+    if (!clickedButton || !eventChoicesContainer.contains(clickedButton)) {
+        return; // Non era un click su un bottone dentro il nostro contenitore
+    }
+
+    // Determina il tipo di azione dal data attribute
+    if (clickedButton.dataset.choiceIndex !== undefined) {
+        // --- Gestione Scelta Evento Standard --- 
+        const choiceIndex = parseInt(clickedButton.dataset.choiceIndex, 10);
+        // Rimuoviamo il listener PRIMA di chiamare handleEventChoice,
+        // perché handleEventChoice può aprire un NUOVO popup (risultato)
+        // che avrà il suo bottone 'Continua' (gestito da showEventPopup con onclick diretto per ora).
+        eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
+        handleEventChoice(choiceIndex); // Questa funzione apre il popup risultato o chiude
+        // Non fare altro qui, l'esecuzione prosegue dentro handleEventChoice
+        return; // Esce dalla funzione handleChoiceContainerClick
+
+    } else if (clickedButton.dataset.actionType === 'itemAction') {
+        // --- Gestione Azione Oggetto --- 
+        const actionKey = clickedButton.dataset.actionKey;
+        const actionText = clickedButton.dataset.actionText;
+
+        // Rimuoviamo il listener solo se l'azione chiuderà il popup ('cancel' o 'use' che chiama closeEventPopup)
+        eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
+
+        if (actionKey === 'cancel') {
+            closeEventPopup();
+        } else if (actionKey === 'use') {
+            // Recupera e esegue l'azione originale
+            if (currentEventContext && currentEventContext.isActionPopup && currentEventContext.choices) {
+                const correspondingChoice = currentEventContext.choices.find(c => c.text === actionText);
+                if (correspondingChoice && typeof correspondingChoice.action === 'function') {
+                    correspondingChoice.action(); // Questa chiama useItem, che chiama closeEventPopup
+                } else {
+                    console.error(`Funzione azione originale non trovata per '${actionText}'`);
+                    closeEventPopup();
+                }
+            } else {
+                console.error("Contesto evento non valido per recuperare azione 'use'!");
+                closeEventPopup();
+            }
+        } else {
+            console.warn(`Chiave azione oggetto non gestita: '${actionKey}'`);
+            closeEventPopup();
+        }
+        return; // Esce dalla funzione
+
+    } else if (clickedButton.classList.contains('continue-button')){
+        // --- Gestione Bottone Continua (se aggiunto al container in futuro) --- 
+        // Al momento, il bottone continua ha un onclick diretto in showEventPopup
+        eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
+        closeEventPopup();
+        return; // Esce dalla funzione
+    }
+
+    // --- Fallback --- 
+    // Se arriviamo qui, è un bottone nel contenitore ma non riconosciuto
+    console.warn("Click su bottone non riconosciuto nel contenitore scelte.");
+    eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
+    closeEventPopup();
+}
+
+// Assicurati che questa funzione esista e faccia ciò che serve
+function handleEventChoice(choiceIndex) {
+    // ... la tua logica esistente per gestire le scelte degli eventi standard ...
+    // console.log(`handleEventChoice eseguito per indice: ${choiceIndex}`); // RIMOSSO DEBUG LOG
+    // Dovrebbe chiamare closeEventPopup() alla fine della sua esecuzione.
+    // Assicuriamoci che la chiamata a closeEventPopup sia dentro questa funzione
+    // dopo aver processato la scelta.
+
+    // Esempio di come potrebbe finire:
+    // processChoice(choiceIndex);
+     closeEventPopup(); // Assicurati sia chiamata qui!
 }
