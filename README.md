@@ -56,6 +56,113 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+Doppio aggiornamento
+18-04-2025 ore 10.04 ITA
+
+## Log di Sviluppo - Il Viaggiatore GDR V0.6075 e V0.6076 (Aggiornamento UI/UX I)
+
+**Riepilogo:** Questa sessione si è focalizzata su un significativo miglioramento dell'interfaccia utente (UI) e dell'esperienza utente (UX) del gioco, seguendo il piano concettuale definito. L'obiettivo era rendere il gioco più adattabile, chiaro, interattivo e fluido, pur mantenendo e rafforzando l'estetica retro-terminale.
+
+---
+
+### Parte Semplificata (Per Tutti)
+
+Abbiamo lavorato molto sull'aspetto e sulla funzionalità dell'interfaccia di gioco per renderla migliore su tutti i dispositivi e più facile da usare. Ecco le novità principali:
+
+1.  **Adattabilità:** Il gioco ora si adatta molto meglio agli schermi piccoli, come quelli dei telefoni. Invece di tre colonne strette, le sezioni si riorganizzano verticalmente, rendendo tutto più leggibile e i pulsanti più facili da premere. Anche su schermi molto grandi, il layout dovrebbe apparire più equilibrato.
+2.  **Avvisi più Chiari:** Quando le tue risorse (HP, Cibo, Acqua) scendono a livelli pericolosi, il numero corrispondente diventerà rosso/arancione e lampeggerà leggermente, rendendo più facile accorgersi del pericolo senza essere troppo invadente.
+3.  **Feedback Immediato:** Ora riceverai piccoli segnali visivi quando accadono cose importanti. Ad esempio, quando subisci danni, il valore degli HP lampeggerà brevemente di rosso; quando ti curi o usi un oggetto benefico, lampeggerà di verde. Questo aiuta a capire subito cosa sta succedendo. Abbiamo anche aggiunto un piccolo effetto "scrittura" quando cambia la descrizione del luogo in cui ti trovi.
+4.  **Inventario Migliorato:** Passando il mouse (su PC) o toccando (su mobile) un oggetto nell'inventario, ora apparirà una piccola finestra (tooltip) con il nome e la descrizione dell'oggetto, così puoi sapere cos'è prima di decidere se usarlo.
+5.  **Mappa più Leggibile:** Abbiamo ritoccato leggermente i colori e gli stili della mappa. I diversi tipi di terreno dovrebbero essere un po' più facili da distinguere, le caselle già visitate sono segnate in modo più chiaro (senza scurire troppo il simbolo), e il tuo simbolo sulla mappa (`@`) e la destinazione (`E`) risaltano leggermente di più.
+6.  **Transizioni più fluide:** La comparsa e la scomparsa delle finestre degli eventi (popup) è ora più morbida, con un effetto di dissolvenza e leggera scala. Quando un popup è aperto, lo sfondo del gioco si oscura leggermente per aiutarti a concentrarti sull'evento. Lo stile dei popup è stato reso più coerente con il resto del gioco.
+
+In generale, l'obiettivo è stato rendere l'esperienza più piacevole e intuitiva, facendoti sentire ancora di più all'interno di un vecchio terminale, ma senza che l'interfaccia ti crei problemi.
+
+---
+
+### Parte Tecnica (Per Sviluppatori)
+
+**Obiettivo:** Implementare i miglioramenti UI/UX pianificati, focalizzandosi su responsività, chiarezza informativa, feedback interattivo, gestione inventario, leggibilità mappa e coerenza del flusso.
+
+**Modifiche Principali:**
+
+1.  **Adattabilità (Responsività) - CSS:**
+    *   Implementate Media Queries in `style.css` (breakpoints a `1024px`, `768px`, `480px`, `1600px`).
+    *   Su schermi stretti (`<768px`), il `flex-direction` del container principale (`main#game-container` o `.container`) è impostato su `column`.
+    *   Le colonne (`.column` o `#left-panel`, `#map-panel`, `#info-panel`) sono impostate a `width: 100%` e `flex-basis: auto` su schermi stretti.
+    *   Aggiustamenti minori a `font-size`, padding dei bottoni (`.controls button`) e dimensioni mappa (`#game-map pre`) per migliorare leggibilità e usabilità su mobile.
+    *   Introdotto `max-width` sul container per limitare l'espansione su schermi ultra-larghi.
+2.  **Chiarezza (Statistiche Critiche) - CSS & JS:**
+    *   Utilizzata/Consolidata la classe CSS `.low-resource` (già parzialmente presente) applicata via JS agli elementi `#stat-hp`, `#stat-food`, `#stat-water` quando i rispettivi valori scendono sotto le soglie definite.
+    *   La regola CSS per `.low-resource` imposta `color: var(--danger-color)` e `font-weight: bold`, utilizzando l'animazione `@keyframes blink-warning` esistente.
+    *   Rimosse le regole CSS ridondanti `.stat-value.critical` e `@keyframes subtleBlink` introdotte erroneamente.
+3.  **Feedback Interattivo - CSS & JS:**
+    *   Aggiunte `@keyframes flashDamage` e `@keyframes flashHeal` a `style.css` per creare brevi effetti flash di sfondo (rosso scuro e verde chiaro semi-trasparenti).
+    *   Create classi CSS `.flash-damage` e `.flash-heal` che applicano queste animazioni (durata 0.3s).
+    *   Implementata la funzione JS `applyTemporaryClass(element, className, durationMs)` per aggiungere e rimuovere automaticamente le classi flash agli elementi HTML designati (es. `#stat-hp`, `#condition-status`) al momento opportuno (danno, cura, uso oggetto status).
+    *   Aggiunta una classe CSS `.typing-effect::after` con un cursore lampeggiante (`@keyframes blinkCursor`) e implementata una funzione JS d'esempio (`updateLocationDescription`) per simulare l'effetto scrittura sulla descrizione del luogo.
+4.  **Gestione Inventario (Tooltip) - HTML, CSS & JS:**
+    *   Aggiunto un `div#item-tooltip.hidden` alla struttura HTML per contenere le informazioni dell'oggetto.
+    *   Creati stili CSS per `#item-tooltip` (posizionamento assoluto, sfondo/bordo terminale, z-index, `pointer-events: none` iniziale).
+    *   Implementata logica JS:
+        *   Event listeners (`mouseover`, `mouseout`, `click`) delegati sulla lista `#inventory`.
+        *   Assunzione che gli `<li>` dell'inventario abbiano `data-item-id`.
+        *   Funzioni `showItemTooltip(item, event)` (popola e posiziona il tooltip vicino al cursore/tocco, rimuove classe `.hidden`) e `hideItemTooltip()` (aggiunge classe `.hidden`).
+        *   Non implementata la logica completa per i bottoni "Usa"/"Annulla" nel tooltip.
+5.  **Leggibilità Mappa - CSS:**
+    *   Modificati i colori nelle classi `.tile-*` per migliorare il contrasto tra tipi di terreno adiacenti (usando sfumature di verde specifiche).
+    *   Modificata la regola `.visited`: rimossa/ridotta l'opacità, aggiunto `background-color: rgba(0, 30, 0, 0.3)` e leggero scurimento del `color` del simbolo.
+    *   Aggiunta regola `.player-marker.visited` per gestire correttamente lo sfondo/opacità quando il giocatore è su una tile visitata.
+    *   Aggiunto `text-shadow` a `.tile-end` per migliorare la visibilità della destinazione.
+6.  **Coerenza e Flusso (Popup Eventi) - CSS & JS:**
+    *   Modificata la regola CSS `#event-overlay`: rimossa `display: none`, aggiunte `opacity: 0`, `visibility: hidden` e `transition` per `opacity` e `visibility`.
+    *   Creata classe `.visible` per `#event-overlay` per triggerare la transizione (`opacity: 1`, `visibility: visible`).
+    *   Aggiunta `transform: scale(0.95)` e `transition` a `#event-popup`, con regola `#event-overlay.visible #event-popup { transform: scale(1); }` per effetto scala.
+    *   Garantito `font-family: inherit` per elementi testuali (`h2`, `#event-content`, bottoni) all'interno del popup.
+    *   Aggiunta classe CSS `main#game-container.overlay-active` con `filter: brightness(0.6) blur(1px)` e `transition` per oscurare/sfocare lo sfondo quando il popup è attivo.
+    *   Modificate le funzioni JS `showEventPopup` e `hideEventPopup` per aggiungere/rimuovere le classi `.visible` (su overlay) e `.overlay-active` (su game container) invece di usare `display`.
+    *   Aggiunta gestione base del focus nel popup in `showEventPopup`.
+
+---
+
+## Log di Sviluppo - Il Viaggiatore GDR v0.6.075 (Aggiornamento Narrativa III)
+
+**Riepilogo:** Questa sessione si è concentrata sulla finalizzazione della revisione stilistica dei testi nel file `game_data.js`, con particolare attenzione alla risoluzione di un problema tecnico persistente e a una verifica generale della coerenza.
+
+---
+
+### Parte Semplificata (Per Tutti)
+
+Abbiamo continuato il lavoro di rifinitura dei testi del gioco per renderli più coinvolgenti e migliorare l'atmosfera post-apocalittica. Dopo aver revisionato con successo gran parte degli eventi, descrizioni e frammenti di storia, ci siamo imbattuti in un problema tecnico che impediva l'applicazione di alcune modifiche specifiche all'evento "Orrore Indicibile".
+
+Dopo alcuni tentativi falliti, abbiamo insistito e siamo finalmente riusciti ad applicare le modifiche desiderate a questa sezione, migliorando l'impatto psicologico di questo evento particolarmente intenso.
+
+Infine, abbiamo eseguito un controllo generale su tutto il file `game_data.js` per assicurarci che tutte le modifiche fossero coerenti tra loro e rispettassero lo stile narrativo concordato. Il risultato è un insieme di testi più curato e immersivo, pronto per arricchire l'esperienza di gioco.
+
+---
+
+### Parte Tecnica (Per Sviluppatori)
+
+**Obiettivo:** Completare la revisione stilistica dei testi in `game_data.js`, risolvere problemi di applicazione delle modifiche e verificare la coerenza generale.
+
+**Modifiche Principali:**
+
+1.  **Tentativi di Modifica "Orrore Indicibile":**
+    *   Sono stati effettuati multipli tentativi (falliti) tramite `edit_file` per applicare modifiche stilistiche agli array `descrizioniOrroreIndicibile`, `esitiOrroreIndicibileFugaOk`, `esitiOrroreIndicibileFugaKo`, `esitiOrroreIndicibileAffrontaOk`, e `esitiOrroreIndicibileAffrontaKo`. Il modello di applicazione non riusciva a implementare le modifiche richieste.
+2.  **Conferma Modifiche Precedenti:** È stato confermato che le revisioni precedenti su altri array (es. `descrizioniIncontroPredoni`, `esitiFugaPredoniOk/Ko`, `tipiBestie`, `descrizioniIncontroBestie`, `esitiEvitaAnimaleOk/Ko`, `descrizioniTracce`, `esitiSeguiTracce...`, `descrizioniVillaggioOstile`, `esitiVillaggioOstile...`, `descrizioniPericoloAmbientale...`, `esitiPericoloAmbientale...`, `descrizioniRifugioStrano`, `esitiRifugioIspeziona...`) erano state applicate con successo.
+3.  **Risoluzione Modifica "Orrore Indicibile":**
+    *   Su richiesta dell'utente, è stato effettuato un ultimo tentativo di `edit_file` specifico per gli array dell'evento "Orrore Indicibile".
+    *   **Successo:** Questa volta, l'applicazione delle modifiche ha avuto successo, aggiornando correttamente i testi negli array target (`descrizioniOrroreIndicibile`, `esitiOrroreIndicibileFugaOk`, `esitiOrroreIndicibileFugaKo`, `esitiOrroreIndicibileAffrontaOk`, `esitiOrroreIndicibileAffrontaKo`) in `game_data.js`. Le revisioni miravano a incrementare l'impatto psicologico e la varietà descrittiva.
+4.  **Verifica Generale:**
+    *   È stata eseguita una lettura completa del file `game_data.js` tramite `read_file` (con `should_read_entire_file = True`).
+    *   L'analisi ha confermato la coerenza stilistica generale, l'integrazione delle modifiche recenti e l'assenza di errori di sintassi evidenti introdotti durante il processo di revisione.
+
+**Stato Attuale:** La revisione stilistica dei testi principali contenuti in `game_data.js` è considerata completa. Il file contiene ora testi più evocativi, specifici e coerenti con l'ambientazione.
+
+---
+
+---
+
 17/04/2025 ore 9.43 ITA
 
 Certamente. Questo log riassume l'intera sessione di sviluppo, dalle prime correzioni fino agli ultimi aggiornamenti, offrendo anche uno sguardo allo stato attuale e ai possibili passi futuri.
