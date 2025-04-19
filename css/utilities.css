@@ -1,0 +1,43 @@
+/* css/utilities.css */
+
+/* Classe Helper per nascondere/mostrare */
+.hidden {
+    display: none !important;
+}
+
+/* --- Animazioni e Classi per Feedback Interattivo --- */
+
+/* Animazione per danno subito */
+@keyframes flashDamage {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(255, 0, 0, 0.3); } /* Flash rosso scuro semi-trasparente */
+    100% { background-color: transparent; }
+}
+
+/* Animazione per cura/buff ottenuto */
+@keyframes flashHeal {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(0, 255, 0, 0.2); } /* Flash verde chiaro semi-trasparente */
+    100% { background-color: transparent; }
+}
+
+/* Classe da applicare temporaneamente per effetto danno */
+.flash-damage {
+    animation: flashDamage 0.3s ease-in-out;
+}
+
+/* Classe da applicare temporaneamente per effetto cura/buff */
+.flash-heal {
+    animation: flashHeal 0.3s ease-in-out;
+}
+
+/* Classe potenziale per effetto 'typing' (solo cursore) */
+.typing-effect::after {
+    content: '_';
+    animation: blinkCursor 1s infinite step-end;
+}
+
+@keyframes blinkCursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+} 

@@ -1,0 +1,90 @@
+/* css/map.css */
+
+/* Mappa Display */
+#map-display {
+    flex-grow: 1; /* Permette alla mappa di occupare spazio */
+    background-color: #080808; /* Sfondo leggermente diverso per mappa */
+    padding: 5px; /* Ridotto padding per massimizzare spazio mappa */
+    border: 1px solid var(--border-dim-color);
+    white-space: pre; /* Mantiene la formattazione testuale */
+    overflow: hidden; /* NASCONDE la scrollbar */
+    line-height: 1.1;
+    font-size: 18px; /* Caratteri mappa più grandi */
+}
+
+/* Legenda Mappa */
+#legend {
+    margin-top: 10px;
+    flex-shrink: 0; /* Non far restringere la legenda */
+}
+
+#legend li {
+    margin-bottom: 3px;
+    font-size: 0.9em;
+}
+.legend-symbol {
+    display: inline-block;
+    width: 1.5em;
+    text-align: center;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* Stili Colore Mappa */
+.tile-plains { color: #00DD00; } 
+.tile-forest { color: #00AA00; } 
+.tile-mountain { color: #008800; } 
+.tile-river { color: #00AAAA; } 
+.tile-city, .tile-village { color: #44BB44; } 
+.tile-rest-stop, .tile-start { color: #BBBB00; } 
+.tile-end {
+    color: var(--end-color); 
+    font-weight: bold;
+    animation: blink-end 1.5s infinite;
+    text-shadow: 0 0 6px var(--end-color); 
+}
+.tile-unk { color: #555555; } 
+
+/* Caselle Visitate */
+.visited {
+    background-color: rgba(0, 30, 0, 0.3); 
+    color: #009900; 
+}
+
+/* Stile specifico per il giocatore visitato */
+.player-marker.visited {
+    background-color: var(--highlight-bg); 
+     color: var(--highlight-fg); 
+     opacity: 0.8; 
+}
+
+/* Marcatore Giocatore - Stile Originale Lampeggiante */
+.player-marker {
+    color: var(--fg-color); /* Imposta colore verde (o colore testo principale) */
+    background-color: transparent !important; /* Rimuove lo sfondo */
+    animation: blink-player 1s step-end infinite; /* Usa la nuova animazione */
+    font-weight: bold;
+    /* Rimuovi padding e border-radius se non necessari per questo stile */
+    padding: 0;
+    border-radius: 0;
+    /* Mantieni z-index se serve */
+    z-index: 10;
+    /* Rimuovi !important non necessari se possibile, ma mantenuti per override */
+    display: inline-block;
+}
+
+/* Animazioni */
+/* Animazione per far lampeggiare il carattere stesso (opacità) */
+@keyframes blink-player {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes blink-end {
+    0%, 100% { color: var(--end-color); text-shadow: 0 0 5px var(--end-color); }
+    50% { color: var(--fg-color); text-shadow: none; }
+} 

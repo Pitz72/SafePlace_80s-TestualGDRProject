@@ -4,11 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Safe Place - Minimal Roguelike</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Rimuovi il vecchio link -->
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    
+    <!-- Aggiungi link ai nuovi file CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/panels.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/controls.css">
+    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/tooltip.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/responsive.css"> 
 </head>
 <body>
     <main id="game-container">
-
         <aside id="left-panel">
             <section id="survival-panel" class="panel">
                 <h2>SOPRAVVIVENZA</h2>
@@ -27,8 +38,8 @@
                  <div id="item-tooltip"></div>
              </section>
             <section id="messages-panel" class="panel">
-                 <h2>DIARIO</h2>
-                 <ul id="messages"></ul>
+                 <h2>LOG EVENTI</h2>
+                 <ul id="messages" class="message-list"></ul>
              </section>
         </aside>
 
@@ -88,7 +99,9 @@
     <div id="end-screen" style="display: none;">
         <h1 id="end-title">Fine del Viaggio</h1> <p id="end-message">Sei morto...</p> <button id="restart-button">Ricomincia</button> </div>
 
-    <script src="game_data.js"></script>
-    <script src="game_logic.js"></script>
+    <!-- Script in ordine di dipendenza -->
+    <script src="game_data.js"></script>            <!-- Dati statici: oggetti, testi, costanti base -->
+    <script src="game_logic.js"></script>           <!-- Logica principale: stato, funzioni, rendering, eventi -->
+    <script src="main.js"></script>                 <!-- Entry point principale -->
     </body>
 </html>

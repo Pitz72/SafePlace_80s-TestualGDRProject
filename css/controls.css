@@ -1,0 +1,60 @@
+/* css/controls.css */
+
+/* Controlli Sotto la Mappa */
+#controls {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.panel-map-controls {
+    border: none; /* Rimuove bordo extra */
+    padding: 10px 0 0 0; /* Padding solo sopra */
+    margin-top: 10px; /* Spazio dalla mappa */
+    background-color: transparent; /* Sfondo trasparente */
+    flex-shrink: 0; /* Non far restringere i controlli */
+    border-top: 1px dashed var(--border-dim-color); /* Separatore dalla mappa */
+}
+
+.panel-map-controls h2 {
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Griglia 3 colonne */
+    grid-template-rows: auto auto; /* Due righe */
+    gap: 5px;
+    justify-items: center;
+    align-items: center;
+}
+
+/* Posizionamento specifico bottoni nella griglia */
+#btn-up { grid-column: 2; grid-row: 1; }
+#btn-left { grid-column: 1; grid-row: 2; }
+#btn-down { grid-column: 2; grid-row: 2; }
+#btn-right { grid-column: 3; grid-row: 2; }
+/* #btn-inventory { grid-column: 1 / -1; grid-row: 3; width: 80%; margin-top: 5px;} /* Commentato se non usato */
+
+/* Stile Bottoni di Controllo */
+#controls button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px; /* Padding aumentato */
+    margin: 4px; /* Margine aumentato */
+    font-family: inherit;
+    font-size: 1em; /* Dimensione font come testo base */
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s; /* Transizione hover */
+}
+#controls button:hover:not(:disabled) {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+}
+#controls button:disabled {
+    color: var(--border-dim-color);
+    border-color: var(--border-dim-color);
+    cursor: not-allowed;
+    opacity: 0.5;
+} 

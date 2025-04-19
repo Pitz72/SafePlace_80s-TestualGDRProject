@@ -57,13 +57,13 @@ function addMessage(text, type = 'normal', important = false) {
     // Applica grassetto se richiesto
     if (important) text = `<strong>${text}</strong>`;
 
-    // Aggiunge il messaggio alla FINE dell'array logico
+    // Aggiunge il messaggio alla FINE dell'array logico (il CSS gestirà l'ordine inverso)
     messages.push({ text: prefix + text, class: cssClass });
 
     // Mantiene il log entro la dimensione massima
     if (messages.length > MAX_MESSAGES) {
         // Rimuove il messaggio più vecchio (il primo dell'array)
-        messages.shift(); 
+        messages.shift();
     }
 
     // Aggiorna la visualizzazione nel DOM
@@ -211,14 +211,34 @@ function initializeGame() {
 
     // Effettua il rendering iniziale dell'interfaccia
     try {
+        // console.log("--- Inizio Rendering Iniziale ---"); // LOG RIMOSSO
+        // console.log("Chiamo renderLegend()..."); // LOG RIMOSSO
         renderLegend();
+        // console.log("...renderLegend() completato."); // LOG RIMOSSO
+
+        // console.log("Chiamo renderStats()..."); // LOG RIMOSSO
         renderStats(); // Renderizza statistiche e risorse
+        // console.log("...renderStats() completato."); // LOG RIMOSSO
+
+        // console.log("Chiamo renderInventory()..."); // LOG RIMOSSO
         renderInventory(); // Renderizza l'inventario iniziale
+        // console.log("...renderInventory() completato."); // LOG RIMOSSO
+
+        // console.log("Chiamo renderMap()..."); // LOG RIMOSSO
         renderMap(); // Renderizza la mappa
+        // console.log("...renderMap() completato."); // LOG RIMOSSO
+
+        // console.log("Chiamo renderMessages()..."); // LOG RIMOSSO
         renderMessages(); // Pulisce il log precedente
+        // console.log("...renderMessages() completato."); // LOG RIMOSSO
+
+        // console.log("Chiamo addMessage() iniziale..."); // LOG RIMOSSO
         addMessage(`Inizio del viaggio. HP:${player.hp}, Sazietà:${player.food}, Idratazione:${player.water}. È Giorno.`, 'info');
+        // console.log("...addMessage() iniziale completato."); // LOG RIMOSSO
+        // console.log("--- Fine Rendering Iniziale (Try Block) ---"); // LOG RIMOSSO
     } catch (e) {
         console.error("ERRORE RENDER INIZIALE:", e);
+        // console.log("--- Errore durante Rendering Iniziale (Catch Block) ---"); // LOG RIMOSSO
         if(mapDisplay) mapDisplay.textContent = "Errore nel rendering iniziale!";
         gameActive = false; // Impedisce di giocare se il rendering fallisce
     }
@@ -227,7 +247,7 @@ function initializeGame() {
     if (gameActive) {
         setupInputListeners();
 
-        // --- NUOVO: Imposta focus esplicito --- 
+        // --- NUOVO: Imposta focus esplicito ---
         try {
             document.body.focus();
             // console.log(">>> initializeGame: Focus impostato su document.body"); // RIMOSSO LOG
@@ -454,8 +474,13 @@ function renderStats() {
         // Aggiorna indicatore Giorno/Notte
         if (statDayTime) {
             if (isDay) {
-                // Mostra passi rimanenti nel giorno
-                statDayTime.textContent = `Giorno (${DAY_LENGTH_MOVES - dayMovesCounter} p.)`;
+                // Calcola l'orario tra 6:00 e 19:00 in base al progresso del giorno
+                // DAY_LENGTH_MOVES = 18 (il numero totale di mosse nel giorno)
+                // Mappiamo 0-18 mosse su 6-19 ore (13 ore in totale)
+                const currentHour = Math.floor(6 + (dayMovesCounter * 13 / DAY_LENGTH_MOVES));
+                // Formatta l'ora in formato 24h con zero iniziale se necessario
+                const formattedHour = currentHour.toString().padStart(2, '0');
+                statDayTime.textContent = `${formattedHour}:00`;
             } else {
                 statDayTime.textContent = 'Notte';
             }
@@ -472,8 +497,10 @@ function renderStats() {
 function renderMessages() {
     if (!messagesList) return;
     try {
-        // Ricostruisce l'HTML della lista messaggi basandosi sull'array 'messages'
-        messagesList.innerHTML = messages.map(msg => `<li class="${msg.class || ''}">${msg.text}</li>`).join('');
+        // Crea una copia invertita dell'array dei messaggi PRIMA di creare l'HTML
+        const reversedMessages = [...messages].reverse();
+        // Ricostruisce l'HTML della lista messaggi basandosi sull'array invertito
+        messagesList.innerHTML = reversedMessages.map(msg => `<li class="${msg.class || ''}">${msg.text}</li>`).join('');
     } catch (e) {
         console.error("Errore durante il rendering dei messaggi:", e);
         if (messagesList) messagesList.innerHTML = '<li>Errore nel log!</li>';
@@ -528,7 +555,7 @@ function renderLegend() {
         return;
     }
     try {
-        legendList.innerHTML = ''; 
+        legendList.innerHTML = '';
         // Definisce gli elementi della legenda
         const legendItems = [
             { s: TILE_SYMBOLS.PLAYER, d: TILE_DESC['@'] },
@@ -768,9 +795,9 @@ function isWalkable(tile) {
  */
 function movePlayer(dx, dy) {
     // console.log(`movePlayer Tentativo (${dx},${dy}). Gioco Attivo: ${gameActive}, Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
-    if (!gameActive || gamePaused) { 
+    if (!gameActive || gamePaused) {
         // console.log("...Movimento bloccato."); // RIMOSSO DEBUG LOG
-        return; 
+        return;
     }
 
     const currentTile = map[player.y]?.[player.x];
@@ -783,18 +810,18 @@ function movePlayer(dx, dy) {
             addMessage("È notte fonda. Muoversi al buio è pericoloso, trova un rifugio il prima possibile!", "warning", true);
             player.hasBeenWarnedAboutNight = true;
         }
-        
+
         // Aggiungiamo una penalità per muoversi di notte (consumo doppio di risorse)
         const nightMovePenalty = 0.15; // Penalità aggiuntiva di HP per movimento notturno
         player.hp = Math.max(0, player.hp - nightMovePenalty);
-        
+
         if (player.hp <= 0) {
             addMessage("L'oscurità nasconde troppi pericoli. Non riesci più ad andare avanti...", "danger");
             endGame(false);
             return;
         }
     }
-    
+
     // Se è notte MA il giocatore è in un rifugio, la prima azione fa passare al giorno
     if (!isDay && currentTile && SHELTER_TILES.includes(currentTile.type)) {
         transitionToDay();
@@ -803,7 +830,7 @@ function movePlayer(dx, dy) {
         // enableControls(); // transitionToDay già chiama enableControls
         return;
     }
-    
+
     // Impedisce movimento nullo
     if (dx === 0 && dy === 0) return;
 
@@ -816,10 +843,18 @@ function movePlayer(dx, dy) {
         return;
     }
 
-    const targetTile = map[newY]?.[newX];
+    // --- AGGIUNTO: Controllo robusto esistenza casella ---
+    if (!map || !map[newY] || !map[newY][newX]) {
+        console.error(`Tentativo di accedere a casella mappa non valida o inesistente: (${newX}, ${newY})`);
+        addMessage("Errore interno: la destinazione non è valida.", "danger");
+        return;
+    }
+    // --- FINE AGGIUNTO ---
+
+    const targetTile = map[newY][newX]; // Ora siamo sicuri che targetTile esiste
 
     // Controllo se la casella è attraversabile
-    if (!targetTile || !isWalkable(targetTile)) {
+    if (!isWalkable(targetTile)) { // isWalkable dovrebbe già gestire tile null/undefined, ma questo previene chiamate inutili
         addMessage("Non puoi passare di qui.", "warning");
         return;
     }
@@ -842,7 +877,7 @@ function movePlayer(dx, dy) {
     if (!specificEventTriggered) {
         triggerComplexEvent(targetTile); // Poi prova gli eventi complessi generici
     }
-    
+
     let complexEventTriggered = eventScreenActive && !specificEventTriggered;
 
     if (!eventScreenActive) { // Se NESSUN evento popup è stato attivato (eventScreenActive non è true)
@@ -962,7 +997,7 @@ function consumeResourcesOnMove() {
     // Applica un piccolo costo ad ogni passo
     player.food = Math.max(0, player.food - MOVE_FOOD_COST);
     player.water = Math.max(0, player.water - MOVE_WATER_COST);
-    
+
     // TODO: Aggiungere messaggi di avviso quando le risorse scendono sotto una soglia?
     // if (player.food < 3) addMessage("Inizi a sentire fame...", "warning");
     // if (player.water < 3) addMessage("Hai sete...", "warning");
@@ -973,20 +1008,20 @@ function consumeResourcesOnMove() {
  */
 function transitionToNight() {
     isDay = false;
-    dayMovesCounter = 0; 
+    dayMovesCounter = 0;
     nightMovesCounter = 0; // Reset contatore passi notturni
     addMessage("È calata la notte...", "info", true);
     // Non disabilitiamo più i controlli di notte per permettere al giocatore di cercare rifugio
-    // disableControls(); 
-    renderStats(); 
-    
+    // disableControls();
+    renderStats();
+
     addMessage(`Consumi risorse per la notte... (${NIGHT_FOOD_COST} Sazietà, ${NIGHT_WATER_COST} Idratazione)`);
     player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
     player.water = Math.max(0, player.water - NIGHT_WATER_COST);
-    
+
     applyNightPenalties(); // Applica penalità e controlla morte
     if (!gameActive) return; // Esce se il giocatore è morto
-    
+
     // Controlla se il giocatore è in un rifugio
     const currentTile = map[player.y]?.[player.x];
     if (currentTile && SHELTER_TILES.includes(currentTile.type)) {
@@ -1026,17 +1061,17 @@ function applyNightPenalties() {
  */
 function transitionToDay() {
     if (!gameActive) return; // Non fare nulla se il gioco è finito
-    
+
     isDay = true;
     dayMovesCounter = 0; // Resetta il contatore del giorno a 0, quindi avrà di nuovo DAY_LENGTH_MOVES passi
     nightMovesCounter = 0; // Resetta il contatore della notte
     daysSurvived++;
     addMessage(`Sorge un nuovo giorno... Giorno ${daysSurvived}.`, "info", true);
-    
+
     if (!eventScreenActive) { // Riabilita i controlli solo se non c'è un popup aperto
-       enableControls(); 
+       enableControls();
     }
-    renderStats(); 
+    renderStats();
 }
 
 /**
@@ -1047,7 +1082,7 @@ function endGame(isVictory) {
     gameActive = false;
     gamePaused = true; // << Imposta pausa anche a fine gioco
     disableControls();
-    
+
     if (isVictory) {
         endTitle.textContent = "Sei Arrivato!";
         endMessage.textContent = `Dopo ${daysSurvived} giorni di viaggio estenuante, hai finalmente raggiunto la destinazione.
@@ -1066,11 +1101,11 @@ La fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la 
 Il tuo viaggio finisce qui, nell'oblio.`;
          addMessage("Sei morto... Il tuo viaggio è finito.", "warning", true);
     }
-    
+
     if(gameContainer) gameContainer.style.display = 'none';
     if(gameContainer) gameContainer.classList.remove('overlay-active'); // Rimuove oscuramento se presente
     if(endScreen) endScreen.style.display = 'flex'; // Mostra schermata fine
-    
+
     // Aggiungi listener al bottone restart solo una volta
     if (restartButton && !restartButton.dataset.listenerAttached) {
         restartButton.addEventListener('click', initializeGame);
@@ -1180,7 +1215,7 @@ function showEventPopup(eventData) {
 
     // Costruisce il contenuto HTML
     let contentHTML = eventData.description || "Qualcosa è successo...";
-    
+
     // Se sono presenti dettagli del check (passati da handleEventChoice)
     if (eventData.checkDetails) {
         contentHTML += `<br><br><span class="log-dim">(${eventData.checkDetails})</span>`; // Aggiunge dettagli check
@@ -1211,8 +1246,8 @@ function showEventPopup(eventData) {
 
             button.textContent = buttonText;
             // button.onclick = () => handleEventChoice(index); // RIMOSSO onclick DIRETTO
-            
-            // --- AGGIUNTO: data-choice-index per DELEGAZIONE --- 
+
+            // --- AGGIUNTO: data-choice-index per DELEGAZIONE ---
             button.dataset.choiceIndex = index;
 
             if (choice.cssClass) button.classList.add(choice.cssClass);
@@ -1238,14 +1273,14 @@ function showEventPopup(eventData) {
     } else if (eventData.isActionPopup) {
         // Popup azioni oggetto (Usa, Annulla, etc.)
         // console.log("Creazione bottoni ActionPopup. Choices:", choices); // RIMOSSO DEBUG LOG
-         choices.forEach((choice) => { 
+         choices.forEach((choice) => {
             const button = document.createElement('button');
             button.textContent = choice.text;
 
-            // --- RIMUOVI onclick DIRETTO --- 
+            // --- RIMUOVI onclick DIRETTO ---
              // button.onclick = (clickEvent) => { ... }; // RIMOSSO
 
-            // --- AGGIUNGI DATA ATTRIBUTES per DELEGAZIONE --- 
+            // --- AGGIUNGI DATA ATTRIBUTES per DELEGAZIONE ---
             button.dataset.actionType = 'itemAction'; // Tipo generico
             // Crea una chiave semplice per l'azione
             if (choice.text.toLowerCase() === 'annulla') {
@@ -1265,7 +1300,7 @@ function showEventPopup(eventData) {
         // Popup di risultato evento o evento senza scelte
          if(continueButton) {
              continueButton.style.display = 'inline-block';
-             continueButton.onclick = () => closeEventPopup(); 
+             continueButton.onclick = () => closeEventPopup();
          }
     }
 
@@ -1282,471 +1317,466 @@ function showEventPopup(eventData) {
  * @param {number} choiceIndex - L'indice della scelta selezionata.
  */
 function handleEventChoice(choiceIndex) {
-    if (!currentEventChoices || choiceIndex < 0 || choiceIndex >= currentEventChoices.length) {
-        console.error("Indice scelta evento non valido:", choiceIndex);
-        closeEventPopup(); // Chiude comunque per sicurezza
+    // Validazione input e contesto
+    if (!currentEventChoices || choiceIndex < 0 || choiceIndex >= currentEventChoices.length || !currentEventContext) {
+        console.error("handleEventChoice chiamato con dati evento non validi:", { choiceIndex, currentEventChoices, currentEventContext });
+        addMessage("Errore nell'elaborazione dell'evento.", "danger");
+        closeEventPopup();
         return;
     }
 
-    const choice = currentEventChoices[choiceIndex];
-    const baseEventTitle = currentEventContext.title || "Evento";
-    const eventType = currentEventContext.type; // Ottieni il tipo di evento complesso
-
-    let outcomeTitle = "Risultato";
-    let outcomeDescription = `Hai scelto: ${choice.text}.`;
-    let outcomeCheckDetails = null;
-    let outcomeConsequences = ""; // Manteniamo questa per accumulare conseguenze specifiche degli switch sotto
-    let messageType = 'info';
-    let timePassedMessage = ""; // Messaggio per il tempo passato
-
-    // --- LOGICA COSTO TEMPO PER RICERCA (SE DI GIORNO) ---
-    if (isDay && choice.isSearchAction) {
-        dayMovesCounter += SEARCH_TIME_COST;
-        timePassedMessage = `Passi ${SEARCH_TIME_COST} unità di tempo a cercare...`;
-        addMessage(timePassedMessage, 'info'); 
-        renderStats(); // Aggiorna subito i passi rimanenti
-        
-        // Controlla se la ricerca fa calare la notte
-        if (dayMovesCounter >= DAY_LENGTH_MOVES) {
-            transitionToNight();
-            // Il gioco sarà in stato notte dopo che l'utente chiude il popup.
-        }
-    }
-
-    // --- LOGICA ESECUZIONE SCELTA --- 
-    let finalOutcomeDescription = outcomeDescription; // Descrizione completa per il popup
-    let rewardConsequences = ""; // Conseguenze specifiche dalla ricompensa
-    let rewardMessageType = 'info'; // Tipo messaggio dalla ricompensa
-
-    if (choice.outcome) {
-        // Outcome semplice predefinito (per eventi senza skill check)
-        finalOutcomeDescription += ` ${getRandomText(choice.outcome)}`;
-
-        // Applica la ricompensa (se presente)
-        const rewardResult = applyChoiceReward(choice.successReward); 
-        rewardConsequences = rewardResult.consequences;
-        rewardMessageType = rewardResult.messageType;
-        
-        if (rewardConsequences) {
-            finalOutcomeDescription += `\n${rewardConsequences}`; // Aggiunge conseguenze alla descr. popup
-        }
-        // Aggiorna il tipo di messaggio principale se la ricompensa lo richiede
-        if (rewardMessageType !== 'info') {
-             messageType = rewardMessageType;
+    try {
+        // Ottieni la scelta selezionata
+        const choice = currentEventChoices[choiceIndex];
+        if (!choice) {
+            throw new Error(`Scelta con indice ${choiceIndex} non trovata.`);
         }
 
-        // Log messaggio (ora include conseguenze ricompensa)
-        addMessage(`${baseEventTitle}: ${choice.text}. ${outcomeDescription}${rewardConsequences}`, messageType, true); 
-        // Mostra popup risultato
-        buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, null, null, messageType);
+        const baseEventTitle = currentEventContext.title || "Evento";
+        const eventType = currentEventContext.type;
 
-    } else if (choice.skillCheck) {
-        // Esegue il check abilità
-        const checkResult = performSkillCheck(choice.skillCheck.stat, choice.skillCheck.difficulty);
-        outcomeCheckDetails = checkResult.text; // Salva dettagli check per popup
+        let outcomeTitle = "Risultato";
+        let outcomeDescription = `Hai scelto: ${choice.text}.`;
+        let outcomeCheckDetails = null;
+        let outcomeConsequences = "";
+        let messageType = 'info';
+        let timePassedMessage = "";
 
-        if(checkResult.success) {
-            outcomeTitle = "Successo!";
-            messageType = 'success';
-            
-            // Logica Esito Successo Evento Complesso
-            switch (eventType) {
-                case 'PREDATOR':
-                    if (choice.actionKey === 'fuga') {
-                        outcomeDescription = getRandomText(esitiFugaPredoniOk);
-                        outcomeConsequences = "Sei riuscito a fuggire senza conseguenze.";
-                    } else if (choice.actionKey === 'lotta') {
-                        outcomeDescription = getRandomText(esitiLottaPredoniOk);
-                        // Possibile loot (solo se si vince davvero)
-                        let lootChance = 0.5;
-                        if (Math.random() < lootChance) {
-                           // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
-                           const lootTypes = ['food', 'water', 'scrap_metal', 'bandages_dirty', 'bandages_clean', 'vitamins'];
-                           const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                           const lootQty = getRandomInt(1,3); // Punto 2: Aumentato loot max a 3
-                           addItemToInventory(lootId, lootQty);
-                           outcomeConsequences = `Li hai respinti! Trovi ${lootQty} ${ITEM_DATA[lootId].name} tra le loro cose.`;
-                        } else {
-                            outcomeConsequences = "Li hai respinti! Si ritirano senza lasciare nulla.";
-                        }
-                    } else if (choice.actionKey === 'parla') {
-                        outcomeDescription = getRandomText(esitiParlaPredoniOk);
-                        outcomeConsequences = "Sei riuscito a convincerli a lasciarti in pace.";
-                        // Punto 5: Aggiunta chance di reward (lore)
-                        if (Math.random() < 0.20) { // 20% chance
-                            findLoreFragment();
-                            outcomeConsequences += " Nella conversazione, scopri qualcosa di interessante.";
-                        }
-                    }
-                    break;
-                        
-                case 'ANIMAL':
-                    if (choice.actionKey === 'evita') {
-                        outcomeDescription = getRandomText(esitiEvitaAnimaleOk);
-                        outcomeConsequences = "Sei riuscito ad evitare l'animale senza attirare la sua attenzione.";
-                    } else if (choice.actionKey === 'attacca') {
-                        outcomeDescription = getRandomText(esitiAttaccoAnimaleOk);
-                        // Risorsa cibo dall'animale
-                        let foodAmount = getRandomInt(1, 3); // 1-3 cibo
-                        addItemToInventory('canned_food', foodAmount); // Usiamo 'canned_food' come placeholder carne
-                        outcomeConsequences = `Hai sconfitto ${currentEventContext.context?.animalType || 'l\'animale'}! Raccogli ${foodAmount} unità di cibo (carne).`;
-                    }
-                    break;
-                        
-                case 'TRACKS':
-                    if (choice.actionKey === 'segui') {
-                        // Determina l'esito casuale secondario
-                        const outcomeRoll = Math.random();
-                        if (outcomeRoll < 0.4) { // 40% Loot
-                            outcomeDescription = getRandomText(descrizioniTracceLoot);
-                            // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
-                            const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
-                            const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                            const lootQty = getRandomInt(1,3); // Punto 2: Aumentato loot max a 3
-                            addItemToInventory(lootId, lootQty);
-                            outcomeConsequences = `Le tracce ti portano a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
-                        } else if (outcomeRoll < 0.65) { // 25% Lore
-                            outcomeDescription = getRandomText(descrizioniTracceLore);
-                            findLoreFragment(); // Funzione helper per trovare e mostrare lore
-                            outcomeConsequences = "Hai scoperto un frammento del passato.";
-                        } else if (outcomeRoll < 0.85) { // 20% Pericolo (Predoni)
-                            outcomeDescription = getRandomText(descrizioniTracceDanger);
-                            outcomeConsequences = "Le tracce ti hanno condotto dritto in un'imboscata!";
-                            // Trigger immediato incontro predoni dopo chiusura popup?
-                            // O messaggio che anticipa l'incontro al prossimo passo?
-                            // Per ora, solo messaggio.
-                             addMessage("Senti un fischio e delle figure emergono dalle ombre!", 'danger', true);
-                            // TODO: Potrebbe triggerare un vero incontro?
-                        } else { // 15% Nulla
-                            outcomeDescription = getRandomText(descrizioniTracceNothing);
-                            outcomeConsequences = "Le tracce non hanno portato a nulla di utile.";
-                        }
-                    }
-                    break;
-                    
-                case 'VILLAGE_HOSTILE':
-                    if (choice.actionKey === 'negozia') {
-                         outcomeDescription = getRandomText(esitiVillaggioOstileNegoziaOk);
-                         outcomeConsequences = "Sei riuscito a passare senza incidenti.";
-                    }
-                    break;
+        if (isDay && choice.isSearchAction) {
+            dayMovesCounter += SEARCH_TIME_COST;
+            timePassedMessage = `Passi ${SEARCH_TIME_COST} unità di tempo a cercare...`;
+            addMessage(timePassedMessage, 'info');
+            renderStats();
+            if (dayMovesCounter >= DAY_LENGTH_MOVES) {
+                transitionToNight();
+            }
+        }
 
-                case 'ENVIRONMENTAL':
-                    outcomeDescription = getRandomText(esitiPericoloAmbientaleEvitato);
-                    outcomeConsequences = "Sei riuscito ad evitare il pericolo senza conseguenze!";
-                    break;
-                        
-                case 'DILEMMA':
-                    if (choice.actionKey === 'intervieni') {
-                        const outcomeRoll = Math.random();
-                        // Punto 4: Ridotta probabilità esito negativo nel successo (80% positivo)
-                        if (outcomeRoll < 0.8) { // 80% Esito positivo
-                            outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkPositivo);
-                             // Ricompensa variabile (risorse, bonus stats temporaneo?)
-                             const bonusType = Math.random() < 0.5 ? 'resource' : 'stat_bonus';
-                             if (bonusType === 'resource') {
-                                 const lootTypes = ['canned_food', 'water_purified_small', 'medicine_crude'];
-                                 const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                                 const lootQty = getRandomInt(1,2); // Lasciamo 1-2 qui? O aumentiamo? Per ora lascio 1-2
-                                 addItemToInventory(lootId, lootQty);
-                                 outcomeConsequences = `La tua azione è stata ricompensata: ${lootQty} ${ITEM_DATA[lootId].name}!`;
-                             } else {
-                                 const statBonus = 1;
-                                 playerStats.adattamento += statBonus; // Bonus Adattamento
-                                 renderStats();
-                                 outcomeConsequences = `Hai agito correttamente. Ti senti più forte. (Adattamento +${statBonus})`;
-                             }
-                        } else { // 20% Esito negativo
-                            outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkNegativo);
-                             // Penalità variabile (danno lieve, perdita risorse?)
-                             const penaltyType = Math.random() < 0.6 ? 'damage' : 'resource_loss';
-                             if (penaltyType === 'damage') {
-                                 const damage = getRandomInt(1, 3);
-                                 player.hp -= damage;
-                                 player.isInjured = true;
-                                 outcomeConsequences = `Il tuo intervento è andato male. Subisci ${damage} danni.`;
-                                 if (player.hp <= 0) endGame(false);
-                             } else {
-                                 const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
-                                 const lossAmount = 1;
-                                 if (player[resourceLoss] >= lossAmount) {
-                                     player[resourceLoss] -= lossAmount;
-                                     outcomeConsequences = `Nella confusione, perdi ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
-                                 } else {
-                                     outcomeConsequences = "Il tuo intervento è andato male, ma non subisci perdite immediate.";
+        let finalOutcomeDescription = outcomeDescription;
+        let rewardConsequences = "";
+        let rewardMessageType = 'info';
+
+        if (choice.outcome) {
+            const outcomeText = Array.isArray(choice.outcome) ? getRandomText(choice.outcome) : "";
+            finalOutcomeDescription += outcomeText ? ` ${outcomeText}` : "";
+
+            const rewardResult = applyChoiceReward(choice.successReward);
+            rewardConsequences = rewardResult.consequences;
+            rewardMessageType = rewardResult.messageType;
+            if (rewardConsequences) {
+                finalOutcomeDescription += `\n${rewardConsequences}`;
+            }
+            if (rewardMessageType !== 'info') {
+                 messageType = rewardMessageType;
+            }
+            addMessage(`${baseEventTitle}: ${choice.text}. ${outcomeDescription}${rewardConsequences}`, messageType, true);
+            buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, null, null, messageType);
+
+        } else if (choice.skillCheck) {
+            if (!choice.skillCheck || typeof choice.skillCheck.stat === 'undefined' || typeof choice.skillCheck.difficulty === 'undefined') {
+                throw new Error(`Dati skillCheck mancanti o non validi per la scelta: ${choice.text}`);
+            }
+            const checkResult = performSkillCheck(choice.skillCheck.stat, choice.skillCheck.difficulty);
+            outcomeCheckDetails = checkResult.text;
+
+            if (checkResult.success) {
+                outcomeTitle = "Successo!";
+                messageType = 'success';
+                switch (eventType) {
+                    case 'PREDATOR':
+                        if (choice.actionKey === 'fuga') {
+                            outcomeDescription = getRandomText(esitiFugaPredoniOk);
+                            outcomeConsequences = "Sei riuscito a fuggire senza conseguenze.";
+                        } else if (choice.actionKey === 'lotta') {
+                            outcomeDescription = getRandomText(esitiLottaPredoniOk);
+                            let lootChance = 0.5;
+                            if (Math.random() < lootChance) {
+                               const lootTypes = ['food', 'water', 'scrap_metal', 'bandages_dirty', 'bandages_clean', 'vitamins'];
+                               const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
+                               const lootQty = getRandomInt(1,3);
+                               addItemToInventory(lootId, lootQty);
+                               const lootItemInfo = ITEM_DATA[lootId];
+                               if (!lootItemInfo) throw new Error(`ITEM_DATA mancante per ID: ${lootId}`);
+                               outcomeConsequences = `Li hai respinti! Trovi ${lootQty} ${lootItemInfo.name} tra le loro cose.`;
+                            } else {
+                                outcomeConsequences = "Li hai respinti! Si ritirano senza lasciare nulla.";
+                            }
+                        } else if (choice.actionKey === 'parla') {
+                            outcomeDescription = getRandomText(esitiParlaPredoniOk);
+                            outcomeConsequences = "Sei riuscito a convincerli a lasciarti in pace.";
+                            if (Math.random() < 0.20) {
+                                findLoreFragment();
+                                outcomeConsequences += " Nella conversazione, scopri qualcosa di interessante.";
+                            }
+                        }
+                        break;
+                    case 'ANIMAL':
+                        if (choice.actionKey === 'evita') {
+                            outcomeDescription = getRandomText(esitiEvitaAnimaleOk);
+                            outcomeConsequences = "Sei riuscito ad evitare l'animale senza attirare la sua attenzione.";
+                        } else if (choice.actionKey === 'attacca') {
+                            outcomeDescription = getRandomText(esitiAttaccoAnimaleOk);
+                            let foodAmount = getRandomInt(1, 3);
+                            addItemToInventory('canned_food', foodAmount);
+                            outcomeConsequences = `Hai sconfitto ${currentEventContext.context?.animalType || 'l\'animale'}! Raccogli ${foodAmount} unità di cibo (carne).`;
+                        }
+                        break;
+                    case 'TRACKS':
+                        if (choice.actionKey === 'segui') {
+                            const outcomeRoll = Math.random();
+                            if (outcomeRoll < 0.4) { // 40% Loot
+                                outcomeDescription = getRandomText(descrizioniTracceLoot);
+                                const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
+                                const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
+                                const lootQty = getRandomInt(1,3);
+                                addItemToInventory(lootId, lootQty);
+                                outcomeConsequences = `Le tracce ti portano a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
+                            } else if (outcomeRoll < 0.65) { // 25% Lore
+                                outcomeDescription = getRandomText(descrizioniTracceLore);
+                                findLoreFragment();
+                                outcomeConsequences = "Hai scoperto un frammento del passato.";
+                            } else if (outcomeRoll < 0.85) { // 20% Pericolo (Predoni)
+                                outcomeDescription = getRandomText(descrizioniTracceDanger);
+                                outcomeConsequences = "Le tracce ti hanno condotto dritto in un'imboscata!";
+                                 addMessage("Senti un fischio e delle figure emergono dalle ombre!", 'danger', true);
+                            } else { // 15% Nulla
+                                outcomeDescription = getRandomText(descrizioniTracceNothing);
+                                outcomeConsequences = "Le tracce non hanno portato a nulla di utile.";
+                            }
+                        }
+                        break;
+                    case 'VILLAGE_HOSTILE':
+                        if (choice.actionKey === 'negozia') {
+                             outcomeDescription = getRandomText(esitiVillaggioOstileNegoziaOk);
+                             outcomeConsequences = "Sei riuscito a passare senza incidenti.";
+                        }
+                        break;
+                    case 'ENVIRONMENTAL':
+                            outcomeDescription = getRandomText(esitiPericoloAmbientaleEvitato);
+                            outcomeConsequences = "Sei riuscito ad evitare il pericolo senza conseguenze!";
+                            break;
+                    case 'DILEMMA':
+                            if (choice.actionKey === 'intervieni') {
+                                const outcomeRoll = Math.random();
+                                if (outcomeRoll < 0.8) { // 80% Esito positivo
+                                    outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkPositivo);
+                                     const bonusType = Math.random() < 0.5 ? 'resource' : 'stat_bonus';
+                                     if (bonusType === 'resource') {
+                                         const lootTypes = ['canned_food', 'water_purified_small', 'medicine_crude'];
+                                         const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
+                                         const lootQty = getRandomInt(1,2);
+                                         addItemToInventory(lootId, lootQty);
+                                         outcomeConsequences = `La tua azione è stata ricompensata: ${lootQty} ${ITEM_DATA[lootId].name}!`;
+                                     } else {
+                                         const statBonus = 1;
+                                         playerStats.adattamento += statBonus; // Bonus Adattamento
+                                         renderStats();
+                                         outcomeConsequences = `Hai agito correttamente. Ti senti più forte. (Adattamento +${statBonus})`;
+                                     }
+                                } else { // 20% Esito negativo
+                                    outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaOkNegativo);
+                                     // Penalità variabile (danno lieve, perdita risorse?)
+                                     const penaltyType = Math.random() < 0.6 ? 'damage' : 'resource_loss';
+                                     if (penaltyType === 'damage') {
+                                         const damage = getRandomInt(1, 3);
+                                         player.hp -= damage;
+                                         player.isInjured = true;
+                                         outcomeConsequences = `Il tuo intervento è andato male. Subisci ${damage} danni.`;
+                                         if (player.hp <= 0) endGame(false);
+                                     } else {
+                                         const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                         const lossAmount = 1;
+                                         if (player[resourceLoss] >= lossAmount) {
+                                             player[resourceLoss] -= lossAmount;
+                                             outcomeConsequences = `Nella confusione, perdi ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
+                                         } else {
+                                             outcomeConsequences = "Il tuo intervento è andato male, ma non subisci perdite immediate.";
+                                         }
+                                     }
+                                     renderStats();
+                                }
+                            }
+                            break;
+
+                         case 'SHELTER_INSPECT':
+                             if (choice.actionKey === 'ispeziona') {
+                                 const findRoll = Math.random();
+                                 if (findRoll < 0.5) { // 50% Loot
+                                    outcomeDescription = getRandomText(esitiRifugioIspezionaOkLoot);
+                                     // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
+                                     const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
+                                     const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
+                                     const lootQty = getRandomInt(1,3);
+                                     addItemToInventory(lootId, lootQty);
+                                     outcomeConsequences = `La tua ispezione porta a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
+                                 } else if (findRoll < 0.75) { // 25% Lore -> Ora 50% -> 75%
+                                    outcomeDescription = getRandomText(esitiRifugioIspezionaOkLore);
+                                     findLoreFragment();
+                                     outcomeConsequences = "Scopri qualcosa di interessante sul passato di questo luogo.";
+                                 } else { // 25% Nulla -> Ora 75% -> 100%
+                                    outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla); // Rinominato per coerenza? No, è OK
+                                     outcomeConsequences = "Non trovi nulla di particolare.";
                                  }
                              }
-                             renderStats();
-                        }
-                    }
-                    break;
-                
-                 case 'SHELTER_INSPECT':
-                     if (choice.actionKey === 'ispeziona') {
-                         const findRoll = Math.random();
-                         if (findRoll < 0.5) { // 50% Loot
-                            outcomeDescription = getRandomText(esitiRifugioIspezionaOkLoot);
-                             // Aggiunti 'bandages_clean' e 'vitamins' alla lista loot
-                             const lootTypes = ['canned_food', 'water_purified_small', 'scrap_metal', 'bandages_dirty', 'medicine_crude', 'bandages_clean', 'vitamins'];
-                             const lootId = lootTypes[Math.floor(Math.random() * lootTypes.length)];
-                             const lootQty = getRandomInt(1,3);
-                             addItemToInventory(lootId, lootQty);
-                             outcomeConsequences = `La tua ispezione porta a: ${lootQty} ${ITEM_DATA[lootId].name}!`;
-                         } else if (findRoll < 0.75) { // 25% Lore -> Ora 50% -> 75%
-                            outcomeDescription = getRandomText(esitiRifugioIspezionaOkLore);
-                             findLoreFragment();
-                             outcomeConsequences = "Scopri qualcosa di interessante sul passato di questo luogo.";
-                         } else { // 25% Nulla -> Ora 75% -> 100%
-                            outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla); // Rinominato per coerenza? No, è OK
-                             outcomeConsequences = "Non trovi nulla di particolare.";
-                         }
-                     }
-                     break;
+                             break;
 
-                case 'HORROR':
-                    if (choice.actionKey === 'fuga') {
-                        outcomeDescription = getRandomText(esitiOrroreIndicibileFugaOk);
-                        outcomeConsequences = "Riesci a fuggire dall'orrore, anche se con il fiato corto e la mente scossa.";
-                    } else if (choice.actionKey === 'affronta') {
-                        outcomeDescription = getRandomText(esitiOrroreIndicibileAffrontaOk);
-                        // Bonus significativo all'adattamento per aver affrontato l'orrore
-                        const statGain = 2;
-                        playerStats.adattamento += statGain;
-                        renderStats();
-                        outcomeConsequences = `Affronti l'indicibile e ne esci più forte. (Adattamento +${statGain})`;
-                    }
-                    break;
-                        
-                default:
-                    // Fallback per eventi specifici del tile (non complessi)
-                    outcomeDescription = choice.successText || "Ce l'hai fatta!"; 
-                    finalOutcomeDescription = outcomeDescription; // Inizia la descrizione finale
+                        case 'HORROR':
+                            if (choice.actionKey === 'fuga') {
+                                outcomeDescription = getRandomText(esitiOrroreIndicibileFugaOk);
+                                outcomeConsequences = "Riesci a fuggire dall'orrore, anche se con il fiato corto e la mente scossa.";
+                            } else if (choice.actionKey === 'affronta') {
+                                outcomeDescription = getRandomText(esitiOrroreIndicibileAffrontaOk);
+                                // Bonus significativo all'adattamento per aver affrontato l'orrore
+                                const statGain = 2;
+                                playerStats.adattamento += statGain;
+                                renderStats();
+                                outcomeConsequences = `Affronti l'indicibile e ne esci più forte. (Adattamento +${statGain})`;
+                            }
+                            break;
 
-                    // Applica la ricompensa generica qui usando l'helper
-                    const defaultRewardResult = applyChoiceReward(choice.successReward);
-                    rewardConsequences = defaultRewardResult.consequences;
-                    rewardMessageType = defaultRewardResult.messageType;
+                        default:
+                            // Fallback per eventi specifici del tile (non complessi)
+                            outcomeDescription = choice.successText || "Ce l'hai fatta!";
+                            finalOutcomeDescription = outcomeDescription; // Inizia la descrizione finale
 
-                    if (rewardConsequences) {
-                        finalOutcomeDescription += `\n${rewardConsequences}`; // Aggiunge conseguenze alla descr. popup
-                    }
-                    if (rewardMessageType !== 'info') {
-                         messageType = rewardMessageType; // Sovrascrive tipo messaggio se necessario
-                    }
-            }
-            // outcomeConsequences (la variabile locale di handleEventChoice) potrebbe essere stata riempita
-            // dai case specifici dello switch. La aggiungiamo alla descrizione finale se presente.
-             if (outcomeConsequences && !finalOutcomeDescription.includes(outcomeConsequences)) {
-                 finalOutcomeDescription += `\n${outcomeConsequences}`;
-             }
+                            // Applica la ricompensa generica qui usando l'helper
+                            const defaultRewardResult = applyChoiceReward(choice.successReward);
+                            rewardConsequences = defaultRewardResult.consequences;
+                            rewardMessageType = defaultRewardResult.messageType;
 
-        } else {
-            // --- Fallimento check abilità --- 
-            outcomeTitle = "Fallimento...";
-            messageType = 'warning';
-            
-             // Logica Esito Fallimento Evento Complesso
-             switch (eventType) {
-                case 'PREDATOR':
-                    if (choice.actionKey === 'fuga') {
-                        outcomeDescription = getRandomText(esitiFugaPredoniKo);
-                         // Danno lieve e possibile perdita risorse
-                         const damage = getRandomInt(2, 5);
-                         player.hp -= damage;
-                         player.isInjured = true;
-                         outcomeConsequences = `Non riesci a fuggire! Subisci ${damage} danni.`;
-                         const resourceLossRoll = Math.random();
-                         if(resourceLossRoll < 0.3) {
-                            const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
-                            const lossAmount = 1;
-                             if (player[resourceLoss] >= lossAmount) {
-                                 player[resourceLoss] -= lossAmount;
-                                 outcomeConsequences += ` Nella fuga perdi ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
-                             }
-                         }
-                    } else if (choice.actionKey === 'lotta') {
-                        outcomeDescription = getRandomText(esitiLottaPredoniKo);
-                        // Danno moderato/grave e perdita garantita risorse
-                        const damage = getRandomInt(5, 12);
-                        player.hp -= damage;
-                        player.isInjured = true;
-                        outcomeConsequences = `Sei sopraffatto! Subisci ${damage} danni.`;
-                        const resourceLossFood = getRandomInt(0, Math.min(player.food, 2)); // Perde 0-2 cibo
-                        const resourceLossWater = getRandomInt(0, Math.min(player.water, 2)); // Perde 0-2 acqua
-                        if (resourceLossFood > 0) {
-                            player.food -= resourceLossFood;
-                            outcomeConsequences += ` Ti rubano ${resourceLossFood} unità di cibo.`;
-                        }
-                         if (resourceLossWater > 0) {
-                             player.water -= resourceLossWater;
-                             outcomeConsequences += ` Ti rubano ${resourceLossWater} unità di acqua.`;
-                         }
-                    } else if (choice.actionKey === 'parla') {
-                        outcomeDescription = getRandomText(esitiParlaPredoniKo);
-                        // Tentativo di parlare fallito spesso porta a lotta
-                        outcomeConsequences = "Le tue parole non hanno effetto, si preparano ad attaccare!";
-                         // Potrebbe triggerare un attacco immediato o dare chance di fuga/lotta
-                         // Per semplicità, ora solo messaggio, ma potrebbe scalare a `esitiLottaPredoniKo`.
-                         const damage = getRandomInt(1, 4); // Danno lieve iniziale
-                         player.hp -= damage;
-                         player.isInjured = true;
-                         outcomeConsequences += ` Ti colpiscono mentre cerchi di parlare (-${damage} HP).`;
-                         // Punto 5: Aggiunta chance (25%) di perdita risorse nel fallimento
-                         if (Math.random() < 0.25) {
-                             const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
-                             const lossAmount = 1;
-                              if (player[resourceLoss] >= lossAmount) {
-                                  player[resourceLoss] -= lossAmount;
-                                  outcomeConsequences += ` Nella confusione ti cade ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
-                              }
-                         }
+                            if (rewardConsequences) {
+                                finalOutcomeDescription += `\n${rewardConsequences}`; // Aggiunge conseguenze alla descr. popup
+                            }
+                            if (rewardMessageType !== 'info') {
+                                 messageType = rewardMessageType; // Sovrascrive tipo messaggio se necessario
+                            }
+                            break; // Aggiunto break mancante
                     }
-                     if (player.hp <= 0) endGame(false);
-                     renderStats();
-                    break;
-                        
-                case 'ANIMAL':
-                    if (choice.actionKey === 'evita') {
-                        outcomeDescription = getRandomText(esitiEvitaAnimaleKo);
-                         // Danno lieve da animale scoperto
-                         const damage = getRandomInt(3, 7);
-                         player.hp -= damage;
-                         player.isInjured = true;
-                         outcomeConsequences = `L'animale ti scopre e ti attacca! Subisci ${damage} danni.`;
-                    } else if (choice.actionKey === 'attacca') {
-                        outcomeDescription = getRandomText(esitiAttaccoAnimaleKo);
-                        // Danno moderato da lotta con animale persa
-                        const damage = getRandomInt(6, 15);
-                        player.hp -= damage;
-                        player.isInjured = true;
-                         const sickChance = 0.2; // 20% chance di infezione dal morso/graffio
-                         if (Math.random() < sickChance) {
-                             player.isSick = true;
-                             outcomeConsequences = `Vieni ferito gravemente (${damage} danni) e la ferita sembra infetta! (Stato: Infetto)`;
-                         } else {
-                            outcomeConsequences = `Vieni ferito gravemente (${damage} danni)!`;
-                         }
-                    }
-                     if (player.hp <= 0) endGame(false);
-                     renderStats();
-                    break;
-                        
-                case 'TRACKS':
-                    if (choice.actionKey === 'segui') {
-                        outcomeDescription = getRandomText(esitiSeguiTracceKo);
-                        outcomeConsequences = "Perdi tempo prezioso seguendo tracce sbagliate o confondendoti.";
-                        // Nessun danno diretto, ma perdita di tempo (già gestita se isSearchAction)
-                    }
-                    break;
-                
-                case 'VILLAGE_HOSTILE':
-                    if (choice.actionKey === 'negozia') {
-                         outcomeDescription = getRandomText(esitiVillaggioOstileNegoziaKo);
-                         outcomeConsequences = "Il tentativo di negoziare fallisce miseramente. Ti cacciano via.";
-                         // Possibile lieve danno se insistono
-                         if (Math.random() < 0.2) {
-                             const damage = getRandomInt(1, 3);
-                             player.hp -= damage;
-                             outcomeConsequences += ` Ti lanciano un sasso (-${damage} HP).`;
-                             if (player.hp <= 0) endGame(false);
-                             renderStats();
-                         }
-                    }
-                    break;
-
-                case 'ENVIRONMENTAL':
-                    outcomeDescription = getRandomText(esitiPericoloAmbientaleColpito);
-                     // Danno variabile in base al tipo di pericolo
-                     const damage = getRandomInt(4, 10);
-                     player.hp -= damage;
-                     player.isInjured = true;
-                     outcomeConsequences = `Sei colpito dal pericolo ambientale! Subisci ${damage} danni.`;
-                      // Possibile effetto aggiuntivo (es. veleno, malattia)
-                      const extraEffectChance = 0.15;
-                      if (Math.random() < extraEffectChance) {
-                          player.isSick = true;
-                          outcomeConsequences += ` Potresti esserti infettato. (Stato: Infetto)`;
-                      }
-                     if (player.hp <= 0) endGame(false);
-                     renderStats();
-                    break;
-                        
-                case 'DILEMMA':
-                    if (choice.actionKey === 'intervieni') {
-                         outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaKo);
-                         // Penalità per fallimento intervento
-                         const damage = getRandomInt(3, 8);
-                         player.hp -= damage;
-                         player.isInjured = true;
-                         outcomeConsequences = `Il tuo tentativo di intervento fallisce! Subisci ${damage} danni.`;
-                         if (player.hp <= 0) endGame(false);
-                         renderStats();
-                    }
-                    break;
-                
-                 case 'SHELTER_INSPECT':
-                     if (choice.actionKey === 'ispeziona') {
-                          const failRoll = Math.random();
-                          // Punto 3: Ridotta probabilità trappola (50% invece di 60%)
-                          if (failRoll < 0.5) { // 50% Trappola
-                              outcomeDescription = getRandomText(esitiRifugioIspezionaKoTrappola);
-                               const damage = getRandomInt(5, 12);
-                               player.hp -= damage;
-                               player.isInjured = true;
-                               outcomeConsequences = `Era una trappola! Subisci ${damage} danni.`;
-                                const sickChance = 0.1;
-                                if (Math.random() < sickChance) {
-                                    player.isSick = true;
-                                    outcomeConsequences += ` La trappola potrebbe averti infettato! (Stato: Infetto)`;
-                                }
-                               if (player.hp <= 0) endGame(false);
-                               renderStats();
-                          } else { // 50% Nulla (era 40%)
-                             outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla);
-                              outcomeConsequences = "L'ispezione non rivela nulla, né di buono né di cattivo.";
-                          }
-                     }
-                     break;
-
-                case 'HORROR':
-                    if (choice.actionKey === 'fuga') {
-                        outcomeDescription = getRandomText(esitiOrroreIndicibileFugaKo);
-                         // Danno lieve HP + possibile status negativo temporaneo (paura?)
-                         const damage = getRandomInt(1, 5);
-                         player.hp -= damage;
-                         outcomeConsequences = `Non riesci a fuggire dall'orrore! Subisci ${damage} danni alla tua sanità mentale (HP).`;
-                         // TODO: Implementare status 'Paura' o simili?
-                    } else if (choice.actionKey === 'affronta') {
-                        outcomeDescription = getRandomText(esitiOrroreIndicibileAffrontaKo);
-                        // Danno HP significativo + status negativo (Follia temporanea?)
-                        const damage = getRandomInt(5, 15);
-                        player.hp -= damage * 2; // Danno raddoppiato per fallimento confronto diretto
-                         player.isSick = true; // Rappresenta trauma/follia temporanea
-                        outcomeConsequences = `L'orrore ti sopraffà! Subisci ${damage * 2} danni alla sanità (HP). La tua mente è scossa. (Stato: Infetto/Traumatizzato)`;
-                    }
-                     if (player.hp <= 0) endGame(false);
-                     renderStats();
-                    break;
-                        
-                default:
-                    // Fallback per eventi specifici del tile (non complessi)
-                    outcomeDescription = choice.failureText || "Non è andata bene..."; 
-                    finalOutcomeDescription = outcomeDescription; // Descrizione finale per il popup
-                    // outcomeConsequences rimane quella definita nei case sopra (se presente)
+                    // outcomeConsequences (la variabile locale di handleEventChoice) potrebbe essere stata riempita
+                    // dai case specifici dello switch. La aggiungiamo alla descrizione finale se presente.
                      if (outcomeConsequences && !finalOutcomeDescription.includes(outcomeConsequences)) {
                          finalOutcomeDescription += `\n${outcomeConsequences}`;
                      }
-            }
-        }
 
-        // Mostra il popup di risultato (costruito sopra)
-        // Log messaggio (spostato qui per loggare l'esito completo)
-        addMessage(`${baseEventTitle}: ${outcomeTitle}. ${outcomeDescription}${outcomeConsequences}${rewardConsequences}`, messageType, true);
-        buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, outcomeCheckDetails, null, messageType);
+                } else {
+                    // --- Fallimento check abilità ---
+                    outcomeTitle = "Fallimento...";
+                    messageType = 'warning';
+
+                     // Logica Esito Fallimento Evento Complesso
+                     switch (eventType) {
+                        case 'PREDATOR':
+                            if (choice.actionKey === 'fuga') {
+                                outcomeDescription = getRandomText(esitiFugaPredoniKo);
+                                 // Danno lieve e possibile perdita risorse
+                                 const damage = getRandomInt(2, 5);
+                                 player.hp -= damage;
+                                 player.isInjured = true;
+                                 outcomeConsequences = `Non riesci a fuggire! Subisci ${damage} danni.`;
+                                 const resourceLossRoll = Math.random();
+                                 if(resourceLossRoll < 0.3) {
+                                    const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                    const lossAmount = 1;
+                                     if (player[resourceLoss] >= lossAmount) {
+                                         player[resourceLoss] -= lossAmount;
+                                         outcomeConsequences += ` Nella fuga perdi ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
+                                     }
+                                 }
+                            } else if (choice.actionKey === 'lotta') {
+                                outcomeDescription = getRandomText(esitiLottaPredoniKo);
+                                // Danno moderato/grave e perdita garantita risorse
+                                const damage = getRandomInt(5, 12);
+                                player.hp -= damage;
+                                player.isInjured = true;
+                                outcomeConsequences = `Sei sopraffatto! Subisci ${damage} danni.`;
+                                const resourceLossFood = getRandomInt(0, Math.min(player.food, 2)); // Perde 0-2 cibo
+                                const resourceLossWater = getRandomInt(0, Math.min(player.water, 2)); // Perde 0-2 acqua
+                                if (resourceLossFood > 0) {
+                                    player.food -= resourceLossFood;
+                                    outcomeConsequences += ` Ti rubano ${resourceLossFood} unità di cibo.`;
+                                }
+                                 if (resourceLossWater > 0) {
+                                     player.water -= resourceLossWater;
+                                     outcomeConsequences += ` Ti rubano ${resourceLossWater} unità di acqua.`;
+                                 }
+                            } else if (choice.actionKey === 'parla') {
+                                outcomeDescription = getRandomText(esitiParlaPredoniKo);
+                                // Tentativo di parlare fallito spesso porta a lotta
+                                outcomeConsequences = "Le tue parole non hanno effetto, si preparano ad attaccare!";
+                                 // Potrebbe triggerare un attacco immediato o dare chance di fuga/lotta
+                                 // Per semplicità, ora solo messaggio, ma potrebbe scalare a `esitiLottaPredoniKo`.
+                                 const damage = getRandomInt(1, 4); // Danno lieve iniziale
+                                 player.hp -= damage;
+                                 player.isInjured = true;
+                                 outcomeConsequences += ` Ti colpiscono mentre cerchi di parlare (-${damage} HP).`;
+                                 // Punto 5: Aggiunta chance (25%) di perdita risorse nel fallimento
+                                 if (Math.random() < 0.25) {
+                                     const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                     const lossAmount = 1;
+                                      if (player[resourceLoss] >= lossAmount) {
+                                          player[resourceLoss] -= lossAmount;
+                                          outcomeConsequences += ` Nella confusione ti cade ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
+                                      }
+                                 }
+                            }
+                             if (player.hp <= 0) endGame(false);
+                             renderStats();
+                            break;
+
+                        case 'ANIMAL':
+                            if (choice.actionKey === 'evita') {
+                                outcomeDescription = getRandomText(esitiEvitaAnimaleKo);
+                                 // Danno lieve da animale scoperto
+                                 const damage = getRandomInt(3, 7);
+                                 player.hp -= damage;
+                                 player.isInjured = true;
+                                 outcomeConsequences = `L'animale ti scopre e ti attacca! Subisci ${damage} danni.`;
+                            } else if (choice.actionKey === 'attacca') {
+                                outcomeDescription = getRandomText(esitiAttaccoAnimaleKo);
+                                // Danno moderato da lotta con animale persa
+                                const damage = getRandomInt(6, 15);
+                                player.hp -= damage;
+                                player.isInjured = true;
+                                 const sickChance = 0.2; // 20% chance di infezione dal morso/graffio
+                                 if (Math.random() < sickChance) {
+                                     player.isSick = true;
+                                     outcomeConsequences = `Vieni ferito gravemente (${damage} danni) e la ferita sembra infetta! (Stato: Infetto)`;
+                                 } else {
+                                    outcomeConsequences = `Vieni ferito gravemente (${damage} danni)!`;
+                                 }
+                            }
+                             if (player.hp <= 0) endGame(false);
+                             renderStats();
+                            break;
+
+                        case 'TRACKS':
+                            if (choice.actionKey === 'segui') {
+                                outcomeDescription = getRandomText(esitiSeguiTracceKo);
+                                outcomeConsequences = "Perdi tempo prezioso seguendo tracce sbagliate o confondendoti.";
+                                // Nessun danno diretto, ma perdita di tempo (già gestita se isSearchAction)
+                            }
+                            break;
+
+                        case 'VILLAGE_HOSTILE':
+                            if (choice.actionKey === 'negozia') {
+                                 outcomeDescription = getRandomText(esitiVillaggioOstileNegoziaKo);
+                                 outcomeConsequences = "Il tentativo di negoziare fallisce miseramente. Ti cacciano via.";
+                                 // Possibile lieve danno se insistono
+                                 if (Math.random() < 0.2) {
+                                     const damage = getRandomInt(1, 3);
+                                     player.hp -= damage;
+                                     outcomeConsequences += ` Ti lanciano un sasso (-${damage} HP).`;
+                                     if (player.hp <= 0) endGame(false);
+                                     renderStats();
+                                 }
+                            }
+                            break;
+
+                        case 'ENVIRONMENTAL':
+                            outcomeDescription = getRandomText(esitiPericoloAmbientaleColpito);
+                             // Danno variabile in base al tipo di pericolo
+                             const damage = getRandomInt(4, 10);
+                             player.hp -= damage;
+                             player.isInjured = true;
+                             outcomeConsequences = `Sei colpito dal pericolo ambientale! Subisci ${damage} danni.`;
+                              // Possibile effetto aggiuntivo (es. veleno, malattia)
+                              const extraEffectChance = 0.15;
+                              if (Math.random() < extraEffectChance) {
+                                  player.isSick = true;
+                                  outcomeConsequences += ` Potresti esserti infettato. (Stato: Infetto)`;
+                              }
+                             if (player.hp <= 0) endGame(false);
+                             renderStats();
+                            break;
+
+                        case 'DILEMMA':
+                            if (choice.actionKey === 'intervieni') {
+                                 outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaKo);
+                                 // Penalità per fallimento intervento
+                                 const damage = getRandomInt(3, 8);
+                                 player.hp -= damage;
+                                 player.isInjured = true;
+                                 outcomeConsequences = `Il tuo tentativo di intervento fallisce! Subisci ${damage} danni.`;
+                                 if (player.hp <= 0) endGame(false);
+                                 renderStats();
+                            }
+                            break;
+
+                         case 'SHELTER_INSPECT':
+                             if (choice.actionKey === 'ispeziona') {
+                                  const failRoll = Math.random();
+                                  // Punto 3: Ridotta probabilità trappola (50% invece di 60%)
+                                  if (failRoll < 0.5) { // 50% Trappola
+                                      outcomeDescription = getRandomText(esitiRifugioIspezionaKoTrappola);
+                                       const damage = getRandomInt(5, 12);
+                                       player.hp -= damage;
+                                       player.isInjured = true;
+                                       outcomeConsequences = `Era una trappola! Subisci ${damage} danni.`;
+                                        const sickChance = 0.1;
+                                        if (Math.random() < sickChance) {
+                                            player.isSick = true;
+                                            outcomeConsequences += ` La trappola potrebbe averti infettato! (Stato: Infetto)`;
+                                        }
+                                       if (player.hp <= 0) endGame(false);
+                                       renderStats();
+                                  } else { // 50% Nulla (era 40%)
+                                     outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla);
+                                      outcomeConsequences = "L'ispezione non rivela nulla, né di buono né di cattivo.";
+                                  }
+                             }
+                             break;
+
+                        case 'HORROR':
+                            if (choice.actionKey === 'fuga') {
+                                outcomeDescription = getRandomText(esitiOrroreIndicibileFugaKo);
+                                 // Danno lieve HP + possibile status negativo temporaneo (paura?)
+                                 const damage = getRandomInt(1, 5);
+                                 player.hp -= damage;
+                                 outcomeConsequences = `Non riesci a fuggire dall'orrore! Subisci ${damage} danni alla tua sanità mentale (HP).`;
+                                 // TODO: Implementare status 'Paura' o simili?
+                            } else if (choice.actionKey === 'affronta') {
+                                outcomeDescription = getRandomText(esitiOrroreIndicibileAffrontaKo);
+                                // Danno HP significativo + status negativo (Follia temporanea?)
+                                const damage = getRandomInt(5, 15);
+                                player.hp -= damage * 2; // Danno raddoppiato per fallimento confronto diretto
+                                 player.isSick = true; // Rappresenta trauma/follia temporanea
+                                outcomeConsequences = `L'orrore ti sopraffà! Subisci ${damage * 2} danni alla sanità (HP). La tua mente è scossa. (Stato: Infetto/Traumatizzato)`;
+                            }
+                             if (player.hp <= 0) endGame(false);
+                             renderStats();
+                            break;
+
+                        default:
+                            // Fallback per eventi specifici del tile (non complessi)
+                            outcomeDescription = choice.failureText || "Non è andata bene...";
+                            finalOutcomeDescription = outcomeDescription; // Descrizione finale per il popup
+                            // outcomeConsequences rimane quella definita nei case sopra (se presente)
+                             if (outcomeConsequences && !finalOutcomeDescription.includes(outcomeConsequences)) {
+                                 finalOutcomeDescription += `\n${outcomeConsequences}`;
+                             }
+                             break; // Aggiunto break mancante
+                    }
+                }
+
+                // Mostra il popup di risultato (costruito sopra)
+                // Log messaggio (spostato qui per loggare l'esito completo)
+                addMessage(`${baseEventTitle}: ${outcomeTitle}. ${outcomeDescription}${outcomeConsequences}${rewardConsequences}`, messageType, true);
+                buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeDescription, outcomeCheckDetails, null, messageType);
+
+            // } // <-- Questa parentesi graffa sembrava errata e causava il problema. Rimuovendola, il blocco if/else si chiude correttamente.
+
+        } // <-- Chiusura di 'else if (choice.skillCheck)'
+
+        // Assicuriamoci che renderStats() sia l'ultima istruzione DENTRO il blocco try
+        renderStats();
+
+    } // <-- Questa è la parentesi graffa che chiude il blocco try
+    catch (error) { // Il catch inizia SUBITO DOPO la chiusura del try
+        console.error("Errore grave durante handleEventChoice:", error);
+        addMessage(`Si è verificato un errore interno nell\'evento: ${error.message}`, "danger", true);
+        closeEventPopup();
     }
-
-    renderStats();
-}
+} // Chiusura funzione handleEventChoice
 
 /**
  * Costruisce e mostra il popup di risultato per un evento (anche complesso).
@@ -1783,14 +1813,15 @@ function closeEventPopup() {
     // console.log("closeEventPopup INIZIO - Stato Pausa Precedente:", gamePaused); // RIMOSSO DEBUG LOG
     if(gameContainer) gameContainer.classList.remove('overlay-active');
     if(eventOverlay) eventOverlay.classList.remove('visible');
-    eventScreenActive = false; 
-    gamePaused = false; 
-    currentEventContext = null; 
-    currentEventChoices = null; 
-    document.removeEventListener('keydown', handleEventKeyPress); 
-    document.addEventListener('keydown', handleKeyPress); 
-    renderStats(); 
-    enableControls(); 
+    eventScreenActive = false;
+    gamePaused = false;
+    currentEventContext = null;
+    currentEventChoices = null;
+    document.removeEventListener('keydown', handleEventKeyPress);
+    document.addEventListener('keydown', handleKeyPress);
+    renderStats();
+    renderMap(); // <-- AGGIUNTO: Assicura che la mappa sia ridisegnata dopo la chiusura del popup
+    enableControls();
     // console.log("closeEventPopup FINE - Stato Pausa:", gamePaused, "Overlay visibile:", eventOverlay.classList.contains('visible')); // RIMOSSO DEBUG LOG
 }
 
@@ -1813,7 +1844,7 @@ function handleEventKeyPress(e) {
 }
 
 
-// --- GESTIONE INPUT --- 
+// --- GESTIONE INPUT ---
 
 /**
  * Gestisce la pressione dei tasti per il movimento e altre azioni.
@@ -1831,7 +1862,7 @@ function handleKeyPress(event) {
         }
     }
     // console.log(`handleKeyPress Tentativo: ${event.key.toUpperCase()}. Gioco Attivo: ${gameActive}, Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
- 
+
     // --- RIMOSSO LOG: Verifica Stato Gioco ---
     // console.log(`>>> handleKeyPress: Verifico stato - gameActive: ${gameActive}, gamePaused: ${gamePaused}`);
 
@@ -1878,7 +1909,7 @@ function handleKeyPress(event) {
 function setupInputListeners() {
     // Listener per la tastiera
     // console.log(">>> setupInputListeners: Aggiungo listener keydown a document"); // RIMOSSO LOG
-    document.removeEventListener('keydown', handleKeyPress); 
+    document.removeEventListener('keydown', handleKeyPress);
     document.addEventListener('keydown', handleKeyPress);
 
     // Listener per click sull'inventario (event delegation)
@@ -1897,7 +1928,7 @@ function setupInputListeners() {
         inventoryButton.addEventListener('click', () => {
              console.log("Azione: Inventario Bottone (da implementare - es. toggle visibilità pannello?)");
         });
-    } 
+    }
     */
 
     // TODO: Aggiungere listener per i pulsanti su schermo se necessario,
@@ -1947,7 +1978,7 @@ function showItemActionPopup(itemId) {
         choices: popupChoices // Passa le scelte con le azioni associate
     });
 
-    // --- NUOVO: Aggiungi listener QUI, DOPO aver chiamato showEventPopup --- 
+    // --- NUOVO: Aggiungi listener QUI, DOPO aver chiamato showEventPopup ---
     if (eventChoicesContainer) {
         // console.log("Aggiungo listener a eventChoicesContainer da showItemActionPopup"); // RIMOSSO Log
         eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick); // Rimuovi eventuali listener precedenti per sicurezza
@@ -1966,7 +1997,7 @@ function useItem(itemId) {
     // console.log(`useItem INIZIO - itemId: ${itemId}, Stato Pausa: ${gamePaused}`); // RIMOSSO DEBUG LOG
     const itemInfo = ITEM_DATA[itemId];
     const itemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
- 
+
     // Verifica esistenza, usabilità e quantità
     if (!itemInfo || !itemInfo.usable || itemIndex === -1) {
         console.error(`useItem: Impossibile usare l'oggetto ${itemId}. Non trovato, non usabile o non nell'inventario.`);
@@ -1976,11 +2007,11 @@ function useItem(itemId) {
         // console.log(`useItem ERRORE - itemId: ${itemId}, Chiamata closeEventPopup() effettuata.`); // DEBUG LOG
         return;
     }
- 
+
     const itemSlot = player.inventory[itemIndex];
     let message = `Hai usato ${itemInfo.name}.`;
     let effectAppliedSuccessfully = false; // Indica se l'effetto ha avuto successo (es. rimozione status)
- 
+
     // Applica effetto
     if (itemInfo.effect) {
         const effect = itemInfo.effect;
@@ -2049,13 +2080,13 @@ function useItem(itemId) {
                         message += " Ma non ne avevi bisogno.";
                     }
                     break;
-                
+
                 // --- NUOVO CASE per HEAL_HP ---
                 case 'heal_hp':
                     const minHeal = effect.amount_min || 1; // Fallback a 1 se non definito
                     const maxHeal = effect.amount_max || minHeal; // Fallback a minHeal se non definito
                     const healAmount = getRandomInt(minHeal, maxHeal); // Calcola HP casuali nel range
-                    
+
                     const hpBeforeHeal = player.hp;
                     player.hp = Math.min(player.maxHp, player.hp + healAmount);
                     const hpActuallyHealed = Math.round((player.hp - hpBeforeHeal) * 10) / 10; // Arrotonda
@@ -2184,7 +2215,7 @@ function checkForLoreFragment() {
 function triggerComplexEvent(tile) {
     if (eventScreenActive || !gameActive || !tile) return;
     if (tile.type === TILE_SYMBOLS.START || tile.type === TILE_SYMBOLS.END) return;
-    
+
     // Non attivare eventi complessi nei rifugi (sono sicuri)
     const tileKey = Object.keys(TILE_SYMBOLS).find(k => TILE_SYMBOLS[k] === tile.type);
     if ([TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.CITY, TILE_SYMBOLS.REST_STOP].includes(tile.type)) {
@@ -2192,13 +2223,13 @@ function triggerComplexEvent(tile) {
         // Per ora, disabilitiamo eventi complessi generici nei rifugi.
         // Gli eventi specifici del tile (es. cercare nel villaggio) possono comunque attivarsi.
         return;
-    } 
+    }
 
     // Controlla probabilità base evento complesso
     if (Math.random() < COMPLEX_EVENT_CHANCE) {
         let eventType = chooseWeightedEventType();
-        
-        // --- Logica Selezione Tipo Evento --- 
+
+        // --- Logica Selezione Tipo Evento ---
         let eventDescription = "";
         let eventChoices = [];
         let eventTitle = "Qualcosa Accade...";
@@ -2375,7 +2406,7 @@ function chooseWeightedEventType() {
     return 'ANIMAL'; // Fallback predefinito
 }
 
-// --- AVVIO GIOCO --- 
+// --- AVVIO GIOCO ---
 
 window.onload = function() {
     try {
@@ -2390,7 +2421,7 @@ window.onload = function() {
 // --- NUOVA FUNZIONE PER MESSAGGI DI STATO ---
 
 /**
- * Controlla lo stato del giocatore (fame, sete, ferite, malattia) 
+ * Controlla lo stato del giocatore (fame, sete, ferite, malattia)
  * e aggiunge messaggi descrittivi casuali al log se necessario.
  */
 function checkAndLogStatusMessages() {
@@ -2416,7 +2447,7 @@ function checkAndLogStatusMessages() {
          const msg = getRandomText(STATO_MESSAGGI.INFETTO);
          if(msg) addMessage(msg, 'warning');
     }
-    
+
     // Messaggio Morente (se HP bassi)
     const dyingThreshold = player.maxHp * 0.25; // Es. sotto il 25% HP
     if (player.hp <= dyingThreshold && player.hp > 0) { // Solo se non già morto
@@ -2553,7 +2584,7 @@ function handleChoiceContainerClick(event) {
 
     // Determina il tipo di azione dal data attribute
     if (clickedButton.dataset.choiceIndex !== undefined) {
-        // --- Gestione Scelta Evento Standard --- 
+        // --- Gestione Scelta Evento Standard ---
         const choiceIndex = parseInt(clickedButton.dataset.choiceIndex, 10);
         // Rimuoviamo il listener PRIMA di chiamare handleEventChoice,
         // perché handleEventChoice può aprire un NUOVO popup (risultato)
@@ -2564,7 +2595,7 @@ function handleChoiceContainerClick(event) {
         return; // Esce dalla funzione handleChoiceContainerClick
 
     } else if (clickedButton.dataset.actionType === 'itemAction') {
-        // --- Gestione Azione Oggetto --- 
+        // --- Gestione Azione Oggetto ---
         const actionKey = clickedButton.dataset.actionKey;
         const actionText = clickedButton.dataset.actionText;
 
@@ -2594,29 +2625,19 @@ function handleChoiceContainerClick(event) {
         return; // Esce dalla funzione
 
     } else if (clickedButton.classList.contains('continue-button')){
-        // --- Gestione Bottone Continua (se aggiunto al container in futuro) --- 
+        // --- Gestione Bottone Continua (se aggiunto al container in futuro) ---
         // Al momento, il bottone continua ha un onclick diretto in showEventPopup
         eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
         closeEventPopup();
         return; // Esce dalla funzione
     }
 
-    // --- Fallback --- 
+    // --- Fallback ---
     // Se arriviamo qui, è un bottone nel contenitore ma non riconosciuto
     console.warn("Click su bottone non riconosciuto nel contenitore scelte.");
     eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
     closeEventPopup();
 }
 
-// Assicurati che questa funzione esista e faccia ciò che serve
-function handleEventChoice(choiceIndex) {
-    // ... la tua logica esistente per gestire le scelte degli eventi standard ...
-    // console.log(`handleEventChoice eseguito per indice: ${choiceIndex}`); // RIMOSSO DEBUG LOG
-    // Dovrebbe chiamare closeEventPopup() alla fine della sua esecuzione.
-    // Assicuriamoci che la chiamata a closeEventPopup sia dentro questa funzione
-    // dopo aver processato la scelta.
-
-    // Esempio di come potrebbe finire:
-    // processChoice(choiceIndex);
-     closeEventPopup(); // Assicurati sia chiamata qui!
-}
+// La seconda definizione (quella problematica) è stata rimossa.
+// La funzione handleEventChoice corretta è quella definita precedentemente nel codice.

@@ -1,0 +1,101 @@
+/* css/layout.css */
+
+main#game-container {
+    display: flex;
+    max-width: 1200px; /* Aumentato per ospitare meglio 3 colonne */
+    width: 95%; /* Usa percentuale per migliore adattabilità */
+    height: 95vh; /* Occupa gran parte dell'altezza viewport */
+    margin: auto; /* Centra il contenitore */
+    border: 1px solid var(--border-dim-color);
+    background-color: var(--bg-color); /* Sfondo nero anche per il container */
+    color: var(--fg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; /* Dimensione base font */
+    box-sizing: border-box;
+    transition: filter 0.3s ease-in-out;
+}
+
+/* Stili per i pannelli delle colonne */
+#left-panel,
+#map-panel,
+#info-panel {
+    padding: 15px;
+    border: 1px solid var(--border-dim-color); /* Bordo per ogni pannello */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden; /* Nasconde contenuto che esce */
+}
+
+#left-panel {
+    width: 25%;
+    border-right: none; /* Rimuove bordo destro ridondante */
+}
+
+#map-panel {
+    width: 50%;
+    border-left: 1px solid var(--border-dim-color);
+    border-right: 1px solid var(--border-dim-color);
+}
+
+#info-panel {
+    width: 25%;
+    border-left: none; /* Rimuove bordo sinistro ridondante */
+}
+
+/* Stili per le sezioni interne ai pannelli */
+#left-panel > section,
+#map-panel > div, /* Mappa e legenda sono div */
+#info-panel > section,
+#info-panel > nav { /* Include i controlli */
+    margin-bottom: 15px; /* Spazio tra le sezioni */
+    border: 1px dashed var(--border-dim-color); /* Bordo tratteggiato per sezioni interne */
+    padding: 10px;
+    background-color: #050505; /* Sfondo leggermente diverso per le sezioni */
+    overflow-y: auto; /* Scroll verticale se necessario */
+    flex-shrink: 0; /* Evita che le sezioni si restringano troppo */
+}
+
+.left-column { /* Stile generico per colonna sinistra, se usato */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spazio tra i pannelli */
+    width: 250px; /* Larghezza fissa colonna sx */
+    flex-shrink: 0; /* Impedisce alla colonna di restringersi */
+}
+
+/* Stili di base per le colonne (usati nei media query?) */
+.container {
+    display: flex;
+    flex-wrap: wrap; /* Permette alle colonne di andare a capo */
+    max-width: 1600px; /* Limite massimo per schermi molto larghi */
+    margin: 0 auto; /* Centra il container su schermi larghi */
+}
+
+.column {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.column-left {
+    flex: 1; 
+    min-width: 250px; 
+}
+
+.column-center {
+    flex: 2; 
+    min-width: 300px;
+}
+
+.column-right {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* --- Stile per Oscurare Sfondo (Focus) --- */
+/* Classe da aggiungere al main container quando overlay è attivo */
+main#game-container.overlay-active {
+    filter: brightness(0.6) blur(1px); /* Oscura e sfoca leggermente */
+    transition: filter 0.3s ease-in-out;
+    /* Potresti aggiungere pointer-events: none; per disabilitare interazione con sfondo */
+} 

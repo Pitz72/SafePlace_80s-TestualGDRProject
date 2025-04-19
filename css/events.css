@@ -1,0 +1,162 @@
+/* css/events.css */
+
+/* End Screen */
+#end-screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: var(--bg-color);
+    color: var(--fg-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 99;
+    display: none; /* Nascosto inizialmente */
+    padding: 20px;
+    box-sizing: border-box;
+}
+#end-message {
+    white-space: pre-wrap;
+    max-height: 80%;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    line-height: 1.4;
+    text-align: left;
+    padding: 0 10%;
+}
+#end-screen h2 {
+    color: var(--accent-color);
+    margin-bottom: 30px;
+}
+#end-screen button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Event Overlay */
+ #event-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: var(--overlay-bg); /* Sfondo scuro semi-trasparente */
+    color: var(--fg-color);
+    z-index: 50;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; /* Inizia trasparente */
+    visibility: hidden; /* Inizia nascosto */
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; /* Fade-in/out */
+ }
+ /* Classe da aggiungere/rimuovere con JS per mostrare/nascondere */
+ #event-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s; /* Rimuove ritardo quando diventa visibile */
+ }
+
+ #event-popup {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-dim-color);
+    padding: 25px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+    box-shadow: 0 0 15px var(--border-dim-color);
+    font-family: inherit; /* Assicura font monospace */
+    transform: scale(0.95); /* Leggermente più piccolo all'inizio */
+    transition: transform 0.3s ease-in-out;
+ }
+ /* Scala alla dimensione normale quando l'overlay è visibile */
+ #event-overlay.visible #event-popup {
+    transform: scale(1);
+ }
+
+ #event-overlay h2 { /* Titolo nel popup evento */
+    margin-top: 0;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    color: var(--accent-color);
+    font-family: inherit; /* Assicura font monospace */
+ }
+ #event-content {
+    margin-bottom: 20px;
+    text-align: left;
+    white-space: pre-wrap; /* Mantiene newline e spazi */
+    font-size: 1em; /* Coerenza con font base */
+    line-height: 1.5; /* Interlinea migliorata */
+    color: var(--fg-color); /* Colore testo standard */
+    font-family: inherit; /* Assicura font monospace */
+ }
+ .danger-text { color: var(--danger-color); font-weight: bold; } /* Testo pericolo nel popup */
+
+ /* Stili per i pulsanti di scelta nell'overlay - CORRETTO SELETTORE */
+ /* Rimosso il selettore .event-choice, uso direttamente #event-choices */
+ #event-choices {
+    margin-top: 15px;
+    text-align: center;
+}
+
+ #event-choices button {
+    background-color: #111; /* Sfondo scuro come altri bottoni */
+    color: var(--fg-color); /* Testo verde */
+    border: 1px solid var(--border-color); /* Bordo verde */
+    padding: 10px 18px; 
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 8px; 
+    display: block; 
+    width: 80%; 
+    margin-left: auto; margin-right: auto; 
+    transition: background-color 0.2s, color 0.2s;
+ }
+ #event-choices button:hover {
+    background-color: var(--highlight-bg); /* Sfondo verde su hover */
+    color: var(--highlight-fg); /* Testo nero su hover */
+ }
+
+ /* Pulsante Continua (quando non ci sono scelte) - MANTENUTO SPECIFICO */
+ #event-overlay button.continue-button {
+    background-color: #111; /* Sfondo scuro come altri bottoni */
+    color: var(--fg-color); /* Testo verde */
+    border: 1px solid var(--border-color); /* Bordo verde */
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block; 
+    width: 50%;
+    margin-left: auto; margin-right: auto;
+    transition: background-color 0.2s, color 0.2s;
+ }
+  #event-overlay button.continue-button:hover {
+    background-color: var(--highlight-bg); /* Sfondo verde su hover */
+    color: var(--highlight-fg); /* Testo nero su hover */
+ }
+
+/* Rimuoviamo/Commentiamo la regola generica #event-overlay button che era ridondante */
+/* 
+#event-overlay button {
+    
+}
+
+#event-overlay button:hover {
+   
+} 
+*/ 

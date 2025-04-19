@@ -1,0 +1,51 @@
+/* css/base.css */
+
+:root {
+    --bg-color: #000000; --fg-color: #00FF00; --fg-dim-color: #009900;
+    --border-color: #00FF00; --border-dim-color: #005500;
+    --highlight-bg: #00FF00; --highlight-fg: #000000;
+    --accent-color: #FFFF00; --danger-color: #FF4444;
+    --overlay-bg: rgba(0, 10, 0, 0.97);
+    --plains-color: #00BB00; --forest-color: #008800; --mountain-color: #339933;
+    --water-color: #008888; --ruin-color: #55AA55; --special-color: #AAAA00;
+    --end-color: var(--accent-color);
+}
+
+html { height: 100%; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--fg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden; /* Impedisce scroll globale */
+}
+
+/* Titoli delle sezioni (h3) */
+h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    color: var(--accent-color); /* Giallo per i titoli */
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.1em;
+    text-transform: uppercase; /* Maiuscoletto */
+}
+
+/* Liste */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95em; /* Leggermente più piccolo del testo base */
+}
+
+li {
+    margin-bottom: 5px; /* Spazio tra elementi lista */
+} 

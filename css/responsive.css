@@ -1,0 +1,121 @@
+/* css/responsive.css */
+
+/* --- Media Queries per Responsività --- */
+
+/* Media Query Mobile (Tablet/Piccoli Laptop?) */
+@media (max-width: 900px) {
+    body { font-size: 14px; } /* Riduci font base su mobile */
+    main#game-container {
+        flex-direction: column; /* Colonne in verticale */
+        width: 100%;
+        height: auto; /* Altezza automatica */
+        border: none;
+        margin: 0;
+    }
+
+    #left-panel,
+    #map-panel,
+    #info-panel {
+        width: 100%; /* Colonne a larghezza piena */
+        border: none;
+        border-bottom: 1px solid var(--border-dim-color); /* Bordo sotto ogni sezione */
+        padding: 10px;
+        height: auto; /* Altezza automatica */
+        overflow: visible; /* Permetti overflow su mobile? O limitare altezza? */
+    }
+
+    #info-panel { border-bottom: none; } /* Rimuovi ultimo bordo */
+
+    #map-display {
+        max-height: 40vh; /* Limita altezza mappa su mobile */
+        font-size: 14px; /* Riduci font mappa */
+    }
+
+    #messages-panel {
+        max-height: 150px; /* Limita altezza log */
+        min-height: 100px;
+    }
+
+    #event-popup {
+        width: 95%; /* Popup quasi a schermo intero */
+        font-size: 1em;
+    }
+    .event-choice button { width: 90%; }
+    #event-overlay button.continue-button { width: 70%; }
+}
+
+/* Schermi Medi (es. Tablet in verticale forse) */
+@media (max-width: 1024px) {
+    .column-center {
+        flex-basis: 50%; /* Diamo più spazio al centro se necessario */
+    }
+    /* Altri aggiustamenti se necessari */
+}
+
+
+/* Schermi Piccoli (es. Mobile) */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Impila le colonne verticalmente */
+    }
+
+    .column {
+        flex-basis: auto; /* Rimuove la base flessibile */
+        width: 100%;     /* Ogni colonna prende tutta la larghezza */
+        min-width: unset; /* Rimuove la larghezza minima */
+        margin-bottom: 15px; /* Spazio tra le sezioni impilate */
+    }
+
+    /* Aggiusta font e padding se necessario per leggibilità */
+    body {
+        /* Già impostato a 14px nel media query 900px */
+    }
+
+    #game-map pre { /* Selettore obsoleto? Usiamo #map-display */
+        font-size: 0.9em; /* Riduci un po' la mappa se troppo grande */
+        line-height: 1.1;
+    }
+
+    /* Rendi i pulsanti più grandi per il tocco */
+    #controls button, /* Applica a controlli mappa */
+    .event-choice button, /* Applica a scelte evento */
+    #event-overlay button.continue-button, /* Applica a continua evento */
+    #end-screen button /* Applica a restart */
+    {
+        padding: 12px 15px;
+        font-size: 1em;
+        margin: 5px; /* Riduci margine se necessario */
+    }
+
+    /* Qui potresti nascondere/mostrare elementi per tab/accordion in futuro */
+    /* Esempio: Nascondere la legenda dettagliata di default */
+    /* #legend-section { display: none; } */
+
+}
+
+/* Schermi Molto Piccoli */
+@media (max-width: 480px) {
+     body {
+        font-size: 13px; /* Ulteriore aggiustamento se serve */
+    }
+     #map-display { /* Correggo selettore */
+        font-size: 0.8em;
+        line-height: 1;
+    }
+    #controls button, 
+    .event-choice button,
+    #event-overlay button.continue-button,
+    #end-screen button
+    {
+        padding: 10px 12px;
+    }
+}
+
+/* Schermi Molto Larghi (opzionale, per ottimizzare lo spazio) */
+@media (min-width: 1600px) {
+     /* Puoi dare più spazio al log o alla mappa se vuoi */
+    #messages {
+       max-height: 400px; /* Esempio: aumenta altezza log */
+    }
+    /* .column-center { flex-grow: 1; } /* Permette al centro di espandersi di più */
+} 

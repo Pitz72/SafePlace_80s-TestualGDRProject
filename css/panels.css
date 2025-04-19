@@ -1,0 +1,76 @@
+/* css/panels.css */
+
+/* Log Eventi specifico */
+#messages-panel {
+    flex-grow: 1; /* Permette al log di crescere verticalmente */
+    min-height: 100px; /* Altezza minima */
+    overflow-y: auto; /* Abilita scroll verticale */
+    display: flex; /* Usa flexbox per layout interno */
+    flex-direction: column; /* Contenuto verticale */
+}
+
+#messages-panel h2 {
+    margin-bottom: 5px; /* Spazio sotto titolo */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi */
+}
+
+#messages {
+    list-style: none;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 0.8em;
+    flex-grow: 1; /* Fa espandere la lista */
+    overflow-y: auto; /* Scroll interno se i messaggi sono troppi */
+    display: flex; /* Necessario per overflow-y e flex-grow */
+    flex-direction: column; /* Ordine gestito da JS */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
+}
+#messages li {
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+.log-warning { color: var(--danger-color); font-weight: bold;} /* Stile per avvisi nel log */
+.msg-warning { color: var(--danger-color); } /* Prefisso warning */
+.msg-info { color: var(--accent-color); } /* Prefisso info */
+.lore { color: var(--fg-dim-color); font-style: italic; } /* Stile per messaggi lore */
+.success { color: lightgreen; } /* Stile per messaggi successo */
+
+
+/* Stili per i pannelli specifici nella colonna sinistra (survival, condition, inventory) */
+#survival-panel, #condition-panel, #inventory-panel, #legend-panel, #stats, #game-info {
+    flex-grow: 0; /* Non farli crescere per riempire spazio */
+    flex-shrink: 0; /* Non farli restringere */
+}
+
+/* Stile inventario */
+#inventory-panel ul { /* Si applica a #inventory */
+    padding-left: 5px;
+}
+
+#inventory li {
+    padding: 2px 0;
+    cursor: pointer; /* Cambia cursore per indicare cliccabilità */
+    transition: background-color 0.2s;
+}
+
+#inventory li:hover {
+    background-color: #111; /* Sfondo leggermente più chiaro su hover */
+}
+
+/* Area Status (Risorse, Condizione, Stats) */
+#stat-food.low-resource,
+#stat-water.low-resource {
+    color: var(--danger-color);
+    font-weight: bold;
+    animation: blink-warning 1.2s infinite; /* Animazione per risorse basse */
+}
+@keyframes blink-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Stili per lo stato Condizione */
+.status-normal { color: var(--fg-color); }
+.status-warning { color: orange; font-weight: bold; } /* Es. Ferito o Malato */
+.status-danger { color: var(--danger-color); font-weight: bold; } /* Es. Ferito E Malato */ 

@@ -1,0 +1,46 @@
+/* css/tooltip.css */
+
+/* --- Stili per Item Tooltip Inventario --- */
+
+#item-tooltip {
+    position: absolute; 
+    width: 220px; /* Larghezza fissa o max-width */
+    background-color: #0A0A0A; /* Sfondo leggermente diverso da quello base */
+    border: 1px solid var(--border-dim-color);
+    padding: 10px;
+    box-shadow: 0 0 10px var(--border-dim-color); /* Ombra per staccarlo */
+    color: var(--fg-color);
+    font-size: 0.9em;
+    z-index: 100; /* Assicura sia sopra altri elementi */
+    pointer-events: none; /* Inizialmente, per non interferire col mouse */
+    /* Il posizionamento viene gestito da JS */
+}
+
+#item-tooltip h4 { /* Nome oggetto */
+    margin: 0 0 5px 0;
+    color: var(--accent-color);
+    border-bottom: 1px dashed var(--border-dim-color);
+    padding-bottom: 3px;
+    font-size: 1.1em;
+}
+
+#item-tooltip p { /* Descrizione */
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+    color: var(--fg-dim-color); /* Descrizione un po' più scura */
+}
+
+#item-tooltip-actions button { /* Stile per eventuali pulsanti futuri */
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+    margin: 5px 5px 0 0;
+    pointer-events: auto; /* Abilita eventi per i bottoni */
+}
+#item-tooltip-actions button:hover {
+     background-color: var(--highlight-bg);
+     color: var(--highlight-fg);
+} 
