@@ -56,6 +56,47 @@ L'obiettivo finale di *questa fase prototipale* è avere un ciclo di gioco compl
 # LOG
 ## Ultimo aggiornamento
 
+20-04-2025 Ore 8.48 ITA
+
+**Log di Sviluppo IlViaggiatoreGDR v0.6.081 (Ultimi 15 Aggiornamenti Fondamentali)**
+
+**Parte 1: Riepilogo Semplificato (Comprensibile a Tutti)**
+
+1.  **Verifica Perdita HP:** Controllato che il personaggio perda punti vita correttamente in varie situazioni (fame, sete, ferite, malattia, combattimento, eventi falliti).
+2.  **Penalità Notturne:** Assicurato che restare svegli di notte consumi cibo e acqua e che la fame/sete notturna causino danni. Muoversi di notte fuori da un rifugio causa danni aggiuntivi.
+3.  **Morte del Personaggio:** Confermato che il gioco termina correttamente quando i punti vita scendono a zero.
+4.  **Ricerca Oggetti Mancanti:** Verificato inizialmente che armi, armature e munizioni importanti *non* si potevano trovare esplorando o combattendo.
+5.  **Analisi Ricompense Base:** Controllato le ricompense comuni (rottami, cibo, acqua) e confermato l'assenza di equipaggiamento.
+6.  **Analisi Ricompense Eventi:** Esaminato gli esiti degli eventi (es. sconfiggere animali) e confermato che non davano equipaggiamento.
+7.  **Controllo Eventi Specifici:** Verificato che nessun evento speciale assegnasse direttamente armi o armature come premio.
+8.  **Loot dai Predoni:** Introdottala possibilità di trovare equipaggiamento sconfiggendo i Predoni (l'evento "Incontro Ostile").
+9.  **Dettagli Loot Predoni:** Ora c'è una probabilità (~60%) di trovare qualcosa dai Predoni sconfitti, con la possibilità (più bassa) di ottenere armi da mischia, armature, munizioni o (raramente) pistole, oltre alle solite risorse.
+10. **Loot dalle Tracce:** Aggiunta la possibilità di trovare equipaggiamento seguendo con successo l'"Evento Tracce Strane".
+11. **Dettagli Loot Tracce:** Seguendo le tracce si possono trovare risorse comuni, ma anche (con bassa probabilità) munizioni, chiavi inglesi o (molto raramente) giubbotti di pelle.
+12. **Loot dai Rifugi:** Introdottala possibilità di trovare equipaggiamento ispezionando con successo i Rifugi (l'evento "Ispezione Rifugio").
+13. **Dettagli Loot Rifugi:** Ispezionando un rifugio si possono trovare risorse comuni, ma anche (con probabilità leggermente migliore rispetto alle tracce) munizioni, chiavi inglesi o giubbotti di pelle.
+14. **Chiarezza Scelte Evento:** Migliorata l'interfaccia degli eventi: ora accanto alle scelte che richiedono un test di abilità (es. "Fuggi (Agilità)"), viene mostrata una stima della probabilità di successo (es. "Favorevole", "Rischioso").
+15. **Effetto Armatura:** Implementato l'effetto delle armature: quando il personaggio subisce danni da attacchi o pericoli, l'armatura equipaggiata riduce il danno subito. L'ammontare della riduzione viene indicato nei messaggi.
+
+**Parte 2: Log Dettagliato (Per Sviluppatori)**
+
+1.  **HP Loss Verification:** Revisionate le funzioni `movePlayer`, `applyNightPenalties`, `handleEventChoice` (sezioni fallimento) per confermare l'applicazione corretta dei danni da `PASSIVE_*_DAMAGE`, `HUNGER/THIRST_PENALTY_HP`, e danni variabili da eventi falliti.
+2.  **Night Mechanics (`transitionToNight`, `applyNightPenalties`):** Verificato che `transitionToNight` applica `NIGHT_FOOD/WATER_COST` e chiama `applyNightPenalties`, la quale applica `HUNGER/THIRST_PENALTY_HP` solo se `player.food/water <= 0`. Aggiunta penalità `nightMovePenalty` (danno HP diretto) per movimento notturno fuori da `SHELTER_TILES` in `movePlayer`.
+3.  **Death Condition (`endGame`):** Confermato che il check `player.hp <= 0` viene eseguito dopo ogni applicazione di danno rilevante (passivo, notturno, da evento) e chiama correttamente `endGame(false)`.
+4.  **Initial Loot Audit:** Eseguita ricerca testuale e semantica per `pipe_wrench`, `pistol_makeshift`, `leather_jacket_worn`, `ammo_9mm` all'interno di `applyChoiceReward` (`commonResourcePool`), `handleEventChoice` (success outcomes), e `EVENT_DATA` (`successReward` objects). Risultato negativo.
+5.  **`applyChoiceReward` Analysis:** Letta la funzione (lines ~2941-3014). Confermato che `commonResourcePool` non contiene gli item target e la logica gestisce solo `random_common_resource`, `random_lore_fragment`, o `itemId` specifici (non presenti per gli item target).
+6.  **`handleEventChoice` Loot Analysis:** Lette le sezioni `case 'PREDATOR'`, `case 'ANIMAL'`, ecc. (success outcomes) in `handleEventChoice`. La logica di loot preesistente (es. `lootChance = 0.5` nei Predoni o loot fisso per Animali) non includeva gli item target.
+7.  **`EVENT_DATA` Check:** Ispezionato `game_data.js`. Nessun oggetto `successReward` conteneva gli `itemId` target.
+8.  **Raider Loot Implementation:** Modificato il `case 'PREDATOR': if (choice.actionKey === 'lotta')` (successo) in `handleEventChoice`. Sostituita la vecchia logica `lootChance = 0.5` con una nuova basata su `baseLootChance` e `lootTypeWeights`.
+9.  **Raider Loot Structure (`handleEventChoice`):** Introdotto `baseLootChance = 0.6`. Aggiunto array `lootTypeWeights` (resource: 60, melee_weapon: 15, armor: 15, ammo: 7, ranged_weapon: 3). Aggiunti `case` nello `switch (chosenLootType)` per assegnare `lootId` (`pipe_wrench`, `leather_jacket_worn`, `ammo_9mm`, `pistol_makeshift`) e `lootQty`. Logica `commonResources` mantenuta con pesi.
+10. **`TRACKS` Loot Implementation:** Modificato il `case 'TRACKS': if (choice.actionKey === 'segui')` (successo, `outcomeRoll < 0.4`) in `handleEventChoice`. Sostituita la vecchia logica `lootTypes` con `trackLootPool` (array di oggetti `{id, weight}`).
+11. **`TRACKS` Loot Structure (`handleEventChoice`):** Definito `trackLootPool` con pesi specifici (es. `ammo_9mm: 6`, `pipe_wrench: 4`, `leather_jacket_worn: 2`). Implementata selezione pesata standard. Calcolo `lootQty` differenziato per tipo (es. `ammo_9mm` 2-5).
+12. **`SHELTER_INSPECT` Loot Implementation:** Modificato il `case 'SHELTER_INSPECT': if (choice.actionKey === 'ispeziona')` (successo, `findRoll < 0.5`) in `handleEventChoice`. Sostituita la vecchia logica `lootTypes` con `shelterLootPool`.
+13. **`SHELTER_INSPECT` Loot Structure (`handleEventChoice`):** Definito `shelterLootPool` con pesi specifici (es. `pipe_wrench: 6`, `ammo_9mm: 5`, `leather_jacket_worn: 4`). Implementata selezione pesata. Calcolo `lootQty` differenziato.
+14. **Skill Check Likelihood Display (`showEventPopup`, `getSkillCheckLikelihood`):** Modificata `showEventPopup` per iterare sui `choices`. Se `choice.skillCheck` esiste, chiama `getSkillCheckLikelihood(stat, difficulty)` e appende il risultato testuale (es. `" (Favorevole)"`) al `button.textContent`.
+15. **Armor Implementation (`handleEventChoice` Failures):** Modificati i blocchi `else` (fallimento skill check) per i `case` rilevanti (`PREDATOR`, `ANIMAL`, `ENVIRONMENTAL`, `HORROR`, ecc.). Prima di applicare `player.hp -= damage`, è stato aggiunto il calcolo: `armorReduction = ITEM_DATA[player.equippedArmor]?.armorValue || 0; actualDamage = Math.max(0, baseDamage - armorReduction);`. Aggiornati i messaggi `outcomeConsequences` per riflettere `actualDamage` e `armorReduction`.
+
+---
 18-04-2025 ore 14.50 ITA
 
 
