@@ -1,162 +1,176 @@
 /* css/events.css */
 
-/* End Screen */
+/* Stile Base per gli Overlay (sia Evento che Fine Gioco) */
+/* Questo stile è applicato alla classe 'overlay' che è sul #event-overlay e #end-screen */
+.overlay {
+    position: absolute; /* Posizionato rispetto al viewport */
+    top: 0; left: 0;
+    width: 100%; height: 100%; /* Copre l'intera area del genitore (body) */
+    background-color: var(--overlay-bg); /* Sfondo scuro semi-trasparente (colore definito in base.css) */
+    color: var(--fg-color); /* Colore testo predefinito */
+    z-index: 50; /* Assicura che sia sopra il container di gioco (che potrebbe avere z-index default 0) */
+    box-sizing: border-box; /* Include padding e border nelle dimensioni */
+    display: flex; /* Usa flexbox per centrare il contenuto interno (il popup) */
+    align-items: center; /* Allinea verticalmente al centro */
+    justify-content: center; /* Allinea orizzontalmente al centro */
+
+    /* Stili per animazione fade-in/out */
+    opacity: 0; /* Inizia completamente trasparente */
+    visibility: hidden; /* Inizia nascosto (non occupa spazio nel layout e non è interattivo) */
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; /* Transizione sull'opacità, ritardo sulla visibilità per far finire la transizione */
+}
+
+/* Classe 'visible' aggiunta con JS per rendere visibile l'overlay */
+.overlay.visible {
+    opacity: 1; /* Rende completamente opaco */
+    visibility: visible; /* Rende visibile */
+    transition-delay: 0s; /* Rimuove il ritardo quando si rende visibile (transizione immediata) */
+}
+
+/* Stile specifico per la Schermata di Fine Gioco (sul div #end-screen) */
 #end-screen {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: var(--bg-color);
-    color: var(--fg-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    z-index: 99;
-    display: none; /* Nascosto inizialmente */
-    padding: 20px;
-    box-sizing: border-box;
-}
-#end-message {
-    white-space: pre-wrap;
-    max-height: 80%;
-    overflow-y: auto;
-    margin-bottom: 20px;
-    font-size: 1.1em;
-    line-height: 1.4;
-    text-align: left;
-    padding: 0 10%;
-}
-#end-screen h2 {
-    color: var(--accent-color);
-    margin-bottom: 30px;
-}
-#end-screen button {
-    background-color: #111;
-    color: var(--fg-color);
-    border: 1px solid var(--border-color);
-    padding: 10px 20px;
-    font-family: inherit;
-    font-size: 1.1em;
-    cursor: pointer;
-    margin-top: 20px;
+     /* Eredita stili .overlay (display: flex, centrato) */
+     /* display: none; */ /* Nascosto inizialmente tramite JS (verrà mostrato impostando display: flex) */
+     flex-direction: column; /* Impila gli elementi interni (#end-title, #end-message, button) in una colonna */
+     text-align: center; /* Allinea il testo (e gli elementi in-line) al centro */
 }
 
-/* Event Overlay */
- #event-overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: var(--overlay-bg); /* Sfondo scuro semi-trasparente */
-    color: var(--fg-color);
-    z-index: 50;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0; /* Inizia trasparente */
-    visibility: hidden; /* Inizia nascosto */
-    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; /* Fade-in/out */
- }
- /* Classe da aggiungere/rimuovere con JS per mostrare/nascondere */
- #event-overlay.visible {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s; /* Rimuove ritardo quando diventa visibile */
- }
+#end-screen h1 { /* Titolo "VITTORIA" o "SCONFITTA" */
+     color: var(--accent-color); /* Colore accento (giallo) */
+     margin-bottom: 30px; /* Spazio sotto il titolo */
+     font-size: 2em; /* Dimensione font maggiore */
+}
 
- #event-popup {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-dim-color);
-    padding: 25px;
-    width: 80%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    text-align: center;
-    box-shadow: 0 0 15px var(--border-dim-color);
-    font-family: inherit; /* Assicura font monospace */
-    transform: scale(0.95); /* Leggermente più piccolo all'inizio */
-    transition: transform 0.3s ease-in-out;
- }
- /* Scala alla dimensione normale quando l'overlay è visibile */
- #event-overlay.visible #event-popup {
-    transform: scale(1);
- }
+#end-screen #end-message { /* Messaggio di fine gioco */
+     white-space: pre-wrap; /* Mantiene i caratteri di a capo (\n) e gli spazi nel testo impostato da JS */
+     max-height: 60%; /* Limita l'altezza massima del messaggio per evitare overflow su schermi piccoli */
+     overflow-y: auto; /* Aggiunge una scrollbar se il messaggio è troppo lungo */
+     margin-bottom: 20px; /* Spazio sotto il messaggio */
+     font-size: 1.1em; /* Dimensione font leggermente maggiore */
+     line-height: 1.4; /* Interlinea migliorata per la leggibilità */
+     text-align: left; /* Allinea il testo a sinistra all'interno del blocco messaggio */
+     padding: 0 10%; /* Padding sui lati per non attaccare ai bordi del popup */
+     width: 80%; /* Larghezza del blocco messaggio (80% del suo container flessibile) */
+}
 
- #event-overlay h2 { /* Titolo nel popup evento */
+#end-screen button { /* Bottone "Ricomincia" */
+     background-color: #111; /* Sfondo scuro */
+     color: var(--fg-color); /* Testo verde */
+     border: 1px solid var(--border-color); /* Bordo verde */
+     padding: 10px 20px; /* Padding */
+     font-family: inherit; /* Eredita il font monospaced */
+     font-size: 1.1em; /* Dimensione font */
+     cursor: pointer; /* Cambia cursore */
+     margin-top: 20px; /* Spazio sopra il bottone */
+     transition: background-color 0.2s, color 0.2s; /* Transizione fluida per effetti hover */
+}
+#end-screen button:hover {
+     background-color: var(--highlight-bg); /* Sfondo evidenziato */
+     color: var(--highlight-fg); /* Testo evidenziato */
+}
+
+
+/* Stile specifico per il Popup Eventi (sul div #event-popup) */
+#event-popup {
+    /* Eredita stili .popup (background, border, padding, max-width, max-height, overflow-y, box-shadow, font-family, text-align) */
+}
+
+#event-overlay h2#event-title { /* Titolo nel popup evento (sul tag h2) */
     margin-top: 0;
-    border-bottom: 1px dashed var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-size: 1.3em;
-    color: var(--accent-color);
-    font-family: inherit; /* Assicura font monospace */
- }
- #event-content {
-    margin-bottom: 20px;
-    text-align: left;
-    white-space: pre-wrap; /* Mantiene newline e spazi */
-    font-size: 1em; /* Coerenza con font base */
-    line-height: 1.5; /* Interlinea migliorata */
+    border-bottom: 1px dashed var(--border-dim-color); /* Linea tratteggiata sotto il titolo */
+    padding-bottom: 10px; /* Spazio sotto la linea */
+    margin-bottom: 20px; /* Spazio sotto il titolo e la linea */
+    font-size: 1.3em; /* Dimensione font maggiore */
+    color: var(--accent-color); /* Colore accento */
+    font-family: inherit; /* Eredita il font monospaced */
+}
+
+#event-content { /* Contenuto / Descrizione dell'evento (sul tag p) */
+    margin-bottom: 20px; /* Spazio sotto la descrizione */
+    text-align: left; /* Allinea testo a sinistra (per descrizioni multi-riga) */
+    white-space: pre-wrap; /* Mantiene i caratteri di a capo e gli spazi */
+    font-size: 1em; /* Dimensione font normale */
+    line-height: 1.5; /* Interlinea migliorata per la leggibilità */
     color: var(--fg-color); /* Colore testo standard */
-    font-family: inherit; /* Assicura font monospace */
- }
- .danger-text { color: var(--danger-color); font-weight: bold; } /* Testo pericolo nel popup */
-
- /* Stili per i pulsanti di scelta nell'overlay - CORRETTO SELETTORE */
- /* Rimosso il selettore .event-choice, uso direttamente #event-choices */
- #event-choices {
-    margin-top: 15px;
-    text-align: center;
+    font-family: inherit; /* Eredita il font monospaced */
 }
 
- #event-choices button {
-    background-color: #111; /* Sfondo scuro come altri bottoni */
-    color: var(--fg-color); /* Testo verde */
-    border: 1px solid var(--border-color); /* Bordo verde */
-    padding: 10px 18px; 
-    font-family: inherit;
-    font-size: 1em;
-    cursor: pointer;
-    margin: 8px; 
-    display: block; 
-    width: 80%; 
-    margin-left: auto; margin-right: auto; 
-    transition: background-color 0.2s, color 0.2s;
- }
- #event-choices button:hover {
-    background-color: var(--highlight-bg); /* Sfondo verde su hover */
-    color: var(--highlight-fg); /* Testo nero su hover */
- }
-
- /* Pulsante Continua (quando non ci sono scelte) - MANTENUTO SPECIFICO */
- #event-overlay button.continue-button {
-    background-color: #111; /* Sfondo scuro come altri bottoni */
-    color: var(--fg-color); /* Testo verde */
-    border: 1px solid var(--border-color); /* Bordo verde */
-    padding: 10px 20px;
-    font-family: inherit;
-    font-size: 1em;
-    cursor: pointer;
-    margin-top: 20px;
-    display: block; 
-    width: 50%;
-    margin-left: auto; margin-right: auto;
-    transition: background-color 0.2s, color 0.2s;
- }
-  #event-overlay button.continue-button:hover {
-    background-color: var(--highlight-bg); /* Sfondo verde su hover */
-    color: var(--highlight-fg); /* Testo nero su hover */
- }
-
-/* Rimuoviamo/Commentiamo la regola generica #event-overlay button che era ridondante */
-/* 
-#event-overlay button {
-    
+/* Stili per il container dei pulsanti di scelta/azione nell'overlay (sul div #event-choices) */
+#event-choices {
+    margin-top: 15px; /* Spazio sopra i bottoni */
+    text-align: center; /* Centra i bottoni nel container */
 }
 
-#event-overlay button:hover {
-   
-} 
-*/ 
+/* Stili per i pulsanti di scelta/azione negli eventi (aggiunti da JS) */
+#event-choices button {
+    background-color: #111; /* Sfondo scuro */
+    color: var(--fg-color); /* Testo verde */
+    border: 1px solid var(--border-color); /* Bordo verde */
+    padding: 10px 18px; /* Padding */
+    font-family: inherit; /* Eredita font monospaced */
+    font-size: 1em; /* Dimensione font normale */
+    cursor: pointer; /* Cambia cursore */
+    margin: 8px; /* Margine tra i bottoni */
+    display: block; /* Ogni bottone su una nuova riga */
+    width: 80%; /* Larghezza reattiva */
+    margin-left: auto; margin-right: auto; /* Centra i bottoni blocco */
+    transition: background-color 0.2s, color 0.2s; /* Transizione fluida per effetti hover */
+}
+
+/* Stili per i pulsanti di scelta/azione su hover (quando non disabilitati) */
+#event-choices button:hover:not(:disabled) {
+    background-color: var(--highlight-bg); /* Sfondo evidenziato */
+    color: var(--highlight-fg); /* Testo evidenziato */
+}
+
+/* Stile specifico per azioni di ricerca (indica costo tempo) */
+/* Classe 'search-action' aggiunta da JS al bottone scelta */
+#event-choices button.search-action {
+    border-color: var(--warning-color); /* Bordo giallo/arancio per indicare costo */
+}
+
+/* Stile specifico per azioni pericolose (es. Lascia Item, alcuni esiti fallimento?) */
+/* Classe 'danger-action' aggiunta da JS al bottone scelta */
+#event-choices button.danger-action {
+    border-color: var(--danger-color); /* Bordo rosso */
+    color: var(--danger-color); /* Testo rosso */
+}
+#event-choices button.danger-action:hover:not(:disabled) {
+    background-color: var(--danger-color); /* Sfondo rosso su hover */
+    color: var(--bg-color); /* Testo nero su hover */
+}
+
+
+/* Pulsante Continua (mostrato quando non ci sono scelte interattive) */
+/* Questo bottone ha un ID (continue-button) ma non è dentro #event-choices nel HTML */
+/* È un bottone diretto nel popup, gestito da JS */
+#event-popup button.continue-button { /* Selettore corretto per il bottone continua */
+    background-color: #111; /* Sfondo scuro */
+    color: var(--fg-color); /* Testo verde */
+    border: 1px solid var(--border-color); /* Bordo verde */
+    padding: 10px 20px; /* Padding */
+    font-family: inherit; /* Eredita font monospaced */
+    font-size: 1em; /* Dimensione font normale */
+    cursor: pointer; /* Cambia cursore */
+    margin-top: 20px; /* Spazio sopra */
+    display: block; /* Blocco per larghezza reattiva */
+    width: 50%; /* Larghezza reattiva */
+    margin-left: auto; margin-right: auto; /* Centra il bottone */
+    transition: background-color 0.2s, color 0.2s; /* Transizione fluida per effetti hover */
+ }
+
+ /* Stile bottone Continua su hover (quando non disabilitato) */
+ #event-popup button.continue-button:hover:not(:disabled) {
+     background-color: var(--highlight-bg); /* Sfondo evidenziato */
+     color: var(--highlight-fg); /* Testo evidenziato */
+ }
+
+/* Stile per i pulsanti di scelta/azione e Continua quando disabilitati (classe 'disabled' aggiunta da JS) */
+#event-choices button:disabled,
+#event-popup button.continue-button:disabled /* Aggiunto anche per il bottone continua */
+{
+    color: var(--border-dim-color); /* Colore testo spento */
+    border-color: var(--border-dim-color); /* Colore bordo spento */
+    cursor: not-allowed; /* Cursore non permesso */
+    opacity: 0.5; /* Rendi semi-trasparente */
+}

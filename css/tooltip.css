@@ -2,45 +2,89 @@
 
 /* --- Stili per Item Tooltip Inventario --- */
 
+/* Il contenitore principale del tooltip (il div #item-tooltip) */
 #item-tooltip {
-    position: absolute; 
-    width: 220px; /* Larghezza fissa o max-width */
-    background-color: #0A0A0A; /* Sfondo leggermente diverso da quello base */
-    border: 1px solid var(--border-dim-color);
-    padding: 10px;
-    box-shadow: 0 0 10px var(--border-dim-color); /* Ombra per staccarlo */
-    color: var(--fg-color);
-    font-size: 0.9em;
-    z-index: 100; /* Assicura sia sopra altri elementi */
-    pointer-events: none; /* Inizialmente, per non interferire col mouse */
-    /* Il posizionamento viene gestito da JS */
+    position: absolute; /* Posizionato rispetto al primo antenato non statico o al viewport (usiamo 'fixed' in JS per semplicità) */
+    /* Usiamo 'fixed' in JS per posizionarlo rispetto al viewport, ignorando lo scroll del container principale se c'è. */
+    width: 220px; /* Larghezza fissa del tooltip */
+    background-color: #0A0A0A; /* Sfondo leggermente diverso dal nero base */
+    border: 1px solid var(--border-dim-color); /* Bordo sottile */
+    padding: 10px; /* Padding interno */
+    box-shadow: 0 0 10px var(--border-dim-color); /* Ombra per staccarlo visivamente dallo sfondo */
+    color: var(--fg-color); /* Colore testo predefinito */
+    font-size: 0.9em; /* Font più piccolo del testo normale */
+    z-index: 100; /* Assicura che sia sopra tutti gli altri elementi UI */
+    pointer-events: none; /* **Importante:** Ignora gli eventi mouse/pointer. Questo permette di cliccare sull'elemento dell'inventario sotto il tooltip senza che il tooltip interferisca. */
+    /* La visibilità e il posizionamento (top, left) sono gestiti da JavaScript */
+    visibility: hidden; /* Inizialmente nascosto (non occupa spazio e non è visibile) */
+    opacity: 0; /* Opacità iniziale per effetto fade */
+    transition: opacity 0.1s ease-in-out; /* Breve transizione sull'opacità per un fade-in/out */
 }
 
-#item-tooltip h4 { /* Nome oggetto */
-    margin: 0 0 5px 0;
-    color: var(--accent-color);
-    border-bottom: 1px dashed var(--border-dim-color);
-    padding-bottom: 3px;
-    font-size: 1.1em;
+/* Rimuove lo stile 'hidden' e rende visibile il tooltip quando la classe non è presente */
+#item-tooltip:not(.hidden) {
+    visibility: visible; /* Rende visibile */
+    opacity: 1; /* Rende completamente opaco */
+    /* Non è necessario specificare una transition-delay qui, userà quella definita sopra */
 }
 
-#item-tooltip p { /* Descrizione */
-    margin: 0 0 10px 0;
-    line-height: 1.3;
-    color: var(--fg-dim-color); /* Descrizione un po' più scura */
+/* Stile per il nome dell'oggetto nel tooltip (il tag strong con ID tooltip-item-name) */
+#item-tooltip strong#tooltip-item-name { /* Assicurati che l'ID corrisponda */
+    display: block; /* Rende l'elemento un blocco per avere la linea sotto su tutta la larghezza */
+    margin: 0 0 5px 0; /* Margine sotto il nome */
+    color: var(--accent-color); /* Colore accento (giallo) */
+    border-bottom: 1px dashed var(--border-dim-color); /* Linea tratteggiata sotto il nome */
+    padding-bottom: 3px; /* Spazio tra il nome e la linea */
+    font-size: 1.1em; /* Dimensione font leggermente maggiore rispetto al testo del tooltip */
+    font-weight: bold; /* Grassetto */
 }
 
-#item-tooltip-actions button { /* Stile per eventuali pulsanti futuri */
-    background-color: #111;
-    color: var(--fg-color);
-    border: 1px solid var(--border-color);
-    padding: 5px 10px;
-    font-size: 0.9em;
-    cursor: pointer;
-    margin: 5px 5px 0 0;
-    pointer-events: auto; /* Abilita eventi per i bottoni */
+/* Stile per il container delle statistiche/dettagli specifici (arma, armatura, effetti) */
+/* Questo div è generato da JS (getItemDetailsHTML) all'interno del tooltip */
+#item-tooltip .item-stats-container {
+    background-color: rgba(30, 30, 30, 0.85); /* Sfondo leggermente diverso per questo blocco */
+    border: 1px solid #444; /* Bordo sottile */
+    border-radius: 3px; /* Angoli arrotondati */
+    padding: 5px; /* Padding interno */
+    margin-top: 5px; /* Spazio sopra questo blocco */
+    margin-bottom: 5px; /* Spazio sotto questo blocco */
 }
-#item-tooltip-actions button:hover {
-     background-color: var(--highlight-bg);
-     color: var(--highlight-fg);
-} 
+
+/* Stile per ogni riga di statistica/dettaglio all'interno del container stats */
+#item-tooltip .item-stat {
+    display: flex; /* Usa flexbox per allineare nome e valore sulla stessa riga */
+    justify-content: space-between; /* Spinge il nome a sinistra e il valore a destra */
+    margin: 2px 0; /* Spazio verticale tra le righe di stats */
+    font-size: 0.95em; /* Font leggermente più grande rispetto alla descrizione, ma più piccolo del nome */
+    color: var(--fg-color); /* Colore testo normale per nome stat */
+}
+
+/* Stile per il valore della statistica (numeri, Sì/No, ecc.) */
+#item-tooltip .stat-value {
+    font-weight: bold; /* Rende il valore in grassetto */
+    color: var(--fg-color); /* Colore verde brillante (può essere sovrascritto per stati durabilità) */
+}
+
+/* Stile per la descrizione dell'oggetto nel tooltip (il tag p con ID tooltip-item-desc) */
+#item-tooltip p#tooltip-item-desc { /* Assicurati che l'ID corrisponda */
+    margin: 0; /* Rimuove margini predefiniti */
+    line-height: 1.4; /* Interlinea migliorata per la leggibilità */
+    color: var(--fg-dim-color); /* Colore dimmerato per la descrizione */
+    font-size: 1em; /* Dimensione font normale */
+    white-space: pre-wrap; /* Permette i caratteri di a capo e gli spazi nel testo impostato da JS */
+}
+
+/* Stili specifici per i colori dello stato Durabilità nel tooltip (classi o stili inline da JS) */
+/* Queste classi o stili INLINE VENGONO GENERATI DAL JS (getItemDetailsHTML in ui.js) */
+/* I colori sono definiti in base.css o qui */
+/* Le classi vengono applicate allo span.stat-value */
+#item-tooltip .stat-value.durability-good { color: #00DD00; }
+#item-tooltip .stat-value.durability-worn { color: #FFFF00; }
+#item-tooltip .stat-value.durability-damaged { color: #FFAA00; }
+#item-tooltip .stat-value.durability-critical { color: var(--danger-color); } /* Rosso */
+#item-tooltip .stat-value.durability-broken { color: #FF0000; } /* Rosso vivo */
+
+/* Stili per eventuali pulsanti di azione nel tooltip (non implementati in JS attuale) */
+/* (Il div #tooltip-item-actions non è attualmente usato o generato da JS) */
+/* #item-tooltip #tooltip-item-actions { ... } */
+/* #item-tooltip #tooltip-item-actions button { ... } */

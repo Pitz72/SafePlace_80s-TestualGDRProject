@@ -1,76 +1,169 @@
 /* css/panels.css */
 
+/* Questo file contiene stili specifici per i diversi pannelli (Survival, Condition, Inventory, Messages, Stats, Legend, Game Info) */
+/* Si basa sulla struttura definita in layout.css e sui colori in base.css */
+
 /* Log Eventi specifico */
 #messages-panel {
-    flex-grow: 1; /* Permette al log di crescere verticalmente */
+    flex-grow: 1; /* Permette al log di crescere verticalmente per riempire lo spazio nel #left-panel */
     min-height: 100px; /* Altezza minima */
-    overflow-y: auto; /* Abilita scroll verticale */
-    display: flex; /* Usa flexbox per layout interno */
-    flex-direction: column; /* Contenuto verticale */
+    overflow-y: auto; /* Abilita scroll verticale se i messaggi superano l'altezza */
+    display: flex; /* Usa flexbox per layout interno (titolo e lista) */
+    flex-direction: column; /* Stack verticale */
 }
 
 #messages-panel h2 {
-    margin-bottom: 5px; /* Spazio sotto titolo */
-    flex-shrink: 0; /* Impedisce al titolo di restringersi */
+    margin-bottom: 5px; /* Spazio sotto titolo del log */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi quando la lista cresce */
 }
 
 #messages {
-    list-style: none;
-    padding: 0 5px;
-    margin: 0;
-    font-size: 0.8em;
-    flex-grow: 1; /* Fa espandere la lista */
-    overflow-y: auto; /* Scroll interno se i messaggi sono troppi */
+    list-style: none; /* Rimuove i pallini */
+    padding: 0 5px; /* Padding interno */
+    margin: 0; /* Rimuove margini */
+    font-size: 0.8em; /* Font leggermente più piccolo per il log */
+    flex-grow: 1; /* Fa espandere la lista per occupare lo spazio rimanente */
+    overflow-y: auto; /* Scroll interno per la lista dei messaggi */
     display: flex; /* Necessario per overflow-y e flex-grow */
-    flex-direction: column; /* Ordine gestito da JS */
+    flex-direction: column; /* Ordine degli elementi nella colonna */
+    /* Stili per la scrollbar (personalizzazione, solo per browser che la supportano) */
     scrollbar-width: thin;
     scrollbar-color: var(--accent-color) var(--bg-color);
 }
+
 #messages li {
-    margin-bottom: 3px;
-    word-break: break-word;
-}
-.log-warning { color: var(--danger-color); font-weight: bold;} /* Stile per avvisi nel log */
-.msg-warning { color: var(--danger-color); } /* Prefisso warning */
-.msg-info { color: var(--accent-color); } /* Prefisso info */
-.lore { color: var(--fg-dim-color); font-style: italic; } /* Stile per messaggi lore */
-.success { color: lightgreen; } /* Stile per messaggi successo */
-
-
-/* Stili per i pannelli specifici nella colonna sinistra (survival, condition, inventory) */
-#survival-panel, #condition-panel, #inventory-panel, #legend-panel, #stats, #game-info {
-    flex-grow: 0; /* Non farli crescere per riempire spazio */
-    flex-shrink: 0; /* Non farli restringere */
+    margin-bottom: 3px; /* Spazio tra i messaggi */
+    word-break: break-word; /* Permette al testo lungo di andare a capo */
+    /* Stili specifici per i tipi di messaggio (classi aggiunte da JS) */
 }
 
-/* Stile inventario */
-#inventory-panel ul { /* Si applica a #inventory */
+/* Stili per i tipi di messaggio (classi aggiunte da JS in addMessage) */
+.log-normal { color: var(--fg-color); } /* Messaggio normale (default) */
+.log-info { color: var(--fg-dim-color); } /* Messaggio informativo */
+.log-warning { color: var(--warning-color); font-weight: bold;} /* Messaggio di avviso */
+.log-danger { color: var(--danger-color); font-weight: bold;} /* Messaggio di pericolo/critico */
+.log-success { color: lightgreen; } /* Messaggio di successo */
+.log-lore { color: var(--fg-dim-color); font-style: italic; } /* Messaggio di lore */
+
+/* Stili per i prefissi dei messaggi (aggiunti da JS in addMessage) */
+.msg-info { color: var(--accent-color); } /* Prefisso [*] */
+.msg-warning { color: var(--danger-color); } /* Prefisso [!] */
+.msg-danger { color: var(--danger-color); } /* Prefisso [X] */
+.msg-success { color: lightgreen; } /* Prefisso [+] */
+.msg-lore { color: var(--accent-color); } /* Prefisso [?] */
+
+
+/* Stili per il pannello Inventario */
+#inventory-panel ul { /* Si applica alla <ul> con ID 'inventory' */
     padding-left: 5px;
 }
 
+/* Stili per gli elementi lista dell'inventario (aggiunti da JS) */
 #inventory li {
     padding: 2px 0;
     cursor: pointer; /* Cambia cursore per indicare cliccabilità */
-    transition: background-color 0.2s;
+    transition: background-color 0.1s ease; /* Transizione fluida su hover */
+    /* Stili specifici per categoria item (classi aggiunte da JS) */
 }
 
-#inventory li:hover {
-    background-color: #111; /* Sfondo leggermente più chiaro su hover */
+/* Stili per i tipi di item (classi aggiunte da JS in renderInventory) */
+/* Basati sulla 'category' definita in ITEM_DATA */
+.item-food { color: var(--plains-color); } /* Verde per Cibo */
+.item-water { color: var(--water-color); } /* Ciano per Acqua */
+.item-medical { color: var(--highlight-bg); } /* Verde brillante per Medico */
+.item-crafting { color: var(--fg-dim-color); } /* Verde scuro per Materiali/Crafting */
+.item-tool { color: var(--special-color); } /* Giallo per Strumenti */
+.item-weapon { color: var(--danger-color); } /* Rosso per Armi */
+.item-armor { color: var(--mountain-color); } /* Grigio-verde per Armature */
+.item-ammo { color: var(--warning-color); } /* Arancio per Munizioni */
+.item-lore { color: var(--fg-dim-color); font-style: italic;} /* Verde scuro/Corsivo per Lore */
+.item-unknown { color: #555; font-style: italic;} /* Grigio per Sconosciuto */
+
+/* Stile per la quantità degli item nell'inventario */
+#inventory li .item-quantity {
+    font-size: 0.9em; /* Font più piccolo per la quantità */
+    color: var(--fg-dim-color); /* Colore dimmerato per la quantità */
+    margin-left: 5px; /* Spazio dal nome item */
 }
+
+/* Stile su hover per gli elementi dell'inventario (esclusi i placeholder) */
+#inventory li:hover:not(.empty-inventory) {
+    background-color: #111; /* Sfondo leggermente più scuro su hover */
+    color: var(--highlight-fg); /* Testo nero (simulazione) - potrebbe essere solo colore fg */
+}
+/* Stile per l'elemento "Inventario Vuoto" */
+#inventory li.empty-inventory {
+    text-align: center;
+    color: var(--fg-dim-color);
+    cursor: default; /* Cursore normale, non cliccabile */
+}
+
 
 /* Area Status (Risorse, Condizione, Stats) */
+/* Stili per i valori delle risorse quando sono bassi */
 #stat-food.low-resource,
 #stat-water.low-resource {
-    color: var(--danger-color);
-    font-weight: bold;
-    animation: blink-warning 1.2s infinite; /* Animazione per risorse basse */
+    color: var(--danger-color); /* Rosso */
+    font-weight: bold; /* Grassetto */
+    animation: blink-warning 1.2s infinite step-end; /* Animazione lampeggiante */
 }
+/* Stili per i valori delle risorse quando sono a zero */
+#stat-food.zero-resource,
+#stat-water.zero-resource {
+    color: var(--danger-color); /* Rosso */
+    font-weight: bold; /* Grassetto */
+    text-decoration: line-through; /* Barrato */
+}
+
+/* Animazione per risorse basse */
 @keyframes blink-warning {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
 
-/* Stili per lo stato Condizione */
-.status-normal { color: var(--fg-color); }
-.status-warning { color: orange; font-weight: bold; } /* Es. Ferito o Malato */
-.status-danger { color: var(--danger-color); font-weight: bold; } /* Es. Ferito E Malato */ 
+/* Stili per lo stato Condizione del giocatore (classe sul tag span) */
+.status-normal { color: var(--fg-color); } /* Normale (verde brillante) */
+.status-warning { color: var(--warning-color); font-weight: bold; } /* Es. Ferito o Malato */
+.status-danger { color: var(--danger-color); font-weight: bold; } /* Es. Ferito E Malato */
+.status-sick { color: orange; font-weight: bold; } /* Solo Malato (arancione) */
+.status-injured { color: yellow; font-weight: bold; } /* Solo Ferito (giallo) */
+.status-hungry { color: orangered; font-weight: bold; } /* Solo Affamato */
+.status-thirsty { color: cornflowerblue; font-weight: bold; } /* Solo Assetato */
+.status-poisoned { color: purple; font-weight: bold; } /* Avvelenato (viola) */
+.status-dying { color: red; font-weight: bold; animation: blink-danger 1s infinite step-end; } /* HP bassi o a 0 (rosso lampeggiante) */
+.status-critical { color: darkred; font-weight: bold; animation: blink-danger 1s infinite step-end;} /* Stato critico combinato */
+
+/* Animazione per stati gravi (morente, critico) */
+@keyframes blink-danger {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Stili per le statistiche armi/armature nel tooltip (utilizzati in conjunction con tooltip.css) */
+/* NOTA: Questi stili erano nel vecchio style.css e sono stati spostati qui in panels.css o tooltip.css */
+
+/* Stile per il container delle statistiche/dettagli specifici (arma, armatura, effetti) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Se il container item-stats-container è GENERATO anche nel popup action (showItemActionPopup), allora va qui. */
+/* Nel dubbio, lo definiamo qui per il pannello generale, e useremo un selettore specifico nel tooltip.css */
+/* Selezioniamo #item-tooltip .item-stats-container in tooltip.css */
+
+
+/* Stile per ogni riga di statistica (NomeStat: Valore) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Selezioniamo #item-tooltip .item-stat in tooltip.css */
+
+
+/* Stile per il valore della statistica (numeri, Sì/No) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Selezioniamo #item-tooltip .stat-value in tooltip.css */
+
+
+/* Stili specifici per i colori dello stato Durabilità nel tooltip (classi o stili inline da JS) */
+/* Queste classi o stili INLINE VENGONO GENERATI DAL JS (getItemDetailsHTML in ui.js) */
+/* I colori sono definiti in base.css. Le classi sono per riferimento o per applicazione manuale */
+/* .durability-good { color: #00DD00; } */
+/* .durability-worn { color: #FFFF00; } */
+/* .durability-damaged { color: #FFAA00; } */
+/* .durability-critical { color: var(--danger-color); } */
+/* .durability-broken { color: #FF0000; } */

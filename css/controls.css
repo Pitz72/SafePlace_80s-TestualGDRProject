@@ -1,60 +1,69 @@
 /* css/controls.css */
 
-/* Controlli Sotto la Mappa */
+/* Contenitore dei controlli (sotto la mappa, è un div nel #map-panel) */
 #controls {
-    text-align: center;
-    flex-shrink: 0;
+    text-align: center; /* Centra gli elementi al suo interno */
+    flex-shrink: 0; /* Non far restringere l'area controlli quando la mappa si espande */
+    /* margin-top: 10px; */ /* Già gestito dal margin-bottom delle sezioni in layout.css */
 }
 
+/* Stile specifico per il pannello controlli (è un div nel #map-panel) */
+/* Usiamo questa classe per applicare stili specifici a quest'area */
 .panel-map-controls {
-    border: none; /* Rimuove bordo extra */
-    padding: 10px 0 0 0; /* Padding solo sopra */
-    margin-top: 10px; /* Spazio dalla mappa */
-    background-color: transparent; /* Sfondo trasparente */
-    flex-shrink: 0; /* Non far restringere i controlli */
-    border-top: 1px dashed var(--border-dim-color); /* Separatore dalla mappa */
+    border: none; /* Rimuove il bordo extra dato dalle regole generali delle sezioni in layout.css */
+    padding: 10px 0 0 0; /* Padding solo sopra per separare dalla mappa, 0 sui lati e sotto */
+    margin-top: 10px; /* Spazio sopra per separare dalla mappa */
+    background-color: transparent; /* Sfondo trasparente per fondersi con il pannello mappa */
+    border-top: 1px dashed var(--border-dim-color); /* Separatore tratteggiato dalla mappa */
+    flex-shrink: 0; /* Mantenuto per sicurezza */
 }
 
 .panel-map-controls h2 {
-    margin-bottom: 8px;
-    text-align: center;
+    margin-bottom: 8px; /* Spazio sotto il titolo dei controlli */
+    text-align: center; /* Allinea il titolo al centro */
 }
 
+/* Griglia per posizionare i bottoni di movimento */
 .control-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Griglia 3 colonne */
-    grid-template-rows: auto auto; /* Due righe */
-    gap: 5px;
-    justify-items: center;
-    align-items: center;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonne di larghezza uguale (ogni colonna occupa 1/3 dello spazio disponibile) */
+    grid-template-rows: auto auto; /* 2 righe, altezza automatica (basata sul contenuto) */
+    gap: 5px; /* Spazio (gutter) tra gli elementi della griglia */
+    justify-items: center; /* Allinea orizzontalmente gli elementi al centro della loro cella */
+    align-items: center; /* Allinea verticalmente gli elementi al centro della loro cella */
+    width: 100%; /* Occupa tutta la larghezza del pannello controlli */
 }
 
-/* Posizionamento specifico bottoni nella griglia */
-#btn-up { grid-column: 2; grid-row: 1; }
-#btn-left { grid-column: 1; grid-row: 2; }
-#btn-down { grid-column: 2; grid-row: 2; }
-#btn-right { grid-column: 3; grid-row: 2; }
-/* #btn-inventory { grid-column: 1 / -1; grid-row: 3; width: 80%; margin-top: 5px;} /* Commentato se non usato */
+/* Posizionamento specifico dei bottoni nella griglia (usando grid-column e grid-row) */
+#btn-up { grid-column: 2; grid-row: 1; } /* Bottone Su: Colonna 2, Riga 1 */
+#btn-left { grid-column: 1; grid-row: 2; } /* Bottone Sinistra: Colonna 1, Riga 2 */
+#btn-down { grid-column: 2; grid-row: 2; } /* Bottone Giù: Colonna 2, Riga 2 */
+#btn-right { grid-column: 3; grid-row: 2; } /* Bottone Destra: Colonna 3, Riga 2 */
+/* #btn-inventory { grid-column: 1 / -1; grid-row: 3; width: 80%; margin-top: 5px;} /* Esempio per un bottone a larghezza intera nella riga 3 */
 
-/* Stile Bottoni di Controllo */
+/* Stile Base per i Bottoni di Controllo (all'interno dell'area #controls) */
 #controls button {
-    background-color: #111;
-    color: var(--fg-color);
-    border: 1px solid var(--border-color);
-    padding: 8px 12px; /* Padding aumentato */
-    margin: 4px; /* Margine aumentato */
-    font-family: inherit;
+    background-color: #111; /* Sfondo scuro */
+    color: var(--fg-color); /* Testo verde brillante */
+    border: 1px solid var(--border-color); /* Bordo verde brillante */
+    padding: 8px 12px; /* Padding interno per dimensione del bottone */
+    margin: 4px; /* Margine esterno (potrebbe essere ridotto con gap della griglia) */
+    font-family: inherit; /* Eredita il font monospaced dalla body */
     font-size: 1em; /* Dimensione font come testo base */
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s; /* Transizione hover */
+    cursor: pointer; /* Cambia cursore al passaggio del mouse */
+    transition: background-color 0.2s, color 0.2s; /* Transizione fluida per effetti hover */
 }
+
+/* Stile bottoni di controllo su hover (quando non disabilitati) */
 #controls button:hover:not(:disabled) {
-    background-color: var(--highlight-bg);
-    color: var(--highlight-fg);
+    background-color: var(--highlight-bg); /* Sfondo evidenziato (verde) */
+    color: var(--highlight-fg); /* Testo evidenziato (nero) */
 }
+
+/* Stile bottoni di controllo quando disabilitati (classe 'disabled' aggiunta da JS) */
 #controls button:disabled {
-    color: var(--border-dim-color);
-    border-color: var(--border-dim-color);
-    cursor: not-allowed;
-    opacity: 0.5;
-} 
+    color: var(--border-dim-color); /* Colore testo spento */
+    border-color: var(--border-dim-color); /* Colore bordo spento */
+    cursor: not-allowed; /* Cursore non permesso (simbolo divieto) */
+    opacity: 0.5; /* Rendi semi-trasparente */
+}
