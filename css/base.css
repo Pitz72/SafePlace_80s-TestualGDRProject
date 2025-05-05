@@ -1,0 +1,78 @@
+/* css/base.css */
+
+/* Variabili CSS per colori e stili */
+:root {
+    --bg-color: #000000; /* Sfondo nero */
+    --fg-color: #00FF00; /* Verde brillante per il testo */
+    --fg-dim-color: #009900; /* Verde scuro per testo secondario/dimmerato */
+
+    --border-color: #00FF00; /* Verde brillante per i bordi principali */
+    --border-dim-color: #005500; /* Verde scuro per bordi secondari/separatori */
+
+    --highlight-bg: #00FF00; /* Sfondo verde brillante per evidenziazione (hover, ecc.) */
+    --highlight-fg: #000000; /* Testo nero su sfondo verde evidenziato */
+
+    --accent-color: #FFFF00; /* Giallo/Oro per titoli, elementi importanti */
+    --danger-color: #FF4444; /* Rosso per avvisi, pericoli, HP bassi */
+    --warning-color: #FFAA00; /* Arancione per avvisi intermedi */
+
+    --overlay-bg: rgba(0, 10, 0, 0.97); /* Sfondo scuro semi-trasparente per overlay */
+
+    /* Colori specifici per i tipi di casella sulla mappa */
+    --plains-color: #00BB00; /* Verde medio */
+    --forest-color: #008800; /* Verde scuro */
+    --mountain-color: #339933; /* Verde grigiastro */
+    --water-color: #008888; /* Ciano */
+    --ruin-color: #55AA55; /* Verde spento */
+    --special-color: #AAAA00; /* Giallo per punti di interesse minori */
+    --end-color: var(--accent-color); /* Usa il colore accento per la destinazione finale */
+}
+
+/* Stili base per l pagina intera */
+html { height: 100%; } /* Assicura che l'html occupi tutta l'altezza */
+
+body {
+    background-color: var(--bg-color); /* Sfondo nero */
+    color: var(--fg-color); /* Testo verde brillante */
+    font-family: 'Courier New', Courier, monospace; /* Font a spaziatura fissa */
+    font-size: 16px; /* Dimensione base font */
+    margin: 0;
+    padding: 0;
+    display: flex; /* Centra il contenuto della body */
+    align-items: center; /* Centra verticalmente */
+    justify-content: center; /* Centra orizzontalmente */
+    height: 100%; /* Occupa tutta l'altezza della viewport */
+    box-sizing: border-box; /* Include padding e border nelle dimensioni */
+    overflow: hidden; /* Impedisce scroll globale sulla body */
+}
+
+/* Stili per i titoli delle sezioni nei pannelli */
+h2 {
+    margin: 0 0 10px 0; /* Margine sotto il titolo */
+    padding-bottom: 5px; /* Padding sotto la linea */
+    color: var(--accent-color); /* Giallo per i titoli */
+    border-bottom: 1px solid var(--border-color); /* Linea sotto il titolo */
+    font-size: 1.1em; /* Dimensione titolo leggermente più grande del testo base */
+    text-transform: uppercase; /* Testo in maiuscolo */
+}
+
+/* Stili per le liste */
+ul {
+    list-style: none; /* Rimuove i pallini delle liste */
+    padding: 0; /* Rimuove padding predefinito */
+    margin: 0; /* Rimuove margine predefinito */
+    font-size: 0.95em; /* Leggermente più piccolo del testo base */
+}
+
+li {
+    margin-bottom: 5px; /* Spazio tra elementi lista */
+    word-break: break-word; /* Permette al testo lungo di andare a capo */
+}
+
+/* Classe per separatori nelle liste (es. stats) */
+li.separator {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: var(--border-dim-color); /* Colore verde scuro per i separatori */
+    text-align: center;
+}
