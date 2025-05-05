@@ -1,3 +1,19 @@
+### IlViaggiatoreGDR v0.7.005 (Panoramica)
+
+Dopo aver risolto i problemi di visualizzazione della mappa e aver bilanciato la presenza dei vari punti di interesse (Villaggi, Città, ecc.) nella versione v0.7.04, abbiamo iniziato una fase di test e pulizia del codice per prepararci a correggere eventuali bug nel funzionamento del gioco.
+
+1.  Pulizia Codice: Abbiamo rimosso i messaggi di debug temporanei che erano stati inseriti nei file per aiutarci a capire i problemi della mappa. Questo rende la console del browser più pulita durante il gioco normale.
+2.  Miglioramento Legenda: Abbiamo reso la descrizione del terreno "Pianura" più concisa nella legenda per migliorare la leggibilità.
+3.  Identificazione Bug Eventi: Durante i primi test, abbiamo scoperto che il gioco si bloccava o mostrava errori quando si interagiva con certi eventi casuali (come "Tracce Strane", "Dilemma Morale", "Pericolo Ambientale" o incontri con nemici) o quando si cercava di usare oggetti dall'inventario.
+4.  Correzione Bug Eventi (In Corso): Abbiamo identificato che questi errori erano dovuti principalmente a:
+    - Nomi sbagliati usati nel codice per richiamare i testi descrittivi degli esiti degli eventi (es. esitiFugaPredoniKo doveva essere scritto in un modo specifico).
+    - Funzioni mancanti o chiamate in modo errato (come applyDamage invece di applyPenalty).
+    - Un problema tecnico nel modo in cui venivano gestite le scelte del giocatore nei popup (la lista delle scelte risultava vuota al momento sbagliato).
+    - Abbiamo corretto diversi di questi errori specifici nei file events.js e game_core.js. L'uso degli oggetti dall'inventario ora sembra funzionare correttamente.
+5.  Problema Formattazione Log: Abbiamo notato che i ritorni a capo nei messaggi del log eventi non funzionavano bene (appariva \n). Abbiamo corretto il modo in cui questi messaggi vengono preparati per la visualizzazione.
+6.  Bug Transizione Notte (Risolto): Abbiamo identificato e corretto un bug che bloccava il gioco quando passava dal giorno alla notte mentre il giocatore si trovava all'aperto. Ora il gioco dovrebbe continuare correttamente anche di notte.
+7.  Stato Attuale: Il gioco è più stabile rispetto a v0.7.04, con diversi errori critici corretti nel sistema degli eventi e nella transizione giorno/notte. Tuttavia, l'ultimo intervento dell'AI sulla gestione delle scelte dei popup potrebbe necessitare di revisione (come discusso nell'ultimo messaggio). La prossima fase sarà continuare i test funzionali per trovare e correggere i bug rimanenti nelle meccaniche di gioco (sopravvivenza, stati, effetti oggetti, ecc.).
+
 ### IlViaggiatoreGDR v0.7.001 (Panoramica)
 
 Ecco un'analisi dettagliata del codice del progetto "TheSafePlace" v0.7.01, basata sui file e sulle interazioni avute finora:

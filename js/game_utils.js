@@ -94,8 +94,11 @@ function addMessage(text, type = 'normal', important = false) {
     // Applica grassetto se richiesto
     if (important) text = `<strong>${text}</strong>`;
 
+    // Sostituisci \n con <br> PRIMA di pushare per l'HTML
+    const formattedText = text.replace(/\n/g, '<br>'); 
+
     // Aggiunge il messaggio alla FINE dell'array logico
-    messages.push({ text: prefix + text, class: cssClass });
+    messages.push({ text: prefix + formattedText, class: cssClass }); // Usa formattedText
 
     // Mantiene il log entro la dimensione massima (definita in game_constants.js)
     if (messages.length > MAX_MESSAGES) {
@@ -103,17 +106,11 @@ function addMessage(text, type = 'normal', important = false) {
     }
 
     // Triggera l'aggiornamento della visualizzazione UI.
-    // Questa funzione (renderMessages) deve essere definita nel modulo UI (ui.js)
-    // e deve essere accessibile globalmente o tramite un'altra funzione di coordinamento.
-    // Per semplicità in questa struttura, assumiamo che renderMessages sia globalmente accessibile
-    // o chiamata dal game_core dopo ogni azione che può aggiungere messaggi.
-    // In una struttura più rigorosa, game_core chiamerebbe ui.renderMessages() dopo aver chiamato addMessage().
-    // Per ora, una chiamata diretta qui funziona finché ui.js è caricato prima e renderMessages è nel global scope.
     if (typeof renderMessages === 'function') {
         renderMessages();
     } else {
-        // Fallback console log se la UI non è pronta
-        console.log(`[Log:${type.toUpperCase()}] ${text}`);
+        // Fallback console log se la UI non è pronta (usa testo originale senza <br>)
+        console.log(`[Log:${type.toUpperCase()}] ${text}`); 
     }
 }
 

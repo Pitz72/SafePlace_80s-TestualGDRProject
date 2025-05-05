@@ -302,20 +302,47 @@ function handleKeyPress(event) {
  * @param {MouseEvent} event - L'evento mouse click.
  */
 function handleChoiceContainerClick(event) {
-    // Trova il bottone cliccato risalendo l'albero DOM
     const choiceButton = event.target.closest('button[data-choice-index]');
-    
-    // Se è stato trovato un bottone valido con l'attributo data-choice-index
-    if (choiceButton) {
-        // Leggi il valore dell'attributo data-choice-index
+    const context = currentEventContext; // Recupera contesto globale
+
+    // Verifica se il bottone e il contesto sono validi
+    if (choiceButton && context && Array.isArray(context.choices)) {
         const choiceIndex = parseInt(choiceButton.dataset.choiceIndex, 10);
-        
-        // Chiama la funzione handleEventChoice (definita in events.js) passando l'indice
-        if (typeof handleEventChoice === 'function') {
-            handleEventChoice(choiceIndex);
+
+        // Controlla se l'indice è valido per le scelte nel contesto
+        if (choiceIndex >= 0 && choiceIndex < context.choices.length) {
+            if (context.isActionPopup === true) {
+                // È un popup di azione oggetto -> Esegui l'azione definita
+                const actionFunction = context.choices[choiceIndex]?.action;
+                if (typeof actionFunction === 'function') {
+                    actionFunction(); // Esegui direttamente la funzione (es. useItem, dropItem)
+                    // L'azione stessa (es. useItem) dovrebbe chiudere il popup se necessario
+                } else {
+                    console.error("Azione non trovata o non valida per il bottone del popup azione:", choiceIndex, context.choices[choiceIndex]);
+                    if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
+                }
+                // NOTA: Non chiamiamo handleEventChoice per i popup azione
+            } else {
+                // È un popup evento standard -> Chiama handleEventChoice con l'indice
+                if (typeof handleEventChoice === 'function') {
+                    handleEventChoice(choiceIndex);
+                } else {
+                    console.error("handleChoiceContainerClick: handleEventChoice non disponibile (events.js?).");
+                     if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
+                }
+            }
         } else {
-            console.error("handleChoiceContainerClick: handleEventChoice non disponibile (events.js?).");
+             console.error("handleChoiceContainerClick: Indice scelta non valido:", choiceIndex, context.choices);
+             if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
         }
+    } else {
+         // Log per bottone non valido o contesto mancante (potrebbe accadere se si clicca velocemente?)
+         // Non loggare se si clicca fuori da un bottone, solo se il contesto manca o non è valido quando un bottone viene trovato
+         if (choiceButton) { // Solo se è stato cliccato un bottone ma il contesto è problematico
+            console.warn("handleChoiceContainerClick: Contesto evento non valido o mancante.", context);
+            // Potrebbe essere utile chiudere il popup se il contesto è perso?
+            // if(typeof closeEventPopup === 'function') closeEventPopup();
+         }
     }
 }
 

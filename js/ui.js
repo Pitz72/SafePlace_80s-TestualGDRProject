@@ -739,7 +739,9 @@ function showEventPopup(eventData) {
 
     // Imposta titolo e descrizione del popup
     DOM.eventTitle.textContent = eventData.title || "Evento";
-    DOM.eventContent.innerHTML = eventData.description || "Qualcosa è successo..."; // Usa innerHTML per formattazione semplice (come <br>)
+    // Sostituisci \n con <br> nella descrizione prima di assegnarla a innerHTML
+    const descriptionText = eventData.description || "Qualcosa è successo...";
+    DOM.eventContent.innerHTML = descriptionText.replace(/\n/g, '<br>');
 
     // Memorizza il contesto dell'evento corrente (per riferimento in handleEventChoice e gestione input)
     currentEventContext = eventData; // Salva l'intero oggetto evento
@@ -808,6 +810,21 @@ function showEventPopup(eventData) {
     DOM.eventOverlay.classList.add('visible'); // Rende visibile l'overlay con la transizione CSS
 
     // console.log("showEventPopup: Popup evento visualizzato."); // Log di debug rimosso
+    
+    // --- GESTIONE FOCUS INIZIALE ---
+    try {
+        const firstChoiceButton = DOM.eventChoicesContainer.querySelector('button');
+        if (firstChoiceButton) {
+            firstChoiceButton.focus();
+        } else if (DOM.continueButton.style.display !== 'none') {
+            DOM.continueButton.focus();
+        } else {
+             // Se non ci sono bottoni, prova a mettere focus sul popup stesso
+             // Assicurati che eventPopup abbia tabindex="-1" o tabindex="0" in HTML o CSS per essere focusable
+             // DOM.eventPopup.setAttribute('tabindex', '-1'); // Aggiungi tabindex se necessario
+             DOM.eventPopup.focus(); 
+        }
+    } catch (e) { console.warn("Errore impostazione focus su popup:", e); }
 }
 
 
@@ -856,6 +873,14 @@ function closeEventPopup() {
     renderStats();
 
     // console.log("closeEventPopup: Popup evento chiuso."); // Log di debug rimosso
+    
+    // --- RIPRISTINO FOCUS ---
+    try {
+        document.body.focus(); // Riporta il focus al body principale
+        // In alternativa, potresti voler mettere focus su un elemento specifico del gioco,
+        // come il contenitore della mappa se fosse reso focusable:
+        // DOM.gameContainer.focus(); 
+    } catch (e) { console.warn("Errore ripristino focus:", e); }
 }
 
 // --- Funzione per costruire e mostrare l'esito di un evento complesso ---

@@ -770,17 +770,17 @@ function transitionToNight() {
              return; // Esci perché il gioco è finito
         }
 
-        // Se il giocatore sopravvive alla notte all'aperto, il gioco continua in modalità notte.
-        // Il prossimo movimento (se all'aperto) conteggerà nel nightMovesCounter.
-        // Dopo NIGHT_LENGTH_MOVES passi notturni all'aperto, passerà al giorno in movePlayer.
-    }
+        // Se il giocatore sopravvive alla notte all'aperto e nessun popup evento è attivo,
+        // riabilita i controlli per permettere di cercare un rifugio.
+        if (!eventScreenActive) {
+            enableControls(); 
+        }
 
-    // Aggiorna la UI delle statistiche (HP, risorse, ora)
+    } // Fine blocco else (notte all'aperto)
+
+    // Aggiorna la UI delle statistiche (HP, risorse, ora) - Questa chiamata avviene sempre dopo if/else
     if (typeof renderStats === 'function') renderStats(); else console.warn("transitionToNight: renderStats non disponibile.");
 
-    // Se il gioco non è finito, i controlli vengono riabilitati in movePlayer (dopo il check eventScreenActive).
-    // Se l'utente finisce il giorno all'aperto, potrà comunque muoversi per cercare un rifugio.
-    // I controlli non vengono disabilitati qui, la pausa è gestita in movePlayer.
 }
 
 
