@@ -472,17 +472,49 @@ function movePlayer(dx, dy) {
 
     // --- LOGICA CICLO GIORNO/NOTTE E PASSI ---
 
-    // Se è notte E il giocatore si sposta SU una casella rifugio, la notte passa automaticamente
-    // Questo gestisce il caso in cui si cerca un rifugio muovendosi e lo si trova.
-    if (!isDay && SHELTER_TILES.includes(targetTile.type)) {
-        // Non applichiamo costi/penalità di movimento qui, li applichiamo solo se si muove all'aperto di notte.
-        // Il fatto di essere entrati nel rifugio fa passare la notte.
-        addMessage(`Hai raggiunto un rifugio (${TILE_DESC[targetTile.type]}). Passi la notte al sicuro.`, "info", true);
-        transitionToDay(); // Funzione definita in questo modulo map.js
-        // La UI (renderStats/Map) verrà aggiornata in transitionToDay.
-        // I controlli verranno riabilitati in transitionToDay (se non c'è evento popup).
-        return; // Esci subito dopo aver passato la notte
+    // Se è notte e il giocatore entra in un rifugio ('R')
+    if (!isDay && SHELTER_TILES.includes(targetTile.type)) { // Ora SHELTER_TILES contiene solo 'R'
+        // --- NUOVA LOGICA RIFUGIO 'R' NOTTURNO ---
+        // 1. Messaggio Log iniziale (opzionale, il popup è più importante)
+        addMessage(`Hai raggiunto un Rifugio Precario ('R').`, "info", true);
+
+        // 2. Prepara dati per il popup informativo + loot check
+        const restStopNightEvent = {
+            title: "Rifugio Notturno ('R')",
+            description: "Questo Rifugio Precario sembra abbastanza sicuro per passare la notte indisturbato. Mentre ti sistemi per riposare fino all'alba, dai un'occhiata furtiva intorno...",
+            // Non ci sono scelte per l'utente, ma un risultato automatico
+            isOutcome: true, // Lo trattiamo come un popup di risultato
+            // Aggiungiamo un contesto per il loot check
+            context: { eventType: 'REST_STOP_NIGHT_LOOT_CHECK' }
+        };
+
+        // 3. Mostra il popup informativo (questa funzione imposta anche eventScreenActive e gamePaused)
+        if (typeof showEventPopup === 'function') {
+            showEventPopup(restStopNightEvent);
+            // NOTA: showEventPopup con isOutcome: true aggiunge un bottone "Continua".
+            // Il gestore del click su "Continua" (in ui.js) chiama closeEventPopup.
+            // Dobbiamo modificare cosa succede DOPO aver chiuso questo popup specifico.
+            // Modificheremo closeEventPopup o il gestore del bottone continua per gestire questo caso.
+        } else {
+             console.error("movePlayer: showEventPopup non disponibile!");
+             // Fallback: logga messaggio e transiziona comunque
+             addMessage("Riposi nel rifugio fino all'alba.", "info");
+             // Consuma risorse e transiziona (la logica originale era in transitionToNight/Day)
+             player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
+             player.water = Math.max(0, player.water - NIGHT_WATER_COST);
+             if (typeof transitionToDay === 'function') transitionToDay();
+        }
+
+        // IMPORTANTE: L'esecuzione di movePlayer si ferma qui perché showEventPopup disabilita i controlli.
+        // La logica del loot check e la chiamata a transitionToDay avverranno QUANDO l'utente
+        // cliccherà "Continua" sul popup mostrato.
+        // Dovremo modificare closeEventPopup o il listener del bottone continua in ui.js
+        // per controllare se currentEventContext.eventType è 'REST_STOP_NIGHT_LOOT_CHECK'
+        // e, in tal caso, eseguire il loot check e chiamare transitionToDay.
+
+        return; // Esce da movePlayer per attendere l'interazione con il popup.
     }
+    // --- FINE NUOVA LOGICA RIFUGIO 'R' NOTTURNO ---
 
 
     // Applica consumo risorse per questo movimento (usa la funzione definita qui sotto)

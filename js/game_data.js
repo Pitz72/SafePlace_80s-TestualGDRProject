@@ -268,6 +268,32 @@ const EVENT_DATA = {
                  { text: "Riflettere sulla propria identità", outcome: "Ti soffermi davanti a quelle immagini, pensando a ciò che il mondo ti ha negato. Non c'è più spazio per cerimonie o celebrazioni, solo sopravvivenza. Eppure, in qualche modo, sei diventato adulto troppo presto in questo mondo morente." },
                  { text: "Cercare dietro il muro (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Spostando alcune foto, scopri che il muro nasconde un piccolo nascondiglio. Qualcuno aveva preparato una 'capsula del tempo' per il futuro, non sapendo quanto sarebbe stato diverso. Trovi oggetti utili tra i ricordi.", successReward: { itemId: 'repair_kit', quantity: 1 }, failureText: "Non trovi nulla dietro le immagini. Solo cemento freddo e la realtà che alcuni passaggi della vita sono andati perduti per sempre.", isSearchAction: true }
              ]
+        },
+        {
+            id: "rest_stop_day_interaction",
+            title: "Rifugio Precario (Giorno)",
+            description: "Questo ammasso di lamiere e teli offre un riparo temporaneo dal vento e dalla polvere. Cosa vuoi fare?",
+            // La condizione 'isDay' verrà verificata in triggerTileEvent
+            choices: [
+                {
+                    text: "Esplora il rifugio (costa tempo)",
+                    skillCheck: { stat: 'presagio', difficulty: 10 }, // Check Presagio per intuire pericoli/opportunità
+                    successText: "Dopo un'attenta ricerca tra i detriti e gli angoli bui...", // Esito gestito in handleEventChoice
+                    failureText: "Non trovi nulla di utile, solo polvere e rifiuti senza valore.",
+                    isSearchAction: true, // Costo tempo
+                    actionKey: "explore_shelter"
+                },
+                {
+                    text: "Riposa brevemente",
+                    outcome: "Ti fermi per qualche minuto, recuperando un po' il fiato. Non è molto, ma aiuta a schiarire le idee prima di ripartire.",
+                    actionKey: "rest_short"
+                },
+                {
+                    text: "Lascia il rifugio",
+                    outcome: "Decidi di non perdere altro tempo qui. Prosegui il tuo viaggio.",
+                    actionKey: "leave"
+                }
+            ]
         }
     ]
     // MOUNTAIN, START, END non hanno eventi specifici del tile definiti qui.

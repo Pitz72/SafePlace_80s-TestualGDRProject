@@ -85,19 +85,44 @@ function triggerTileEvent(tileSymbol) {
 
 
     // --- LOGICA EVENTI STANDARD DEL TILE ---
-    // Filtra dalla pool standard eventuali eventi che non dovrebbero più accadere
+
+    // --- NUOVO: Filtra la pool di eventi standard in base all'ora del giorno ---
+    // Utilizza la variabile globale 'isDay' e la proprietà 'triggerCondition' nell'oggetto evento.
+    const originalPoolLength = eventPool.length;
+    const filteredEventPool = eventPool.filter(event => {
+        // Se l'evento non ha triggerCondition, è valido sia di giorno che di notte.
+        if (!event.triggerCondition) {
+            return true;
+        }
+        // Se ha triggerCondition: 'isDay', è valido solo se isDay è true.
+        if (event.triggerCondition === 'isDay' && isDay) {
+            return true;
+        }
+        // Se ha triggerCondition: 'isNight', è valido solo se isDay è false.
+        if (event.triggerCondition === 'isNight' && !isDay) {
+            return true;
+        }
+        // Altrimenti (es. triggerCondition è presente ma non corrisponde all'ora), non è valido.
+        return false;
+    });
+
+    // Sostituisce la pool originale con quella filtrata
+    eventPool = filteredEventPool;
+    // console.log(`triggerTileEvent: Pool filtrata per ora (${isDay ? 'Giorno' : 'Notte'}). Originale: ${originalPoolLength}, Filtrata: ${eventPool.length}`); // Log di debug
+
+    // Filtra dalla pool filtrata eventuali eventi che non dovrebbero più accadere
     // (es. se un evento è stato progettato per accadere una sola volta ma non ha il flag isUnique per qualche ragione).
     // Per ora non abbiamo eventi standard one-time che non siano "isUnique".
     // Potremmo aggiungere logica qui in futuro se necessario.
 
-    // Se la pool di eventi standard è vuota o la probabilità non si verifica, non fare nulla.
+    // Se la pool di eventi filtrata è vuota o la probabilità non si verifica, non fare nulla.
     if (eventPool.length === 0 || Math.random() > eventChance) {
-        // console.log(`triggerTileEvent: Nessun evento standard attivato su ${tileSymbol}. Probabilità: ${eventChance}, Pool: ${eventPool.length}`); // Log di debug rimosso
+        // console.log(`triggerTileEvent: Nessun evento standard attivato su ${tileSymbol}. Probabilità: ${eventChance}, Pool Filtrata: ${eventPool.length}`); // Log di debug rimosso
         return;
     }
 
-    // Seleziona un evento casuale dalla pool standard.
-    const randomEvent = getRandomText(eventPool); // Usa la utility getRandomText
+    // Seleziona un evento casuale dalla pool standard FILTRATA.
+    const randomEvent = getRandomText(eventPool); // Usa la utility getRandomText sulla pool filtrata
 
     // Mostra l'evento selezionato (se valido).
     if (randomEvent) {
@@ -352,7 +377,8 @@ function triggerComplexEvent(tileSymbol) {
  * @param {number} choiceIndex - L'indice (0-based) della scelta selezionata dall'utente.
  */
 function handleEventChoice(choiceIndex) {
-    // console.log(`handleEventChoice: Gestione scelta indice ${choiceIndex}.`); // Log di debug
+    // console.log('handleEventChoice: Ricevuto choiceIndex:', choiceIndex); // RIMOSSO
+    // console.log(`handleEventChoice: Gestione scelta indice ${choiceIndex}.`); // Log di debug originale
 
     // Verifica che il contesto dell'evento e la scelta selezionata siano validi.
     // currentEventContext e currentEventChoices sono popolati da showEventPopup.
@@ -365,6 +391,7 @@ function handleEventChoice(choiceIndex) {
 
     // Ottieni la scelta selezionata e i dati dell'evento dal contesto
     const choice = currentEventChoices[choiceIndex];
+    // console.log('handleEventChoice: Oggetto choice recuperato:', choice); // RIMOSSO
     const eventType = currentEventContext.type; // Tipo dell'evento (complesso o specifico del tile, es. 'PREDATOR' o 'VILLAGE')
     const isSearchAction = choice.isSearchAction || false; // Flag se l'azione costa tempo
     const actionKey = choice.actionKey; // Chiave azione (fuga, lotta, segui, ispeziona, etc.)
@@ -391,10 +418,24 @@ function handleEventChoice(choiceIndex) {
     let outcomeConsequencesText = ""; // Testo delle conseguenze meccaniche per il popup di esito
     let messageType = 'info'; // Tipo di messaggio per il log e lo stile del popup esito
 
-
+    // console.log('handleEventChoice: Controllo if (choice.outcome)...'); // RIMOSSO
     // Se la scelta ha un esito diretto predefinito (outcome)
     if (choice.outcome) {
-        // ... (Codice esito diretto con controlli esistenza - invariato) ...
+        // console.log('handleEventChoice: Entrato nel blocco if (choice.outcome)'); // RIMOSSO
+        outcomeDescription = choice.outcome;
+        // Verifica se c'è una ricompensa associata anche all'outcome diretto
+        if (choice.successReward) {
+             const rewardFeedback = applyChoiceReward(choice.successReward);
+             if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+        }
+
+        // Logga il messaggio di esito completo al log di gioco.
+        addMessage(outcomeDescription + (outcomeConsequencesText ? `\n${outcomeConsequencesText}` : ''), messageType, true);
+
+        // Mostra il popup di risultato con l'esito diretto
+        // console.log('handleEventChoice: Chiamando buildAndShowComplexEventOutcome con:', outcomeTitle, outcomeDescription, messageType); // RIMOSSO
+        buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription + (outcomeConsequencesText ? `<br>${outcomeConsequencesText}` : ''), null, null, messageType);
+
     }
     // Se la scelta richiede un check di abilità
     else if (choice.skillCheck) {
@@ -450,8 +491,68 @@ function handleEventChoice(choiceIndex) {
 
                 default: // Questo default cattura i check successo degli eventi specifici del tile
                     // ... (codice default successo invariato) ...
+                    // Qui possiamo aggiungere logica specifica per actionKey di eventi TILE
                     break;
             }
+
+            // --- NUOVA LOGICA SPECIFICA PER AZIONE 'explore_shelter' (Successo) ---
+            if (actionKey === 'explore_shelter') {
+                 // Verifica dipendenze necessarie per questa logica specifica
+                if (typeof SHELTER_INSPECT_LOOT_CHANCE === 'undefined' || typeof SHELTER_INSPECT_LORE_CHANCE === 'undefined' || typeof SHELTER_INSPECT_LOOT_WEIGHTS === 'undefined' || typeof chooseWeighted !== 'function' || typeof applyChoiceReward !== 'function') {
+                    console.error("handleEventChoice (explore_shelter success): Dipendenze mancanti (costanti/funzioni)!");
+                    outcomeDescription = "Errore nell'esplorazione del rifugio.";
+                    messageType = 'danger';
+                } else {
+                    const exploreRoll = Math.random();
+
+                    if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE) { // Es. 0.50
+                        // Esito: Loot
+                        outcomeDescription = "Esplorando attentamente, trovi qualcosa di utile!";
+                        messageType = 'success';
+                        // Prepara tabella loot e scegli
+                        const lootTable = Object.keys(SHELTER_INSPECT_LOOT_WEIGHTS).map(id => ({ id: id, weight: SHELTER_INSPECT_LOOT_WEIGHTS[id] }));
+                        if (lootTable.length > 0) {
+                            const chosenLoot = chooseWeighted(lootTable);
+                            if (chosenLoot && chosenLoot.id) {
+                                // Applica la ricompensa e aggiungi feedback
+                                const rewardFeedback = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                                if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                            } else {
+                                console.warn("handleEventChoice (explore_shelter success): chooseWeighted non ha restituito loot valido.");
+                                outcomeConsequencesText += "<br>(Ricerca infruttuosa...)";
+                                messageType = 'info';
+                            }
+                        } else {
+                            console.warn("handleEventChoice (explore_shelter success): SHELTER_INSPECT_LOOT_WEIGHTS è vuota.");
+                             outcomeConsequencesText += "<br>(Nessun loot definibile...)";
+                             messageType = 'info';
+                        }
+
+                    } else if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE + SHELTER_INSPECT_LORE_CHANCE) { // Es. 0.50 + 0.30 = 0.80
+                        // Esito: Lore
+                        outcomeDescription = "Tra la polvere, scopri un indizio sul passato...";
+                        messageType = 'lore';
+                        // Prova a dare un frammento di lore
+                        const loreRewardFeedback = applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
+                         if (loreRewardFeedback) {
+                             outcomeConsequencesText += "<br>Hai trovato un frammento di lore.";
+                             // Nota: applyChoiceReward con 'lore_fragment_item' potrebbe non dare feedback testuale diretto,
+                             // il messaggio qui sopra serve a confermare al giocatore.
+                         } else {
+                             // Se applyChoiceReward fallisce per lore (es. inventario pieno o item non valido),
+                             // consideralo come 'Nulla'.
+                             outcomeDescription = "Il rifugio è stato rovistato a fondo. Non trovi nulla di interessante o utile.";
+                             messageType = 'info';
+                         }
+                    } else {
+                        // Esito: Nulla
+                        outcomeDescription = "Il rifugio è stato rovistato a fondo. Non trovi nulla di interessante o utile.";
+                        messageType = 'info';
+                        // outcomeConsequencesText rimane vuoto
+                    }
+                } // Fine else (dipendenze OK)
+            } // Fine if actionKey === 'explore_shelter'
+            // --- FINE NUOVA LOGICA ---
 
 
         } else {
@@ -700,6 +801,10 @@ function handleEventChoice(choiceIndex) {
          addMessage(`${outcomeTitle}. ${finalOutcomeText}`, messageType, true);
 
         // Mostra il popup di risultato dell'evento complesso
+        // Rimosso log diagnostico DOM
+        // if (!checkResult.success) {
+        //     console.log("handleEventChoice: Stato DOM PRIMA di chiamare buildAndShowComplexEventOutcome (check fallito):", DOM);
+        // }
         buildAndShowComplexEventOutcome(outcomeTitle, finalOutcomeText, null, null, messageType);
 
     } // Fine gestione IF skillCheck
@@ -711,9 +816,6 @@ function handleEventChoice(choiceIndex) {
          // Chiudi comunque il popup per evitare blocchi
          if (typeof closeEventPopup === 'function') closeEventPopup();
      }
-
-    // Pulisci le scelte globali SOLO ALLA FINE, dopo che l'evento è stato completamente gestito.
-    currentEventChoices = [];
 
 }
 
@@ -1029,4 +1131,91 @@ function applyPenalty(penaltyObject) {
     // addMessage(feedback, messageType);
 
     return feedback; // Ritorna la stringa di feedback per il popup
+}
+
+/**
+ * Esegue un check passivo per trovare loot nel rifugio 'R' durante la notte.
+ * Chiamata da closeEventPopup quando viene chiuso il popup specifico.
+ * Dipende da: game_constants.js (player, SHELTER_INSPECT_LOOT_WEIGHTS), game_data.js (ITEM_DATA),
+ * game_utils.js (addMessage, chooseWeighted), player.js (addItemToInventory).
+ */
+function performRestStopNightLootCheck() {
+    // Verifica che le dipendenze necessarie siano disponibili
+    if (typeof player === 'undefined' || typeof player.presagio === 'undefined') {
+        console.error("performRestStopNightLootCheck: Oggetto player o player.presagio non definito.");
+        return; // Esce se il giocatore non è definito
+    }
+    if (typeof SHELTER_INSPECT_LOOT_WEIGHTS === 'undefined') {
+        console.error("performRestStopNightLootCheck: SHELTER_INSPECT_LOOT_WEIGHTS non definito in game_constants.js.");
+        return;
+    }
+    if (typeof ITEM_DATA === 'undefined') {
+        console.error("performRestStopNightLootCheck: ITEM_DATA non definito in game_data.js.");
+        return;
+    }
+    if (typeof chooseWeighted !== 'function') {
+        console.error("performRestStopNightLootCheck: Funzione chooseWeighted non trovata (game_utils.js).");
+        return;
+    }
+     if (typeof addItemToInventory !== 'function') {
+        console.error("performRestStopNightLootCheck: Funzione addItemToInventory non trovata (player.js).");
+        return;
+    }
+    if (typeof addMessage !== 'function') {
+        console.error("performRestStopNightLootCheck: Funzione addMessage non trovata (game_utils.js).");
+        return;
+    }
+
+    // 1. Calcolare la probabilità di trovare loot basata su Presagio
+    const baseChance = 0.10;
+    // Applica bonus solo se presagio > 10
+    const presagioBonus = player.presagio > 10 ? (player.presagio - 10) * 0.02 : 0;
+    let lootChance = baseChance + presagioBonus;
+    // Limita la probabilità tra 0 e 1
+    lootChance = Math.max(0.0, Math.min(1.0, lootChance));
+
+    // 2. Generare numero casuale
+    const randomRoll = Math.random();
+
+    // 3. Controllare se si trova loot
+    if (randomRoll < lootChance) {
+        // Loot trovato!
+        // Prepara la tabella di loot per chooseWeighted
+        const lootTable = Object.keys(SHELTER_INSPECT_LOOT_WEIGHTS).map(id => ({
+            id: id,
+            weight: SHELTER_INSPECT_LOOT_WEIGHTS[id]
+        }));
+
+        if (lootTable.length === 0) {
+             console.warn("performRestStopNightLootCheck: La tabella di loot SHELTER_INSPECT_LOOT_WEIGHTS è vuota o non valida.");
+             return; // Esci se la tabella è vuota
+        }
+
+        // Scegli un oggetto dalla tabella
+        const chosenLoot = chooseWeighted(lootTable);
+
+        if (chosenLoot && chosenLoot.id) {
+            // Oggetto valido scelto
+            const itemInfo = ITEM_DATA[chosenLoot.id];
+            const quantity = 1; // Quantità fissa per questo check passivo
+
+            if (itemInfo) {
+                // Informazioni oggetto valide, aggiungi all'inventario
+                addItemToInventory(chosenLoot.id, quantity);
+                // Logga il messaggio di successo
+                addMessage(`Durante il riposo, noti qualcosa di utile nascosto! Trovato: ${itemInfo.name}.`, 'success', true);
+                // addItemToInventory aggiorna già renderInventory
+            } else {
+                // Logga warning se l'ID oggetto scelto non esiste in ITEM_DATA
+                console.warn(`performRestStopNightLootCheck: Loot scelto ('${chosenLoot.id}') non trovato in ITEM_DATA.`);
+            }
+        } else {
+            // Logga warning se chooseWeighted non ha restituito un oggetto valido
+            console.warn("performRestStopNightLootCheck: chooseWeighted non ha restituito un loot valido dalla tabella SHELTER_INSPECT_LOOT_WEIGHTS.");
+        }
+    } else {
+        // 4. Nessun loot trovato
+        addMessage("Riposi senza trovare nulla di particolare nel rifugio.", 'info');
+    }
+    // Nessun aggiornamento UI diretto necessario qui, dovrebbe essere gestito dopo la chiamata a questa funzione (in closeEventPopup)
 }

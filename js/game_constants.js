@@ -54,7 +54,7 @@ const MOVE_WATER_COST = 0.15; // Consumo di idratazione per ogni passo.
 const SEARCH_TIME_COST = 3;
 
 // Tipi di caselle considerati rifugi sicuri per la notte
-const SHELTER_TILES = [TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.CITY, TILE_SYMBOLS.REST_STOP];
+const SHELTER_TILES = [TILE_SYMBOLS.REST_STOP]; // Solo 'R' è un rifugio sicuro automatico per la notte
 
 // Limite slot inventario
 const MAX_INVENTORY_SLOTS = 6;
@@ -87,7 +87,7 @@ const TRACCE_DANGER_CHANCE = 0.20;      // Probabilità di finire in pericolo (p
 // Probabilità per l'esito di un evento Ispezione Rifugio Strano (dopo successo check 'Ispeziona').
 const SHELTER_INSPECT_LOOT_CHANCE = 0.50;   // Probabilità di trovare risorse/oggetti.
 const SHELTER_INSPECT_LORE_CHANCE = 0.30;   // Probabilità di trovare frammenti di lore.
-// Il restante (20%) sarà Nulla o Trappola. (La logica può decidere tra questi due).
+// Il restante (1.0 - 0.50 - 0.30 = 0.20) sarà Nulla o Trappola. (La logica può decidere tra questi due).
 
 // Costanti per Effetti Passivi Status (danno per passo o per notte se non curato/risolto)
 const HUNGER_PENALTY_HP = 1; // Danno HP per notte senza cibo.
@@ -390,3 +390,14 @@ const descrizioniTracceNothing = [
 ];
 
 // --- FINE COSTANTI NUMERICHE E PROBABILISTICHE ---
+
+// Pool di risorse comuni trovate casualmente (usato da applyChoiceReward con type: 'random_common_resource')
+const COMMON_RESOURCES_POOL = [
+    'scrap_metal',
+    'bandages_dirty',
+    'canned_food',
+    'water_purified_small',
+    'berries',
+    'ammo_generic',
+    'mechanical_parts'
+];

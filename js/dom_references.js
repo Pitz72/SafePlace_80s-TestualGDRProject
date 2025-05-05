@@ -57,9 +57,8 @@ function assignAllDOMReferences() {
     // Recupera riferimenti per log e controlli
     DOM.messagesList = document.getElementById('messages');
     DOM.moveButtons = document.querySelectorAll('.control-grid button');
-    // DOM.inventoryButton = document.getElementById('btn-inventory');
 
-    // Recupera riferimenti per il popup eventi
+    // Recupera riferimenti per il popup eventi (con log di errore rimossi)
     DOM.eventOverlay = document.getElementById('event-overlay');
     DOM.eventPopup = document.getElementById('event-popup');
     DOM.eventTitle = document.getElementById('event-title');
@@ -81,32 +80,13 @@ function assignAllDOMReferences() {
     if (DOM.itemTooltip) { // Verifica che il tooltip esista prima di cercare i suoi figli
         DOM.tooltipItemName = DOM.itemTooltip.querySelector('#tooltip-item-name');
         DOM.tooltipItemDesc = DOM.itemTooltip.querySelector('#tooltip-item-desc');
-        // DOM.tooltipActions = DOM.itemTooltip.querySelector('#tooltip-item-actions');
     }
 
-    // Recupera il riferimento all'inventario (mancante nel tuo codice)
+    // Recupera il riferimento all'inventario
     DOM.inventoryList = document.getElementById('inventory');
 
-    // --- VERIFICHE ESSENZIALI (Opzionale ma consigliato) ---
-    // Logga un errore se un elemento critico non è stato trovato.
-    // Questo aiuta a debuggare problemi nell'HTML (ID sbagliati, elementi mancanti).
-    if (!DOM.gameContainer) console.error("ERRORE DOM: #game-container non trovato!");
-    if (!DOM.mapDisplay) console.error("ERRORE DOM: #map-display non trovato!");
-    if (!DOM.messagesList) console.error("ERRORE DOM: #messages non trovato!");
-    if (!DOM.inventoryList) console.error("ERRORE DOM: #inventory non trovato!");
-    if (!DOM.legendList) console.error("ERRORE DOM: #legend non trovato!");
-    if (!DOM.eventOverlay) console.error("ERRORE DOM: #event-overlay non trovato!");
-    if (!DOM.eventPopup) console.error("ERRORE DOM: #event-popup non trovato!");
-    if (!DOM.eventTitle) console.error("ERRORE DOM: #event-title non trovato!");
-    if (!DOM.eventContent) console.error("ERRORE DOM: #event-content non trovato!");
-    if (!DOM.eventChoicesContainer) console.error("ERRORE DOM: #event-choices non trovato!");
-    if (!DOM.continueButton) console.error("ERRORE DOM: .continue-button (dentro #event-overlay) non trovato!");
-    if (!DOM.endScreen) console.error("ERRORE DOM: #end-screen non trovato!");
-    if (!DOM.restartButton) console.error("ERRORE DOM: #restart-button non trovato!");
-    if (!DOM.statsList) console.error("ERRORE DOM: #stats-list non trovato!");
-    if (!DOM.itemTooltip) console.warn("ERRORE DOM: #item-tooltip non trovato (tooltip disabilitato)."); // Warning, non errore critico
-
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
+    console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // Log finale diagnostico
 }
 
 // --- ESECUZIONE AUTOMATICA QUANDO IL DOM È PRONTO ---

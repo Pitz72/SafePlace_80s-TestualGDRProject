@@ -715,6 +715,8 @@ function enableControls() {
  * @param {object} eventData - L'oggetto evento da visualizzare.
  */
 function showEventPopup(eventData) {
+    // console.log('showEventPopup: Chiamata ricevuta. Verifico DOM.eventOverlay:', DOM.eventOverlay); // RIMOSSO
+
     // Verifica che gli elementi del popup e il gameContainer siano disponibili
     if (!DOM.eventOverlay || !DOM.eventPopup || !DOM.eventTitle || !DOM.eventContent || !DOM.eventChoicesContainer || !DOM.continueButton || !DOM.gameContainer) {
         console.error("showEventPopup: Elementi del popup evento o gameContainer non trovati nel DOM.");
@@ -809,8 +811,6 @@ function showEventPopup(eventData) {
     DOM.gameContainer.classList.add('overlay-active'); // Classe per oscurare il container principale
     DOM.eventOverlay.classList.add('visible'); // Rende visibile l'overlay con la transizione CSS
 
-    // console.log("showEventPopup: Popup evento visualizzato."); // Log di debug rimosso
-    
     // --- GESTIONE FOCUS INIZIALE ---
     try {
         const firstChoiceButton = DOM.eventChoicesContainer.querySelector('button');
@@ -832,8 +832,10 @@ function showEventPopup(eventData) {
  * Chiude il popup dell'evento.
  * Rimuove lo stato di pausa e riabilita i controlli UI.
  * Dipende da: dom_references.js (DOM.eventOverlay, DOM.gameContainer),
- * game_constants.js (gamePaused, eventScreenActive, currentEventContext, currentEventChoices),
- * ui.js (enableControls), map.js (renderMap), game_core.js (removeEventListener handleEventKeyPress).
+ * game_constants.js (gamePaused, eventScreenActive, currentEventContext, currentEventChoices, NIGHT_FOOD_COST, NIGHT_WATER_COST, player),
+ * ui.js (enableControls, renderMap, renderStats),
+ * map.js (transitionToDay), events.js (performRestStopNightLootCheck, handleEventKeyPress),
+ * game_utils.js (addMessage).
  */
 function closeEventPopup() {
     // Verifica che gli elementi siano disponibili prima di tentare di nasconderli
@@ -842,10 +844,38 @@ function closeEventPopup() {
         // Cerca di resettare i flag comunque
          gamePaused = false;
          eventScreenActive = false;
+         // Salva il contesto prima di resettarlo per il controllo sotto
+         const closingEventContextOnError = currentEventContext;
          currentEventContext = null;
          currentEventChoices = null;
          // Rimuovi il listener keypress direttamente qui se non c'è modo altrimenti
-         document.removeEventListener('keydown', handleEventKeyPress); // handleEventKeyPress definita in events.js
+         // Assicurati che handleEventKeyPress sia definito (dovrebbe essere in events.js)
+         if (typeof handleEventKeyPress === 'function') {
+             document.removeEventListener('keydown', handleEventKeyPress);
+         } else {
+             console.warn("closeEventPopup: handleEventKeyPress non trovato per rimuovere listener.")
+         }
+         // Prova a gestire il caso speciale anche in caso di errore DOM
+         if (closingEventContextOnError && closingEventContextOnError.context?.eventType === 'REST_STOP_NIGHT_LOOT_CHECK') {
+            // Esegui comunque il consumo risorse e la transizione (senza loot check, dato che altre funzioni potrebbero mancare)
+            if (typeof player !== 'undefined') {
+                 player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
+                 player.water = Math.max(0, player.water - NIGHT_WATER_COST);
+                 if (typeof addMessage === 'function') {
+                      addMessage(`Hai consumato ${NIGHT_FOOD_COST} cibo e ${NIGHT_WATER_COST} acqua durante il riposo.`, 'info');
+                 } else { console.error("closeEventPopup (Error Path): addMessage non disponibile."); }
+            } else { console.error("closeEventPopup (Error Path): Oggetto player non disponibile."); }
+            if (typeof transitionToDay === 'function') {
+                transitionToDay();
+            } else {
+                 console.error("closeEventPopup (Error Path): transitionToDay non disponibile!");
+                 if(typeof enableControls === 'function') enableControls();
+                 // Non tentare renderMap/renderStats qui se il DOM è fallito
+            }
+         } else {
+              // Fallback generico se non è il caso speciale
+              if(typeof enableControls === 'function') enableControls();
+         }
          return;
     }
 
@@ -853,33 +883,71 @@ function closeEventPopup() {
     DOM.gameContainer.classList.remove('overlay-active');
     DOM.eventOverlay.classList.remove('visible'); // Rimuove la classe visible per la transizione CSS
 
-    // Resetta i flag di stato dell'evento
+    // 1. Recupera il contesto dell'evento che sta per essere chiuso
+    const closingEventContext = currentEventContext;
+
+    // 2. Resetta i flag globali
     eventScreenActive = false;
     currentEventContext = null;
-    currentEventChoices = null; // Pulisce le scelte memorizzate
-
-    // Riabilita i controlli UI e resetta il flag gamePaused
-    // Questa funzione (enableControls) è definita in questo modulo ui.js
-    enableControls();
+    currentEventChoices = null;
 
     // Rimuove l'event listener per i tasti specifici degli eventi.
-    // Questo listener (handleEventKeyPress) è definito nel modulo events.js
-    // Dobbiamo rimuoverlo qui per evitare che gestisca input dopo la chiusura del popup.
-    document.removeEventListener('keydown', handleEventKeyPress); // handleEventKeyPress definita in events.js
+    if (typeof handleEventKeyPress === 'function') {
+        document.removeEventListener('keydown', handleEventKeyPress);
+    } else {
+        console.warn("closeEventPopup: handleEventKeyPress non trovato per rimuovere listener.")
+    }
 
-    // Aggiorna la mappa e le statistiche per riflettere eventuali cambiamenti (posizione, stato, ecc.)
-    // Queste funzioni (renderMap, renderStats) sono definite in questo modulo ui.js
-    renderMap();
-    renderStats();
+    // 3. Aggiungi un blocco if che controlla il tipo di evento
+    if (closingEventContext && closingEventContext.context?.eventType === 'REST_STOP_NIGHT_LOOT_CHECK') {
+        // 4. Dentro questo if (caso rifugio notturno 'R'):
+        //    * Chiama performRestStopNightLootCheck()
+        if (typeof performRestStopNightLootCheck === 'function') {
+            performRestStopNightLootCheck();
+        } else {
+            console.warn("closeEventPopup: Funzione performRestStopNightLootCheck non trovata!");
+            if(typeof addMessage === 'function') addMessage("(Errore: controllo loot notturno non eseguito)", "warning");
+        }
 
-    // console.log("closeEventPopup: Popup evento chiuso."); // Log di debug rimosso
-    
-    // --- RIPRISTINO FOCUS ---
+        //    * Consuma le risorse notturne
+        if (typeof player !== 'undefined') { // Verifica esistenza player
+            player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
+            player.water = Math.max(0, player.water - NIGHT_WATER_COST);
+            //    * Aggiungi un messaggio al log
+            if (typeof addMessage === 'function') {
+                addMessage(`Hai consumato ${NIGHT_FOOD_COST} cibo e ${NIGHT_WATER_COST} acqua durante il riposo.`, 'info');
+            } else {
+                 console.error("closeEventPopup: addMessage non disponibile.");
+            }
+        } else {
+             console.error("closeEventPopup: Oggetto player non disponibile per consumo risorse notturne.");
+        }
+
+        //    * Chiama transitionToDay()
+        if (typeof transitionToDay === 'function') {
+            transitionToDay(); // Questa funzione aggiorna già UI e riabilita i controlli
+        } else {
+            console.error("closeEventPopup: transitionToDay non disponibile!");
+             // Fallback per riabilitare controlli se transitionToDay non esiste
+             if(typeof enableControls === 'function') enableControls(); else console.error("closeEventPopup: enableControls non disponibile.");
+             if(typeof renderMap === 'function') renderMap(); else console.error("closeEventPopup: renderMap non disponibile.");
+             if(typeof renderStats === 'function') renderStats(); else console.error("closeEventPopup: renderStats non disponibile.");
+        }
+        // Non chiamare enableControls/renderMap/renderStats qui sotto, perché transitionToDay dovrebbe farlo.
+    } else {
+        // 5. Nel blocco else (tutti gli altri casi):
+        //    * Mantieni la logica originale
+        if(typeof enableControls === 'function') enableControls(); else console.error("closeEventPopup: enableControls non disponibile.");
+        if(typeof renderMap === 'function') renderMap(); else console.error("closeEventPopup: renderMap non disponibile.");
+        if(typeof renderStats === 'function') renderStats(); else console.error("closeEventPopup: renderStats non disponibile.");
+    }
+
+    // 6. Alla fine della funzione, mantieni la logica esistente per ripristinare il focus
     try {
         document.body.focus(); // Riporta il focus al body principale
         // In alternativa, potresti voler mettere focus su un elemento specifico del gioco,
         // come il contenitore della mappa se fosse reso focusable:
-        // DOM.gameContainer.focus(); 
+        // DOM.gameContainer.focus();
     } catch (e) { console.warn("Errore ripristino focus:", e); }
 }
 
@@ -888,45 +956,85 @@ function closeEventPopup() {
 // Dipende da: ui.js (showEventPopup, closeEventPopup), game_utils.js (addMessage).
 // Usata da handleEventChoice in events.js.
 /**
- * Costruisce e mostra il popup di risultato per un evento (anche complesso).
- * Questo è un popup informativo senza scelte, che mostra un riassunto dell'esito.
- * @param {string} title - Titolo del popup (es. Successo!, Fallimento...).
- * @param {string} description - Descrizione completa dell'esito (inclusi dettagli check e conseguenze).
- * @param {object|null} checkDetails - Dettagli del tiro abilità (ora inclusi nella descrizione).
- * @param {string|null} consequences - Conseguenze meccaniche (ora incluse nella descrizione).
- * @param {string} messageType - Tipo messaggio (info, success, warning, danger) per stile log e popup.
+ * Costruisce e mostra un popup di risultato più strutturato,
+ * spesso usato per l'esito di un evento complesso o un check.
+ * Questo popup è più informativo di un semplice messaggio nel log.
+ * Dipende da: dom_references.js (DOM.eventOverlay, DOM.eventPopup, DOM.eventTitle, DOM.eventContent, DOM.eventChoices), ui.js (closeEventPopup).
+ * @param {string} title - Il titolo del popup (es. "Successo!", "Fallimento").
+ * @param {string} description - La descrizione principale dell'esito (può includere HTML).
+ * @param {string|null} checkDetails - Dettagli del tiro (es. "Agilità Check: 15 vs 12").
+ * @param {string|null} consequences - Conseguenze meccaniche (es. "Subisci 5 danni.").
+ * @param {string} [messageType='info'] - Il tipo di messaggio ('info', 'success', 'warning', 'danger') per lo stile.
  */
-function buildAndShowComplexEventOutcome(title, description, checkDetails, consequences, messageType) {
-    let fullDescription = description;
+function buildAndShowComplexEventOutcome(title, description, checkDetails, consequences, messageType = 'info') {
+    // Rimossi log diagnostici
+    // console.log('buildAndShowComplexEventOutcome: Chiamata ricevuta. Verifico DOM.eventOverlay:', DOM.eventOverlay, 'DOM.eventPopup:', DOM.eventPopup, 'DOM.eventTitle:', DOM.eventTitle, 'DOM.eventContent:', DOM.eventContent, 'DOM.eventChoicesContainer:', DOM.eventChoicesContainer, 'DOM.continueButton:', DOM.continueButton, 'DOM.gameContainer:', DOM.gameContainer);
+    // console.log('buildAndShowComplexEventOutcome: Funzione chiamata con:', title, description, messageType);
 
-    // Aggiunge i dettagli del check se sono disponibili e non già inclusi nella descrizione
-    // (Assumiamo che handleEventChoice includa già checkDetails.text nella description passata qui)
-    // if (checkDetails && checkDetails.text && !fullDescription.includes(checkDetails.text)) {
-    //      fullDescription += `\n(${checkDetails.text})`;
-    // }
-    // Aggiunge le conseguenze se sono disponibili e non già incluse
-     if (consequences && !fullDescription.includes(consequences)) {
-          fullDescription += `\n${consequences}`;
-     }
+    // Verifica che gli elementi del popup siano disponibili.
+    if (!DOM.eventOverlay || !DOM.eventPopup || !DOM.eventTitle || !DOM.eventContent || !DOM.eventChoicesContainer || !DOM.continueButton || !DOM.gameContainer) {
+        console.error("buildAndShowComplexEventOutcome: Elementi DOM del popup evento (overlay/popup/title/content/choicesContainer/continueButton/gameContainer) non trovati.");
+        // Logga l'errore nel log di gioco come fallback
+        addMessage(`Esito Evento: ${title} - ${description}`, messageType);
+        return;
+    }
 
-    // Logga il messaggio di esito completo al log di gioco
-    // Questa funzione (addMessage) è definita in game_utils.js
-     // NOTA: Il log del messaggio è già stato spostato dentro handleEventChoice per mostrare
-     // l'esito subito dopo il check e prima di mostrare il popup di esito.
-     // Quindi, rimuoviamo la chiamata addMessage da qui per evitare duplicazione nel log.
-     // addMessage(`${title}. ${fullDescription}`, messageType, true); // Rimosso per evitare log duplicati
+    // Combina le parti del testo per il contenuto del popup (usando <br> per separare)
+    let fullDescription = description || "";
+    if (checkDetails) {
+        if (fullDescription) fullDescription += `<br>`;
+        fullDescription += `<i>(${checkDetails})</i>`; // Metti i dettagli del tiro in corsivo
+    }
+    if (consequences) {
+        if (fullDescription) fullDescription += `<br>`;
+        fullDescription += consequences;
+    }
 
-    // Mostra il popup come un popup di "Risultato" (senza scelte, solo continua)
-    // Questa funzione (showEventPopup) è definita in questo modulo ui.js
-    showEventPopup({
-        title: title,
-        description: fullDescription, // Mostra la descrizione completa
-        choices: [], // Nessuna scelta, solo bottone Continua
-        isOutcome: true, // Flag per indicare che è un popup di risultato
-        messageType: messageType // Passa il tipo per potenziale styling futuro del popup stesso
-    });
+    // Imposta titolo e contenuto del popup
+    DOM.eventTitle.textContent = title;
+    DOM.eventContent.innerHTML = fullDescription; // Usa innerHTML per renderizzare i <br>
 
-    // Il popup si chiuderà quando l'utente clicca "Continua", chiamando closeEventPopup().
+    // Pulisce le scelte precedenti e aggiunge solo il bottone "Continua"
+    DOM.eventChoicesContainer.innerHTML = "";
+    const continueButton = document.createElement("button");
+    continueButton.textContent = "Continua...";
+    continueButton.classList.add('continue-button'); // Usa la stessa classe definita in index.html per lo stile
+    // Aggiungi un listener per chiudere il popup quando si clicca Continua
+    continueButton.onclick = () => {
+        if (typeof closeEventPopup === 'function') {
+            closeEventPopup();
+        } else {
+            console.error("buildAndShowComplexEventOutcome: Funzione closeEventPopup non trovata.");
+            // Fallback per sbloccare il gioco se closeEventPopup non è definita
+            enableControls();
+            DOM.eventOverlay.classList.remove('visible');
+            DOM.gameContainer.classList.remove('overlay-active');
+            eventScreenActive = false;
+            gamePaused = false;
+        }
+    };
+    DOM.eventChoicesContainer.appendChild(continueButton);
+
+    // Aggiungi una classe CSS al popup per lo stile basato sul tipo di messaggio
+    DOM.eventPopup.className = 'popup'; // Resetta le classi precedenti
+    DOM.eventPopup.classList.add(`popup-${messageType}`); // Aggiunge popup-info, popup-success, ecc.
+
+    // Mostra l'overlay e il popup
+    DOM.gameContainer.classList.add('overlay-active');
+    DOM.eventOverlay.classList.add('visible');
+
+    // Imposta i flag di stato
+    eventScreenActive = true;
+    gamePaused = true; // Il gioco è in pausa finché non si preme Continua
+
+     // Assicura che i controlli siano disabilitati
+     disableControls();
+
+    // Rimuovi eventuali listener per i tasti di scelta numerici precedenti
+    document.removeEventListener('keydown', handleEventKeyPress); // handleEventKeyPress definita in events.js
+
+     // Sposta il focus sul bottone continua per accessibilità e interazione da tastiera
+     setTimeout(() => continueButton.focus(), 0); // Timeout per garantire che il bottone sia visibile
 }
 
 
