@@ -160,7 +160,6 @@ function generateMap() {
             map[y][x].type = TILE_SYMBOLS.CITY;
             placedCityTiles++;
             const cityClusterSize = getRandomInt(CITY_SIZE_MIN - 1, CITY_SIZE_MAX - 1); // -1 perché il centro è già piazzato
-            console.log(`[CITY CLUSTER ${i}] Centro piazzato a (${x}, ${y}) sovrascrivendo ${originalType}. Dimensione target: ${cityClusterSize + 1}`);
 
             // Calcola dimensione e espandi cluster
             let currentClusterX = x; // Coordinate da cui parte il prossimo walk
@@ -186,7 +185,6 @@ function generateMap() {
                             const targetTileType = map[ny][nx].type;
                             // Può espandersi SOLO in pianura o foresta
                             if (targetTileType === TILE_SYMBOLS.PLAINS || targetTileType === TILE_SYMBOLS.FOREST) {
-                                console.log(`[CITY CLUSTER ${i} - Tile ${k+2}] Espando a (${nx}, ${ny}). Sovrascrivo: ${targetTileType}`);
                                 map[ny][nx].type = TILE_SYMBOLS.CITY;
                                 placedCityTiles++;
                                 currentClusterX = nx; // Aggiorna punto partenza per prossimo passo/k
@@ -241,7 +239,6 @@ function generateMap() {
             map[y][x].type = TILE_SYMBOLS.VILLAGE;
             placedVillageTiles++;
             const villageClusterSize = getRandomInt(VILLAGE_SIZE_MIN - 1, VILLAGE_SIZE_MAX - 1); // -1 perché il centro è già piazzato
-            console.log(`[VILLAGE CLUSTER ${i}] Centro piazzato a (${x}, ${y}) sovrascrivendo ${originalType}. Dimensione target: ${villageClusterSize + 1}`);
 
             // Calcola dimensione e espandi cluster
             let currentClusterX = x; // Coordinate da cui parte il prossimo walk
@@ -267,7 +264,6 @@ function generateMap() {
                             const targetTileType = map[ny][nx].type;
                             // Può espandersi SOLO in pianura o foresta
                             if (targetTileType === TILE_SYMBOLS.PLAINS || targetTileType === TILE_SYMBOLS.FOREST) {
-                                console.log(`[VILLAGE CLUSTER ${i} - Tile ${k+2}] Espando a (${nx}, ${ny}). Sovrascrivo: ${targetTileType}`);
                                 map[ny][nx].type = TILE_SYMBOLS.VILLAGE;
                                 placedVillageTiles++;
                                 currentClusterX = nx; // Aggiorna punto partenza per prossimo passo/k

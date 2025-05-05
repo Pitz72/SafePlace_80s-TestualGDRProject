@@ -167,3 +167,33 @@
 /* .durability-damaged { color: #FFAA00; } */
 /* .durability-critical { color: var(--danger-color); } */
 /* .durability-broken { color: #FF0000; } */
+
+/* Stili specifici per la lista delle statistiche nel pannello destro */
+#stats-list {
+    list-style-type: none; /* Rimuove i bullet points */
+    padding-left: 0; /* Rimuove il padding di default della lista */
+    margin-top: 5px; /* Spazio sopra la lista */
+    margin-bottom: 0; /* Nessuno spazio extra sotto la lista */
+}
+
+#stats-list li {
+    margin-bottom: 2px; /* Riduci lo spazio verticale tra le statistiche */
+    word-break: break-all; /* Assicura che testi lunghi vadano a capo */
+    /* Potrebbero esserci altri stili qui, come font-size */
+}
+
+#stats-list li span {
+    /* Stili per i valori delle statistiche, se necessario */
+    font-weight: bold;
+    color: #ddd; /* Esempio di colore per i valori */
+}
+
+/* Assicurati che lo stile per li.separator abbia margini adeguati */
+#stats-list li.separator {
+    text-align: center;
+    color: #888; /* Colore grigio per il separatore */
+    margin-top: 5px; /* Spazio sopra il separatore (leggermente ridotto) */
+    margin-bottom: 5px; /* Spazio sotto il separatore (leggermente ridotto) */
+    font-size: 0.8em; /* Separatore più piccolo */
+    letter-spacing: 2px; /* Aumenta la spaziatura tra i trattini */
+}

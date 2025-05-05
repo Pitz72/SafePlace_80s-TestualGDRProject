@@ -31,7 +31,7 @@ const TILE_DESC = {
     'C':'Città in rovina',
     'R':'Rifugio precario',
     'S':"Punto d'inizio",
-    'E':'Destinazione sconosciuta',
+    'E': 'The Safe Place',
     '@':'Tu'
 };
 
