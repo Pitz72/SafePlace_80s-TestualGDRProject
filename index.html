@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheSafePlace v0.7.05 - Roguelike Postapocalittico</title>
+    <meta name="description" content="TheSafePlace - Un roguelike postapocalittico basato su testo e griglia.">
+    <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
+    
+    <!-- Inclusione dei file CSS - Assicurati che questi percorsi e nomi file siano corretti nella cartella 'css/' -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/panels.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/controls.css">
+    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/tooltip.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/responsive.css"> 
+    
+    <!-- Puoi aggiungere qui altri link per font o icone se necessario -->
+</head>
+<body>
+    <!-- --- Struttura UI del Gioco - Container principale visibile durante il gioco --- -->
+    <!-- Assicurati che gli ID corrispondano a quelli recuperati in dom_references.js -->
+    <main id="game-container">
+        <aside id="left-panel">
+            <!-- Pannello Sopravvivenza (Risorse) -->
+            <section id="survival-panel" class="panel">
+                <h2>SOPRAVVIVENZA</h2>
+                <ul>
+                    <li>Sazietà: <span id="stat-food">--</span></li>
+                    <li>Idratazione: <span id="stat-water">--</span></li>
+                    <!-- Potresti aggiungere qui altre stats di survival future -->
+                </ul>
+            </section>
+            <!-- Pannello Condizione (Stato) -->
+            <section id="condition" class="panel">
+                 <h2>CONDIZIONE</h2>
+                 <!-- La classe per lo stato (es. status-normal, status-warning) sarà gestita da JS -->
+                 <p><span id="stat-condition" class="status-normal">Normale</span></p>
+            </section>
+            <!-- Pannello Inventario -->
+            <section id="inventory-panel" class="panel">
+                 <h2>INVENTARIO</h2>
+                 <!-- La lista degli oggetti dell'inventario sarà aggiunta qui da JS -->
+                 <ul id="inventory">
+                     <li>Caricamento...</li> <!-- Messaggio placeholder iniziale -->
+                 </ul>
+                 <!-- Tooltip per gli oggetti nell'inventario (nascosto di default tramite CSS) -->
+                 <div id="item-tooltip" class="tooltip hidden">
+                    <strong id="tooltip-item-name">Nome Oggetto</strong>
+                    <!-- Container per statistiche/dettagli item specifici (es. arma/armatura stats) aggiunto da JS -->
+                    <div class="item-stats-container">
+                         <!-- I dettagli statistici verranno aggiunti qui da JS -->
+                    </div>
+                    <p id="tooltip-item-desc">Descrizione oggetto...</p> 
+                    <!-- <div id="tooltip-item-actions"></div> <!-- Per futuri bottoni azione nel tooltip -->
+                 </div>
+             </section>
+            <!-- Pannello Log Eventi -->
+            <section id="messages-panel" class="panel">
+                 <h2>LOG EVENTI</h2>
+                 <!-- La lista dei messaggi del log sarà aggiunta qui da JS -->
+                 <ul id="messages" class="message-list">
+                     <li>Caricamento log...</li> <!-- Messaggio placeholder iniziale -->
+                 </ul>
+             </section>
+        </aside>
+
+        <section id="map-panel" class="panel">
+            <h2>MAPPA</h2>
+            <!-- L'area dove la mappa sarà renderizzata da JS -->
+            <!-- Usiamo <pre> per preservare la formattazione ASCII art e gli spazi -->
+            <!-- Overflow: hidden nel CSS per nascondere scrollbar non desiderate -->
+            <pre id="map-display">Caricamento mappa...</pre>
+            
+            <!-- Area Controlli (sotto la mappa) -->
+            <div id="controls" class="panel panel-map-controls">
+                <h2>AZIONI</h2>
+                <!-- Griglia per i bottoni di movimento -->
+                <div class="control-grid">
+                    <!-- I bottoni di movimento chiamano movePlayer direttamente tramite onclick -->
+                    <!-- Assicurati che movePlayer sia definita nello scope globale o accessibile -->
+                    <button id="btn-up" onclick="movePlayer(0, -1)">Su (W)</button>
+                    <button id="btn-left" onclick="movePlayer(-1, 0)">Sinistra (A)</button>
+                    <button id="btn-down" onclick="movePlayer(0, 1)">Giù (S)</button>
+                    <button id="btn-right" onclick="movePlayer(1, 0)">Destra (D)</button>
+                    <!-- Aggiungi qui altri bottoni di controllo globale se necessario -->
+                    <!-- Il tasto Spazio per "Attendi" è gestito in handleKeyPress, non serve un bottone dedicato per ora -->
+                </div>
+             </div>
+        </section>
+
+        <aside id="right-panel">
+             <!-- Pannello Info Gioco (Posizione, Luogo, Ora) -->
+             <section id="game-info" class="panel">
+                 <h2>INFO GIOCO</h2>
+                 <ul>
+                    <li>Pos: (<span id="pos-x">--</span>, <span id="pos-y">--</span>)</li>
+                    <li>Luogo: <span id="tile-type">--</span></li>
+                    <li>Ora: <span id="stat-day-time">--</span></li>
+                 </ul>
+             </section>
+             <!-- Pannello Statistiche Personaggio -->
+             <section id="stats" class="panel">
+                 <h2>STATISTICHE</h2>
+                 <ul id="stats-list">
+                     <li>HP: <span id="stat-hp">--</span> / <span id="stat-maxhp">--</span></li>
+                     <li class="separator">---</li>
+                     <li>Vigore: <span id="stat-vig">--</span></li>
+                     <li>Potenza: <span id="stat-pot">--</span></li>
+                     <li>Agilità: <span id="stat-agi">--</span></li>
+                     <li>Tracce: <span id="stat-tra">--</span></li>
+                     <li>Influenza: <span id="stat-inf">--</span></li>
+                     <li>Presagio: <span id="stat-pre">--</span></li>
+                     <li>Adattamento: <span id="stat-ada">--</span></li>
+                     <li>Acquisita: <span id="stat-acq">--</span></li>
+                     <li class="separator">---</li>
+                     <li>Arma: <span id="stat-weapon">--</span></li>
+                     <li>Armatura: <span id="stat-armor">--</span></li>
+                 </ul>
+             </section>
+             <!-- Pannello Legenda Mappa -->
+             <section id="legend-panel" class="panel">
+                 <h2>LEGENDA</h2>
+                 <!-- La lista degli elementi della legenda sarà aggiunta qui da JS -->
+                 <ul id="legend">
+                     <li>Caricamento legenda...</li> <!-- Messaggio placeholder iniziale -->
+                 </ul>
+             </section>
+         </aside>
+
+    </main>
+
+    <!-- --- Overlay per Eventi e Popup --- -->
+    <!-- Questo div copre tutto lo schermo e contiene il popup centrale -->
+    <div id="event-overlay" class="overlay">
+        <div id="event-popup" class="popup">
+            <h2 id="event-title">Evento</h2>
+            <p id="event-content">Descrizione evento...</p>
+            <!-- Container per i bottoni di scelta/azione (aggiunti da JS) -->
+            <!-- Il click delegation sarà gestito sul container #event-choices -->
+            <div id="event-choices">
+                <!-- Esempio: <button data-choice-index="0">1. Fai qualcosa</button> -->
+                <!-- Esempio: <button data-item-id="canned_food" data-action-key="use">Usa Cibo in Scatola</button> -->
+            </div>
+            <!-- Bottone Continua (mostrato solo per popup informativi/risultati) -->
+            <!-- Questo bottone avrà un event listener (onclick) gestito da JS quando è visibile -->
+            <button class="continue-button">Continua...</button>
+        </div>
+    </div>
+
+    <!-- --- Schermata di Fine Gioco --- -->
+    <!-- Questo div copre tutto lo schermo alla fine del gioco -->
+    <div id="end-screen" class="overlay">
+        <h1 id="end-title">Fine del Viaggio</h1>
+        <!-- Il messaggio finale (vittoria/sconfitta + stats) sarà impostato da JS -->
+        <!-- Usa white-space: pre-wrap nel CSS per rispettare i newline -->
+        <p id="end-message">Sei morto...</p>
+        <!-- Bottone Riavvia -->
+        <!-- Questo bottone avrà un event listener aggiunto da JS -->
+        <button id="restart-button">Ricomincia</button>
+    </div>
+
+
+    <!-- --- Inclusione dei file JavaScript ristrutturati --- -->
+    <!-- Assicurati che i file JS siano nella sottocartella 'js/' -->
+    <!-- L'ordine di inclusione è FONDAMENTALE per garantire che le dipendenze siano soddisfatte -->
+    <script src="js/game_data.js"></script>         <!-- 1. Dati statici (nessuna dipendenza) -->
+    <script src="js/game_constants.js"></script>   <!-- 2. Stato e costanti (dipende da game_data per TILE_SYMBOLS, ecc.) -->
+    <script src="js/game_utils.js"></script>       <!-- 3. Funzioni utility (dipende da game_constants per variabili/costanti globali) -->
+    <script src="js/dom_references.js"></script>   <!-- 4. Dichiarazioni variabili DOM e assegnazione automatica -->
+    <script src="js/ui.js"></script>               <!-- 5. Rendering UI (dipende da game_constants, game_data, game_utils, dom_references) -->
+    <script src="js/player.js"></script>           <!-- 6. Logica Player (dipende da game_constants, game_data, game_utils, ui) -->
+    <script src="js/map.js"></script>              <!-- 7. Logica Mappa (dipende da game_constants, game_data, game_utils, ui, events, player) -->
+    <script src="js/events.js"></script>           <!-- 8. Logica Eventi (dipende da TUTTI gli altri moduli) -->
+    <script src="js/game_core.js"></script>        <!-- 9. Logica Principale (contiene window.onload) -->
+
+    <!-- Fine inclusione script -->
+
+</body>
+</html>

@@ -1,0 +1,150 @@
+/* css/map.css */
+
+/* Mappa Display (l'elemento <pre> che contiene la mappa ASCII art) */
+#map-display {
+    flex-grow: 1; /* Permette alla mappa di occupare lo spazio rimanente nel #map-panel (al di sopra dei controlli) */
+    background-color: #080808; /* Sfondo leggermente diverso dal nero base */
+    padding: 5px; /* Padding interno */
+    border: 1px solid var(--border-dim-color); /* Bordo */
+    white-space: pre; /* Mantiene la formattazione testuale (spazi e a capo inseriti da JS) */
+    overflow: hidden; /* Nasconde la scrollbar (la mappa scorre con il giocatore in JS) */
+    line-height: 1.1; /* Interlinea ridotta per compattare le righe della mappa */
+    font-size: 18px; /* Dimensione font per i caratteri della mappa */
+    text-align: left; /* Assicura allineamento a sinistra */
+}
+
+/* Stili per gli span delle singole celle della mappa (aggiunti da JS in renderMap) */
+/* Ogni carattere nella mappa renderizzata da JS è uno <span> con una classe */
+#map-display span {
+    display: inline-block; /* Assicura che gli span si comportino come caratteri singoli */
+    width: 1ch; /* Larghezza di 1 carattere (unità 'ch' dipende dal font monospaced) */
+    height: 1em; /* Altezza di 1 riga (uguaglia l'altezza del font) */
+    text-align: center; /* Centra il simbolo nello span */
+    vertical-align: bottom; /* Allinea sulla linea di base del testo circostante */
+    /* Rimuovere margini o padding se presenti per evitare spazio extra tra caratteri */
+    margin: 0;
+    padding: 0;
+}
+
+
+/* Stili Colore Mappa (classi aggiunte da JS in renderMap basate su TILE_SYMBOLS) */
+.tile-plains { color: var(--plains-color); } /* Verde medio */
+.tile-forest { color: var(--forest-color); } /* Verde scuro */
+.tile-mountain {
+    color: rgb(101, 67, 33); /* Marrone Scuro */
+}
+.tile-river { color: var(--water-color); } /* Ciano */
+.tile-village {
+    color: rgb(205, 133, 63); /* Marrone Chiaro (Peru) */
+}
+.tile-city {
+    color: rgb(128, 128, 128); /* Grigio medio - Conferma colore */
+}
+.tile-rest-stop {
+    color: var(--special-color); /* Giallo per punti di interesse minori - Conferma colore */
+}
+.tile-start {
+    color: var(--accent-color); /* Giallo/Accento per la partenza - Conferma colore */
+    font-weight: bold; 
+}
+.tile-end { /* Stile per la destinazione finale (Colore Accento/Giallo lampeggiante) - Conferma stile */
+    color: var(--end-color); 
+    font-weight: bold;
+    animation: blink-end 1.5s infinite step-end; 
+    text-shadow: 0 0 6px var(--end-color); 
+}
+
+.tile-unknown {
+    color: rgb(85, 85, 85); /* Grigio scuro originale - Conferma stile */
+}
+
+/* Caselle Visitate (classe 'visited' aggiunta da JS in movePlayer) */
+.visited {
+    /* Sfondo leggero per indicare che la casella è stata visitata */
+    /* Questo crea un effetto di "sentiero" o area esplorata */
+    background-color: rgba(0, 30, 0, 0.3); /* Verde molto scuro semi-trasparente */
+    /* Opzionale: Colore leggermente dimmerato per il simbolo */
+    /* color: #009900; */
+}
+
+/* Stile specifico per il giocatore sulla casella visitata (se necessario) */
+/* .player-marker.visited { ... } */
+
+
+/* Marcatore Giocatore (@) - Stile Lampeggiante (classe 'player-marker' aggiunta da JS in renderMap) */
+.player-marker {
+    color: var(--fg-color); /* Imposta colore verde brillante */
+    /* Rimuove lo sfondo (non dovrebbe averlo, ma per sicurezza) */
+    background-color: transparent !important;
+    /* Animazione per far lampeggiare il carattere stesso (opacità) */
+    animation: blink-player 1s step-end infinite;
+    font-weight: bold;
+    /* Assicura che non vengano aggiunti padding/border che alterino la griglia */
+    padding: 0;
+    margin: 0; /* Assicurati che non ci siano margini */
+    border-radius: 0;
+    /* Potrebbe necessitare di z-index se ci fossero elementi sovrapposti */
+    /* z-index: 10; */
+    display: inline-block; /* Necessario per width/height/vertical-align */
+    /* Non ereditare il colore visited per il giocatore */
+    /* color: var(--fg-color) !important; */ /* Assicura che il giocatore sia sempre verde brillante */
+}
+
+/* Animazioni CSS */
+/* Animazione opacità per il lampeggiamento del giocatore */
+@keyframes blink-player {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+/* Animazione colore/ombra per il lampeggiamento della casella END */
+@keyframes blink-end {
+    0%, 100% { color: var(--end-color); text-shadow: 0 0 5px var(--end-color); }
+    50% { color: var(--fg-color); text-shadow: none; }
+}
+
+
+/* Legenda Mappa */
+#legend-panel {
+    flex-shrink: 0; /* Non far restringere l'area legenda */
+    /* margin-top: 10px; */ /* Già gestito dal margin-bottom delle sezioni in layout.css */
+}
+#legend-panel h2 { /* Titolo Legenda */
+    /* Stili già definiti in base.css */
+}
+
+#legend {
+    /* margin-top: 10px; */ /* Già gestito dal margin-bottom delle sezioni in layout.css */
+    /* padding, margin, list-style già definiti in base.css */
+}
+
+#legend li {
+    margin-bottom: 3px; /* Spazio tra gli elementi della legenda */
+    font-size: 0.9em; /* Font leggermente più piccolo */
+}
+
+/* Stile per il simbolo nella legenda (span) */
+#legend li .legend-symbol {
+    display: inline-block;
+    width: 1.5em; /* Larghezza fissa per allineare i simboli */
+    text-align: center;
+    font-weight: bold;
+    margin-right: 5px; /* Spazio tra simbolo e testo */
+    /* I colori sono ereditati dalle classi tile-xxx applicate anche agli span nella legenda */
+    /* background-color: transparent !important; */ /* Assicurati che non abbiano sfondo visited */
+}
+/* Rimuove lo sfondo visited dagli span nella legenda */
+#legend li .legend-symbol.visited {
+    background-color: transparent !important;
+}
+
+/* Stile per evidenziare POI/Speciali per debug */
+.highlight-poi {
+    background-color: magenta !important; /* Sfondo magenta brillante */
+    color: black !important; /* Testo nero per contrasto */
+    font-weight: bold !important;
+}
