@@ -5,7 +5,7 @@
  */
 
 // Versione del gioco
-const GAME_VERSION = "0.7.01";
+const GAME_VERSION = "0.7.02";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.

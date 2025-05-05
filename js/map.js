@@ -21,292 +21,389 @@
  * Dipende da: game_constants.js (map, player, MAP_WIDTH, MAP_HEIGHT, TILE_SYMBOLS), game_utils.js (getRandomInt, isWalkable).
  */
 function generateMap() {
-    // console.log("generateMap: Inizio generazione mappa..."); // Log di debug
-
     // Resetta l'array della mappa (definito in game_constants.js)
     map = [];
 
-    // Inizializza la mappa con il tipo di terreno base (Pianura)
+    // Definisci direzioni per il random walk
+    const DIRECTIONS = [
+        { dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }, // Cardinal
+        { dx: -1, dy: -1 }, { dx: -1, dy: 1 }, { dx: 1, dy: -1 }, { dx: 1, dy: 1 }  // Diagonal
+    ];
+
+    // Inizializza contatori per i TILE piazzati (non più i centri)
+    let placedMountainTiles = 0;
+    let placedForestTiles = 0;
+    let placedRiverTiles = 0;
+    let placedVillageTiles = 0; // Rinominato
+    let placedCityTiles = 0;    // Rinominato
+    let placedRestStopTiles = 0; // Rinominato (ma logica RestStop non cambia per ora)
+    let placedStart = 0;
+    let placedEnd = 0;
+
+    // Parametri per la generazione dei cluster
+    const NUM_VILLAGE_CENTERS = getRandomInt(15, 25); // Aumentato range (15-25 centri)
+    const VILLAGE_SIZE_MIN = 3;                   // Minimo tile per villaggio (incluso centro)
+    const VILLAGE_SIZE_MAX = 6;                   // Massimo tile per villaggio
+
+    const NUM_CITY_CENTERS = getRandomInt(2, 4); // Aumentato range (2-4 centri)
+    const CITY_SIZE_MIN = 8;                      // Minimo tile per città
+    const CITY_SIZE_MAX = 15;                     // Massimo tile per città
+
+    // 1. Inizializza la mappa con il tipo di terreno base (Pianura)
     for (let y = 0; y < MAP_HEIGHT; y++) {
         map[y] = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
-             // Ogni casella ora è un oggetto con il tipo e uno stato visited
             map[y][x] = { type: TILE_SYMBOLS.PLAINS, visited: false };
         }
     }
-    // console.log(`generateMap: Mappa base ${MAP_WIDTH}x${MAP_HEIGHT} inizializzata con pianura.`); // Log di debug
 
-
-    // --- Aggiunta di elementi procedurali (semplice randomizzazione per ora) ---
-    // Aggiunge montagne (ostacoli non attraversabili)
-    const mountainCount = Math.floor((MAP_WIDTH * MAP_HEIGHT) * 0.06); // ~6% della mappa come montagna
+    // 2. Aggiunge montagne (ostacoli non attraversabili)
+    const mountainCount = Math.floor((MAP_WIDTH * MAP_HEIGHT) * 0.03);
     for (let i = 0; i < mountainCount; i++) {
-        // Posiziona gruppi di montagne per renderle più realistiche
-        const groupSize = getRandomInt(1, 3); // Gruppi di 1-3 caselle adiacenti
+        const groupSize = getRandomInt(1, 3);
         let currentX = getRandomInt(0, MAP_WIDTH - 1);
         let currentY = getRandomInt(0, MAP_HEIGHT - 1);
 
         for (let j = 0; j < groupSize; j++) {
-             // Assicurati che le coordinate siano valide
             currentX = Math.max(0, Math.min(MAP_WIDTH - 1, currentX + getRandomInt(-1, 1)));
             currentY = Math.max(0, Math.min(MAP_HEIGHT - 1, currentY + getRandomInt(-1, 1)));
-
-            // Imposta il tipo di casella a montagna
-            if (map[currentY] && map[currentY][currentX]) { // Verifica che la casella esista prima di modificarla
+            if (map[currentY]?.[currentX]) {
                 map[currentY][currentX].type = TILE_SYMBOLS.MOUNTAIN;
-            } else {
-                console.warn(`generateMap: Tentativo di posizionare montagna fuori dai limiti: (${currentX}, ${currentY})`);
+                placedMountainTiles++; // Usa nuovo nome contatore
             }
         }
     }
-    // console.log(`generateMap: Aggiunte ~${mountainCount} montagne.`); // Log di debug
 
-
-    // Aggiunge foreste (terreno speciale)
-    const forestCount = Math.floor((MAP_WIDTH * MAP_HEIGHT) * 0.1); // ~10% della mappa
-     for (let i = 0; i < forestCount; i++) {
-         const groupSize = getRandomInt(3, 6); // Gruppi di 3-6 caselle adiacenti
-         let currentX = getRandomInt(0, MAP_WIDTH - 1);
-         let currentY = getRandomInt(0, MAP_HEIGHT - 1);
-
-         for (let j = 0; j < groupSize; j++) {
-              currentX = Math.max(0, Math.min(MAP_WIDTH - 1, currentX + getRandomInt(-2, 2)));
-              currentY = Math.max(0, Math.min(MAP_HEIGHT - 1, currentY + getRandomInt(-2, 2)));
-
-             // Evita di sovrascrivere montagne
-             if (map[currentY] && map[currentY][currentX] && map[currentY][currentX].type !== TILE_SYMBOLS.MOUNTAIN) {
-                 map[currentY][currentX].type = TILE_SYMBOLS.FOREST;
-             } else {
-                 // console.warn(`generateMap: Tentativo di posizionare foresta fuori limiti o su montagna: (${currentX}, ${currentY})`); // Log di debug rimosso
-             }
-         }
-     }
-     // console.log(`generateMap: Aggiunte ~${forestCount} caselle foresta.`); // Log di debug
-
-
-    // Aggiunge fiumi (ostacoli parziali per isWalkable)
-    const riverCount = getRandomInt(1, 2); // 1-2 fiumi principali
-     for (let i = 0; i < riverCount; i++) {
-        // Decide se il fiume è orizzontale o verticale
-        const isHorizontal = Math.random() < 0.5;
-        const riverWidth = getRandomInt(1, 2); // Fiume largo 1 o 2 caselle
-
-        if (isHorizontal) {
-             // Fiume orizzontale (da sinistra a destra)
-             const startY = getRandomInt(5, MAP_HEIGHT - 6); // Inizia non troppo vicino ai bordi verticali
-             let currentY = startY;
-
-             for (let x = 0; x < MAP_WIDTH; x++) {
-                 // Ogni tanto il fiume cambia leggermente direzione sull'asse Y
-                 if (Math.random() < 0.2 && x > 0) {
-                     const direction = Math.random() < 0.5 ? 1 : -1; // Su o giù
-                     currentY = Math.min(Math.max(2, currentY + direction), MAP_HEIGHT - 3); // Mantiene lontano dai bordi estremi
-                 }
-                 // Applica il fiume per la sua larghezza
-                 for(let w = 0; w < riverWidth; w++) {
-                    if (map[currentY + w] && map[currentY + w][x] && map[currentY + w][x].type !== TILE_SYMBOLS.MOUNTAIN) {
-                        map[currentY + w][x].type = TILE_SYMBOLS.RIVER;
-                    }
-                 }
-             }
-         } else {
-             // Fiume verticale (dall'alto in basso)
-             const startX = getRandomInt(5, MAP_WIDTH - 6); // Inizia non troppo vicino ai bordi orizzontali
-             let currentX = startX;
-
-             for (let y = 0; y < MAP_HEIGHT; y++) {
-                 // Ogni tanto il fiume cambia leggermente direzione sull'asse X
-                 if (Math.random() < 0.2 && y > 0) {
-                     const direction = Math.random() < 0.5 ? 1 : -1; // Sinistra o destra
-                     currentX = Math.min(Math.max(2, currentX + direction), MAP_WIDTH - 3); // Mantiene lontano dai bordi estremi
-                 }
-                  // Applica il fiume per la sua larghezza
-                  for(let w = 0; w < riverWidth; w++) {
-                      if (map[y] && map[y][currentX + w] && map[y][currentX + w].type !== TILE_SYMBOLS.MOUNTAIN) {
-                          map[y][currentX + w].type = TILE_SYMBOLS.RIVER;
-                      }
-                  }
-             }
-         }
-     }
-     // console.log(`generateMap: Aggiunti ${riverCount} fiumi.`); // Log di debug
-
-
-    // Aggiunge villaggi (risorse, eventi specifici)
-    const villageCount = getRandomInt(3, 5); // 3-5 villaggi
-     for (let i = 0; i < villageCount; i++) {
-         // Trova una posizione valida (non su montagne, fiumi, o troppo vicino ai bordi)
-         let x, y;
-         let attempts = 0;
-         const maxAttempts = 100;
-         do {
-             x = getRandomInt(5, MAP_WIDTH - 6);
-             y = getRandomInt(5, MAP_HEIGHT - 6);
-             attempts++;
-         } while (
-              !map[y]?.[x] || // Casella deve esistere
-              map[y][x].type === TILE_SYMBOLS.MOUNTAIN ||
-              map[y][x].type === TILE_SYMBOLS.RIVER ||
-              map[y][x].type === TILE_SYMBOLS.VILLAGE || // Evita di sovrapporre villaggi
-              map[y][x].type === TILE_SYMBOLS.CITY || // Evita di sovrapporre città
-              map[y][x].type === TILE_SYMBOLS.REST_STOP // Evita di sovrapporre aree sosta
-             && attempts < maxAttempts
-         );
-
-         if (attempts < maxAttempts) {
-             map[y][x].type = TILE_SYMBOLS.VILLAGE;
-         } else {
-            console.warn("generateMap: Impossibile trovare posizione valida per un villaggio dopo 100 tentativi.");
-         }
-     }
-     // console.log(`generateMap: Aggiunti ${villageCount} villaggi.`); // Log di debug
-
-
-    // Aggiunge città (risorse, eventi specifici, eventi unici)
-    const cityCount = getRandomInt(1, 2); // 1-2 città
-     for (let i = 0; i < cityCount; i++) {
-         // Trova una posizione valida (più spazio richiesto, lontano da altri POI)
-         let x, y;
-         let attempts = 0;
-         const maxAttempts = 150; // Più tentativi per POI rari
-         do {
-             x = getRandomInt(8, MAP_WIDTH - 9);
-             y = getRandomInt(8, MAP_HEIGHT - 9);
-             attempts++;
-         } while (
-             !map[y]?.[x] || // Casella deve esistere
-             map[y][x].type !== TILE_SYMBOLS.PLAINS || // Preferisce pianura per le città
-             map[y][x].type === TILE_SYMBOLS.MOUNTAIN ||
-             map[y][x].type === TILE_SYMBOLS.RIVER ||
-              // Controlla un'area intorno alla posizione proposta per evitare vicinanza con altri POI
-             checkForNearbyPOI(x, y, [TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.CITY, TILE_SYMBOLS.REST_STOP], 5) // Controlla in un raggio di 5 caselle
-             && attempts < maxAttempts
-         );
-
-         if (attempts < maxAttempts) {
-             map[y][x].type = TILE_SYMBOLS.CITY;
-         } else {
-            console.warn("generateMap: Impossibile trovare posizione valida per una città dopo 150 tentativi.");
-         }
-     }
-     // console.log(`generateMap: Aggiunte ${cityCount} città.`); // Log di debug
-
-     // Helper per controllare POI nelle vicinanze
-     function checkForNearbyPOI(centerX, centerY, poiTypes, radius) {
-         for (let dy = -radius; dy <= radius; dy++) {
-             for (let dx = -radius; dx <= radius; dx++) {
-                 const checkX = centerX + dx;
-                 const checkY = centerY + dy;
-                 // Controlla se la casella è nei limiti e il suo tipo è nella lista dei POI da evitare
-                 if (checkX >= 0 && checkX < MAP_WIDTH && checkY >= 0 && checkY < MAP_HEIGHT && map[checkY]?.[checkX]) {
-                     if (poiTypes.includes(map[checkY][checkX].type)) {
-                         return true; // Trovato un POI nelle vicinanze
-                     }
-                 }
-             }
-         }
-         return false; // Nessun POI trovato nelle vicinanze
-     }
-
-
-    // Aggiunge aree di sosta (rifugi sicuri per la notte, eventi specifici)
-    const restStopCount = getRandomInt(2, 4); // 2-4 aree di sosta
-     for (let i = 0; i < restStopCount; i++) {
-         // Trova una posizione valida (non su altre strutture, preferibilmente non montagna/fiume)
-         let x, y;
-         let attempts = 0;
-         const maxAttempts = 100;
-         do {
-             x = getRandomInt(3, MAP_WIDTH - 4);
-             y = getRandomInt(3, MAP_HEIGHT - 4);
-             attempts++;
-         } while (
-             !map[y]?.[x] || // Casella deve esistere
-              map[y][x].type === TILE_SYMBOLS.MOUNTAIN ||
-              map[y][x].type === TILE_SYMBOLS.RIVER ||
-              map[y][x].type === TILE_SYMBOLS.VILLAGE || // Evita di sovrapporre villaggi
-              map[y][x].type === TILE_SYMBOLS.CITY || // Evita di sovrapporre città
-             map[y][x].type === TILE_SYMBOLS.REST_STOP // Evita di sovrapporre aree sosta
-             && attempts < maxAttempts
-         );
-
-         if (attempts < maxAttempts) {
-             map[y][x].type = TILE_SYMBOLS.REST_STOP;
-         } else {
-            console.warn("generateMap: Impossibile trovare posizione valida per un'area di sosta dopo 100 tentativi.");
-         }
-     }
-     // console.log(`generateMap: Aggiunte ${restStopCount} aree di sosta.`); // Log di debug
-
-
-    // --- Posizionamento Start ('S') e End ('E') ---
-
-    // Posiziona il punto di Start ('S') nella parte sinistra-superiore
+    // 3. Posizionamento Start ('S') nella parte sinistra-superiore
     let startX, startY;
     let attempts = 0;
-    const maxAttemptsStart = 200; // Più tentativi per garantire Start accessibile
+    const maxAttemptsStart = 200;
     do {
-        startX = getRandomInt(1, Math.floor(MAP_WIDTH / 4)); // Preferibilmente nelle prime 1/4 colonne
-        startY = getRandomInt(1, Math.floor(MAP_HEIGHT / 4)); // Preferibilmente nelle prime 1/4 righe
+        startX = getRandomInt(1, Math.floor(MAP_WIDTH / 4));
+        startY = getRandomInt(1, Math.floor(MAP_HEIGHT / 4));
         attempts++;
-        // Deve essere attraversabile (non montagna per isWalkable)
-    } while (!isWalkable(map[startY]?.[startX]?.type) && attempts < maxAttemptsStart);
+    } while ((!map[startY]?.[startX] || !isWalkable(map[startY][startX].type)) && attempts < maxAttemptsStart);
 
-    // Fallback sicuro se non si trova una posizione valida
     if (attempts >= maxAttemptsStart) {
-         startX = 1; startY = 1;
-         // Assicura che anche il fallback sia PLAINS se possibile
-         if (map[1]?.[1] && map[1][1].type === TILE_SYMBOLS.MOUNTAIN) {
-             map[1][1].type = TILE_SYMBOLS.PLAINS; // Forza a pianura se era montagna
-         }
-         console.warn("generateMap: Posizione Start fallback utilizzata (1,1).");
+        startX = 1; startY = 1;
+        if (map[1]?.[1] && !isWalkable(map[1][1].type)) {
+            map[1][1].type = TILE_SYMBOLS.PLAINS;
+        }
     }
-
-    // Imposta la casella di Start (e la marca come visitata)
     map[startY][startX] = { type: TILE_SYMBOLS.START, visited: true };
-    // Assegna la posizione iniziale al giocatore (sull'oggetto player globale)
+    placedStart++;
     player.x = startX;
     player.y = startY;
-    // console.log(`generateMap: Posizionato Start a (${startX}, ${startY}).`); // Log di debug
 
-
-    // Posiziona il punto di End ('E') nella parte destra-inferiore, lontano dallo Start
+    // 4. Posizionamento End ('E') nella parte destra-inferiore, lontano dallo Start
     let endX, endY;
     attempts = 0;
-    const maxAttemptsEnd = 200; // Più tentativi per garantire End accessibile e lontano da Start
-    const minDistanceSq = Math.pow(MAP_WIDTH / 3, 2) + Math.pow(MAP_HEIGHT / 3, 2); // Distanza minima al quadrato approssimativa
-    let distanceSq; // Dichiarazione qui fuori dal ciclo
+    const maxAttemptsEnd = 200;
+    const minDistanceSq = Math.pow(MAP_WIDTH / 3, 2) + Math.pow(MAP_HEIGHT / 3, 2);
+    let distanceSq;
 
     do {
-        endX = getRandomInt(Math.floor(MAP_WIDTH * 3 / 4), MAP_WIDTH - 2); // Preferibilmente nelle ultime 1/4 colonne
-        endY = getRandomInt(Math.floor(MAP_HEIGHT * 3 / 4), MAP_HEIGHT - 2); // Preferibilmente nelle ultime 1/4 righe
+        endX = getRandomInt(Math.floor(MAP_WIDTH * 3 / 4), MAP_WIDTH - 2);
+        endY = getRandomInt(Math.floor(MAP_HEIGHT * 3 / 4), MAP_HEIGHT - 2);
         attempts++;
-        // Deve essere attraversabile e sufficientemente lontano dallo Start
         distanceSq = Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2);
     } while (
-        !map[endY]?.[endX] || // Casella deve esistere
-        !isWalkable(map[endY][endX].type) || // Deve essere attraversabile
-        distanceSq < minDistanceSq // Deve essere sufficientemente lontano da Start
+        (!map[endY]?.[endX] || !isWalkable(map[endY][endX].type) || distanceSq < minDistanceSq)
         && attempts < maxAttemptsEnd
     );
 
-     // Fallback sicuro se non si trova una posizione valida o lontana
     if (attempts >= maxAttemptsEnd) {
-         endX = MAP_WIDTH - 2; endY = MAP_HEIGHT - 2;
-         // Assicura che anche il fallback sia PLAINS se possibile
-         if (map[MAP_HEIGHT - 2]?.[MAP_WIDTH - 2] && map[MAP_HEIGHT - 2][MAP_WIDTH - 2].type === TILE_SYMBOLS.MOUNTAIN) {
-              map[MAP_HEIGHT - 2][MAP_WIDTH - 2].type = TILE_SYMBOLS.PLAINS; // Forza a pianura se era montagna
-         }
-         console.warn(`generateMap: Posizione End fallback utilizzata (${endX},${endY}).`);
+        endX = MAP_WIDTH - 2; endY = MAP_HEIGHT - 2;
+        if (map[MAP_HEIGHT - 2]?.[MAP_WIDTH - 2] && !isWalkable(map[MAP_HEIGHT - 2][MAP_WIDTH - 2].type)) {
+            map[MAP_HEIGHT - 2][MAP_WIDTH - 2].type = TILE_SYMBOLS.PLAINS;
+        }
+    }
+    map[endY][endX] = { type: TILE_SYMBOLS.END, visited: false };
+    placedEnd++;
+
+    // Helper per controllare POI nelle vicinanze (necessario per Città, Villaggi, Aree Sosta)
+    function checkForNearbyPOI(centerX, centerY, poiTypes, radius) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                const checkX = centerX + dx;
+                const checkY = centerY + dy;
+                if (checkX >= 0 && checkX < MAP_WIDTH && checkY >= 0 && checkY < MAP_HEIGHT && map[checkY]?.[checkX]) {
+                    if (poiTypes.includes(map[checkY][checkX].type)) {
+                        return true; // Trovato un POI nelle vicinanze
+                    }
+                }
+            }
+        }
+        return false; // Nessun POI trovato nelle vicinanze
     }
 
-    // Imposta la casella di End
-    map[endY][endX] = { type: TILE_SYMBOLS.END, visited: false }; // End non è visitato all'inizio
-    // console.log(`generateMap: Posizionato End a (${endX}, ${endY}).`); // Log di debug
+    // 5. Aggiunge città (risorse, eventi specifici, eventi unici) - LOGICA CLUSTER
+    const poiSymbolsCityCheck = [TILE_SYMBOLS.START, TILE_SYMBOLS.END, TILE_SYMBOLS.CITY, TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.REST_STOP];
+    for (let i = 0; i < NUM_CITY_CENTERS; i++) {
+        let x, y; // Coordinate centro
+        attempts = 0;
+        const maxAttempts = 150;
+        do {
+            x = getRandomInt(8, MAP_WIDTH - 9);
+            y = getRandomInt(8, MAP_HEIGHT - 9);
+            attempts++;
+        } while (
+            (!map[y]?.[x] ||
+             map[y][x].type === TILE_SYMBOLS.MOUNTAIN ||
+             checkForNearbyPOI(x, y, poiSymbolsCityCheck, 5)
+            ) && attempts < maxAttempts
+        );
 
+        if (attempts < maxAttempts) {
+            const originalType = map[y][x].type;
+            // Piazza il centro città
+            map[y][x].type = TILE_SYMBOLS.CITY;
+            placedCityTiles++;
+            const cityClusterSize = getRandomInt(CITY_SIZE_MIN - 1, CITY_SIZE_MAX - 1); // -1 perché il centro è già piazzato
+            console.log(`[CITY CLUSTER ${i}] Centro piazzato a (${x}, ${y}) sovrascrivendo ${originalType}. Dimensione target: ${cityClusterSize + 1}`);
 
-    // console.log("generateMap: Generazione mappa completata."); // Log di debug
-    // La funzione di rendering della mappa (renderMap) sarà chiamata da game_core dopo la generazione.
+            // Calcola dimensione e espandi cluster
+            let currentClusterX = x; // Coordinate da cui parte il prossimo walk
+            let currentClusterY = y;
+
+            for (let k = 0; k < cityClusterSize; k++) {
+                const numSteps = getRandomInt(1, 3); // Quanti passi per questo tile aggiuntivo
+                let stepSucceeded = false;
+
+                for (let step = 0; step < numSteps; step++) {
+                    let directionFound = false;
+                    const maxDirectionAttempts = 8; // Prova tutte le direzioni
+
+                    for (let dirAttempt = 0; dirAttempt < maxDirectionAttempts; dirAttempt++) {
+                        const directionIndex = getRandomInt(0, DIRECTIONS.length - 1);
+                        const { dx, dy } = DIRECTIONS[directionIndex];
+
+                        const nx = currentClusterX + dx;
+                        const ny = currentClusterY + dy;
+
+                        // Controlli validità espansione
+                        if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && map[ny]?.[nx]) {
+                            const targetTileType = map[ny][nx].type;
+                            // Può espandersi SOLO in pianura o foresta
+                            if (targetTileType === TILE_SYMBOLS.PLAINS || targetTileType === TILE_SYMBOLS.FOREST) {
+                                console.log(`[CITY CLUSTER ${i} - Tile ${k+2}] Espando a (${nx}, ${ny}). Sovrascrivo: ${targetTileType}`);
+                                map[ny][nx].type = TILE_SYMBOLS.CITY;
+                                placedCityTiles++;
+                                currentClusterX = nx; // Aggiorna punto partenza per prossimo passo/k
+                                currentClusterY = ny;
+                                directionFound = true;
+                                stepSucceeded = true; // Almeno un passo del walk ha funzionato
+                                break; // Esci dal ciclo tentativi direzione (dirAttempt)
+                            }
+                        }
+                    } // Fine ciclo tentativi direzione (dirAttempt)
+
+                    if (!directionFound) {
+                        // Non è stato possibile trovare una direzione valida per QUESTO passo, interrompi il walk per questo k
+                        stepSucceeded = false;
+                        break; // Esci dal ciclo passi (step)
+                    }
+                    // Se directionFound è true, continua con il prossimo passo del walk
+                } // Fine ciclo passi (step)
+
+                // Se l'intero walk per questo k non ha prodotto passi validi, riprova dal centro originale
+                if (!stepSucceeded) {
+                    currentClusterX = x;
+                    currentClusterY = y;
+                }
+            } // Fine ciclo espansione cluster (k)
+
+        } else {
+            console.warn(`[CITY CLUSTER ${i}] FALLITO piazzamento centro dopo ${maxAttempts} tentativi.`);
+        }
+    }
+
+    // 6. Aggiunge villaggi (risorse, eventi specifici) - LOGICA CLUSTER
+    const poiSymbolsVillageCheck = [TILE_SYMBOLS.START, TILE_SYMBOLS.END, TILE_SYMBOLS.CITY, TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.REST_STOP];
+    for (let i = 0; i < NUM_VILLAGE_CENTERS; i++) {
+        let x, y; // Coordinate centro
+        attempts = 0;
+        const maxAttempts = 100;
+        do {
+            x = getRandomInt(5, MAP_WIDTH - 6);
+            y = getRandomInt(5, MAP_HEIGHT - 6);
+            attempts++;
+        } while (
+            (!map[y]?.[x] ||
+             map[y][x].type === TILE_SYMBOLS.MOUNTAIN || // Evita montagne
+             poiSymbolsVillageCheck.includes(map[y][x].type) // Controlla se è già un POI/S/E (Incluso City piazzato prima)
+            ) && attempts < maxAttempts
+        );
+
+        if (attempts < maxAttempts) {
+            const originalType = map[y][x].type;
+            // Piazza il centro villaggio
+            map[y][x].type = TILE_SYMBOLS.VILLAGE;
+            placedVillageTiles++;
+            const villageClusterSize = getRandomInt(VILLAGE_SIZE_MIN - 1, VILLAGE_SIZE_MAX - 1); // -1 perché il centro è già piazzato
+            console.log(`[VILLAGE CLUSTER ${i}] Centro piazzato a (${x}, ${y}) sovrascrivendo ${originalType}. Dimensione target: ${villageClusterSize + 1}`);
+
+            // Calcola dimensione e espandi cluster
+            let currentClusterX = x; // Coordinate da cui parte il prossimo walk
+            let currentClusterY = y;
+
+            for (let k = 0; k < villageClusterSize; k++) {
+                const numSteps = getRandomInt(1, 3); // Quanti passi per questo tile aggiuntivo
+                let stepSucceeded = false;
+
+                for (let step = 0; step < numSteps; step++) {
+                    let directionFound = false;
+                    const maxDirectionAttempts = 8; // Prova tutte le direzioni
+
+                    for (let dirAttempt = 0; dirAttempt < maxDirectionAttempts; dirAttempt++) {
+                        const directionIndex = getRandomInt(0, DIRECTIONS.length - 1);
+                        const { dx, dy } = DIRECTIONS[directionIndex];
+
+                        const nx = currentClusterX + dx;
+                        const ny = currentClusterY + dy;
+
+                        // Controlli validità espansione
+                        if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && map[ny]?.[nx]) {
+                            const targetTileType = map[ny][nx].type;
+                            // Può espandersi SOLO in pianura o foresta
+                            if (targetTileType === TILE_SYMBOLS.PLAINS || targetTileType === TILE_SYMBOLS.FOREST) {
+                                console.log(`[VILLAGE CLUSTER ${i} - Tile ${k+2}] Espando a (${nx}, ${ny}). Sovrascrivo: ${targetTileType}`);
+                                map[ny][nx].type = TILE_SYMBOLS.VILLAGE;
+                                placedVillageTiles++;
+                                currentClusterX = nx; // Aggiorna punto partenza per prossimo passo/k
+                                currentClusterY = ny;
+                                directionFound = true;
+                                stepSucceeded = true; // Almeno un passo del walk ha funzionato
+                                break; // Esci dal ciclo tentativi direzione (dirAttempt)
+                            }
+                        }
+                    } // Fine ciclo tentativi direzione (dirAttempt)
+
+                    if (!directionFound) {
+                        // Non è stato possibile trovare una direzione valida per QUESTO passo, interrompi il walk per questo k
+                        stepSucceeded = false;
+                        break; // Esci dal ciclo passi (step)
+                    }
+                    // Se directionFound è true, continua con il prossimo passo del walk
+                } // Fine ciclo passi (step)
+
+                 // Se l'intero walk per questo k non ha prodotto passi validi, riprova dal centro originale
+                 if (!stepSucceeded) {
+                    currentClusterX = x;
+                    currentClusterY = y;
+                }
+            } // Fine ciclo espansione cluster (k)
+
+        } else {
+            console.warn(`[VILLAGE CLUSTER ${i}] FALLITO piazzamento centro dopo ${maxAttempts} tentativi.`);
+        }
+    }
+
+    // 7. Aggiunge aree di sosta (rifugi sicuri per la notte, eventi specifici) - LOGICA ORIGINALE MANTENUTA
+    const restStopCount = 400; // Numero fisso alto come da richiesta precedente
+    const poiSymbolsRestStopCheck = [TILE_SYMBOLS.START, TILE_SYMBOLS.END, TILE_SYMBOLS.CITY, TILE_SYMBOLS.VILLAGE, TILE_SYMBOLS.REST_STOP];
+    for (let i = 0; i < restStopCount; i++) {
+        let x, y;
+        attempts = 0;
+        const maxAttempts = 100;
+        do {
+            x = getRandomInt(3, MAP_WIDTH - 4);
+            y = getRandomInt(3, MAP_HEIGHT - 4);
+            attempts++;
+        } while (
+            (!map[y]?.[x] ||
+             map[y][x].type === TILE_SYMBOLS.MOUNTAIN ||
+             poiSymbolsRestStopCheck.includes(map[y][x].type) // Controlla se è già un POI/S/E (Incluso City/Village piazzati prima)
+            ) && attempts < maxAttempts
+        );
+
+        if (attempts < maxAttempts) {
+            map[y][x].type = TILE_SYMBOLS.REST_STOP;
+            placedRestStopTiles++; // Usa nuovo nome contatore
+        } else {
+            // Rimosso log fallimento REST_STOP
+        }
+    }
+
+    // 8. Aggiunge fiumi (ostacoli parziali per isWalkable) - DOPO i POI
+    const riverCount = getRandomInt(1, 2);
+    const tilesToAvoidRiver = [ // Tipi di terreno da NON sovrascrivere con il fiume
+        TILE_SYMBOLS.MOUNTAIN,
+        TILE_SYMBOLS.START,
+        TILE_SYMBOLS.END,
+        TILE_SYMBOLS.CITY,
+        TILE_SYMBOLS.VILLAGE,
+        TILE_SYMBOLS.REST_STOP
+    ];
+    for (let i = 0; i < riverCount; i++) {
+        const isHorizontal = Math.random() < 0.5;
+        const riverWidth = getRandomInt(1, 2);
+
+        if (isHorizontal) {
+            const startY = getRandomInt(5, MAP_HEIGHT - 6);
+            let currentY = startY;
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (Math.random() < 0.2 && x > 0) {
+                    currentY = Math.min(Math.max(2, currentY + getRandomInt(-1, 1)), MAP_HEIGHT - 3);
+                }
+                for(let w = 0; w < riverWidth; w++) {
+                    const riverX = x;
+                    const riverY = currentY + w;
+                    // Verifica se la casella è valida e non è uno dei tipi da evitare
+                    if (map[riverY]?.[riverX] && !tilesToAvoidRiver.includes(map[riverY][riverX].type)) {
+                        map[riverY][riverX].type = TILE_SYMBOLS.RIVER;
+                        placedRiverTiles++; // Usa nuovo nome contatore
+                    }
+                }
+            }
+        } else { // Verticale
+            const startX = getRandomInt(5, MAP_WIDTH - 6);
+            let currentX = startX;
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                if (Math.random() < 0.2 && y > 0) {
+                    currentX = Math.min(Math.max(2, currentX + getRandomInt(-1, 1)), MAP_WIDTH - 3);
+                }
+                for(let w = 0; w < riverWidth; w++) {
+                    const riverX = currentX + w;
+                    const riverY = y;
+                    // Verifica se la casella è valida e non è uno dei tipi da evitare
+                    if (map[riverY]?.[riverX] && !tilesToAvoidRiver.includes(map[riverY][riverX].type)) {
+                        map[riverY][riverX].type = TILE_SYMBOLS.RIVER;
+                        placedRiverTiles++; // Usa nuovo nome contatore
+                    }
+                }
+            }
+        }
+    }
+
+    // 9. Aggiunge foreste (terreno speciale) - ULTIMO
+    const forestCount = Math.floor((MAP_WIDTH * MAP_HEIGHT) * 0.07);
+    const tilesToAvoidForest = [ // Tipi di terreno da NON sovrascrivere con la foresta
+        TILE_SYMBOLS.MOUNTAIN,
+        TILE_SYMBOLS.START,
+        TILE_SYMBOLS.END,
+        TILE_SYMBOLS.CITY,
+        TILE_SYMBOLS.VILLAGE,
+        TILE_SYMBOLS.REST_STOP,
+        TILE_SYMBOLS.RIVER // Evita anche i fiumi
+    ];
+    for (let i = 0; i < forestCount; i++) {
+        const groupSize = getRandomInt(3, 6);
+        let currentX = getRandomInt(0, MAP_WIDTH - 1);
+        let currentY = getRandomInt(0, MAP_HEIGHT - 1);
+
+        for (let j = 0; j < groupSize; j++) {
+             currentX = Math.max(0, Math.min(MAP_WIDTH - 1, currentX + getRandomInt(-2, 2)));
+             currentY = Math.max(0, Math.min(MAP_HEIGHT - 1, currentY + getRandomInt(-2, 2)));
+             // Verifica se la casella è valida e non è uno dei tipi da evitare
+             if (map[currentY]?.[currentX] && !tilesToAvoidForest.includes(map[currentY][currentX].type)) {
+                 map[currentY][currentX].type = TILE_SYMBOLS.FOREST;
+                 placedForestTiles++; // Usa nuovo nome contatore
+             }
+        }
+    }
+
+    // Fine generazione - Nessun console.log di debug qui
 }
 
 /**
@@ -843,4 +940,4 @@ function applyNightPenalties() {
 // per aggiornare l'interfaccia dopo la modifica.
 // Le funzioni che innescano eventi (`triggerTileEvent`, `triggerComplexEvent`) sono definite in `events.js`.
 
-// --- FINE LOGICA MAPPA E MOVIMENTO ---
+// --- FINE LOGICA MAPPA E MOVIMENTO ---                    

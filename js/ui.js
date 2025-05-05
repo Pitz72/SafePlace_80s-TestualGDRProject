@@ -472,18 +472,20 @@ function renderMap() {
         for (let x = startX; x < endX; x++) {
             let tileClass = '';
             let tileChar = '?'; // Default a '?' se la casella non è valida
+            let isPlayerCell = (x === player.x && y === player.y);
 
             // Verifica se le coordinate sono valide nella mappa
             if (map[y] && map[y][x]) {
                 const tile = map[y][x];
+                // const originalTileType = tile.type; // Rimosso
 
                 // Se è la posizione del giocatore, usa il simbolo del giocatore
-                if (x === player.x && y === player.y) {
+                if (isPlayerCell) {
                     tileChar = TILE_SYMBOLS.PLAYER;
                     tileClass = 'player-marker'; // Classe CSS per stile/animazione giocatore
                 } else {
                     // Altrimenti, usa il simbolo della casella letto dalla mappa
-                    tileChar = tile.type;
+                    tileChar = tile.type; // Usa tile.type direttamente
 
                     // Assegna classi CSS in base al tipo di tile
                     // Cerca la chiave nel TILE_SYMBOLS che corrisponde al simbolo del tile
@@ -500,8 +502,8 @@ function renderMap() {
                     if (tile.visited) {
                         tileClass += ' visited';
                     }
-                    // Aggiunge classe 'tile-end' per la casella finale per stile specifico
-                    if (tileChar === TILE_SYMBOLS.END) {
+                    // Aggiunge classe 'tile-end' per stile specifico
+                    if (tileChar === TILE_SYMBOLS.END) { // Usa tileChar
                          tileClass += ' tile-end';
                     }
                 }
@@ -1006,4 +1008,4 @@ function getItemDetailsHTML(itemInfo) {
 // NOTA: Le funzioni di gestione input (handleKeyPress, setupInputListeners, handleChoiceContainerClick)
 // e le funzioni di logica di gioco principali (initializeGame, movePlayer, endGame,
 // triggerTileEvent, triggerComplexEvent, ecc.) saranno definite in altri moduli.
-// Questo file UI fornisce solo le funzioni per AGGIORNARE LA VISUALIZZAZIONE.
+// Questo file UI fornisce solo le funzioni per AGGIORNARE LA VISUALIZZAZIONE.                                                                                                                                                                                              

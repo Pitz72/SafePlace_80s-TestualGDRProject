@@ -23,7 +23,7 @@ const TILE_SYMBOLS = {
 
 // Descrizioni testuali dei tipi di caselle
 const TILE_DESC = {
-    '.':'Pianura spazzata dal vento',
+    '.':'Pianure',
     'M':'Montagne ostili',
     '~':'Fiume torbido',
     'F':'Foresta mutata',

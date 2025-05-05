@@ -21,8 +21,6 @@
  * Chiamata da window.onload.
  */
 function initializeGame() {
-    // console.log("initializeGame: Inizio inizializzazione gioco..."); // Log di debug
-
     // --- Reset dello stato globale del gioco ---
     // Resetta le variabili di stato (definite in game_constants.js) ai loro valori iniziali.
     // Questo assicura che un nuovo gioco parta da zero.
@@ -51,7 +49,6 @@ function initializeGame() {
          gameActive = false;
          return; // Interrompe l'inizializzazione
     }
-    // console.log("initializeGame: Riferimenti DOM verificati."); // Log di debug
 
 
     // --- Generazione Personaggio e Mappa ---
@@ -63,7 +60,6 @@ function initializeGame() {
              if (!player || typeof player.vigore !== 'number' || player.x === undefined || player.y === undefined) { // player.x/y inizializzati a -1 in player.js
                  throw new Error("Oggetto player non valido dopo generateCharacter.");
              }
-            // console.log("initializeGame: Personaggio generato."); // Log di debug
         } else { throw new Error("Funzione generateCharacter non disponibile (player.js non caricato?)."); }
 
 
@@ -71,14 +67,13 @@ function initializeGame() {
         // generateMap è definita in map.js. Inizializza l'array map e imposta player.x/y.
         if (typeof generateMap === 'function') {
             generateMap();
+
              if (!map || map.length === 0 || map[0]?.length === 0 || typeof player.x !== 'number' || typeof player.y !== 'number' || player.x < 0 || player.y < 0) {
                  throw new Error("Mappa non valida o posizione giocatore non impostata dopo generateMap.");
              }
-             // Marca la casella iniziale del giocatore come visitata.
               if (map[player.y] && map[player.y][player.x]) {
                    map[player.y][player.x].visited = true;
               }
-            // console.log("initializeGame: Mappa generata."); // Log di debug
         } else { throw new Error("Funzione generateMap non disponibile (map.js non caricato?)."); }
 
 
@@ -100,6 +95,7 @@ function initializeGame() {
      if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
 
 
+    // Chiama le funzioni di rendering
     // Effettua il rendering iniziale dell'interfaccia.
     // render functions sono definite in ui.js
     try {
@@ -120,8 +116,6 @@ function initializeGame() {
              }
         } else { console.warn("initializeGame: addMessage non disponibile (game_utils.js?)."); }
 
-        // console.log("initializeGame: Rendering iniziale UI completato."); // Log di debug
-
     } catch (e) {
         console.error("initializeGame: ERRORE DURANTE RENDERING INIZIALE:", e);
         if(DOM.mapDisplay) DOM.mapDisplay.textContent = "Errore nel rendering iniziale!";
@@ -135,7 +129,6 @@ function initializeGame() {
     // setupInputListeners è definita qui sotto in game_core.js.
     try {
         setupInputListeners();
-        // console.log("initializeGame: Input listeners configurati."); // Log di debug
     } catch (e) {
         console.error("initializeGame: ERRORE DURANTE SETUP INPUT LISTENERS:", e);
         if(DOM.gameContainer) addMessage("Errore nella configurazione dei controlli.", 'danger');
@@ -157,14 +150,12 @@ function initializeGame() {
      // Questo dovrebbe essere fatto DOPO che l'UI è visibile e i listener sono attivi.
     try {
          document.body.focus();
-         // console.log("initializeGame: Focus impostato su document.body."); // Log di debug
     } catch (e) {
          console.warn("initializeGame: Impossibile impostare il focus iniziale sul document.body.", e);
          // Questo non è critico, ma può causare problemi di input su alcuni browser/dispositivi.
     }
 
 
-    // console.log("initializeGame: Inizializzazione gioco completata. Gioco attivo."); // Log di debug
 }
 
 
@@ -176,8 +167,6 @@ function initializeGame() {
  * @param {KeyboardEvent} event - L'oggetto evento della tastiera.
  */
 function handleKeyPress(event) {
-    // console.log(`handleKeyPress: Tasto premuto: ${event.key}. Game Active: ${gameActive}, Paused: ${gamePaused}, Event Screen: ${eventScreenActive}`); // Log di debug
-
     // Impedisce lo scrolling della pagina con le frecce o WASD, indipendentemente dallo stato del gioco.
      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(event.key.toLowerCase())) {
         event.preventDefault();
@@ -188,13 +177,10 @@ function handleKeyPress(event) {
     // eventScreenActive è gestito da showEventPopup/closeEventPopup in ui.js/events.js.
     // handleEventKeyPress è definita in events.js.
     if (eventScreenActive) {
-         // console.log("handleKeyPress: Passando input a handleEventKeyPress."); // Log di debug
          if (typeof handleEventKeyPress === 'function') {
             handleEventKeyPress(event); // Passa l'evento originale
          } else {
             console.error("handleKeyPress: handleEventKeyPress non disponibile (events.js?).");
-            // Potrebbe essere necessario chiudere il popup qui se non si può interagire.
-            // if (typeof closeEventPopup === 'function') closeEventPopup(); // Richiede closeEventPopup qui
          }
          return; // Consuma l'input, non elaborarlo ulteriormente qui.
     }
@@ -202,7 +188,6 @@ function handleKeyPress(event) {
     // Gestione input GLOBALE (movimento, inventario, ecc.) - solo se il gioco è attivo e NON in pausa (nessun popup attivo).
     // gameActive e gamePaused sono gestiti in game_constants.js e ui.js/events.js.
     if (!gameActive || gamePaused) {
-         // console.log("handleKeyPress: Gioco non attivo o in pausa, input globale ignorato."); // Log di debug
          return; // Ignora l'input di gioco se non è il momento giusto.
     }
 
@@ -233,7 +218,6 @@ function handleKeyPress(event) {
             // La logica di avanzamento tempo/consumo/effetti passivi è in movePlayer.
             // Possiamo replicarla qui per un passo nullo, o creare una funzione helper "passTime(amount)".
             // Per semplicità, replichiamo la logica essenziale di un passo singolo.
-             // console.log("handleKeyPress: Azione 'Attendi' (Spazio)."); // Log di debug
              if (typeof movePlayer === 'function') { // Reutilizza movePlayer ma senza spostamento.
                   // Potremmo passare dx=0, dy=0 a movePlayer, ma movePlayer controlla e blocca se dx=0, dy=0.
                   // Dobbiamo eseguire solo la parte di movePlayer che gestisce tempo/risorse/eventi.
@@ -296,7 +280,6 @@ function handleKeyPress(event) {
             break;
 
         case 'i': // Tasto 'I': Mostra/interagisci con Inventario
-            // console.log("handleKeyPress: Azione 'Inventario' (I)."); // Log di debug
 
             // Per ora, un click sull'inventario apre il popup azione item.
             // Potremmo implementare un popup inventario dedicato più complesso in futuro.
@@ -376,8 +359,6 @@ function handleEventKeyPress(event) {
  * game_core.js (handleKeyPress), player.js (handleInventoryClick), events.js (handleChoiceContainerClick).
  */
 function setupInputListeners() {
-    // console.log("setupInputListeners: Configurazione listeners..."); // Log di debug
-
     // Rimuovi listener precedenti per sicurezza (se setup viene chiamato più volte, es. riavvio partita)
     document.removeEventListener('keydown', handleKeyPress); // Listener tastiera principale
     // Rimuovi i listener sui bottoni di movimento se fossero stati aggiunti (attualmente sono in HTML con onclick)
@@ -386,12 +367,10 @@ function setupInputListeners() {
     // Aggiungi il listener principale per la tastiera al documento intero.
     // handleKeyPress è definita in game_core.js (sopra).
     document.addEventListener('keydown', handleKeyPress);
-    // console.log("setupInputListeners: Listener 'keydown' aggiunto a document."); // Log di debug
 
 
     // Listener per i pulsanti di movimento HTML (già definiti con onclick="movePlayer(dx, dy)" nel HTML).
     // Non è necessario aggiungere altri listener qui per il movimento base.
-    // console.log("setupInputListeners: Bottoni movimento gestiti via onclick nell'HTML."); // Log di debug
 
 
     // Listener per click sull'inventario (event delegation).
@@ -403,7 +382,6 @@ function setupInputListeners() {
         // Aggiungi il listener
         if (typeof handleInventoryClick === 'function') {
              DOM.inventoryList.addEventListener('click', handleInventoryClick);
-             // console.log("setupInputListeners: Listener 'click' aggiunto a #inventory."); // Log di debug
         } else { console.error("setupInputListeners: handleInventoryClick non disponibile (player.js?)."); }
 
         // Listener per hover/pointer su inventario (per tooltip) - gestito in ui.js dove sono le funzioni tooltip.
@@ -416,8 +394,6 @@ function setupInputListeners() {
             // Aggiungi listener (usiamo helper functions per il delegation)
             DOM.inventoryList.addEventListener('pointerenter', handleInventoryPointerEnter);
             DOM.inventoryList.addEventListener('pointerleave', handleInventoryPointerLeave);
-            // console.log("setupInputListeners: Listeners 'pointerenter/leave' aggiunti a #inventory (tooltip)."); // Log di debug
-
         } else { console.warn("setupInputListeners: Funzioni tooltip (show/hideItemTooltip) non disponibili (ui.js?)."); }
 
     } else { console.error("setupInputListeners: Elemento #inventory non trovato per listener."); }
@@ -432,14 +408,12 @@ function setupInputListeners() {
          // Aggiungi il listener
          if (typeof handleChoiceContainerClick === 'function') {
               DOM.eventChoicesContainer.addEventListener('click', handleChoiceContainerClick);
-              // console.log("setupInputListeners: Listener 'click' aggiunto a #event-choices."); // Log di debug
          } else { console.error("setupInputListeners: handleChoiceContainerClick non disponibile (events.js?)."); }
     } else { console.error("setupInputListeners: Elemento #event-choices non trovato per listener."); }
 
     // Listener per il bottone "Continua" nei popup di esito/info.
     // Questo bottone ha un listener diretto `onclick` impostato da showEventPopup (ui.js) quando viene mostrato.
     // Non è necessario aggiungere un delegation listener qui per "Continua".
-    // console.log("setupInputListeners: Bottone 'Continua' gestito via onclick in ui.js."); // Log di debug
 
 
     // Listener per il bottone di riavvio nella schermata di fine gioco.
@@ -450,7 +424,6 @@ function setupInputListeners() {
         DOM.restartButton.removeEventListener('click', handleRestartClick);
         // Aggiungi il listener (usiamo helper function per chiarezza)
         DOM.restartButton.addEventListener('click', handleRestartClick);
-         // console.log("setupInputListeners: Listener 'click' aggiunto a #restart-button."); // Log di debug
     } else { console.error("setupInputListeners: Elemento #restart-button non trovato per listener."); }
 
 
@@ -460,16 +433,13 @@ function setupInputListeners() {
     // Usiamo un debounce per evitare di ridisegnare troppo spesso durante il resize.
     window.removeEventListener('resize', handleResize); // Rimuovi listener precedente
     window.addEventListener('resize', handleResize); // Aggiungi listener
-     // console.log("setupInputListeners: Listener 'resize' aggiunto a window (debounce)."); // Log di debug
 
 
-    // console.log("setupInputListeners: Configurazione listeners completata."); // Log di debug
 }
 
 // --- Helper functions per i listener (per poterli rimuovere facilmente) ---
 
 function handleRestartClick() {
-     // console.log("handleRestartClick: Cliccato bottone riavvia."); // Log di debug
      // Chiama la funzione di fine gioco per riavviare.
      // endGame è definita qui sotto in game_core.js. Passiamo true o false a seconda del contesto,
      // ma dal bottone riavvia non importa il contesto vittoria/sconfitta, semplicemente riavvia.
@@ -484,10 +454,8 @@ function handleRestartClick() {
 
 let resizeTimeout; // Variabile per il debounce
 function handleResize() {
-    // console.log("handleResize: Evento resize window..."); // Log di debug rimosso
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        // console.log("handleResize: Debounced resize, ridisegno mappa..."); // Log di debug rimosso
         // Solo ridisegna la mappa se il gioco è attivo e non in pausa (es. evento aperto)
         if (gameActive && !gamePaused) {
              // renderMap è definita in ui.js.
@@ -495,7 +463,6 @@ function handleResize() {
              // Potresti voler anche ri-renderizzare stats/inventory/legend se il layout cambia significativamente.
              // Per ora, solo la mappa è dinamica con il resize.
         } else {
-             // console.log("handleResize: Gioco non attivo o in pausa, ridisegno mappa saltato."); // Log di debug rimosso
         }
     }, 250); // Tempo di debounce (250ms)
 }
@@ -542,8 +509,6 @@ function handleInventoryPointerLeave(event) {
  * @param {boolean} isVictory - True se il giocatore ha vinto, false se ha perso.
  */
 function endGame(isVictory) {
-    // console.log(`endGame: Partita terminata. Vittoria: ${isVictory}.`); // Log di debug
-
     // Imposta lo stato del gioco come non attivo e in pausa.
     gameActive = false;
     gamePaused = true; // Blocca input e interazioni.
@@ -624,7 +589,6 @@ Il tuo viaggio finisce qui, nell'oblio.`;
     // handleRestartClick chiama initializeGame.
 
 
-    // console.log("endGame: Esecuzione completata."); // Log di debug
 }
 
 // --- Avvio del Gioco al Caricamento della Pagina ---
@@ -633,10 +597,8 @@ Il tuo viaggio finisce qui, nell'oblio.`;
 // Assicurati che questo script (game_core.js) sia incluso DOPO dom_references.js e gli altri moduli
 // da cui initializeGame dipende.
 window.onload = function() {
-    // console.log("window.onload: Finestra caricata. Avvio initializeGame..."); // Log di debug
     // Chiama la funzione principale di inizializzazione del gioco.
     initializeGame();
-    // console.log("window.onload: initializeGame completata."); // Log di debug
 };
 
 

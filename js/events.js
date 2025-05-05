@@ -199,9 +199,9 @@ function triggerComplexEvent(tileSymbol) {
             eventTitle = "Incontro Ostile";
             eventDescription = getRandomText(descrizioniIncontroPredoni); // Usa testi da game_data.js
             eventChoices = [
-                { text: "Fuggi", skillCheck: { stat: 'agilita', difficulty: isNight ? 13 : 12 }, actionKey: 'fuga' }, // Più difficile fuggire di notte
+                { text: "Fuggi", skillCheck: { stat: 'agilita', difficulty: !isDay ? 13 : 12 }, actionKey: 'fuga' }, // Più difficile fuggire di notte
                 { text: "Combatti", skillCheck: { stat: 'potenza', difficulty: SHELTER_TILES.includes(tileSymbol) ? 13 : 14 }, actionKey: 'lotta' }, // Forse più facile combattere al chiuso? O più difficile per mancanza spazio? Dipende dal design. Lasciamo 14 default.
-                { text: "Prova a parlare", skillCheck: { stat: 'influenza', difficulty: isNight ? 14 : 13 }, actionKey: 'parla' } // Più difficile parlare di notte?
+                { text: "Prova a parlare", skillCheck: { stat: 'influenza', difficulty: !isDay ? 14 : 13 }, actionKey: 'parla' } // Più difficile parlare di notte?
             ];
             break;
         case 'ANIMAL':
@@ -210,7 +210,7 @@ function triggerComplexEvent(tileSymbol) {
              eventTitle = `Bestia Pericolosa: ${animalType}`;
              eventDescription = getRandomText(descrizioniIncontroBestie).replace("{animale}", animalType); // Sostituisce placeholder
              eventChoices = [
-                 { text: "Evita silenziosamente", skillCheck: { stat: 'tracce', difficulty: isNight ? 12 : 11 }, actionKey: 'evita' }, // Più difficile evitare di notte
+                 { text: "Evita silenziosamente", skillCheck: { stat: 'tracce', difficulty: !isDay ? 12 : 11 }, actionKey: 'evita' }, // Più difficile evitare di notte
                  { text: "Attacca la bestia", skillCheck: { stat: 'potenza', difficulty: 13 }, actionKey: 'attacca' }, // Difficoltà fissa per attaccare
                  // { text: "Osserva da lontano", skillCheck: { stat: 'presagio', difficulty: 10 }, actionKey: 'osserva' } // Opzione rimossa nel codice originale
              ];
@@ -219,8 +219,8 @@ function triggerComplexEvent(tileSymbol) {
              eventTitle = "Tracce Strane";
              eventDescription = getRandomText(descrizioniTracce); // Usa testi da game_data.js
              eventChoices = [
-                 { text: "Segui le tracce", skillCheck: { stat: 'tracce', difficulty: isNight ? 11 : 10 }, actionKey: 'segui', isSearchAction: true }, // Search action costa tempo
-                 { text: "Ispeziona attentamente", skillCheck: { stat: 'presagio', difficulty: isNight ? 10 : 9 }, actionKey: 'ispeziona', isSearchAction: true }, // Search action costa tempo
+                 { text: "Segui le tracce", skillCheck: { stat: 'tracce', difficulty: !isDay ? 11 : 10 }, actionKey: 'segui', isSearchAction: true }, // Search action costa tempo
+                 { text: "Ispeziona attentamente", skillCheck: { stat: 'presagio', difficulty: !isDay ? 10 : 9 }, actionKey: 'ispeziona', isSearchAction: true }, // Search action costa tempo
                  { text: "Ignora le tracce", outcome: getRandomText(esitiSeguiTracceOkNulla), actionKey: 'ignora'} // Ignora porta sempre a esito Nulla (usa uno dei testi Nulla)
              ];
              break;
@@ -257,7 +257,7 @@ function triggerComplexEvent(tileSymbol) {
                      text: isAgilityBased ? "Reagisci rapidamente (Agilità)" : "Percepisci il pericolo (Presagio)",
                      skillCheck: {
                          stat: isAgilityBased ? 'agilita' : 'presagio',
-                         difficulty: isNight ? 13 : 12 // Più difficile reagire/percepire di notte
+                         difficulty: !isDay ? 13 : 12 // Più difficile reagire/percepire di notte
                      },
                      actionKey: 'evita'
                 }
@@ -276,7 +276,7 @@ function triggerComplexEvent(tileSymbol) {
             // Le scelte hanno skillCheck o outcome diretto.
             // Le difficoltà dei check possono variare giorno/notte.
             const dilemmaChoices = [
-                { text: "Indaga e Intervieni (Presagio)", skillCheck: { stat: 'presagio', difficulty: isNight ? 14 : 13 }, actionKey: 'intervieni' }, // Check Presagio, più difficile di notte
+                { text: "Indaga e Intervieni (Presagio)", skillCheck: { stat: 'presagio', difficulty: !isDay ? 14 : 13 }, actionKey: 'intervieni' }, // Check Presagio, più difficile di notte
                 { text: "Ignora e prosegui", outcome: getRandomText(esitiDilemmaMoraleIgnora), actionKey: 'ignora' } // Outcome diretto, usa testi da game_data.js
             ];
             eventChoices = dilemmaChoices; // Imposta le scelte
