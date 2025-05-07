@@ -71,6 +71,18 @@ function generateCharacter() {
     addItemToInventory('canned_food', 1);
     addItemToInventory('suspicious_pills', 1);
     addItemToInventory('scrap_metal', getRandomInt(1,3)); // Inizia con qualche materiale
+    // Non aggiungiamo più l'arma all'inventario, la equipaggiamo direttamente
+    // addItemToInventory('pipe_wrench', 1);
+
+    // Equipaggia un'arma base all'inizio
+    const startingWeaponId = 'pipe_wrench';
+    if (ITEM_DATA[startingWeaponId]) {
+        player.equippedWeapon = startingWeaponId;
+        // Non è necessario rimuoverla dall'inventario perché non l'abbiamo aggiunta lì
+        // logMessage(`Equipaggiato automaticamente: \${ITEM_DATA[startingWeaponId].name}\`); // Opzionale, potrebbe essere un po' di spam all'inizio
+    } else {
+        console.warn(`generateCharacter: Arma iniziale '${startingWeaponId}' non trovata in ITEM_DATA.`);
+    }
 
     // Aggiorna la UI delle stats iniziali
     if (typeof renderStats === 'function') {
@@ -910,22 +922,42 @@ function handleInventoryClick(event) {
  * Dipende da: game_constants.js (player, ITEM_DATA), ui.js (showEventPopup, closeEventPopup, getItemDetailsHTML).
  * Richiede useItem, equipItem, dropItem, showRepairWeaponPopup (definite qui).
  * @param {string} itemId - L'ID dell'oggetto selezionato.
+ * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
-function showItemActionPopup(itemId) {
-    // console.log(`showItemActionPopup: Creazione popup azioni per item '${itemId}'`); // Log di debug
+function showItemActionPopup(itemId, source = 'inventory') { // Aggiunto parametro source con default
+    // console.log(`showItemActionPopup: Creazione popup azioni per item '${itemId}', source: ${source}`);
 
     const itemInfo = ITEM_DATA[itemId];
-    const itemInInventory = player.inventory.find(slot => slot.itemId === itemId);
+    let itemInInventory = null;
+    let itemQuantity = 1; // Default per oggetti equipaggiati
+
+    if (source === 'inventory') {
+        itemInInventory = player.inventory.find(slot => slot.itemId === itemId);
+        if (itemInInventory) {
+            itemQuantity = itemInInventory.quantity;
+        }
+    } else if (source === 'equipped') {
+        // Per gli oggetti equipaggiati, l'ID è direttamente quello dell'oggetto.
+        // La "quantità" è implicitamente 1.
+        // itemInInventory rimane null, ma itemInfo è il nostro riferimento principale.
+    }
 
     // Verifiche preliminari
-    if (!itemInfo || !itemInInventory) {
-        console.error(`showItemActionPopup: Oggetto '${itemId}' non trovato o non nell'inventario.`);
+    if (!itemInfo) {
+        console.error(`showItemActionPopup: Dati oggetto '${itemId}' non trovati.`);
         addMessage("Errore nel selezionare l'oggetto.", "warning");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
+    // Se la sorgente è inventario, l'oggetto DEVE essere lì.
+    if (source === 'inventory' && !itemInInventory) {
+        console.error(`showItemActionPopup: Oggetto '${itemId}' non trovato nell'inventario (source: inventory).`);
+        addMessage("Errore: Oggetto non trovato nell'inventario.", "warning");
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+        return;
+    }
 
-    const popupTitle = itemInfo.name + (itemInInventory.quantity > 1 ? ` (x${itemInInventory.quantity})` : ''); // Aggiunge quantità nel titolo se > 1
+    const popupTitle = itemInfo.name + (source === 'inventory' && itemQuantity > 1 ? ` (x${itemQuantity})` : '');
     const popupDescription = itemInfo.description;
 
     // Ottieni statistiche dettagliate dell'oggetto per la descrizione estesa nel popup
@@ -949,9 +981,10 @@ function showItemActionPopup(itemId) {
 
     // Aggiunge il pulsante "Usa" se l'oggetto è utilizzabile
     // Non mettiamo "Usa" per armi/armature/munizioni/crafting/lore che hanno azioni specifiche (Equipaggia, Ripara, ecc.)
-     if (itemInfo.usable && !['weapon', 'armor', 'ammo', 'crafting', 'lore'].includes(itemInfo.type)) {
+    // E non per oggetti equipaggiati, che avranno "Rimuovi" o "Ripara"
+    if (itemInfo.usable && source === 'inventory' && !['weapon', 'armor', 'ammo', 'crafting', 'lore'].includes(itemInfo.type)) {
         popupChoices.push({
-            text: `Usa ${itemInfo.name}`, // Testo del pulsante
+            text: `Usa ${itemInfo.name}`,
             // L'azione chiama la funzione useItem definita in questo modulo player.js
             action: () => useItem(itemId)
         });
@@ -960,17 +993,15 @@ function showItemActionPopup(itemId) {
     // Aggiunge "Equipaggia" o "Rimuovi" per armi e armature
     if (itemInfo.type === 'weapon' || itemInfo.type === 'armor') {
         const equippedSlotKey = itemInfo.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor';
-        const isEquipped = player[equippedSlotKey] === itemId;
+        const isCurrentlyEquippedOnPlayer = player[equippedSlotKey] === itemId;
 
-        if (isEquipped) {
-             // Se già equipaggiato, offri Rimuovi
+        if (source === 'equipped' || isCurrentlyEquippedOnPlayer) { // Se l'oggetto è quello equipaggiato (source 'equipped') o è nell'inventario MA è quello correntemente equipaggiato
             popupChoices.push({
                 text: `Rimuovi ${itemInfo.name}`,
                 // L'azione chiama la funzione unequipItem definita in questo modulo player.js
                 action: () => unequipItem(equippedSlotKey)
             });
-        } else {
-             // Se non equipaggiato, offri Equipaggia
+        } else if (source === 'inventory') { // Altrimenti, se è nell'inventario e non equipaggiato, offri Equipaggia
             popupChoices.push({
                 text: `Equipaggia ${itemInfo.name}`,
                  // L'azione chiama la funzione equipItem definita in questo modulo player.js
@@ -998,14 +1029,38 @@ function showItemActionPopup(itemId) {
     // Aggiunge l'opzione per lasciare cadere l'oggetto
     // Non permettere di lasciare oggetti equipaggiati tramite questo popup (usa Rimuovi prima)
     // Non permettere di lasciare oggetti unici se necessario
-     if (player.equippedWeapon !== itemId && player.equippedArmor !== itemId && !itemInfo.isUnique) { // isUnique non è ancora usato, ma per futuro
+     if (source === 'inventory' && player.equippedWeapon !== itemId && player.equippedArmor !== itemId && !itemInfo.isUnique) { // isUnique non è ancora usato, ma per futuro
          popupChoices.push({
              text: `Lascia a terra ${itemInfo.name}`,
              cssClass: 'danger-action', // Classe per evidenziare azione potenzialmente negativa
              // L'azione chiama la funzione dropItem definita in questo modulo player.js
-             action: () => dropItem(itemId, itemInInventory.quantity) // Passiamo la quantità attuale
+             action: () => dropItem(itemId, itemQuantity) // Passiamo la quantità attuale
          });
      }
+
+    // AZIONE RIPARA (NUOVA) - Inserita qui, prima del pulsante "Chiudi"
+    if (itemInfo.hasOwnProperty('durability') && itemInfo.hasOwnProperty('maxDurability') && itemInfo.durability < itemInfo.maxDurability) {
+        // Controlliamo se è un'arma o un'armatura, poiché solo questi tipi dovrebbero avere l'opzione Ripara direttamente.
+        // I kit di riparazione hanno già la loro azione "Usare per Riparare..."
+        if (itemInfo.type === 'weapon' || itemInfo.type === 'armor') {
+            popupChoices.push({
+                text: "Ripara (1 Rottame)", // Testo aggiornato per chiarezza
+                action: () => {
+                    // L'indice non è rilevante se la source è 'equipped' o se operiamo sull'ID dell'itemInfo
+                    const indexInInventory = source === 'inventory' ? player.inventory.findIndex(slot => slot.itemId === itemId) : -1;
+                    attemptRepairItem(itemInfo, indexInInventory, source); 
+                }
+            });
+        }
+    } else if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
+        // Questo oggetto È un kit di riparazione (solo dall'inventario).
+        const repairAmount = itemInfo.effect.repair_amount || 10;
+        popupChoices.push({
+            text: `Usare per Riparare...`, // Testo che indica che aprirà un'ulteriore scelta
+            // L'azione chiama showRepairWeaponPopup (definita qui) che aprirà il popup successivo
+            action: () => showRepairWeaponPopup(itemId, repairAmount)
+        });
+    }
 
 
     // Aggiunge il pulsante "Chiudi" in ogni caso
@@ -1036,12 +1091,103 @@ function showItemActionPopup(itemId) {
     }
 }
 
+/**
+ * Tenta di riparare un oggetto.
+ * @param {object} itemToRepair L'oggetto (itemInfo da ITEM_DATA) da riparare.
+ * @param {number} index L'indice dell'oggetto nell'inventario (se source è 'inventory'). Non usato se l'oggetto è equipaggiato.
+ * @param {string} source La provenienza dell'oggetto ('inventory' o 'equipped').
+ */
+function attemptRepairItem(itemToRepair, index, source) {
+    const repairMaterialId = 'scrap_metal';
+    const repairMaterialCost = 1;
+    const repairAmount = 5; // Punti di durabilità ripristinati
+
+    // Assicuriamoci che itemToRepair sia l'oggetto effettivo da ITEM_DATA e non solo un riferimento dall'inventario
+    // (Anche se in questo flusso itemToRepair è già l'itemInfo, è una buona pratica se la funzione venisse chiamata da altri contesti)
+    const actualItemData = ITEM_DATA[itemToRepair.id];
+    if (!actualItemData) {
+        console.error(`attemptRepairItem: Impossibile trovare i dati per l'oggetto con ID ${itemToRepair.id}`);
+        showTemporaryMessage("Errore durante il tentativo di riparazione.");
+        closeItemActionsPopup(); // Chiudi il popup in caso di errore grave
+        return;
+    }
+
+
+    if (player.inventory.find(slot => slot.itemId === repairMaterialId && slot.quantity >= repairMaterialCost)) {
+        // Consuma materiali
+        removeItemFromInventory(repairMaterialId, repairMaterialCost); // removeItemFromInventory aggiorna già l'inventario UI e logga
+
+        // Ripara l'oggetto (modificando direttamente l'oggetto in ITEM_DATA)
+        const oldDurability = actualItemData.durability;
+        actualItemData.durability = Math.min(actualItemData.maxDurability, actualItemData.durability + repairAmount);
+        
+        logMessage(`Hai riparato ${actualItemData.name} da ${oldDurability}/${actualItemData.maxDurability} a ${actualItemData.durability}/${actualItemData.maxDurability} usando ${repairMaterialCost} ${ITEM_DATA[repairMaterialId].name}.`, 'success');
+
+        // Aggiorna UI specifica dell'oggetto
+        if (source === 'inventory') {
+            updateInventoryDisplay(); // Rirenderizza l'inventario per mostrare la durabilità aggiornata
+        } else if (source === 'equipped') {
+            updateEquippedDisplay(); // Rirenderizza l'equipaggiamento
+        }
+        
+        updatePlayerStatsUI(); // Aggiorna le statistiche del giocatore e la UI generale (pannello stats)
+
+        // Chiudi il popup delle azioni, dato che l'azione è stata completata
+        closeItemActionsPopup();
+        
+        // Il tooltip si aggiornerà automaticamente al prossimo hover se l'oggetto è ancora visibile
+        // e la sua visualizzazione dipende dai dati aggiornati in ITEM_DATA.
+
+    } else {
+        logMessage(`Non hai abbastanza ${ITEM_DATA[repairMaterialId].name} per riparare ${actualItemData.name}.`, 'warning');
+        showTemporaryMessage(`Materiali insufficienti: ${ITEM_DATA[repairMaterialId].name} (ne servono ${repairMaterialCost}).`);
+        // Non chiudiamo il popup in caso di fallimento per materiali, così l'utente vede le altre opzioni.
+    }
+}
+
+
+// Funzione di utilità per mostrare messaggi temporanei
+function showTemporaryMessage(message, duration = 3000) {
+    const messagePopup = document.getElementById('temporary-message-popup') || createTemporaryMessagePopup();
+    messagePopup.textContent = message;
+    messagePopup.style.display = 'block';
+    // Clear any existing timeout to prevent multiple popups or premature closing
+    if (messagePopup.timeoutId) {
+        clearTimeout(messagePopup.timeoutId);
+    }
+    messagePopup.timeoutId = setTimeout(() => {
+        messagePopup.style.display = 'none';
+    }, duration);
+}
+
+function createTemporaryMessagePopup() {
+    const popup = document.createElement('div');
+    popup.id = 'temporary-message-popup';
+    // Stile base, da migliorare in CSS
+    popup.style.position = 'fixed';
+    popup.style.bottom = '20px';
+    popup.style.left = '50%';
+    popup.style.transform = 'translateX(-50%)';
+    popup.style.padding = '10px 20px';
+    popup.style.backgroundColor = 'var(--bg-color)'; // Usa variabili CSS
+    popup.style.color = 'var(--fg-color)';       // Usa variabili CSS
+    popup.style.border = '1px solid var(--border-color)'; // Usa variabili CSS
+    popup.style.borderRadius = '5px';
+    popup.style.zIndex = '1002'; // Sopra il popup azioni, sotto eventuali popup di evento modali
+    popup.style.display = 'none';
+    popup.style.textAlign = 'center';
+    popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    document.body.appendChild(popup);
+    return popup;
+}
+
+
 // --- Implementazione check ammo availability ---
 // Dipende da: game_constants.js (player, ITEM_DATA). Usata da ui.js (renderStats).
 /**
  * Controlla se il giocatore ha munizioni disponibili per l'arma equipaggiata.
  * Dipende da game_constants.js (player, ITEM_DATA).
- * @returns {{hasAmmo: boolean, message: string}} Un oggetto che indica la disponibilità e un messaggio di stato.
+ * @returns {{hasAmmo: boolean, message: string}} Un oggetto che indica la disponibilita e un messaggio di stato.
  */
 function checkAmmoAvailability() {
     // Verifica che il giocatore e l'arma equipaggiata esistano
@@ -1083,7 +1229,7 @@ function checkAmmoAvailability() {
  * Consuma una munizione per l'arma equipaggiata.
  * Chiamato dalla logica di combattimento negli eventi (events.js).
  * Dipende da: game_constants.js (player, ITEM_DATA, RECOVER_ARROW_BOLT_CHANCE), game_utils.js (addMessage, getRandomInt), ui.js (renderInventory).
- * @returns {{consumed: boolean, recovered: boolean}} Oggetto che indica se una munizione è stata consumata e se una è stata recuperata.
+ * @returns {{consumed: boolean, recovered: boolean}} Oggetto che indica se una munizione e stata consumata e se una e stata recuperata.
  */
 function consumeAmmo() {
      // Verifica che il giocatore e l'arma equipaggiata esistano e richiedano munizioni
@@ -1126,24 +1272,37 @@ function consumeAmmo() {
 
     let recovered = false;
     // Possibilità di recupero per munizioni recuperabili (frecce/dardi)
-    const ammoItemInfo = ITEM_DATA[player.inventory[ammoSlotIndex]?.itemId || (ammoType === 'dardi' ? 'bolt' : (ammoType === 'frecce' ? 'arrow' : null))]; // Cerca info munizione consumata
+    // Tentativo di accedere a ammoItemInfo in modo sicuro
+    const consumedAmmoSlot = player.inventory[ammoSlotIndex]; // Potrebbe essere undefined se lo slot è stato appena rimosso
+    let consumedAmmoItemId = null;
+    if (consumedAmmoSlot) {
+        consumedAmmoItemId = consumedAmmoSlot.itemId;
+    } else {
+        // Se lo slot è stato rimosso, cerchiamo l'ID del tipo di munizione direttamente
+        // Questo è un fallback e potrebbe non essere sempre accurato se ci sono più tipi di munizioni con lo stesso ammoType ma ID diversi.
+        // Per frecce e dardi, assumiamo un ID standard.
+        if (ammoType === 'dardi') consumedAmmoItemId = 'bolt';
+        else if (ammoType === 'frecce') consumedAmmoItemId = 'arrow';
+        // Altri tipi di munizioni recuperabili andrebbero aggiunti qui
+    }
+    const ammoItemInfo = consumedAmmoItemId ? ITEM_DATA[consumedAmmoItemId] : null;
+
     if (ammoItemInfo && ammoItemInfo.recuperabile && Math.random() < RECOVER_ARROW_BOLT_CHANCE) { // Usa costante per chance
         // Hai recuperato la munizione. Aggiungila all'inventario.
-        addItemToInventory(ammoItemInfo.id, 1); // Aggiunge 1 munizione (addItemToInventory logga già)
+        addItemToInventory(ammoItemInfo.id, 1); // Aggiunge 1 munizione (addItemToInventory logga gia)
         recovered = true;
+        addMessage(`Hai recuperato 1 ${ammoItemInfo.name}.`, 'success'); // Messaggio di recupero
         // console.log(`Recuperata 1 munizione di tipo ${ammoType}.`); // Log di debug
     }
 
     return { consumed: true, recovered: recovered };
 }
 
-// --- Implementazione riparazione armi/armature ---
-// Queste funzioni implementano la logica di riparazione.
-// Dipende da: game_constants.js (player, ITEM_DATA, costanti materiali), game_utils.js (addMessage, getRandomInt), ui.js (renderStats, renderInventory, closeEventPopup).
-// Richiede removeItemFromInventory (definita qui).
-
+// --- Implementazione riparazione armi/armature (Funzioni di supporto) ---
 /**
  * Controlla se il giocatore ha abbastanza materiali per riparare un oggetto.
+ * Questa versione è semplificata per la nuova logica di attemptRepairItem e non viene più usata direttamente nel flusso di riparazione tramite popup,
+ * ma potrebbe essere utile per future meccaniche di crafting o riparazione avanzate.
  * Dipende da game_constants.js (player, ITEM_DATA).
  * @param {string} targetItemId - L'ID dell'oggetto da riparare.
  * @param {boolean} isCompletelyBroken - True se l'oggetto è completamente rotto (durabilità <= 0).
@@ -1156,23 +1315,16 @@ function checkRepairMaterials(targetItemId, isCompletelyBroken = false) {
     }
 
     // Calcola materiali necessari in base allo stato dell'oggetto
-    let scrapNeeded = 0;
+    let scrapNeeded = 1; // Costo base di 1 rottame per la riparazione semplice attuale
     let mechanicalPartsNeeded = 0;
 
-    // Quantità base per riparare un punto di durabilità (es. 1 rottame ogni 5 durabilità)
-    // E costo extra se è completamente rotto
-    const durabilityToRepair = targetItemInfo.maxDurability - targetItemInfo.durability;
-
-    if (durabilityToRepair > 0) {
-        scrapNeeded = Math.ceil(durabilityToRepair / 5); // 1 rottame ogni 5 punti durabilità mancanti
-        if (isCompletelyBroken) {
-             // Se completamente rotto, costa anche parti meccaniche e più rottami
-             mechanicalPartsNeeded = Math.ceil(targetItemInfo.maxDurability / 10); // Es. 1 parte ogni 10 punti max durabilità
-             // Aumenta anche il costo di rottami se è completamente rotto (es. 1 rottame ogni 3 punti max durabilità)
-             scrapNeeded = Math.max(scrapNeeded, Math.ceil(targetItemInfo.maxDurability / 3));
-        }
-    }
-
+    // Logica più complessa per costi variabili potrebbe essere inserita qui se necessario
+    // Esempio: se l'oggetto è molto danneggiato o rotto, aumenta il costo o richiedi parti meccaniche
+    // const durabilityToRepair = targetItemInfo.maxDurability - targetItemInfo.durability;
+    // if (isCompletelyBroken) {
+    //     mechanicalPartsNeeded = Math.ceil(targetItemInfo.maxDurability / 10); 
+    //     scrapNeeded = Math.max(scrapNeeded, Math.ceil(targetItemInfo.maxDurability / 3));
+    // }
 
     // Controlla se il giocatore ha abbastanza materiali nell'inventario
     const scrapSlot = player.inventory.find(slot => slot.itemId === 'scrap_metal');
@@ -1186,93 +1338,12 @@ function checkRepairMaterials(targetItemId, isCompletelyBroken = false) {
         hasEnoughParts = mechanicalPartsSlot && mechanicalPartsSlot.quantity >= mechanicalPartsNeeded;
     }
 
-    // Ritorna il risultato
     return {
         hasMaterials: hasEnoughScrap && hasEnoughParts,
         scrapNeeded: scrapNeeded,
         mechanicalPartsNeeded: mechanicalPartsNeeded
     };
 }
-
-// NOTA: La funzione `repairWeapon` nel codice originale (game_logic.js) sembrava duplicare `applyRepair`.
-// La versione `applyRepair` è quella chiamata dal popup e gestisce il consumo del kit.
-// La logica per verificare i materiali prima di mostrare l'opzione nel popup `showItemActionPopup`
-// dovrebbe chiamare `checkRepairMaterials`. La logica per *applicare* la riparazione (consumare materiali e kit, curare durabilità)
-// è in `applyRepair`. `showRepairWeaponPopup` è un helper per la UI di selezione.
-// Quindi, non ridefiniremo una funzione `repairWeapon` separata qui.
-
-// Modifica showItemActionPopup per usare checkRepairMaterials (già fatto nell'ultima versione, ma ricontrolliamo)
-/*
-function showItemActionPopup(itemId) {
-    // ... (inizio funzione) ...
-    // Aggiunge "Ripara" per armi/armature danneggiate (se si hanno i materiali)
-    if ((itemInfo.type === 'weapon' || itemInfo.type === 'armor') && itemInfo.durability !== undefined && itemInfo.durability < itemInfo.maxDurability) {
-
-        // Verifica materiali necessari (usa checkRepairMaterials)
-        const isCompletelyBroken = itemInfo.durability <= 0;
-        const repairCheck = checkRepairMaterials(itemId, isCompletelyBroken);
-
-        let repairText = `Ripara`; // Testo base
-        let canRepair = repairCheck.hasMaterials; // Flag se la riparazione è possibile O se è un kit
-
-        // Se l'oggetto selezionato È il kit di riparazione
-        if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-             repairText = `Usare per Riparare...`;
-             canRepair = true; // Puoi sempre tentare di usare il kit per aprire la selezione
-
-        } else { // L'oggetto selezionato È l'arma/armatura danneggiata
-             // Mostra i materiali necessari nel testo
-             repairText = `Ripara (${repairCheck.scrapNeeded} Rottami`;
-             if (repairCheck.mechanicalPartsNeeded > 0) {
-                 repairText += `, ${repairCheck.mechanicalPartsNeeded} Parti`;
-             }
-             repairText += `)`;
-        }
-
-
-        // Mostra l'opzione Ripara solo se È un kit, OPPURE se È l'oggetto danneggiato E si hanno i materiali
-        if ((itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') || canRepair) {
-             popupChoices.push({
-                 text: repairText,
-                 // L'azione dipende se è un kit o l'oggetto da riparare
-                 action: () => {
-                     if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-                          // Se è il kit, avvia il popup di selezione oggetto
-                          showRepairWeaponPopup(itemId, itemInfo.effect.repair_amount || 10);
-                     } else if (canRepair) {
-                          // Se è l'oggetto danneggiato e si hanno i materiali, applica la riparazione direttamente
-                          // Consuma il kit (necessita di trovarlo nell'inventario) e applica la riparazione
-                          // Questo scenario non è gestito direttamente in applyRepair, che consuma SOLO il kit.
-                          // Serve una funzione intermedia "RepairThisItemWithKit" che trova il kit, lo consuma, e chiama applyRepair.
-                          // Per ora, ci basiamo sulla logica attuale che la riparazione parte SEMPRE dall'uso del KIT.
-                          console.warn("showItemActionPopup: Azione Ripara diretta su oggetto danneggiato non implementata. Usa il Kit di Riparazione dall'inventario.");
-                          addMessage(`Per riparare ${itemInfo.name}, usa un Kit di Riparazione dal tuo inventario.`, "warning");
-                          if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi il popup corrente
-                     } else {
-                          // Non dovrebbe arrivare qui se canRepair è false e non è un kit, ma per sicurezza
-                          addMessage(`Non hai i materiali necessari per riparare ${itemInfo.name}.`, "warning");
-                          if (typeof closeEventPopup === 'function') closeEventPopup();
-                     }
-                 },
-                 disabled: (itemInfo.type !== 'crafting' || itemInfo.effect?.type !== 'repair_weapon') && !canRepair // Disabilita se non è un kit E non si hanno i materiali
-             });
-        }
-    }
-    // ... (resto della funzione) ...
-}
-*/
-
-
-// --- Implementazione check ammo availability ---
-// Dipende da: game_constants.js (player, ITEM_DATA). Usata da ui.js (renderStats).
-// (Già definita sopra, ma ri-menzionata per completezza)
-
-
-// --- Implementazione consume ammo ---
-// Dipende da: game_constants.js (player, ITEM_DATA, RECOVER_ARROW_BOLT_CHANCE), game_utils.js (addMessage, getRandomInt), ui.js (renderInventory).
-// Usata dalla logica di combattimento (events.js).
-// (Già definita sopra, ma ri-menzionata per completezza)
-
 
 // --- Implementazione check & log status messages ---
 // Dipende da: game_constants.js (player, STATO_MESSAGGI, ...altre costanti stato), game_utils.js (getRandomText, addMessage), ui.js (renderStats).
@@ -1336,5 +1407,58 @@ function checkAndLogStatusMessages() {
 // NOTA: Le funzioni che cambiano lo stato globale (`player`, `messages`, ecc.) devono
 // assicurarsi di chiamare le funzioni di rendering (`renderStats`, `renderInventory`,
 // `renderMessages`) definite in `ui.js` per aggiornare l'interfaccia dopo la modifica.
+
+/**
+ * Applica usura a un oggetto equipaggiato (arma o armatura).
+ * @param {'equippedWeapon' | 'equippedArmor'} slotKey - La chiave dello slot dell'oggetto equipaggiato.
+ * @param {number} [wearAmount=1] - La quantità di durabilità da ridurre.
+ */
+function applyWearToEquippedItem(slotKey, wearAmount = 1) {
+    if (!player || (slotKey !== 'equippedWeapon' && slotKey !== 'equippedArmor')) {
+        console.error(`applyWearToEquippedItem: slotKey non valido o player non definito.`);
+        return;
+    }
+
+    const itemId = player[slotKey];
+    if (!itemId) {
+        // Nessun oggetto equipaggiato in quello slot
+        return;
+    }
+
+    const itemInfo = ITEM_DATA[itemId];
+    if (!itemInfo || typeof itemInfo.durability !== 'number' || typeof itemInfo.maxDurability !== 'number') {
+        // L'oggetto non ha durabilità o non è definito correttamente
+        // console.warn(`applyWearToEquippedItem: L'oggetto ${itemId} non ha proprietà di durabilità.`);
+        return;
+    }
+
+    if (itemInfo.durability <= 0) {
+        // L'oggetto è già rotto, non può usurarsi ulteriormente.
+        return;
+    }
+
+    const oldDurability = itemInfo.durability;
+    itemInfo.durability = Math.max(0, itemInfo.durability - wearAmount);
+
+    // console.log(`Usura applicata a ${itemInfo.name}: da ${oldDurability} a ${itemInfo.durability}`); // Log per debug
+
+    if (itemInfo.durability <= 0 && oldDurability > 0) {
+        addMessage(`${itemInfo.name} si è rotto!`, 'danger');
+    } else if (itemInfo.durability < oldDurability && itemInfo.durability < itemInfo.maxDurability * 0.25) {
+        // Aggiungi un messaggio se la durabilità scende sotto una certa soglia (es. 25%) ma non si è appena rotto
+        if (oldDurability >= itemInfo.maxDurability * 0.25) { // Solo se prima era sopra la soglia
+             addMessage(`${itemInfo.name} è gravemente danneggiato.`, 'warning');
+        }
+    }
+
+    // Aggiorna la UI delle statistiche per riflettere il cambiamento di stato dell'arma/armatura
+    // (es. se renderStats aggiunge "(Rotto)" al nome)
+    if (typeof renderStats === 'function') {
+        renderStats();
+    }
+    // Non è necessario chiamare updateInventoryDisplay o updateEquippedDisplay qui perché
+    // la visualizzazione della durabilità avviene tramite tooltip/popup che leggono direttamente da ITEM_DATA,
+    // e renderStats si occupa di aggiornare il nome visualizzato dell'oggetto equipaggiato se necessario.
+}
 
 // --- FINE LOGICA GIOCATORE ---

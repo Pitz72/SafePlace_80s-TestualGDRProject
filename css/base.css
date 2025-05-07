@@ -3,29 +3,29 @@
 /* Variabili CSS per colori e stili */
 :root {
     --bg-color: #000000; /* Sfondo nero */
-    --fg-color: #00FF00; /* Verde brillante per il testo */
-    --fg-dim-color: #009900; /* Verde scuro per testo secondario/dimmerato */
+    --fg-color: #4EA162; /* Verde principale */
+    --fg-dim-color: #336940; /* NUOVO Verde scuro per testo secondario (derivato) */
 
-    --border-color: #00FF00; /* Verde brillante per i bordi principali */
-    --border-dim-color: #005500; /* Verde scuro per bordi secondari/separatori */
+    --border-color: #4EA162; /* NUOVO Verde principale per i bordi */
+    --border-dim-color: #22462A; /* NUOVO Verde molto scuro per bordi secondari (derivato) */
 
-    --highlight-bg: #00FF00; /* Sfondo verde brillante per evidenziazione (hover, ecc.) */
-    --highlight-fg: #000000; /* Testo nero su sfondo verde evidenziato */
+    --highlight-bg: #7FC892; /* NUOVO Verde più chiaro per highlight (derivato) */
+    --highlight-fg: #000000; /* Testo nero su sfondo highlight */
 
-    --accent-color: #FFFF00; /* Giallo/Oro per titoli, elementi importanti */
+    --accent-color: #79ED95; /* NUOVO Verde chiaro per titoli/accenti */
     --danger-color: #FF4444; /* Rosso per avvisi, pericoli, HP bassi */
     --warning-color: #FFAA00; /* Arancione per avvisi intermedi */
 
-    --overlay-bg: rgba(0, 10, 0, 0.97); /* Sfondo scuro semi-trasparente per overlay */
+    --overlay-bg: rgba(8, 17, 11, 0.95); /* NUOVO Verde molto scuro quasi opaco (derivato) */
 
-    /* Colori specifici per i tipi di casella sulla mappa */
-    --plains-color: #00BB00; /* Verde medio */
-    --forest-color: #008800; /* Verde scuro */
-    --mountain-color: #339933; /* Verde grigiastro */
-    --water-color: #008888; /* Ciano */
-    --ruin-color: #55AA55; /* Verde spento */
-    --special-color: #AAAA00; /* Giallo per punti di interesse minori */
-    --end-color: var(--accent-color); /* Usa il colore accento per la destinazione finale */
+    /* Colori specifici per i tipi di casella sulla mappa (derivati da #4EA162) */
+    --plains-color: #60BF77;   /* NUOVO Verde pianura (derivato) */
+    --forest-color: #336940;   /* NUOVO Verde foresta (come testo dim, derivato) */
+    --mountain-color: #52705A; /* NUOVO Verde montagna desaturato (derivato) */
+    --water-color: #008888;    /* MANTENUTO Ciano per acqua */
+    --ruin-color: #5F996E;    /* NUOVO Verde rovine desaturato (derivato) */
+    --special-color: #AAAA00; /* MANTENUTO Giallo scuro per speciali */
+    --end-color: var(--accent-color); /* MANTENUTO Giallo accento per fine - ORA DIVENTA #79ED95 */
 }
 
 /* Stili base per l pagina intera */
@@ -75,4 +75,111 @@ li.separator {
     margin-bottom: 8px;
     color: var(--border-dim-color); /* Colore verde scuro per i separatori */
     text-align: center;
+}
+
+/* Stile generale per tutti i container a schermo intero */
+.screen-container {
+    width: 100%;
+    min-height: 100vh; /* Usa min-height per coprire almeno tutta l'altezza */
+    padding: 20px;
+    box-sizing: border-box; /* Include padding nel calcolo dimensioni */
+    display: flex;
+    flex-direction: column; /* IMPILA GLI ELEMENTI VERTICALMENTE */
+    align-items: center;   /* CENTRA GLI ELEMENTI ORIZZONTALMENTE */
+    justify-content: center; /* CENTRA IL BLOCCO VERTICALMENTE (se possibile) */
+    text-align: center; /* Centra il testo all'interno degli elementi figli (utile per h1, p) */
+}
+
+/* Stili specifici per gli elementi dentro la schermata iniziale, se necessario */
+#start-screen-container #game-title {
+    /* (Puoi aggiungere/modificare stili qui se necessario, es. margine) */
+    margin-top: 0; /* Rimuove margine sopra il titolo se presente */
+    margin-bottom: 5px; /* Ridotto spazio sotto il titolo */
+}
+
+#start-screen-container .game-signature {
+     /* (Puoi aggiungere/modificare stili qui se necessario, es. margine) */
+     margin-top: 0; /* Rimuove margine sopra la firma */
+     margin-bottom: 30px; /* Aumenta spazio prima del menu */
+}
+
+#start-screen-container #main-menu {
+    /* (Puoi aggiungere/modificare stili qui se necessario, es. larghezza) */
+    width: auto; /* Lascia che il menu si adatti alla larghezza dei bottoni */
+}
+
+#start-screen-image {
+    max-width: 33%; /* Circa un terzo della larghezza del suo contenitore */
+    height: auto;   /* Mantiene le proporzioni originali dell'immagine */
+    max-height: 30vh; /* Limita l'altezza massima al 30% dell'altezza della viewport */
+    object-fit: contain; /* Assicura che l'immagine si adatti mantenendo le proporzioni */
+    margin-bottom: 20px; /* Spazio sotto l'immagine */
+    /* Rimuovi/commenta il bordo di debug se lo avevi: border: 2px solid #00ff00; */
+}
+
+/* Stile per i bottoni del menu principale e "Torna al Menu" */
+#main-menu button,
+.back-to-menu-btn {
+    background-color: #111;                /* Da #event-choices button */
+    color: var(--fg-color);                 /* Da #event-choices button */
+    border: 1px solid var(--border-color);  /* Da #event-choices button */
+    padding: 10px 18px;                     /* Da #event-choices button */
+    font-family: inherit;                   /* Da #event-choices button */
+    font-size: 1em;                         /* Da #event-choices button */
+    cursor: pointer;                        /* Da #event-choices button */
+    transition: background-color 0.2s, color 0.2s; /* Da #event-choices button */
+
+    /* Adattamenti per menu */
+    display: inline-block; /* Permette ai bottoni di stare sulla stessa riga se c'è spazio, o andare a capo come blocco */
+    margin: 8px 5px;       /* Margine verticale come scelte, orizzontale minimo */
+    min-width: 200px;      /* Larghezza minima per leggibilità/tocco */
+    width: auto;           /* Larghezza si adatta al contenuto + padding */
+    text-align: center;
+}
+
+/* Effetto Hover */
+#main-menu button:hover:not(:disabled),
+.back-to-menu-btn:hover {
+    background-color: var(--fg-color); /* Usa il verde principale (#4EA162) per lo sfondo hover */
+    color: var(--highlight-fg);            /* Mantiene testo nero per contrasto */
+    border-color: var(--fg-color); /* Cambia anche il bordo al verde principale su hover */
+}
+
+/* Stato Disabilitato (per "CARICA PARTITA") */
+#main-menu button:disabled {
+    color: var(--border-dim-color);         /* Da :disabled di #event-choices button */
+    border-color: var(--border-dim-color);  /* Da :disabled di #event-choices button */
+    cursor: not-allowed;                    /* Da :disabled di #event-choices button */
+    opacity: 0.5;                           /* Da :disabled di #event-choices button */
+    background-color: #111; /* Mantiene lo sfondo scuro anche se disabilitato */
+}
+
+/* Assicura che il contenitore del menu centri i bottoni se sono inline-block */
+#main-menu {
+    text-align: center;
+}
+
+#main-menu ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#main-menu li {
+    margin-bottom: 5px; /* Riduci spazio extra se margin è già sul bottone */
+}
+
+/* Stile per il footer nella schermata iniziale */
+.start-screen-footer {
+    margin-top: 40px; /* Aggiunge spazio sopra il footer */
+    padding-top: 15px; /* Spazio tra linea e testo */
+    border-top: 1px solid var(--border-dim-color); /* Linea separatrice sottile verde scuro */
+    width: 80%; /* Limita la larghezza per leggibilità */
+    max-width: 800px; /* Larghezza massima */
+}
+
+.start-screen-footer p {
+    font-size: 0.7em; /* Testo molto più piccolo */
+    color: var(--fg-color); /* Usa il NUOVO colore verde principale (#4EA162) */
+    line-height: 1.4; /* Interlinea per leggibilità */
+    margin: 5px 0; /* Margine tra i paragrafi del footer */
 }

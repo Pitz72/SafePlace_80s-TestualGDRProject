@@ -1,4 +1,38 @@
-### IlViaggiatoreGDR v0.7.006 (Panoramica)
+### The Safe Place v0.7.10
+
+- Nuova interfaccia e miglioramenti gameplay
+- Introdotta una nuova interfaccia iniziale con menu principale per avviare una "Nuova Partita".
+- Aggiunte pagine "Storia" e "Istruzioni" nel menu, per introdurre il protagonista Ultimo e fornire consigli di sopravvivenza.
+- Rinnovata la palette colori: tonalità di verde più distintiva, nuovi colori per i titoli e overlay scuro per i popup.
+- Risolto il problema della schermata di fine gioco che non appariva correttamente; ora funziona in caso di vittoria o sconfitta.
+- Implementata l'usura delle armi durante azioni fisiche intense, riducendo la durabilità.
+- Aggiornato il numero di versione ufficiale a v0.7.10 in tutti i file principali.
+
+### The Safe Place v0.7.09
+
+- Fix interazioni inventario e stabilità eventi.
+- Risolto bug critico nell'uso di oggetti dall'inventario (es. Acqua Purificata); ora l'azione avviene correttamente tramite il popup.
+- Migliorato il testo di fallimento nell'evento "Grattacielo" per la scelta "Esplora un palazzo".
+- Stabilizzato il flusso di Game Over: una volta chiamata la funzione endGame, tutte le elaborazioni di gioco si interrompono correttamente.
+- Confermata la corretta conclusione degli eventi problematici ("Rifugio tra gli Alberi", "Fruscio nel Bosco", "Salamandra Velenosa", "Orrore Notturno", "Incontro Ostile").
+- Implementato il costo di 1 passo per "Riposa brevemente" nei rifugi ('R'), con recupero di 1 HP; logica costo tempo ora più flessibile.
+- Risolto ReferenceError nell'evento "Tracce Strane - Ispeziona"; ora si conclude correttamente.
+- Problemi noti: placeholder in dilemmi morali e "Pericolo Ambientale", bilanciamento loot armi, frequenza eventi in alcune aree.
+- Focus futuro: eliminazione placeholder, verifica casi limite per uso oggetti, espansione contenuti.
+
+### The Safe Place v0.7.08
+
+- Fix schermata Game Over, eventi e rifugi
+- Risolto il bug della schermata nera alla morte del giocatore; ora appare correttamente la schermata Game Over e il pulsante "Ricomincia" funziona.
+- Fix ReferenceError nell'evento "Fuga Predoni" durante il fallimento; ora l'esito è gestito correttamente con testi appropriati.
+- Risolto il problema dell'evento "Rifugio ('R')" non attivo durante il giorno; ora si attiva alla prima visita giornaliera.
+- Implementata la logica di persistenza dei rifugi: l'evento non si riattiva nello stesso giorno dopo l'interazione.
+- Corretto il bug dei popup persistenti in vari eventi; alcuni casi specifici necessitano di ulteriori verifiche.
+- Pulizia del codice rimuovendo messaggi di debug; rimangono placeholder in alcuni eventi ("Dilemma Morale", "Pericolo Ambientale").
+- Problemi di bilanciamento: alta frequenza dell'evento "Banchetto Funebre" nelle Pianure, bassa frequenza di eventi in Villaggi/Città/Fiumi.
+- Stabilità migliorata; focus futuro su pulizia placeholder e bilanciamento contenuti.
+
+### The Safe Place v0.7.006 (Panoramica)
 
 In questa sessione di lavoro, ci siamo concentrati sulla stabilizzazione del prototipo di "The Safe Place" e sulla correzione di bug critici emersi durante i test, basandoci sul codice e sulla documentazione esistente (v0.7.01 - v0.7.05). L'obiettivo era preparare una base solida per le future implementazioni.
 
@@ -18,7 +52,7 @@ In questa sessione di lavoro, ci siamo concentrati sulla stabilizzazione del pro
 
 Stato Attuale (v0.7.06): Il gioco è ora più stabile, la logica dei rifugi è stata corretta e resa più coerente con il gameplay desiderato, e un bug importante relativo ai popup evento è stato risolto. Siamo pronti per continuare i test funzionali approfonditi sulle altre meccaniche (inventario, sopravvivenza, tutti i tipi di eventi) prima di passare all'implementazione di nuove funzionalità.
 
-### IlViaggiatoreGDR v0.7.005 (Panoramica)
+### The Safe Place v0.7.005 (Panoramica)
 
 Dopo aver risolto i problemi di visualizzazione della mappa e aver bilanciato la presenza dei vari punti di interesse (Villaggi, Città, ecc.) nella versione v0.7.04, abbiamo iniziato una fase di test e pulizia del codice per prepararci a correggere eventuali bug nel funzionamento del gioco.
 
@@ -34,7 +68,7 @@ Dopo aver risolto i problemi di visualizzazione della mappa e aver bilanciato la
 6.  Bug Transizione Notte (Risolto): Abbiamo identificato e corretto un bug che bloccava il gioco quando passava dal giorno alla notte mentre il giocatore si trovava all'aperto. Ora il gioco dovrebbe continuare correttamente anche di notte.
 7.  Stato Attuale: Il gioco è più stabile rispetto a v0.7.04, con diversi errori critici corretti nel sistema degli eventi e nella transizione giorno/notte. Tuttavia, l'ultimo intervento dell'AI sulla gestione delle scelte dei popup potrebbe necessitare di revisione (come discusso nell'ultimo messaggio). La prossima fase sarà continuare i test funzionali per trovare e correggere i bug rimanenti nelle meccaniche di gioco (sopravvivenza, stati, effetti oggetti, ecc.).
 
-### IlViaggiatoreGDR v0.7.001 (Panoramica)
+### The Safe Place v0.7.001 (Panoramica)
 
 Ecco un'analisi dettagliata del codice del progetto "TheSafePlace" v0.7.01, basata sui file e sulle interazioni avute finora:
 
@@ -167,7 +201,7 @@ Aree di Miglioramento / Funzionalità Mancanti:
 Conclusioni:
 Il progetto "TheSafePlace" è ben strutturato e ha implementato una solida base di meccaniche roguelike/survival. La separazione delle responsabilità è buona e il codice è generalmente leggibile. Le aree principali che richiedono lavoro sono il completamento della logica di combattimento (effetti delle azioni del giocatore) e l'implementazione di sistemi futuri come il crafting e il salvataggio. Un refactoring di handleEventChoice e un potenziamento degli eventi complessi potrebbero migliorare ulteriormente il gioco. Nel complesso, è un buon punto di partenza con fondamenta solide.
 
-### IlViaggiatoreGDR v0.6.079 (Panoramica)
+### The Safe Place v0.6.079 (Panoramica)
 
 Obiettivo: Migliorare l'organizzazione del codice, correggere bug e implementare piccoli miglioramenti al gioco "The Safe Place".
 

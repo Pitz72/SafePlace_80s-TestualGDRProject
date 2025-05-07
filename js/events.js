@@ -972,6 +972,36 @@ function handleEventChoice(choiceIndex) {
         if (typeof closeEventPopup === 'function') closeEventPopup();
     }
 
+    // Applica effetti diretti (es. danno, recupero risorse) se definiti nella scelta
+    if (chosenChoice.effect) {
+        applyEffect(chosenChoice.effect, chosenChoice.text); // Passa anche il testo della scelta per messaggi contestuali
+    }
+
+    // Aggiorna le statistiche del giocatore e la mappa sull'interfaccia utente.
+    // FATTO PRIMA DELL'EVENTUALE FINE GIOCO, COSÌ LO STATO È AGGIORNATO
+    renderStats();
+    renderMap(); // Aggiunto per riflettere eventuali cambiamenti (es. tile esplorato)
+
+    // APPLICA USURA ARMA SE NECESSARIO (NUOVA LOGICA)
+    if (chosenChoice && chosenChoice.usesWeapon === true && player.equippedWeapon) {
+        const weaponId = player.equippedWeapon;
+        const weaponData = ITEM_DATA[weaponId];
+        // Verifica che l'oggetto esista in ITEM_DATA e abbia le proprietà di durabilità
+        if (weaponData && weaponData.hasOwnProperty('durability') && weaponData.hasOwnProperty('maxDurability')) {
+            if (typeof applyWearToEquippedItem === 'function') {
+                applyWearToEquippedItem('equippedWeapon', 1); // Applica 1 punto di usura
+                // logMessage("L'uso ha usurato la tua arma."); // Opzionale, potrebbe essere verboso
+            } else {
+                console.error("handleEventChoice: Funzione applyWearToEquippedItem non trovata!");
+            }
+        }
+    }
+
+    // Controlla se il giocatore è morto dopo l'esito dell'evento.
+    if (player.hp <= 0) {
+        // endGame è già chiamata dentro applyPenalty se il danno porta a morte.
+        return; // Esci per evitare ulteriori elaborazioni
+    }
 } // <--- Parentesi graffa di chiusura per handleEventChoice
 
 

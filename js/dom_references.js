@@ -1,15 +1,11 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.09
+ * Versione: v0.7.10
  * File: js/dom_references.js
- * Descrizione: Riferimenti cache agli elementi DOM per performance e chiarezza.
- * Questi riferimenti verranno popolati quando lo script viene caricato ed eseguito,
- * dopo che il DOM è pronto (es. tramite <script defer> o inclusione a fine body).
+ * Descrizione: Centralizza i riferimenti agli elementi DOM per un facile accesso e manutenibilità.
  */
 
-// --- RIFERIMENTI AGLI ELEMENTI PRINCIPALI DEL DOM ---
-// Dichiarato come un oggetto vuoto che verrà popolato con i riferimenti DOM
-// quando il documento sarà pronto. Sarà accessibile da altri script.
+// Oggetto globale per i riferimenti DOM
 let DOM = {};
 
 /**
@@ -19,13 +15,28 @@ let DOM = {};
 function assignAllDOMReferences() {
     // console.log("assignAllDOMReferences: Inizio recupero elementi DOM..."); // Log di debug
 
-    // Recupera gli elementi principali e i pannelli
-    // Questi ID corrispondono all'index.html
+    // Schermate principali e contenitori
+    DOM.startScreenContainer = document.getElementById('start-screen-container') || null;
+    DOM.instructionsScreen = document.getElementById('instructions-screen') || null;
+    DOM.storyScreen = document.getElementById('story-screen') || null;
     DOM.gameContainer = document.getElementById('game-container');
-    DOM.endScreen = document.getElementById('end-screen');
-    DOM.endTitle = document.getElementById('end-title');
-    DOM.endMessage = document.getElementById('end-message');
-    DOM.mapDisplay = document.getElementById('map-display');
+    DOM.endScreen = document.getElementById('end-screen') || null;
+    DOM.statPanel = document.getElementById('stat-panel'); // Aggiunto, sarà null se non esiste
+
+    // Elementi della schermata iniziale
+    DOM.gameTitle = document.getElementById('game-title') || null;
+    DOM.startScreenImage = document.getElementById('start-screen-image');
+    DOM.mainMenu = document.getElementById('main-menu');
+    DOM.menuBtnNewGame = document.getElementById('menu-btn-new-game');
+    DOM.menuBtnLoadGame = document.getElementById('menu-btn-load-game');
+    DOM.menuBtnInstructions = document.getElementById('menu-btn-instructions');
+    DOM.menuBtnStory = document.getElementById('menu-btn-story');
+    DOM.backToMenuButtons = document.querySelectorAll('.back-to-menu-btn');
+
+    // Elementi schermata istruzioni e storia
+    DOM.instructionsContent = document.getElementById('instructions-content') || null;
+    DOM.instructionsLegendList = document.getElementById('instructions-legend-list');
+    DOM.storyContent = document.getElementById('story-content') || null;
 
     // Recupera riferimenti per le statistiche
     DOM.statsList = document.getElementById('stats-list');
@@ -65,26 +76,44 @@ function assignAllDOMReferences() {
     DOM.eventTitle = document.getElementById('event-title');
     DOM.eventContent = document.getElementById('event-content');
     DOM.eventChoicesContainer = document.getElementById('event-choices');
-    // Cerca il pulsante continua all'interno dell'overlay/popup per sicurezza
-    if (DOM.eventOverlay) {
-       DOM.continueButton = DOM.eventOverlay.querySelector('.continue-button');
+    // Cerca il pulsante continua all'interno dell'elemento popup specifico
+    if (DOM.eventPopup) { // Assicurati che DOM.eventPopup esista prima di cercare al suo interno
+       DOM.continueButton = DOM.eventPopup.querySelector('.continue-button');
+    } else {
+       DOM.continueButton = null; // Imposta a null se eventPopup non è trovato
     }
 
     // Recupera riferimento per la legenda
     DOM.legendList = document.getElementById('legend');
 
     // Recupera riferimento per il bottone di riavvio
-    DOM.restartButton = document.getElementById('restart-button');
+    DOM.restartButton = document.getElementById('restart-button') || null;
 
     // Recupera riferimenti per il tooltip degli oggetti
-    DOM.itemTooltip = document.getElementById('item-tooltip');
+    DOM.itemTooltip = document.getElementById('item-tooltip') || null;
     if (DOM.itemTooltip) { // Verifica che il tooltip esista prima di cercare i suoi figli
-        DOM.tooltipItemName = DOM.itemTooltip.querySelector('#tooltip-item-name');
-        DOM.tooltipItemDesc = DOM.itemTooltip.querySelector('#tooltip-item-desc');
+        DOM.tooltipItemName = DOM.itemTooltip.querySelector('#tooltip-item-name'); // ID esatto
+        DOM.tooltipItemDesc = DOM.itemTooltip.querySelector('#tooltip-item-desc'); // ID esatto
+        DOM.tooltipItemStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container'); // Aggiunto per coerenza
+    } else {
+        DOM.tooltipItemName = null;
+        DOM.tooltipItemDesc = null;
+        DOM.tooltipItemStatsContainer = null;
     }
 
     // Recupera il riferimento all'inventario
     DOM.inventoryList = document.getElementById('inventory');
+
+    // Elementi UI di gioco esistenti
+    DOM.mapDisplay = document.getElementById('map-display'); // Assicura che sia questo ID esatto
+    DOM.statsList = document.getElementById('stats-list'); 
+    DOM.messagesList = document.getElementById('messages'); // Verifica se l'ID è 'messages' o 'messagesList'
+    DOM.inventoryList = document.getElementById('inventory');
+    DOM.legendList = document.getElementById('legend');
+
+    // Elementi Schermata Fine Gioco (NUOVI)
+    DOM.endTitle = document.getElementById('end-title') || null;
+    DOM.endMessage = document.getElementById('end-message') || null;
 
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
     console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // Log finale diagnostico

@@ -151,6 +151,55 @@ function renderStats() {
         DOM.statDayTime.textContent = 'Notte';
         // Potresti voler aggiungere un indicatore del progresso notturno se necessario.
     }
+
+    // Aggiungi listener per interazione con oggetti equipaggiati (Tooltip e Azioni)
+    // Assicurati che questi listener vengano aggiunti solo una volta o gestiti correttamente se renderStats viene chiamata frequentemente.
+    // Un modo è rimuovere e riaggiungere, oppure usare un flag.
+    // Per semplicità iniziale, li aggiungiamo qui. Se renderStats è chiamata molto spesso, potremmo spostarli in una initUI una tantum.
+
+    const setupEquippedItemInteraction = (element, itemSlotKey) => {
+        if (!element) return;
+
+        // Rimuovi listener esistenti per evitare duplicazioni se questa funzione viene chiamata più volte
+        // Questo richiede che le funzioni handler siano definite in modo da poterle referenziare per la rimozione.
+        // Per ora, ci affidiamo al fatto che gli ID degli oggetti cambiano e quindi i dati del tooltip/popup si aggiornano.
+        // Una soluzione più robusta userebbe .removeEventListener con named functions.
+
+        element.onmouseover = (event) => {
+            const itemId = player[itemSlotKey];
+            if (itemId && ITEM_DATA[itemId]) {
+                // Per showItemTooltip, abbiamo bisogno di un itemSlot (con itemId e quantity) e dell'evento.
+                // Poiché un oggetto equipaggiato ha sempre quantity 1 e non è uno "slot" dell'inventario,
+                // creiamo un oggetto fittizio simile a uno slot.
+                const mockItemSlot = { itemId: itemId, quantity: 1 }; 
+                if (typeof showItemTooltip === 'function') {
+                    showItemTooltip(mockItemSlot, event);
+                }
+            }
+        };
+        element.onmouseout = () => {
+            if (typeof hideItemTooltip === 'function') {
+                hideItemTooltip();
+            }
+        };
+        element.onclick = () => {
+            const itemId = player[itemSlotKey];
+            if (itemId && ITEM_DATA[itemId]) {
+                if (typeof showItemActionPopup === 'function') {
+                    // Passiamo l'itemId e un'indicazione che la sorgente è 'equipped'
+                    showItemActionPopup(itemId, 'equipped'); 
+                }
+            }
+        };
+    };
+
+    // Se DOM.statWeapon e DOM.statArmor sono già stati popolati da dom_references.js
+    if (DOM.statWeapon) {
+        setupEquippedItemInteraction(DOM.statWeapon, 'equippedWeapon');
+    }
+    if (DOM.statArmor) {
+        setupEquippedItemInteraction(DOM.statArmor, 'equippedArmor');
+    }
 }
 
 /**

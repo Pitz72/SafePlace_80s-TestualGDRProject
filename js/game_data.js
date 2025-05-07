@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.09
+ * Versione: v0.7.10
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -147,7 +147,7 @@ const EVENT_DATA = {
             description: "Rampicanti spinosi dall'aspetto malato e aggressivo ostruiscono il passaggio. Sembrano quasi contrarsi al tuo avvicinarsi. Nascondono qualcosa o sono solo un altro pericolo?",
             choices: [
                 { text: "Esamina i rovi (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Osservando attentamente, noti che le spine secernono una linfa densa. Potrebbe essere usata per creare medicine grezze.", successReward: { itemId: 'medicine_crude', quantity: 1 }, failureText: "Queste piante sembrano ostili e forse velenose. Meglio non rischiare di toccarle.", actionKey: "examine_hostile_vines" },
-                { text: "Forza il passaggio (Potenza)", skillCheck: { stat: 'potenza', difficulty: 13 }, successText: "Con forza bruta, strappi i rampicanti spinosi e ti apri un varco, rimediando solo qualche graffio.", failureText: "Le spine tenaci ti lacerano braccia e vestiti mentre cerchi di passare. Subisci una ferita.", actionKey: "force_passage_vines" }
+                { text: "Forza il passaggio (Potenza)", skillCheck: { stat: 'potenza', difficulty: 13 }, successText: "Con forza bruta, strappi i rampicanti spinosi e ti apri un varco, rimediando solo qualche graffio.", failureText: "Le spine tenaci ti lacerano braccia e vestiti mentre cerchi di passare. Subisci una ferita.", actionKey: "force_passage_vines", usesWeapon: true }
             ]
         },
          {
@@ -205,7 +205,7 @@ const EVENT_DATA = {
              description: "I resti di una piccola scuola si ergono tra le case abbandonate. Graffiti sbiaditi e poster educativi si aggrappano ancora alle pareti crepate. Un luogo che un tempo era pieno di ragazzi come te, ora solo un guscio vuoto.",
              choices: [
                  { text: "Cercare nella biblioteca (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Tra scaffali crollati e libri ammuffiti, trovi una sezione intatta. Un manuale di primo soccorso, ancora leggibile. Le conoscenze del passato possono salvare vite.", successReward: { itemId: 'first_aid_kit', quantity: 1 }, failureText: "La biblioteca è un disastro di carta marcita e polvere. Qualsiasi cosa utile è stata danneggiata dall'umidità o saccheggiata tempo fa.", isSearchAction: true, actionKey: "search_school_library" },
-                 { text: "Ispezionare l'aula di scienze (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Nel laboratorio devastato, il tuo intuito ti guida verso un armadietto chiuso. Sfondandolo, trovi provette sigillate contenenti un liquido lattiginoso etichettato come antitossina.", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Il laboratorio è un pericolo: vetri rotti, sostanze chimiche versate e odori acri. Meglio non rischiare di toccare nulla.", isSearchAction: true, actionKey: "inspect_science_lab" }
+                 { text: "Ispezionare l'aula di scienze (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Nel laboratorio devastato, il tuo intuito ti guida verso un armadietto chiuso. Sfondandolo, trovi provette sigillate contenenti un liquido lattiginoso etichettato come antitossina.", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Il laboratorio è un pericolo: vetri rotti, sostanze chimiche versate e odori acri. Meglio non rischiare di toccare nulla.", isSearchAction: true, actionKey: "inspect_science_lab", usesWeapon: true }
              ]
         }
     ],
@@ -364,7 +364,7 @@ const ITEM_DATA = {
     'bow': { id: 'bow', name: "Arco di Fortuna", description: "Un arco ricavato da un ramo flessibile e corda. Silenzioso ma richiede abilità.", type: 'weapon', category: 'Weapon', weaponType: 'arco', damage: 3, precisione: 'media', raggio: 'long', rumore: 'basso', durability: 20, maxDurability: 20, ammoType: 'frecce', usable: false, stackable: false }, // Raggio cambiato in 'long' per consistenza
 
     // Armature (Not Usable directly, Equipable)
-    'leather_jacket_worn': { id: 'leather_jacket_worn', name: "Giacca di Pelle Consunta", description: "Una vecchia giacca di pelle, indurita dal tempo e dalle intemperie. Offre una protezione minima.", type: 'armor', category: 'Armor', armorValue: 2, usable: false, stackable: false },
+    'leather_jacket_worn': { id: 'leather_jacket_worn', name: "Giacca di Pelle Consunta", description: "Una vecchia giacca di pelle, indurita dal tempo e dalle intemperie. Offre una protezione minima.", type: 'armor', category: 'Armor', armorValue: 2, durability: 25, maxDurability: 25, usable: false, stackable: false },
 
     // Munizioni (Not Usable directly, Consumed by Weapons)
     'ammo_generic': { id: 'ammo_generic', name: "Munizioni", description: "Proiettili comuni per armi da fuoco leggere.", type: 'ammo', category: 'Ammo', ammoType: 'munizioni', usable: false, stackable: true, recuperabile: false }, // ID generalizzato
