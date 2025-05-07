@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.08
+ * Versione: v0.7.09
  * File: js/ui.js
  * Descrizione: Gestisce il rendering e l'aggiornamento dell'interfaccia utente.
  * Dipende da: game_constants.js, game_data.js, dom_references.js, game_utils.js

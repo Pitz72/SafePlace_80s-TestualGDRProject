@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.08
+ * Versione: v0.7.09
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -430,6 +430,8 @@ function handleEventChoice(choiceIndex) {
     const eventType = currentEventContext.type; // Tipo dell'evento (complesso o specifico del tile, es. 'PREDATOR' o 'VILLAGE')
     const isSearchAction = choice.isSearchAction || false; // Flag se l'azione costa tempo
     const actionKey = choice.actionKey; // Chiave azione (fuga, lotta, segui, ispeziona, etc.)
+    const customTimeCost = choice.timeCost; // <<<< NUOVA RIGA: recupera timeCost dalla scelta
+
     // RIMOSSO: console.log('handleEventChoice: Recuperati eventType:', eventType, 'isSearchAction:', isSearchAction, 'actionKey:', actionKey);
 
     // --- Ottieni il simbolo del tile corrente ---
@@ -444,9 +446,15 @@ function handleEventChoice(choiceIndex) {
     if (isSearchAction) {
         // RIMOSSO: console.log('handleEventChoice: Applico costo tempo SEARCH_TIME_COST:', SEARCH_TIME_COST);
         // Verifica che SEARCH_TIME_COST sia definita e sia un numero > 0
-        if (typeof SEARCH_TIME_COST === 'number' && SEARCH_TIME_COST > 0) {
-             // Logica corretta: avanza il contatore passi giornaliero
-             for (let i = 0; i < SEARCH_TIME_COST; i++) {
+
+        let timeToPass = SEARCH_TIME_COST; // Default globale da game_constants.js
+        if (typeof customTimeCost === 'number' && customTimeCost > 0) {
+            timeToPass = customTimeCost; // Sovrascrivi con il costo specifico della scelta, se valido
+        }
+
+        // Verifica che timeToPass sia un numero valido > 0 (anche se customTimeCost era valido, SEARCH_TIME_COST potrebbe non esserlo)
+        if (typeof timeToPass === 'number' && timeToPass > 0) {
+             for (let i = 0; i < timeToPass; i++) { // Usa timeToPass
                  // Incrementa contatore passi giorno (solo se è giorno!)
                  if (isDay) {
                      dayMovesCounter++;
@@ -467,12 +475,12 @@ function handleEventChoice(choiceIndex) {
                  // Per ora, fa solo passare i 'passi' del costo.
              }
             // Messaggio e aggiornamento UI dopo il ciclo
-            addMessage(`L'azione richiede tempo... (${SEARCH_TIME_COST} passi)`, 'info'); // Nota: 'passi' invece di 'h'
+            addMessage(`L'azione richiede tempo... (${timeToPass} passi)`, 'info'); // Usa timeToPass nel messaggio
             if (typeof renderStats === 'function') renderStats(); // Aggiorna l'ora/stats
 
         } else {
              // Logga errore se SEARCH_TIME_COST non è valido
-             console.error("!!! ERRORE: SEARCH_TIME_COST non definita o non valida!", SEARCH_TIME_COST); // Mantenuto errore potenziale
+             console.error("!!! ERRORE: Costo tempo (timeToPass) non valido o non definito!", timeToPass); // Mantenuto errore potenziale
         }
     }
     // RIMOSSO: console.log('handleEventChoice: Costo tempo (se applicabile) gestito. Procedo a outcome/skillcheck...');
@@ -486,45 +494,76 @@ function handleEventChoice(choiceIndex) {
     let messageType = 'info';
 
     // RIMOSSO: console.log('handleEventChoice: Controllo if (choice.outcome)...');
-    // Se la scelta ha un esito diretto predefinito (outcome)
-    if (choice.outcome) {
-        outcomeDescription = choice.outcome;
+    // Se la scelta ha un esito diretto predefinito (outcome o effect)
+    if (choice.outcome || choice.effect) { // <<<< CONDIZIONE MODIFICATA
+        if (choice.effect) { // <<<< NUOVA LOGICA PER choice.effect
+            outcomeDescription = choice.effect.message || "L'azione ha un effetto."; // Usa il messaggio dell'effetto
+            messageType = 'info'; // Default, può essere sovrascritto
 
-        // Logica specifica per 'take_cache'
-        if (actionKey === 'take_cache') {
-            const cacheSafeChance = 0.70;
-            if (Math.random() < cacheSafeChance) {
-                outcomeDescription += "<br>Fortunatamente, sembra tutto a posto.";
-                messageType = 'success';
-                if (choice.successReward) {
-                    const rewardFeedback = applyChoiceReward(choice.successReward);
-                    if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+            if (choice.effect.type === 'add_resource' && choice.effect.resource_type === 'hp') {
+                const amountToHeal = choice.effect.amount || 1;
+                const oldHp = player.hp;
+                player.hp = Math.min(player.maxHp, player.hp + amountToHeal);
+                const actualHeal = player.hp - oldHp;
+                if (actualHeal > 0) { // Solo se c'è stata cura effettiva
+                    outcomeConsequencesText += `<br>Recuperi ${Math.floor(actualHeal)} HP.`;
+                    messageType = 'success';
                 } else {
-                    outcomeConsequencesText += "<br>(Nessuna ricompensa definita per il successo)";
+                    // Nessun HP recuperato (es. già al massimo), il messaggio dell'effetto dovrebbe già coprire
+                    // il sentirsi meglio. messageType rimane 'info' o quello del messaggio originale.
                 }
-            } else {
-                outcomeDescription += "<br>Pessima idea! La scorta era contaminata o una trappola.";
-                messageType = 'danger';
-                if (choice.failurePenalty) {
-                    const penaltyFeedback = applyPenalty(choice.failurePenalty);
-                    if (penaltyFeedback) outcomeConsequencesText += `<br>${penaltyFeedback}`;
+                if (typeof renderStats === 'function') renderStats();
+            }
+            // TODO: Aggiungere qui la gestione per altri tipi di choice.effect.type se necessario
+            // (es. 'add_status', 'remove_status', 'stat_buff', ecc.)
+
+            // Applica successReward se esiste insieme a un effect (improbabile ma sicuro)
+            if (choice.successReward) {
+                const rewardFeedback = applyChoiceReward(choice.successReward);
+                if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+            }
+
+        } else if (choice.outcome) { // <<<< LOGICA ESISTENTE PER choice.outcome (stringa), eseguita solo se choice.effect non esiste
+            outcomeDescription = choice.outcome;
+
+            // Logica specifica per 'take_cache' (MANTENUTA COME PRIMA)
+            if (actionKey === 'take_cache') {
+                const cacheSafeChance = 0.70; // Costante locale, potrebbe essere spostata in game_constants.js
+                if (Math.random() < cacheSafeChance) {
+                    outcomeDescription += "<br>Fortunatamente, sembra tutto a posto.";
+                    messageType = 'success';
+                    if (choice.successReward) {
+                        const rewardFeedback = applyChoiceReward(choice.successReward);
+                        if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                    } else {
+                        outcomeConsequencesText += "<br>(Nessuna ricompensa definita per il successo)";
+                    }
                 } else {
-                    const fallbackPenaltyFeedback = applyPenalty({ type: 'status', status: Math.random() < 0.5 ? 'isSick' : 'isPoisoned' });
-                    if(fallbackPenaltyFeedback) outcomeConsequencesText += `<br>${fallbackPenaltyFeedback}`;
+                    outcomeDescription += "<br>Pessima idea! La scorta era contaminata o una trappola.";
+                    messageType = 'danger';
+                    if (choice.failurePenalty) {
+                        const penaltyFeedback = applyPenalty(choice.failurePenalty);
+                        if (penaltyFeedback) outcomeConsequencesText += `<br>${penaltyFeedback}`;
+                    } else {
+                        // Fallback penalty se non definita specificamente per take_cache
+                        const fallbackPenaltyFeedback = applyPenalty({ type: 'status', status: Math.random() < 0.5 ? 'isSick' : 'isPoisoned' });
+                        if(fallbackPenaltyFeedback) outcomeConsequencesText += `<br>${fallbackPenaltyFeedback}`;
+                    }
                 }
             }
-        }
-        // Per altri outcome diretti, verifica se c'è una ricompensa
-        else if (choice.successReward) {
-             const rewardFeedback = applyChoiceReward(choice.successReward);
-             if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+            // Per altri outcome diretti (non 'take_cache'), verifica se c'è una ricompensa (MANTENUTA COME PRIMA)
+            else if (choice.successReward) {
+                 const rewardFeedback = applyChoiceReward(choice.successReward);
+                 if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+            }
         }
 
+        // Log e visualizzazione del popup di esito (comune a choice.effect e choice.outcome)
         addMessage(outcomeDescription + (outcomeConsequencesText ? `\n${outcomeConsequencesText.replace(/<br>/g, '\n')}` : ''), messageType, true);
         buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription + (outcomeConsequencesText ? `${outcomeConsequencesText}` : ''), null, null, messageType);
 
     }
-    // Se la scelta richiede un check di abilità
+    // Se la scelta richiede un check di abilità (logica esistente)
     else if (choice.skillCheck) {
         // Verifica che skillCheck sia valido
         if (!choice.skillCheck.stat || typeof choice.skillCheck.difficulty !== 'number') {
@@ -596,7 +635,7 @@ function handleEventChoice(choiceIndex) {
                 case 'TRACKS':
                      if (actionKey === 'segui' || actionKey === 'ispeziona') {
                            const trackOutcomeRoll = Math.random();
-                           if (trackOutcomeRoll < TRACKS_SUCCESS_LOOT_CHANCE) {
+                           if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) { // <<<< CORRETTO
                                outcomeDescription = getRandomText(descrizioniTracceOkLoot);
                                messageType = 'success';
                                const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
@@ -607,7 +646,7 @@ function handleEventChoice(choiceIndex) {
                                        if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
                                    }
                                }
-                           } else if (trackOutcomeRoll < TRACKS_SUCCESS_LOOT_CHANCE + TRACKS_SUCCESS_LORE_CHANCE) {
+                           } else if (trackOutcomeRoll < TRACCE_LOOT_CHANCE + TRACCE_LORE_CHANCE) { // <<<< CORRETTO ANCHE QUI PER COERENZA
                                outcomeDescription = getRandomText(descrizioniTracceOkLore);
                                messageType = 'lore';
                                 const loreRewardFeedback = applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
@@ -689,6 +728,7 @@ function handleEventChoice(choiceIndex) {
 
             if (choice.failurePenalty) {
                  const penaltyFeedback = applyPenalty(choice.failurePenalty);
+                 if (!gameActive) return; // <<<< MODIFICA 3: AGGIUNTO CONTROLLO
                  if (penaltyFeedback) {
                      outcomeConsequencesText += `<br>${penaltyFeedback}`;
                  }
@@ -1165,7 +1205,7 @@ function handleEventChoice(choiceIndex) {
                     // RIMOSSO: console.log('applyPenalty: Player HP <= 0, calling endGame(false)...');
                     feedback += " Sei morto...";
                     if (typeof endGame === 'function') endGame(false);
-                    // Non aggiornare UI stats se morto, endGame gestisce la schermata finale.
+                    return feedback; // <<<< MODIFICA 2: AGGIUNTO RETURN
                 } else {
                      if (typeof renderStats === 'function') renderStats(); // Aggiorna UI se non morto
                 }

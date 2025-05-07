@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.08
+ * Versione: v0.7.09
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -215,7 +215,14 @@ const EVENT_DATA = {
             title: "Ombre tra i Grattacieli",
             description: "Scheletri di grattacieli graffiano il cielo plumbeo. Il vento fischia tra le finestre rotte come un lamento. Pericolo e tesori dimenticati si nascondono in ogni angolo.",
             choices: [
-                 { text: "Esplora un palazzo (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi...", successReward: { type: 'random_common_resource', quantity: 1 }, actionKey: "explore_building" }, // Modificato per usare ricompensa generica
+                 {
+                     text: "Esplora un palazzo (Presagio)",
+                     skillCheck: { stat: 'presagio', difficulty: 13 },
+                     successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi...",
+                     successReward: { type: 'random_common_resource', quantity: 1 },
+                     failureText: "Il palazzo è un labirinto di pericoli e vicoli ciechi. Non trovi nulla di utile e rischi di perderti o peggio. Meglio ritirarsi.",
+                     actionKey: "explore_building"
+                 },
                  { text: "Attraversa la strada", outcome: "Corri attraverso lo spazio aperto, sentendo gli occhi invisibili delle finestre vuote su di te. Raggiungi l'altro lato senza incidenti, per ora." }
             ]
         },
@@ -284,9 +291,16 @@ const EVENT_DATA = {
                     actionKey: "explore_shelter"
                 },
                 {
-                    text: "Riposa brevemente",
-                    outcome: "Ti fermi per qualche minuto, recuperando un po' il fiato. Non è molto, ma aiuta a schiarire le idee prima di ripartire.",
-                    actionKey: "rest_short"
+                    text: "Riposa brevemente (+1 HP, costa 1 passo)", // Testo aggiornato
+                    actionKey: "rest_short",
+                    isSearchAction: true, // Già presente
+                    timeCost: 1,          // Costo tempo specifico
+                    effect: {             // Nuovo oggetto effect
+                        type: 'add_resource',
+                        resource_type: 'hp',
+                        amount: 1,
+                        message: "Ti fermi per qualche minuto, recuperando un po' il fiato e 1 HP. Non è molto, ma aiuta a schiarire le idee prima di ripartire."
+                    }
                 },
                 {
                     text: "Lascia il rifugio",
@@ -365,6 +379,7 @@ const ITEM_DATA = {
 
 // Scenari specifici per eventi Dilemma Morale
 const dilemmaEvents = [
+    /*
     {
         id: "dilemma_scenario_1", // TODO: Sostituire con ID fornito (es. "dilemma_suspicious_cache")
         title: "Titolo Scenario 1", // TODO: Sostituire con Titolo fornito
@@ -386,6 +401,8 @@ const dilemmaEvents = [
             // }
         ]
     },
+    */
+    /*
     {
          id: "dilemma_scenario_2", // TODO: Sostituire con ID fornito (es. "dilemma_wounded_stranger")
          title: "Titolo Scenario 2", // TODO: Sostituire con Titolo fornito
@@ -394,6 +411,8 @@ const dilemmaEvents = [
              // TODO: Inserire qui le scelte per lo scenario 2
          ]
     },
+    */
+    /*
     {
          id: "dilemma_scenario_3", // TODO: Sostituire con ID fornito (es. "dilemma_radio_signal")
          title: "Titolo Scenario 3", // TODO: Sostituire con Titolo fornito
@@ -402,6 +421,7 @@ const dilemmaEvents = [
              // TODO: Inserire qui le scelte per lo scenario 3
          ]
     }
+    */
 ];
 
 // Array per testi di esito generici dei dilemmi (attualmente vuoti)

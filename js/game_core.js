@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.08
+ * Versione: v0.7.09
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (input/azioni), fine partita.
  * Dipende da: game_constants.js, dom_references.js, game_utils.js, ui.js, player.js, map.js, events.js
@@ -307,18 +307,38 @@ function handleChoiceContainerClick(event) {
     const button = event.target.closest('button');
     if (!button || !DOM.eventChoicesContainer.contains(button)) return;
 
-    const choiceIndex = button.dataset.choiceIndex;
+    const choiceIndexStr = button.dataset.choiceIndex; // Rinominato per chiarezza (è una stringa)
 
-    // Se è un bottone con un indice scelta
-    if (choiceIndex !== undefined) {
-        if (typeof handleEventChoice === 'function') {
-            handleEventChoice(parseInt(choiceIndex, 10)); // Chiama la logica di gestione scelta
+    // Se è un bottone con un indice scelta numerico
+    if (choiceIndexStr !== undefined) {
+        const choiceIndex = parseInt(choiceIndexStr, 10); // Converti in numero
+
+        // Controlla se il contesto corrente è per un popup di azione oggetto
+        if (currentEventContext && currentEventContext.isActionPopup === true) {
+            // È un popup di azione oggetto: esegui l'azione definita nella scelta.
+            if (currentEventContext.choices && currentEventContext.choices[choiceIndex] && typeof currentEventContext.choices[choiceIndex].action === 'function') {
+                currentEventContext.choices[choiceIndex].action();
+                // Nota: L'azione stessa (es. usare un item) dovrebbe gestire la chiusura del popup
+                // o la visualizzazione di un messaggio di risultato. Se non lo fa,
+                // potrebbe essere necessario chiamare closeEventPopup() qui come fallback,
+                // ma è preferibile che l'azione sia autoconsistente.
+            } else {
+                console.error("Azione non trovata o non è una funzione per la scelta selezionata nel popup azione oggetto.");
+                if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore per sbloccare UI
+            }
         } else {
-            console.error("handleChoiceContainerClick: Funzione handleEventChoice non trovata (events.js)!");
+            // È un popup di evento normale: chiama handleEventChoice.
+            if (typeof handleEventChoice === 'function') {
+                handleEventChoice(choiceIndex);
+            } else {
+                console.error("handleChoiceContainerClick: Funzione handleEventChoice non trovata (events.js)!");
+                if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi se non può gestire
+            }
         }
     } else if (button.classList.contains('continue-button')) {
+        // Gestione del bottone "Continua" (logica esistente)
         if (typeof closeEventPopup === 'function') {
-            closeEventPopup(); // Chiama la funzione per chiudere il popup
+            closeEventPopup();
         } else {
             console.error("handleChoiceContainerClick: Funzione closeEventPopup non trovata (ui.js)!");
         }

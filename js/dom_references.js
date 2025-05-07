@@ -1,7 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.09
  * File: js/dom_references.js
- * Descrizione: Contiene tutti i riferimenti agli elementi DOM usati nel gioco.
+ * Descrizione: Riferimenti cache agli elementi DOM per performance e chiarezza.
  * Questi riferimenti verranno popolati quando lo script viene caricato ed eseguito,
  * dopo che il DOM è pronto (es. tramite <script defer> o inclusione a fine body).
  */

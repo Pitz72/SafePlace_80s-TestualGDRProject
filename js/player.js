@@ -1,7 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.09
  * File: js/player.js
- * Descrizione: Gestione logica del giocatore, statistiche, inventario ed equipaggiamento.
+ * Descrizione: Gestisce i dati e le azioni del giocatore.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js
  */
 

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.08
+ * Versione: v0.7.09
  * File: js/map.js
  * Descrizione: Gestisce la generazione della mappa, il movimento del giocatore e il ciclo giorno/notte.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js, player.js
@@ -588,6 +588,7 @@ function movePlayer(dx, dy) {
         // Se triggerTileEvent mostra un popup, eventScreenActive diventa true (gestito in ui.js/events.js).
         if (typeof triggerTileEvent === 'function') {
             triggerTileEvent(targetTile.type); // Passa solo il simbolo del tile
+            if (!gameActive) return;
         } else {
             console.warn("movePlayer: triggerTileEvent non disponibile.");
         }
@@ -599,6 +600,7 @@ function movePlayer(dx, dy) {
         // Questo controllo avviene SOLO se eventScreenActive NON è già true.
         if (!eventScreenActive && typeof triggerComplexEvent === 'function') {
              triggerComplexEvent(targetTile.type); // Passa solo il simbolo del tile
+             if (!gameActive) return;
         } else if (!eventScreenActive) {
             console.warn("movePlayer: triggerComplexEvent non disponibile.");
         }
@@ -612,6 +614,7 @@ function movePlayer(dx, dy) {
          if (!eventScreenActive) {
              if (typeof checkAndLogStatusMessages === 'function') {
                  checkAndLogStatusMessages();
+                 if (!gameActive) return;
              } else { console.warn("movePlayer: checkAndLogStatusMessages non disponibile."); }
 
              if (typeof showRandomFlavorText === 'function') {
