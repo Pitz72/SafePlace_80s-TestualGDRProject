@@ -1,5 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/map.js
  * Descrizione: Gestisce la generazione della mappa, il movimento del giocatore e il ciclo giorno/notte.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js, player.js
@@ -540,8 +541,10 @@ function movePlayer(dx, dy) {
     }
 
      // Controlla se il giocatore è morto per gli effetti passivi O per il movimento notturno.
+     // RIMOSSO: console.log('movePlayer: Checking HP after effects/night move. HP =', player.hp);
      // La funzione endGame è definita in game_core.js
     if (player.hp <= 0) {
+        // RIMOSSO: console.log('movePlayer: Player HP <= 0, calling endGame(false)...');
         if (typeof endGame === 'function') endGame(false);
         return; // Esci subito se il giocatore è morto
     }
@@ -740,6 +743,18 @@ function applyPassiveStatusEffects() {
  */
 function transitionToNight() {
     // console.log("transitionToNight: Avvio transizione a notte..."); // Log di debug
+
+    // RIMOSSO: console.log(">>> transitionToNight: Resetto flag dayEventDone...");
+    if (map && map.length > 0) { // Aggiunto controllo mappa
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (map[y]?.[x]?.dayEventDone) { // Se il flag esiste ed è true
+                    map[y][x].dayEventDone = false;
+                }
+            }
+        }
+    }
+
     if (!gameActive) {
          // console.log("transitionToNight: Gioco non attivo, annullo transizione."); // Log di debug
         return; // Non fare nulla se il gioco è finito
@@ -796,7 +811,9 @@ function transitionToNight() {
         }
 
         // Controlla se il giocatore è morto per le penalità notturne
+        // RIMOSSO: console.log('transitionToNight: Checking HP after penalties. HP =', player.hp);
         if (player.hp <= 0) {
+            // RIMOSSO: console.log('transitionToNight: Player HP <= 0, calling endGame(false)...');
              // console.log("transitionToNight: Giocatore morto per penalità notturne."); // Log di debug
              if (typeof endGame === 'function') endGame(false);
              return; // Esci perché il gioco è finito

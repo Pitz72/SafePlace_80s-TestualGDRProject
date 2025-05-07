@@ -1,5 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (input/azioni), fine partita.
  * Dipende da: game_constants.js, dom_references.js, game_utils.js, ui.js, player.js, map.js, events.js
@@ -302,47 +303,25 @@ function handleKeyPress(event) {
  * @param {MouseEvent} event - L'evento mouse click.
  */
 function handleChoiceContainerClick(event) {
-    const choiceButton = event.target.closest('button[data-choice-index]');
-    const context = currentEventContext; // Recupera contesto globale
+    // Verifica che il click provenga da un bottone con indice scelta o dal bottone Continua
+    const button = event.target.closest('button');
+    if (!button || !DOM.eventChoicesContainer.contains(button)) return;
 
-    // Verifica se il bottone e il contesto sono validi
-    if (choiceButton && context && Array.isArray(context.choices)) {
-        const choiceIndex = parseInt(choiceButton.dataset.choiceIndex, 10);
+    const choiceIndex = button.dataset.choiceIndex;
 
-        // Controlla se l'indice è valido per le scelte nel contesto
-        if (choiceIndex >= 0 && choiceIndex < context.choices.length) {
-            if (context.isActionPopup === true) {
-                // È un popup di azione oggetto -> Esegui l'azione definita
-                const actionFunction = context.choices[choiceIndex]?.action;
-                if (typeof actionFunction === 'function') {
-                    actionFunction(); // Esegui direttamente la funzione (es. useItem, dropItem)
-                    // L'azione stessa (es. useItem) dovrebbe chiudere il popup se necessario
-                } else {
-                    console.error("Azione non trovata o non valida per il bottone del popup azione:", choiceIndex, context.choices[choiceIndex]);
-                    if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
-                }
-                // NOTA: Non chiamiamo handleEventChoice per i popup azione
-            } else {
-                // È un popup evento standard -> Chiama handleEventChoice con l'indice
-                if (typeof handleEventChoice === 'function') {
-                    handleEventChoice(choiceIndex);
-                } else {
-                    console.error("handleChoiceContainerClick: handleEventChoice non disponibile (events.js?).");
-                     if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
-                }
-            }
+    // Se è un bottone con un indice scelta
+    if (choiceIndex !== undefined) {
+        if (typeof handleEventChoice === 'function') {
+            handleEventChoice(parseInt(choiceIndex, 10)); // Chiama la logica di gestione scelta
         } else {
-             console.error("handleChoiceContainerClick: Indice scelta non valido:", choiceIndex, context.choices);
-             if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
+            console.error("handleChoiceContainerClick: Funzione handleEventChoice non trovata (events.js)!");
         }
-    } else {
-         // Log per bottone non valido o contesto mancante (potrebbe accadere se si clicca velocemente?)
-         // Non loggare se si clicca fuori da un bottone, solo se il contesto manca o non è valido quando un bottone viene trovato
-         if (choiceButton) { // Solo se è stato cliccato un bottone ma il contesto è problematico
-            console.warn("handleChoiceContainerClick: Contesto evento non valido o mancante.", context);
-            // Potrebbe essere utile chiudere il popup se il contesto è perso?
-            // if(typeof closeEventPopup === 'function') closeEventPopup();
-         }
+    } else if (button.classList.contains('continue-button')) {
+        if (typeof closeEventPopup === 'function') {
+            closeEventPopup(); // Chiama la funzione per chiudere il popup
+        } else {
+            console.error("handleChoiceContainerClick: Funzione closeEventPopup non trovata (ui.js)!");
+        }
     }
 }
 
@@ -536,86 +515,94 @@ function handleInventoryPointerLeave(event) {
  * @param {boolean} isVictory - True se il giocatore ha vinto, false se ha perso.
  */
 function endGame(isVictory) {
-    // Imposta lo stato del gioco come non attivo e in pausa.
     gameActive = false;
-    gamePaused = true; // Blocca input e interazioni.
+    gamePaused = true; // Assicura che il gioco sia in pausa
 
-    // Disabilita i controlli UI.
-    // disableControls è definita in ui.js.
-    if (typeof disableControls === 'function') disableControls(); else console.warn("endGame: disableControls non disponibile.");
-
-    // Nascondi il container di gioco e mostra la schermata di fine.
-    if(DOM.gameContainer) DOM.gameContainer.style.display = 'none';
-     // Assicura che l'overlay evento non sia attivo (anche se non dovrebbe esserlo)
-     if(DOM.gameContainer) DOM.gameContainer.classList.remove('overlay-active');
-     if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
-
-    if(DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex o block a seconda del CSS
-
-
-    // Imposta titolo e messaggio appropriati per la schermata di fine.
-    if(DOM.endTitle) {
-        DOM.endTitle.textContent = isVictory ? "Sei Arrivato!" : "Il Viaggio Finisce Qui";
+    // Verifica esistenza riferimenti DOM prima di usarli
+    if (!DOM.gameContainer || !DOM.endScreen || !DOM.endTitle || !DOM.endMessage || !DOM.restartButton || !DOM.statPanel) {
+        console.error("endGame: Riferimenti DOM essenziali mancanti! Impossibile mostrare schermata finale.");
+        // Aggiungere un alert o un messaggio fallback per l'utente?
+        alert("Errore critico: Impossibile terminare il gioco correttamente.");
+        return;
     }
 
-    if(DOM.endMessage && player) { // Verifica player per mostrare statistiche finali
-        let message = isVictory ?
-            `Dopo ${daysSurvived} giorni di viaggio estenuante, hai finalmente raggiunto la destinazione.
+    // Nascondi l'interfaccia di gioco principale e mostra la schermata di fine
+    DOM.gameContainer.style.display = 'none'; // Nasconde tutta l'interfaccia di gioco
+    DOM.statPanel.style.display = 'none'; // Nascondi anche il pannello statistiche
+    // Nascondi eventuali overlay eventi/azioni aperti
+    if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
+
+    if(DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex o block a seconda del CSS
+    if(DOM.endScreen) DOM.endScreen.classList.add('visible'); // Aggiunge la classe per l'animazione fade-in
+
+    // Imposta il messaggio di fine gioco
+    if (isVictory) {
+        DOM.endTitle.textContent = "Sei Sopravvissuto!";
+        if(DOM.endMessage && player) {
+            let message = `Dopo ${daysSurvived} giorni di viaggio estenuante, hai finalmente raggiunto la destinazione.
 
 Non è un paradiso, ma è un luogo sicuro. Forse qui potrai ricostruire qualcosa che assomigli a una vita.
 
-Ce l'hai fatta. Sei sopravvissuto.`
-            :
-            `Sei sopravvissuto per ${daysSurvived} giorni.
+Ce l'hai fatta. Sei sopravvissuto.`;
+
+            // Aggiungi statistiche finali alla fine del messaggio
+            message += `\n\n`; // Due a capo per separare
+            message += `--- Statistiche Finali ---`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
+            message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
+            message += `\nSazietà: ${Math.floor(player.food)}/10`;
+            message += `\nIdratazione: ${Math.floor(player.water)}/10`;
+            message += `\nOggetti nell'inventario: ${player.inventory.length}`;
+            message += `\n--- Fine Statistiche ---`;
+
+            DOM.endMessage.textContent = message;
+
+            if (typeof addMessage === 'function') {
+                addMessage("Hai raggiunto la Destinazione Incerta! Hai vinto!", "success", true);
+            } else { console.warn("endGame: addMessage not available."); }
+        } else if (DOM.endMessage) {
+            DOM.endMessage.textContent = "Vittoria (dati non disponibili)";
+        }
+    } else {
+        DOM.endTitle.textContent = "Il Viaggio Finisce Qui";
+        if(DOM.endMessage && player) {
+            let message = `Sei sopravvissuto per ${daysSurvived} giorni.
 
 Le terre desolate reclamano un'altra vittima.
 
 La fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la meglio.
 Il tuo viaggio finisce qui, nell'oblio.`;
 
-        // Aggiungi statistiche finali alla fine del messaggio
-        message += `\n\n`; // Due a capo per separare
-        message += `--- Statistiche Finali ---`;
-        message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
-        message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
-        message += `\nSazietà: ${Math.floor(player.food)}/10`;
-        message += `\nIdratazione: ${Math.floor(player.water)}/10`;
-        message += `\nOggetti nell'inventario: ${player.inventory.length}`;
-        message += `\n--- Fine Statistiche ---`;
+            // Aggiungi statistiche finali alla fine del messaggio
+            message += `\n\n`; // Due a capo per separare
+            message += `--- Statistiche Finali ---`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
+            message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
+            message += `\nSazietà: ${Math.floor(player.food)}/10`;
+            message += `\nIdratazione: ${Math.floor(player.water)}/10`;
+            message += `\nOggetti nell'inventario: ${player.inventory.length}`;
+            message += `\n--- Fine Statistiche ---`;
 
+            DOM.endMessage.textContent = message;
 
-        // Imposta il testo nel div endMessage (white-space: pre-wrap nel CSS per \n)
-        DOM.endMessage.textContent = message;
+            if (typeof addMessage === 'function') {
+                let cause = "sconosciuta";
+                if (player.hp <= 0) cause = "morte";
+                if (player.food <= 0) cause = "fame";
+                if (player.water <= 0) cause = "sete";
+                if (player.isInjured) cause = "ferite";
+                if (player.isSick) cause = "malattia";
+                if (player.isPoisoned) cause = "veleno";
 
-        // Logga il risultato finale nel log di gioco (per vederlo se si riavvia subito)
-        if (typeof addMessage === 'function') {
-             if (isVictory) {
-                  addMessage("Hai raggiunto la Destinazione Incerta! Hai vinto!", "success", true);
-             } else {
-                  // Determina una causa di morte approssimativa per il log (più semplice del messaggio sullo schermo)
-                  let cause = "sconosciuta";
-                  if (player.hp <= 0) cause = "morte";
-                  if (player.food <= 0) cause = "fame";
-                  if (player.water <= 0) cause = "sete";
-                  if (player.isInjured) cause = "ferite";
-                  if (player.isSick) cause = "malattia";
-                  if (player.isPoisoned) cause = "veleno";
-
-                  addMessage(`Sei morto dopo ${daysSurvived} giorni. Causa: ${cause}.`, "danger", true);
-             }
-        } else { console.warn("endGame: addMessage not available."); }
-
-
-    } else if (DOM.endMessage) {
-         // Fallback se player non è definito (inizializzazione fallita?)
-         DOM.endMessage.textContent = isVictory ? "Vittoria (dati non disponibili)" : "Sconfitta (dati non disponibili)";
+                addMessage(`Sei morto dopo ${daysSurvived} giorni. Causa: ${cause}.`, "danger", true);
+            } else { console.warn("endGame: addMessage not available."); }
+        } else if (DOM.endMessage) {
+            DOM.endMessage.textContent = "Sconfitta (dati non disponibili)";
+        }
     }
-
 
     // Il bottone di riavvio ha un listener attaccato in setupInputListeners che chiama handleRestartClick (definita qui sopra).
     // handleRestartClick chiama initializeGame.
-
-
 }
 
 // --- Avvio del Gioco al Caricamento della Pagina ---

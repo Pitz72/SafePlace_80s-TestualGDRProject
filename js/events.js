@@ -1,5 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -53,6 +54,28 @@ function triggerTileEvent(tileSymbol) {
     // Recupera la probabilità base che un evento specifico del tile accada.
     const eventChance = EVENT_CHANCE[tileKey] || 0; // Default a 0 se non definita.
 
+    // --- ATTIVAZIONE FORZATA EVENTO DIURNO PER REST_STOP ('R') ---
+    if (tileKey === 'REST_STOP' && isDay) {
+        // Cerca l'evento specifico diurno per 'R'
+        // AGGIUNTO CONTROLLO FLAG EVENTO GIORNALIERO COMPLETATO
+        if (map[player.y] && map[player.y][player.x] && map[player.y][player.x].dayEventDone) {
+            console.log(">>> REST_STOP Event Trigger: Evento giornaliero già eseguito per questo tile.");
+            return; // Evento già fatto oggi per questo tile
+        }
+
+        const dayEvent = eventPool.find(event => event.id === 'rest_stop_day_interaction'); // Usa l'ID corretto
+        if (dayEvent) {
+            console.log(">>> triggerTileEvent: Attivazione forzata evento diurno 'R'."); // Log diagnostico
+            showEventPopup(dayEvent); // Mostra l'evento diurno
+            return; // Esci dalla funzione, evento attivato
+        } else {
+            console.warn("triggerTileEvent: Evento diurno 'rest_stop_day_interaction' non trovato in EVENT_DATA.REST_STOP!");
+            // Non fare return qui, per permettere eventuali altri eventi generici su REST_STOP (anche se al momento non ci sono)
+        }
+    }
+    // Il resto della funzione (eventi unici, check chance, eventi standard) verrà eseguito SOLO se non è 'R' di giorno.
+    // O se l'evento specifico diurno 'R' non è stato trovato (caso di errore).
+
     // --- LOGICA EVENTI UNICI (CITY ONLY) ---
     // Gestisce gli eventi unici che dovrebbero accadere solo una volta nella partita.
     // Questi hanno una probabilità separata e più bassa.
@@ -85,30 +108,6 @@ function triggerTileEvent(tileSymbol) {
 
 
     // --- LOGICA EVENTI STANDARD DEL TILE ---
-
-    // --- NUOVO: Filtra la pool di eventi standard in base all'ora del giorno ---
-    // Utilizza la variabile globale 'isDay' e la proprietà 'triggerCondition' nell'oggetto evento.
-    const originalPoolLength = eventPool.length;
-    const filteredEventPool = eventPool.filter(event => {
-        // Se l'evento non ha triggerCondition, è valido sia di giorno che di notte.
-        if (!event.triggerCondition) {
-            return true;
-        }
-        // Se ha triggerCondition: 'isDay', è valido solo se isDay è true.
-        if (event.triggerCondition === 'isDay' && isDay) {
-            return true;
-        }
-        // Se ha triggerCondition: 'isNight', è valido solo se isDay è false.
-        if (event.triggerCondition === 'isNight' && !isDay) {
-            return true;
-        }
-        // Altrimenti (es. triggerCondition è presente ma non corrisponde all'ora), non è valido.
-        return false;
-    });
-
-    // Sostituisce la pool originale con quella filtrata
-    eventPool = filteredEventPool;
-    // console.log(`triggerTileEvent: Pool filtrata per ora (${isDay ? 'Giorno' : 'Notte'}). Originale: ${originalPoolLength}, Filtrata: ${eventPool.length}`); // Log di debug
 
     // Filtra dalla pool filtrata eventuali eventi che non dovrebbero più accadere
     // (es. se un evento è stato progettato per accadere una sola volta ma non ha il flag isUnique per qualche ragione).
@@ -224,9 +223,27 @@ function triggerComplexEvent(tileSymbol) {
             eventTitle = "Incontro Ostile";
             eventDescription = getRandomText(descrizioniIncontroPredoni); // Usa testi da game_data.js
             eventChoices = [
-                { text: "Fuggi", skillCheck: { stat: 'agilita', difficulty: !isDay ? 13 : 12 }, actionKey: 'fuga' }, // Più difficile fuggire di notte
-                { text: "Combatti", skillCheck: { stat: 'potenza', difficulty: SHELTER_TILES.includes(tileSymbol) ? 13 : 14 }, actionKey: 'lotta' }, // Forse più facile combattere al chiuso? O più difficile per mancanza spazio? Dipende dal design. Lasciamo 14 default.
-                { text: "Prova a parlare", skillCheck: { stat: 'influenza', difficulty: !isDay ? 14 : 13 }, actionKey: 'parla' } // Più difficile parlare di notte?
+                {
+                    text: "Fuggi",
+                    skillCheck: { stat: 'agilita', difficulty: !isDay ? 13 : 12 },
+                    actionKey: 'fuga',
+                    successText: "Con uno scatto improvviso e sfruttando il caos, riesci a seminare i tuoi inseguitori e a trovare un riparo temporaneo nell'ombra.",
+                    failureText: getRandomText(esitiFugaPredoniKo) // Definito in game_data.js
+                },
+                {
+                    text: "Combatti",
+                    skillCheck: { stat: 'potenza', difficulty: SHELTER_TILES.includes(tileSymbol) ? 13 : 14 },
+                    actionKey: 'lotta',
+                    successText: "La tua ferocia li sorprende! Dopo uno scontro brutale, riesci ad abbatterne o a mettere in fuga abbastanza da sopravvivere.",
+                    failureText: "Sono troppi o troppo forti. Vieni sopraffatto nello scontro."
+                },
+                {
+                    text: "Prova a parlare",
+                    skillCheck: { stat: 'influenza', difficulty: !isDay ? 14 : 13 },
+                    actionKey: 'parla',
+                    successText: "Inaspettatamente, le tue parole sembrano fare breccia. Forse vedono un riflesso della loro stessa disperazione, o semplicemente decidono che non vali la pena. Ti lasciano andare, per ora.",
+                    failureText: getRandomText(esitiParlaPredoniKo) // Definito in game_data.js
+                }
             ];
             break;
         case 'ANIMAL':
@@ -297,17 +314,33 @@ function triggerComplexEvent(tileSymbol) {
 
             break;
         case 'DILEMMA':
-             eventTitle = "Dilemma Morale";
-             const dilemmaDescription = "Ti trovi di fronte a una scelta difficile..."; // Placeholder
-             eventDescription = dilemmaDescription; // Imposta la descrizione
+            // Verifica se dilemmaEvents esiste ed è popolato
+             if (typeof dilemmaEvents === 'undefined' || !Array.isArray(dilemmaEvents) || dilemmaEvents.length === 0) {
+                 console.warn("triggerComplexEvent (DILEMMA): L'array 'dilemmaEvents' non è definito o è vuoto in game_data.js. Uso placeholder.");
+                 // Fallback alla vecchia logica placeholder
+                 eventTitle = "Dilemma Morale";
+                 eventDescription = "Ti trovi di fronte a una scelta difficile...";
+                 eventChoices = [
+                     { text: "Indaga e Intervieni (Presagio)", skillCheck: { stat: 'presagio', difficulty: !isDay ? 14 : 13 }, actionKey: 'intervieni_placeholder' }, // Nota: actionKey modificata per chiarezza fallback
+                     { text: "Ignora e prosegui", outcome: getRandomText(esitiSeguiTracceOkNulla), actionKey: 'ignora' }
+                 ];
+             } else {
+                 // Seleziona casualmente uno scenario da dilemmaEvents
+                 const randomDilemmaEvent = getRandomText(dilemmaEvents);
 
-            // Le scelte hanno skillCheck o outcome diretto.
-            // Le difficoltà dei check possono variare giorno/notte.
-            const dilemmaChoices = [
-                { text: "Indaga e Intervieni (Presagio)", skillCheck: { stat: 'presagio', difficulty: !isDay ? 14 : 13 }, actionKey: 'intervieni' }, // Check Presagio, più difficile di notte
-                { text: "Ignora e prosegui", outcome: getRandomText(esitiSeguiTracceOkNulla), actionKey: 'ignora' } // Usa testi 'Nulla' per ora
-            ];
-            eventChoices = dilemmaChoices; // Imposta le scelte
+                 if (randomDilemmaEvent && randomDilemmaEvent.id) {
+                     // Scenario valido selezionato
+                     eventTitle = randomDilemmaEvent.title;
+                     eventDescription = randomDilemmaEvent.description;
+                     eventChoices = randomDilemmaEvent.choices;
+                     // Aggiungi lo scenario specifico al contesto per handleEventChoice
+                     context.specificDilemma = randomDilemmaEvent;
+                     // console.log(`triggerComplexEvent: Selezionato dilemma '${randomDilemmaEvent.id}'.`); // Log di debug
+                 } else {
+                     console.warn("triggerComplexEvent (DILEMMA): getRandomText(dilemmaEvents) ha fallito la selezione. Esco.");
+                     eventType = null; // Imposta eventType a null per prevenire la visualizzazione del popup
+                 }
+            }
 
             break;
         case 'HORROR': // Solo di notte (filtrato sopra)
@@ -377,9 +410,8 @@ function triggerComplexEvent(tileSymbol) {
  * @param {number} choiceIndex - L'indice (0-based) della scelta selezionata dall'utente.
  */
 function handleEventChoice(choiceIndex) {
-    // console.log('handleEventChoice: Ricevuto choiceIndex:', choiceIndex); // RIMOSSO
-    // console.log(`handleEventChoice: Gestione scelta indice ${choiceIndex}.`); // Log di debug originale
-
+    // RIMOSSO: console.log('handleEventChoice: Ricevuto choiceIndex:', choiceIndex);
+    // RIMOSSO: console.log('handleEventChoice: Verifico contesto e scelte:', currentEventContext, currentEventChoices);
     // Verifica che il contesto dell'evento e la scelta selezionata siano validi.
     // currentEventContext e currentEventChoices sono popolati da showEventPopup.
     if (!currentEventContext || !Array.isArray(currentEventChoices) || choiceIndex < 0 || choiceIndex >= currentEventChoices.length) {
@@ -391,130 +423,234 @@ function handleEventChoice(choiceIndex) {
 
     // Ottieni la scelta selezionata e i dati dell'evento dal contesto
     const choice = currentEventChoices[choiceIndex];
-    // console.log('handleEventChoice: Oggetto choice recuperato:', choice); // RIMOSSO
+    // RIMOSSO: console.log('handleEventChoice: Oggetto choice recuperato:', choice);
+    if (!choice) { console.error("!!! ERRORE: Oggetto choice è null o undefined!"); return; } // Aggiungi controllo di sicurezza
+    // Ottieni l'oggetto specifico del dilemma dal contesto, se esiste
+    const specificDilemmaData = currentEventContext?.context?.specificDilemma; // NUOVO
     const eventType = currentEventContext.type; // Tipo dell'evento (complesso o specifico del tile, es. 'PREDATOR' o 'VILLAGE')
     const isSearchAction = choice.isSearchAction || false; // Flag se l'azione costa tempo
     const actionKey = choice.actionKey; // Chiave azione (fuga, lotta, segui, ispeziona, etc.)
+    // RIMOSSO: console.log('handleEventChoice: Recuperati eventType:', eventType, 'isSearchAction:', isSearchAction, 'actionKey:', actionKey);
 
     // --- Ottieni il simbolo del tile corrente ---
     const currentTileSymbol = map[player.y]?.[player.x]?.type;
     if (!currentTileSymbol) {
         console.error("handleEventChoice: Impossibile ottenere currentTileSymbol!");
-        // Gestione errore: potremmo usare un fallback o uscire, per ora logghiamo
-        // addMessage("Errore: Impossibile determinare la posizione attuale.", "danger");
-        // if (typeof closeEventPopup === 'function') closeEventPopup();
-        // return;
+        // Gestione errore
     }
 
+    // RIMOSSO: console.log('handleEventChoice: Controllo costo tempo isSearchAction...');
     // Applica costo in tempo per le azioni di ricerca (isSearchAction)
-    // ... (codice costo tempo invariato) ...
+    if (isSearchAction) {
+        // RIMOSSO: console.log('handleEventChoice: Applico costo tempo SEARCH_TIME_COST:', SEARCH_TIME_COST);
+        // Verifica che SEARCH_TIME_COST sia definita e sia un numero > 0
+        if (typeof SEARCH_TIME_COST === 'number' && SEARCH_TIME_COST > 0) {
+             // Logica corretta: avanza il contatore passi giornaliero
+             for (let i = 0; i < SEARCH_TIME_COST; i++) {
+                 // Incrementa contatore passi giorno (solo se è giorno!)
+                 if (isDay) {
+                     dayMovesCounter++;
+                     // Controlla se scatta la notte
+                     if (dayMovesCounter >= DAY_LENGTH_MOVES) {
+                         // RIMOSSO: console.log('handleEventChoice: Search action ha causato la transizione a notte!');
+                         if (typeof transitionToNight === 'function') {
+                             transitionToNight();
+                         } else {
+                             console.error("handleEventChoice: Funzione transitionToNight non trovata (map.js?)!");
+                         }
+                         // Interrompi il ciclo for perché la notte è scattata
+                         break;
+                     }
+                 }
+                 // Se è già notte, l'azione di ricerca consuma solo tempo (non fa scattare l'alba qui)
+                 // Potremmo aggiungere un consumo extra di risorse o rischio se si cerca di notte?
+                 // Per ora, fa solo passare i 'passi' del costo.
+             }
+            // Messaggio e aggiornamento UI dopo il ciclo
+            addMessage(`L'azione richiede tempo... (${SEARCH_TIME_COST} passi)`, 'info'); // Nota: 'passi' invece di 'h'
+            if (typeof renderStats === 'function') renderStats(); // Aggiorna l'ora/stats
 
+        } else {
+             // Logga errore se SEARCH_TIME_COST non è valido
+             console.error("!!! ERRORE: SEARCH_TIME_COST non definita o non valida!", SEARCH_TIME_COST); // Mantenuto errore potenziale
+        }
+    }
+    // RIMOSSO: console.log('handleEventChoice: Costo tempo (se applicabile) gestito. Procedo a outcome/skillcheck...');
 
     // --- LOGICA DI RISOLUZIONE: Check Abilità o Esito Diretto ---
 
-    let outcomeTitle = "Risultato"; // Titolo del popup di esito
-    let outcomeDescription = ""; // Descrizione testuale dell'esito
-    let outcomeCheckDetails = null; // Dettagli del tiro abilità per il log/popup
-    let outcomeConsequencesText = ""; // Testo delle conseguenze meccaniche per il popup di esito
-    let messageType = 'info'; // Tipo di messaggio per il log e lo stile del popup esito
+    let outcomeTitle = "Risultato";
+    let outcomeDescription = "";
+    let outcomeCheckDetails = null;
+    let outcomeConsequencesText = "";
+    let messageType = 'info';
 
-    // console.log('handleEventChoice: Controllo if (choice.outcome)...'); // RIMOSSO
+    // RIMOSSO: console.log('handleEventChoice: Controllo if (choice.outcome)...');
     // Se la scelta ha un esito diretto predefinito (outcome)
     if (choice.outcome) {
-        // console.log('handleEventChoice: Entrato nel blocco if (choice.outcome)'); // RIMOSSO
         outcomeDescription = choice.outcome;
-        // Verifica se c'è una ricompensa associata anche all'outcome diretto
-        if (choice.successReward) {
+
+        // Logica specifica per 'take_cache'
+        if (actionKey === 'take_cache') {
+            const cacheSafeChance = 0.70;
+            if (Math.random() < cacheSafeChance) {
+                outcomeDescription += "<br>Fortunatamente, sembra tutto a posto.";
+                messageType = 'success';
+                if (choice.successReward) {
+                    const rewardFeedback = applyChoiceReward(choice.successReward);
+                    if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                } else {
+                    outcomeConsequencesText += "<br>(Nessuna ricompensa definita per il successo)";
+                }
+            } else {
+                outcomeDescription += "<br>Pessima idea! La scorta era contaminata o una trappola.";
+                messageType = 'danger';
+                if (choice.failurePenalty) {
+                    const penaltyFeedback = applyPenalty(choice.failurePenalty);
+                    if (penaltyFeedback) outcomeConsequencesText += `<br>${penaltyFeedback}`;
+                } else {
+                    const fallbackPenaltyFeedback = applyPenalty({ type: 'status', status: Math.random() < 0.5 ? 'isSick' : 'isPoisoned' });
+                    if(fallbackPenaltyFeedback) outcomeConsequencesText += `<br>${fallbackPenaltyFeedback}`;
+                }
+            }
+        }
+        // Per altri outcome diretti, verifica se c'è una ricompensa
+        else if (choice.successReward) {
              const rewardFeedback = applyChoiceReward(choice.successReward);
              if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
         }
 
-        // Logga il messaggio di esito completo al log di gioco.
-        addMessage(outcomeDescription + (outcomeConsequencesText ? `\n${outcomeConsequencesText}` : ''), messageType, true);
-
-        // Mostra il popup di risultato con l'esito diretto
-        // console.log('handleEventChoice: Chiamando buildAndShowComplexEventOutcome con:', outcomeTitle, outcomeDescription, messageType); // RIMOSSO
-        buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription + (outcomeConsequencesText ? `<br>${outcomeConsequencesText}` : ''), null, null, messageType);
+        addMessage(outcomeDescription + (outcomeConsequencesText ? `\n${outcomeConsequencesText.replace(/<br>/g, '\n')}` : ''), messageType, true);
+        buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription + (outcomeConsequencesText ? `${outcomeConsequencesText}` : ''), null, null, messageType);
 
     }
     // Se la scelta richiede un check di abilità
     else if (choice.skillCheck) {
-        // ... (Codice verifica skillCheck con controlli esistenza - invariato) ...
+        // Verifica che skillCheck sia valido
+        if (!choice.skillCheck.stat || typeof choice.skillCheck.difficulty !== 'number') {
+             console.error(`handleEventChoice: skillCheck invalido per la scelta:`, choice);
+             addMessage(`Errore: Check abilità mal definito per la scelta "${choice.text}".`, "danger");
+             if (typeof closeEventPopup === 'function') closeEventPopup();
+             return;
+        }
 
-        // Esegui il check di abilità solo se i dati sono validi
         const checkResult = performSkillCheck(choice.skillCheck.stat, choice.skillCheck.difficulty);
-        outcomeCheckDetails = checkResult.text; // Stringa descrittiva del tiro
-
+        outcomeCheckDetails = checkResult.text;
 
         // --- Gestione Esito Check (Successo o Fallimento) ---
         if (checkResult.success) {
             // --- Successo del Check ---
+            // RIMOSSO: console.log('>>> handleEventChoice: SKILL CHECK SUCCESSO!');
             outcomeTitle = "Successo!";
             messageType = 'success';
-
-            // Controlla esistenza successText prima di usarlo
             outcomeDescription = choice.successText || "Hai avuto successo!";
+            // RIMOSSO: console.log('>>> handleEventChoice SUCCESSO: outcomeDescription impostata:', outcomeDescription);
 
-            // Controlla esistenza successReward prima di usarlo
             if (choice.successReward) {
                 const rewardFeedback = applyChoiceReward(choice.successReward);
                  if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
             }
+            // RIMOSSO: console.log('>>> handleEventChoice SUCCESSO: Ricompensa applicata (se presente). Conseguenze finora:', outcomeConsequencesText);
 
-            // Logica specifica per il successo di alcuni EVENTI COMPLESSI (basata sull'actionKey)
+            // Logica specifica per il successo di eventi complessi
             switch (eventType) {
                  case 'PREDATOR':
                       if (actionKey === 'lotta') {
-                          // Logica Danno Giocatore Inflitto (con arma equipaggiata) su Successo Lotta.
-                          // Passa currentTileSymbol
                           let playerDamageDescription = describeWeaponDamage(player.equippedWeapon, currentTileSymbol);
-                          if (playerDamageDescription) outcomeConsequencesText += `\\n${playerDamageDescription}`;
-
-                          // ... (logica loot predatore successo invariata) ...
+                          if (playerDamageDescription) outcomeConsequencesText += `\n${playerDamageDescription}`;
+                          // Loot Predatore
+                          const lootRoll = Math.random();
+                          if (lootRoll < PREDATOR_LOOT_CHANCE) {
+                                const lootTable = Object.keys(PREDATOR_LOOT_WEIGHTS).map(id => ({ id: id, weight: PREDATOR_LOOT_WEIGHTS[id] }));
+                                if (lootTable.length > 0) {
+                                    const chosenLoot = chooseWeighted(lootTable);
+                                    if (chosenLoot && chosenLoot.id) {
+                                        const rewardFeedbackLoot = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                                        if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
+                                    }
+                                }
+                           }
                       }
-                      // Successo Fuga/Parla già gestito da outcomeDescription e successReward nell'oggetto choice
                      break;
-
                 case 'ANIMAL':
-                     if (actionKey === 'attacca') { // Successo Attacca Animale
-                          // Logica Danno Giocatore Inflitto (uguale a Lotta Predoni successo)
-                          // Passa currentTileSymbol
-                           let playerDamageDescription = describeWeaponDamage(player.equippedWeapon, currentTileSymbol);
-                           if (playerDamageDescription) outcomeConsequencesText += `\\n${playerDamageDescription}`;
-
-                          // ... (logica loot carne successo invariata) ...
+                     if (actionKey === 'evita') {
+                         // RIMOSSO: console.log('handleEventChoice (evita - SUCCESSO): Entrato nel blocco successo.');
+                         outcomeDescription = choice.successText || "Riesci a evitare la bestia senza farti notare.";
+                          // RIMOSSO: console.log('handleEventChoice (evita - SUCCESSO): outcomeDescription impostata:', outcomeDescription);
+                         if (choice.successReward) {
+                             const rewardFeedback = applyChoiceReward(choice.successReward);
+                             if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                         }
+                          // RIMOSSO: console.log('handleEventChoice (evita - SUCCESSO): Chiamando buildAndShowComplexEventOutcome...');
                      }
-                     // Successo Evita già gestito da outcomeDescription e successReward nell'oggetto choice
+                     if (actionKey === 'attacca') {
+                           let playerDamageDescription = describeWeaponDamage(player.equippedWeapon, currentTileSymbol);
+                           if (playerDamageDescription) outcomeConsequencesText += `\n${playerDamageDescription}`;
+                           // Loot Carne
+                            if (Math.random() < ANIMAL_MEAT_DROP_CHANCE) {
+                                const rewardFeedbackMeat = applyChoiceReward({ itemId: 'raw_meat', quantity: 1 });
+                                if (rewardFeedbackMeat) outcomeConsequencesText += rewardFeedbackMeat;
+                            }
+                     }
                     break;
-
-                // ... (Altri casi switch successo invariati, non usano applyDamage o describeWeaponDamage) ...
-
-                default: // Questo default cattura i check successo degli eventi specifici del tile
-                    // ... (codice default successo invariato) ...
-                    // Qui possiamo aggiungere logica specifica per actionKey di eventi TILE
+                case 'TRACKS':
+                     if (actionKey === 'segui' || actionKey === 'ispeziona') {
+                           const trackOutcomeRoll = Math.random();
+                           if (trackOutcomeRoll < TRACKS_SUCCESS_LOOT_CHANCE) {
+                               outcomeDescription = getRandomText(descrizioniTracceOkLoot);
+                               messageType = 'success';
+                               const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
+                               if (lootTable.length > 0) {
+                                   const chosenLoot = chooseWeighted(lootTable);
+                                   if (chosenLoot && chosenLoot.id) {
+                                       const rewardFeedbackLoot = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                                       if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
+                                   }
+                               }
+                           } else if (trackOutcomeRoll < TRACKS_SUCCESS_LOOT_CHANCE + TRACKS_SUCCESS_LORE_CHANCE) {
+                               outcomeDescription = getRandomText(descrizioniTracceOkLore);
+                               messageType = 'lore';
+                                const loreRewardFeedback = applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
+                                if (loreRewardFeedback) outcomeConsequencesText += "<br>Hai trovato un frammento di lore.";
+                                else outcomeDescription = getRandomText(descrizioniTracceOkNulla); // Fallback a Nulla se lore fallisce
+                           } else {
+                               outcomeDescription = getRandomText(descrizioniTracceOkNulla);
+                               messageType = 'info';
+                           }
+                      }
+                     break;
+                case 'ENVIRONMENTAL':
+                    outcomeDescription = getRandomText(esitiPericoloAmbientaleEvitato);
+                    messageType = 'success';
+                    // Nessuna ricompensa base per evitare pericolo
+                    break;
+                case 'HORROR':
+                     if (actionKey === 'fuga') outcomeDescription = getRandomText(esitiOrroreIndicibileFugaOk);
+                     else if (actionKey === 'affronta') outcomeDescription = getRandomText(esitiOrroreIndicibileAffrontaOk);
+                     messageType = 'success';
+                    // Bonus temporaneo a statistica mentale (Adattamento?) su successo Affronta?
+                    break;
+                default:
+                    // Eventi specifici del tile con check successo gestiti qui
+                    // L'outcomeDescription e successReward dovrebbero venire da choice
                     break;
             }
 
-            // --- NUOVA LOGICA SPECIFICA PER AZIONE 'explore_shelter' (Successo) ---
+            // Logica specifica per 'explore_shelter' (Successo)
             if (actionKey === 'explore_shelter') {
-                 // Verifica dipendenze necessarie per questa logica specifica
                 if (typeof SHELTER_INSPECT_LOOT_CHANCE === 'undefined' || typeof SHELTER_INSPECT_LORE_CHANCE === 'undefined' || typeof SHELTER_INSPECT_LOOT_WEIGHTS === 'undefined' || typeof chooseWeighted !== 'function' || typeof applyChoiceReward !== 'function') {
                     console.error("handleEventChoice (explore_shelter success): Dipendenze mancanti (costanti/funzioni)!");
                     outcomeDescription = "Errore nell'esplorazione del rifugio.";
                     messageType = 'danger';
                 } else {
                     const exploreRoll = Math.random();
-
-                    if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE) { // Es. 0.50
-                        // Esito: Loot
+                    if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE) {
                         outcomeDescription = "Esplorando attentamente, trovi qualcosa di utile!";
                         messageType = 'success';
-                        // Prepara tabella loot e scegli
                         const lootTable = Object.keys(SHELTER_INSPECT_LOOT_WEIGHTS).map(id => ({ id: id, weight: SHELTER_INSPECT_LOOT_WEIGHTS[id] }));
                         if (lootTable.length > 0) {
                             const chosenLoot = chooseWeighted(lootTable);
                             if (chosenLoot && chosenLoot.id) {
-                                // Applica la ricompensa e aggiungi feedback
                                 const rewardFeedback = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
                                 if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
                             } else {
@@ -527,117 +663,90 @@ function handleEventChoice(choiceIndex) {
                              outcomeConsequencesText += "<br>(Nessun loot definibile...)";
                              messageType = 'info';
                         }
-
-                    } else if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE + SHELTER_INSPECT_LORE_CHANCE) { // Es. 0.50 + 0.30 = 0.80
-                        // Esito: Lore
+                    } else if (exploreRoll < SHELTER_INSPECT_LOOT_CHANCE + SHELTER_INSPECT_LORE_CHANCE) {
                         outcomeDescription = "Tra la polvere, scopri un indizio sul passato...";
                         messageType = 'lore';
-                        // Prova a dare un frammento di lore
                         const loreRewardFeedback = applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
                          if (loreRewardFeedback) {
                              outcomeConsequencesText += "<br>Hai trovato un frammento di lore.";
-                             // Nota: applyChoiceReward con 'lore_fragment_item' potrebbe non dare feedback testuale diretto,
-                             // il messaggio qui sopra serve a confermare al giocatore.
                          } else {
-                             // Se applyChoiceReward fallisce per lore (es. inventario pieno o item non valido),
-                             // consideralo come 'Nulla'.
                              outcomeDescription = "Il rifugio è stato rovistato a fondo. Non trovi nulla di interessante o utile.";
                              messageType = 'info';
                          }
                     } else {
-                        // Esito: Nulla
                         outcomeDescription = "Il rifugio è stato rovistato a fondo. Non trovi nulla di interessante o utile.";
                         messageType = 'info';
-                        // outcomeConsequencesText rimane vuoto
                     }
-                } // Fine else (dipendenze OK)
+                }
             } // Fine if actionKey === 'explore_shelter'
-            // --- FINE NUOVA LOGICA ---
-
+            // RIMOSSO: console.log('>>> handleEventChoice SUCCESSO: Fine logica specifica. Pronto per buildAndShow. Desc:', outcomeDescription, 'Cons:', outcomeConsequencesText);
 
         } else {
             // --- Fallimento del Check ---
             outcomeTitle = "Fallimento";
-            messageType = 'warning'; // Default warning per fallimento check
-
-            // Controlla esistenza failureText prima di usarlo
+            messageType = 'warning';
             outcomeDescription = choice.failureText || "Hai fallito.";
 
-            // Controlla esistenza failurePenalty prima di usarlo
             if (choice.failurePenalty) {
                  const penaltyFeedback = applyPenalty(choice.failurePenalty);
                  if (penaltyFeedback) {
-                     // Usa <br> invece di \n
                      outcomeConsequencesText += `<br>${penaltyFeedback}`;
                  }
             }
 
-
-            // Logica specifica per il fallimento di alcuni EVENTI COMPLESSI (basata sull'actionKey)
+            // Logica specifica per fallimento eventi complessi
             switch (eventType) {
                 case 'PREDATOR':
                      if (actionKey === 'fuga') {
-                         outcomeDescription = getRandomText(esitiFugaPredoniKo);
+                         // RIMOSSO: outcomeDescription = getRandomText(esitiFugaPredoniKo);
                          if (!choice.failurePenalty) {
                              const baseDamage = getRandomInt(PREDATOR_FLEE_FAIL_DAMAGE_MIN, PREDATOR_FLEE_FAIL_DAMAGE_MAX);
                              const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                             // Usa <br> invece di \n
                              outcomeConsequencesText += `<br>Non riesci a fuggire!${damageFeedback}.`;
                              if(Math.random() < 0.3) {
-                                const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
-                                const lossAmount = 1;
+                                 const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                 const lossAmount = 1;
                                  if (player[resourceLoss] >= lossAmount) {
                                      player[resourceLoss] -= lossAmount;
-                                     // Usa <br> invece di \n
                                      outcomeConsequencesText += `<br>Nella fuga perdi ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
-                                      if (typeof renderStats === 'function') renderStats();
+                                     if (typeof renderStats === 'function') renderStats();
                                  }
                              }
                          }
                          messageType = 'danger';
                      } else if (actionKey === 'lotta') {
-                         outcomeDescription = "Sei sopraffatto dai predoni."; // Placeholder
+                         outcomeDescription = "Sei sopraffatto dai predoni.";
                           if (!choice.failurePenalty) {
                               const baseDamage = getRandomInt(PREDATOR_FIGHT_FAIL_DAMAGE_MIN, PREDATOR_FIGHT_FAIL_DAMAGE_MAX);
                               const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                              // Usa <br> invece di \n
                               outcomeConsequencesText += `<br>Sei sopraffatto!${damageFeedback}.`;
-                              const resourceLossFood = getRandomInt(0, Math.min(Math.floor(player.food), 2));
-                              const resourceLossWater = getRandomInt(0, Math.min(Math.floor(player.water), 2));
-                              if (resourceLossFood > 0) {
-                                  player.food -= resourceLossFood;
-                                  // Usa <br> invece di \n
-                                  outcomeConsequencesText += `<br>Ti rubano ${resourceLossFood} unità di cibo.`;
-                              }
-                               if (resourceLossWater > 0) {
-                                   player.water -= resourceLossWater;
-                                   // Usa <br> invece di \n
-                                   outcomeConsequencesText += `<br>Ti rubano ${resourceLossWater} unità di acqua.`;
+                               const resourceLossRoll = Math.random();
+                               if (resourceLossRoll < PREDATOR_FIGHT_FAIL_LOOT_LOSS_CHANCE) {
+                                    const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                    const lossAmount = getRandomInt(1, PREDATOR_FIGHT_FAIL_LOOT_LOSS_MAX);
+                                    if (player[resourceLoss] > 0) {
+                                        const actualLoss = Math.min(player[resourceLoss], lossAmount);
+                                        player[resourceLoss] -= actualLoss;
+                                        outcomeConsequencesText += `<br>Ti derubano di ${actualLoss} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}!`;
+                                         if (typeof renderStats === 'function') renderStats();
+                                    }
                                }
-                              if (resourceLossFood > 0 || resourceLossWater > 0) {
-                                   if (typeof renderStats === 'function') renderStats();
-                                   if (typeof renderInventory === 'function') renderInventory();
-                              }
                          }
                          messageType = 'danger';
                     } else if (actionKey === 'parla') {
-                         outcomeDescription = getRandomText(esitiParlaPredoniKo);
-                         // Usa <br> invece di \n
-                         outcomeConsequencesText += "<br>Le tue parole non hanno effetto, si preparano ad attaccare!";
+                         // RIMOSSO: outcomeDescription = getRandomText(esitiParlaPredoniKo);
                           if (!choice.failurePenalty) {
                               const baseDamage = getRandomInt(PREDATOR_TALK_FAIL_DAMAGE_MIN, PREDATOR_TALK_FAIL_DAMAGE_MAX);
                               const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                              // Usa <br> invece di \n
                               outcomeConsequencesText += `<br>Ti colpiscono mentre cerchi di parlare${damageFeedback}.`;
                               if (Math.random() < 0.25) {
-                                  const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
-                                  const lossAmount = 1;
-                                   if (player[resourceLoss] >= lossAmount) {
-                                       player[resourceLoss] -= lossAmount;
-                                       // Usa <br> invece di \n
-                                       outcomeConsequencesText += `<br>Nella confusione ti cade ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
-                                        if (typeof renderStats === 'function') renderStats();
-                                   }
+                                 const resourceLoss = Math.random() < 0.5 ? 'food' : 'water';
+                                 const lossAmount = 1;
+                                  if (player[resourceLoss] >= lossAmount) {
+                                      player[resourceLoss] -= lossAmount;
+                                      outcomeConsequencesText += `<br>Approfittano della distrazione per rubarti ${lossAmount} unità di ${resourceLoss === 'food' ? 'cibo' : 'acqua'}.`;
+                                       if (typeof renderStats === 'function') renderStats();
+                                  }
                               }
                          }
                          messageType = 'warning';
@@ -646,20 +755,23 @@ function handleEventChoice(choiceIndex) {
 
                 case 'ANIMAL':
                      if (actionKey === 'evita') {
+                         // RIMOSSO: console.log('handleEventChoice (evita - FALLIMENTO): Entrato nel blocco fallimento.');
                          outcomeDescription = getRandomText(esitiEvitaAnimaleKo);
-                          if (!choice.failurePenalty) {
+                          // RIMOSSO: console.log('handleEventChoice (evita - FALLIMENTO): outcomeDescription impostata:', outcomeDescription);
+                         if (!choice.failurePenalty) {
                              const baseDamage = getRandomInt(ANIMAL_EVADE_FAIL_DAMAGE_MIN, ANIMAL_EVADE_FAIL_DAMAGE_MAX);
                              const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                             // Usa <br> invece di \n
                              outcomeConsequencesText += `<br>L'animale ti scopre e ti attacca!${damageFeedback}.`;
+                              // RIMOSSO: console.log('handleEventChoice (evita - FALLIMENTO): Conseguenze:', outcomeConsequencesText);
                          }
-                         messageType = 'warning';
-                     } else if (actionKey === 'attacca') {
+                         messageType = 'danger'; // Evitare fallito è danger
+                          // RIMOSSO: console.log('handleEventChoice (evita - FALLIMENTO): Chiamando buildAndShowComplexEventOutcome...');
+                     }
+                     if (actionKey === 'attacca') {
                           outcomeDescription = getRandomText(esitiAttaccoAnimaleKo);
                           if (!choice.failurePenalty) {
                              const baseDamage = getRandomInt(ANIMAL_ATTACK_FAIL_DAMAGE_MIN, ANIMAL_ATTACK_FAIL_DAMAGE_MAX);
                              const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                             // Usa <br> invece di \n
                              outcomeConsequencesText += `<br>L'animale si difende ferocemente!${damageFeedback}.`;
                          }
                          messageType = 'danger';
@@ -669,7 +781,6 @@ function handleEventChoice(choiceIndex) {
                 case 'TRACKS':
                      if (actionKey === 'segui' || actionKey === 'ispeziona') {
                          outcomeDescription = getRandomText(descrizioniTracceNothing);
-                         // Usa <br> invece di \n
                          outcomeConsequencesText += "<br>Perdi tempo prezioso seguendo tracce sbagliate o confondendoti.";
                          messageType = 'info';
                      }
@@ -680,28 +791,13 @@ function handleEventChoice(choiceIndex) {
                       if (!choice.failurePenalty) {
                          const baseDamage = getRandomInt(ENVIRONMENTAL_FAIL_DAMAGE_MIN, ENVIRONMENTAL_FAIL_DAMAGE_MAX);
                          const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                         // Usa <br> invece di \n
                          outcomeConsequencesText += `<br>Sei colpito dal pericolo ambientale!${damageFeedback}.`;
                           const extraEffectChance = ENVIRONMENTAL_SICKNESS_CHANCE;
                           if (Math.random() < extraEffectChance) {
                               const statusFeedback = applyPenalty({ type: 'status', status: 'isSick' });
-                              // Usa <br> invece di \n (già presente in statusFeedback? No, lo aggiungiamo qui)
-                              outcomeConsequencesText += `<br>${statusFeedback}`; 
+                              outcomeConsequencesText += `<br>${statusFeedback}`;
                               if (typeof renderStats === 'function') renderStats();
                           }
-                      }
-                     messageType = 'danger';
-                    break;
-
-                case 'DILEMMA':
-                     outcomeDescription = getRandomText(esitiDilemmaMoraleIndagaKo);
-                     // Usa <br> invece di \n
-                     outcomeConsequencesText += "<br>Il tuo tentativo di intervento fallisce!";
-                      if (!choice.failurePenalty) {
-                          const baseDamage = getRandomInt(DILEMMA_INTERVENE_FAIL_DAMAGE_MIN, DILEMMA_INTERVENE_FAIL_DAMAGE_MAX);
-                          const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                          // Usa <br> invece di \n (già presente in damageFeedback? No, lo aggiungiamo qui)
-                          outcomeConsequencesText += `<br>${damageFeedback}`;
                       }
                      messageType = 'danger';
                     break;
@@ -712,7 +808,6 @@ function handleEventChoice(choiceIndex) {
                           if (!choice.failurePenalty) {
                               const baseDamage = getRandomInt(HORROR_FLEE_FAIL_DAMAGE_MIN, HORROR_FLEE_FAIL_DAMAGE_MAX);
                               const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage, isMentalHorror: true });
-                              // Usa <br> invece di \n
                               outcomeConsequencesText += `<br>L'orrore ti raggiunge! Subisci danni (fisici/mentali)${damageFeedback}.`;
                           }
                          messageType = 'danger';
@@ -721,11 +816,9 @@ function handleEventChoice(choiceIndex) {
                           if (!choice.failurePenalty) {
                               const baseDamage = getRandomInt(HORROR_AFFRONT_FAIL_DAMAGE_MIN, HORROR_AFFRONT_FAIL_DAMAGE_MAX);
                               const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage, isMentalHorror: true });
-                              // Usa <br> invece di \n
                               outcomeConsequencesText += `<br>L'orrore ti sopraffà! Subisci danni devastanti${damageFeedback}.`;
                                if (!player.isSick) {
                                   const statusFeedback = applyPenalty({ type: 'status', status: 'isSick' });
-                                  // Usa <br> invece di \n (già presente in statusFeedback? No)
                                   outcomeConsequencesText += `<br>${statusFeedback}`;
                                   if (typeof renderStats === 'function') renderStats();
                                   addMessage("La tua mente vacilla. Sei stato segnato dall'indicibile!", 'danger', true);
@@ -738,7 +831,7 @@ function handleEventChoice(choiceIndex) {
                  case 'SHELTER_INSPECT':
                       const failRoll = Math.random();
                       let inspectFailOutcomeType = 'nothing';
-                       if (failRoll < 0.5) { 
+                       if (failRoll < 0.5) {
                            inspectFailOutcomeType = 'trap';
                        }
                       switch(inspectFailOutcomeType) {
@@ -747,12 +840,10 @@ function handleEventChoice(choiceIndex) {
                                if (!choice.failurePenalty) {
                                    const baseDamage = getRandomInt(SHELTER_INSPECT_TRAP_DAMAGE_MIN, SHELTER_INSPECT_TRAP_DAMAGE_MAX);
                                    const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
-                                   // Usa <br> invece di \n
                                    outcomeConsequencesText += `<br>Era una trappola!${damageFeedback}.`;
                                    const sickChance = SHELTER_INSPECT_TRAP_SICKNESS_CHANCE;
                                    if (Math.random() < sickChance) {
                                        const statusFeedback = applyPenalty({ type: 'status', status: 'isSick' });
-                                       // Usa <br> invece di \n (già presente in statusFeedback? No)
                                        outcomeConsequencesText += `<br>${statusFeedback}`;
                                        if (typeof renderStats === 'function') renderStats();
                                    }
@@ -762,7 +853,6 @@ function handleEventChoice(choiceIndex) {
                           case 'nothing':
                           default:
                               outcomeDescription = getRandomText(esitiRifugioIspezionaKoNulla);
-                               // Usa <br> invece di \n
                                outcomeConsequencesText += "<br>L'ispezione non rivela nulla, né di buono né di cattivo.";
                               messageType = 'info';
                               break;
@@ -770,17 +860,33 @@ function handleEventChoice(choiceIndex) {
                      break;
                 default:
                     break;
-            }
+            } // Fine switch(eventType) fallimento
 
-             // Check morte dopo l'applicazione delle penalità
-             if (player.hp <= 0) {
+            // Logica specifica per actionKey su fallimento
+            if (actionKey === 'investigate_call') {
+                 const ambushChance = 0.60;
+                 if (Math.random() < ambushChance) {
+                     outcomeDescription = "Era una trappola! Un gruppo di predoni ti attacca!";
+                     outcomeConsequencesText = "";
+                     const damageFeedback = applyPenalty({ type: 'damage', amount: { min: PREDATOR_FIGHT_FAIL_DAMAGE_MIN, max: PREDATOR_FIGHT_FAIL_DAMAGE_MAX } });
+                     outcomeConsequencesText += `<br>${damageFeedback}`;
+                     messageType = 'danger'; // Assicurati sia danger
+                 } else {
+                     outcomeDescription = "Senti solo uno strano rumore echeggiare e poi silenzio.";
+                     outcomeConsequencesText = "";
+                     messageType = 'info';
+                 }
+            } // ---> Chiusura corretta per if (actionKey === 'investigate_call')
+
+            // Check morte dopo l'applicazione delle penalità (spostato qui per essere sicuro)
+            if (player.hp <= 0) {
                  // endGame è già chiamata dentro applyPenalty se il danno porta a morte.
                  return; // Esci per evitare ulteriori elaborazioni
-             }
+            }
 
-        } // Fine gestione esito check successo/fallimento
+        } // Fine else (Fallimento del Check)
 
-        // --- Preparazione e Visualizzazione Popup di Esito ---
+        // --- Preparazione e Visualizzazione Popup di Esito --- (fuori dall'if/else successo/fallimento)
         // Nota: addMessage ora gestisce \n -> <br>, ma qui lo facciamo esplicitamente per il popup
         let cleanOutcomeDesc = (outcomeDescription || "").replace(/\n/g, '<br>');
         // RIMOSSO: Non serve più pulire outcomeConsequencesText, contiene già <br>
@@ -790,15 +896,24 @@ function handleEventChoice(choiceIndex) {
         let finalOutcomeText = cleanOutcomeDesc; // Parte principale
         if (outcomeCheckDetails && outcomeCheckDetails.text) {
             if (finalOutcomeText) finalOutcomeText += `<br>`;
-            finalOutcomeText += `(${outcomeCheckDetails.text})`; 
+            finalOutcomeText += `(${outcomeCheckDetails.text})`;
         }
         if (outcomeConsequencesText) { // Usa direttamente outcomeConsequencesText
             if (finalOutcomeText) finalOutcomeText += `<br>`;
             finalOutcomeText += outcomeConsequencesText; // Aggiungi conseguenze con <br>
         }
 
+        // Log diagnostico specifico per TRACKS/ispeziona o segui
+        if (eventType === 'TRACKS' && (actionKey === 'segui' || actionKey === 'ispeziona') && checkResult) {
+            if (checkResult.success) {
+                // RIMOSSO: console.log('>>> TRACKS/INSPECT SUCCESS: Tentativo chiamata buildAndShowComplexEventOutcome');
+            } else {
+                // RIMOSSO: console.log('>>> TRACKS/INSPECT FAILURE: Tentativo chiamata buildAndShowComplexEventOutcome');
+            }
+        }
+
         // Logga il messaggio di esito completo al log di gioco.
-         addMessage(`${outcomeTitle}. ${finalOutcomeText}`, messageType, true);
+         addMessage(`${outcomeTitle}. ${finalOutcomeText.replace(/<br>/g, '\n')}`, messageType, true); // Sostituisci <br> per il log
 
         // Mostra il popup di risultato dell'evento complesso
         // Rimosso log diagnostico DOM
@@ -809,413 +924,415 @@ function handleEventChoice(choiceIndex) {
 
     } // Fine gestione IF skillCheck
     // Else (scelta senza check e senza outcome valido): Gestione errore o log
-     else {
-         // Gestione errore o log se la scelta non ha né outcome né skillCheck validi
-         console.error(`handleEventChoice: Scelta ${choiceIndex} per evento ${eventType} non ha né outcome né skillCheck validi.`, choice);
-         addMessage(`Errore nella gestione dell'esito della scelta: ${choice.text}`, "danger");
-         // Chiudi comunque il popup per evitare blocchi
-         if (typeof closeEventPopup === 'function') closeEventPopup();
-     }
+    else if (!choice.outcome && !choice.skillCheck) { // Modificato per essere più specifico
+        // Gestione errore o log se la scelta non ha né outcome né skillCheck validi
+        console.error(`handleEventChoice: Scelta ${choiceIndex} per evento ${eventType} non ha né outcome né skillCheck validi.`, choice);
+        addMessage(`Errore nella gestione dell'esito della scelta: ${choice.text}`, "danger");
+        // Chiudi comunque il popup per evitare blocchi
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+    }
 
-}
-
-
-// --- Implementazione check & log status messages ---
+} // <--- Parentesi graffa di chiusura per handleEventChoice
 
 
-// --- Funzione helper interna per descrivere il danno inflitto con l'arma ---
-/**
- * Calcola il danno base inflitto dal giocatore con l'arma equipaggiata e genera un messaggio descrittivo.
- * Applica bonus danno basati sul tipo di arma/ambiente/stats.
- * Consuma munizioni e riduce durabilità dell'arma.
- * @param {string|null} equippedWeaponId - L'ID dell'arma equipaggiata.
- * @param {string|null} currentTileSymbol - Il simbolo del tile corrente (può essere null se errore posizione).
- * @returns {string} Un messaggio descrittivo del danno inflitto e dello stato dell'arma/munizioni.
- */
-function describeWeaponDamage(equippedWeaponId, currentTileSymbol) { // Accetta currentTileSymbol
-    let playerDamage = 1; // Danno base a mani nude
-    let weaponName = "mani nude";
-    let weaponDescription = "";
-    let durabilityMessage = "";
-    let ammoMessage = "";
+    // --- Implementazione check & log status messages ---
 
-    if (equippedWeaponId && ITEM_DATA[equippedWeaponId]) {
-        const weaponData = ITEM_DATA[equippedWeaponId];
-        weaponName = weaponData.name;
 
-        // Verifica se l'arma è rotta (durabilità <= 0)
-        if (weaponData.durability !== undefined && weaponData.durability <= 0) {
-            playerDamage = 1; // Arma rotta infligge solo danno base
-            weaponDescription = " (ROTTA)";
-            durabilityMessage = " La tua arma è completamente danneggiata e quasi inutile.";
-        } else {
-            // Arma funzionante - Danno base dell'arma
-            playerDamage = weaponData.damage || 1;
+    // --- Funzione helper interna per descrivere il danno inflitto con l'arma ---
+    /**
+     * Calcola il danno base inflitto dal giocatore con l'arma equipaggiata e genera un messaggio descrittivo.
+     * Applica bonus danno basati sul tipo di arma/ambiente/stats.
+     * Consuma munizioni e riduce durabilità dell'arma.
+     * @param {string|null} equippedWeaponId - L'ID dell'arma equipaggiata.
+     * @param {string|null} currentTileSymbol - Il simbolo del tile corrente (può essere null se errore posizione).
+     * @returns {string} Un messaggio descrittivo del danno inflitto e dello stato dell'arma/munizioni.
+     */
+    function describeWeaponDamage(equippedWeaponId, currentTileSymbol) { // Accetta currentTileSymbol
+        let playerDamage = 1; // Danno base a mani nude
+        let weaponName = "mani nude";
+        let weaponDescription = "";
+        let durabilityMessage = "";
+        let ammoMessage = "";
 
-            // Gestione Armi a Distanza (Munizioni e Consumo)
-            let hasAmmo = true;
-            if (['fuoco', 'balestra', 'arco'].includes(weaponData.weaponType) && weaponData.ammoType) {
-                // Check munizioni
-                if (typeof checkAmmoAvailability === 'function') {
-                    hasAmmo = checkAmmoAvailability().hasAmmo;
-                } else { console.warn("describeWeaponDamage: checkAmmoAvailability non disponibile."); }
+        if (equippedWeaponId && ITEM_DATA[equippedWeaponId]) {
+            const weaponData = ITEM_DATA[equippedWeaponId];
+            weaponName = weaponData.name;
 
-                if (!hasAmmo) {
-                    playerDamage = 1; // Danno base se senza munizioni
-                    weaponDescription += ` (Sei senza ${ITEM_DATA[weaponData.ammoType]?.name || weaponData.ammoType}!)`;
-                } else {
-                    // Consuma una munizione
-                    if (typeof consumeAmmo === 'function') {
-                        const consumeResult = consumeAmmo();
-                        if (consumeResult.consumed) ammoMessage += ` Hai usato una munizione.`;
-                        if (consumeResult.recovered) ammoMessage += ` Sei riuscito a recuperare una munizione!`;
-                    } else { console.warn("describeWeaponDamage: consumeAmmo non disponibile."); }
+            // Verifica se l'arma è rotta (durabilità <= 0)
+            if (weaponData.durability !== undefined && weaponData.durability <= 0) {
+                playerDamage = 1; // Arma rotta infligge solo danno base
+                weaponDescription = " (ROTTA)";
+                durabilityMessage = " La tua arma è completamente danneggiata e quasi inutile.";
+            } else {
+                // Arma funzionante - Danno base dell'arma
+                playerDamage = weaponData.damage || 1;
+
+                // Gestione Armi a Distanza (Munizioni e Consumo)
+                let hasAmmo = true;
+                if (['fuoco', 'balestra', 'arco'].includes(weaponData.weaponType) && weaponData.ammoType) {
+                    // Check munizioni
+                    if (typeof checkAmmoAvailability === 'function') {
+                        hasAmmo = checkAmmoAvailability().hasAmmo;
+                    } else { console.warn("describeWeaponDamage: checkAmmoAvailability non disponibile."); }
+
+                    if (!hasAmmo) {
+                        playerDamage = 1; // Danno base se senza munizioni
+                        weaponDescription += ` (Sei senza ${ITEM_DATA[weaponData.ammoType]?.name || weaponData.ammoType}!)`;
+                    } else {
+                        // Consuma una munizione
+                        if (typeof consumeAmmo === 'function') {
+                            const consumeResult = consumeAmmo();
+                            if (consumeResult.consumed) ammoMessage += ` Hai usato una munizione.`;
+                            if (consumeResult.recovered) ammoMessage += ` Sei riuscito a recuperare una munizione!`;
+                        } else { console.warn("describeWeaponDamage: consumeAmmo non disponibile."); }
+                    }
                 }
-            }
 
-            // Applica bonus al danno
-            let bonusDamage = 0;
-            switch(weaponData.weaponType) {
-                 // ... (casi switch bonus invariati) ...
-                 case 'bianca_lunga': // Bonus in spazi aperti
-                     // Usa currentTileSymbol passato come argomento
-                     if (currentTileSymbol && (currentTileSymbol === TILE_SYMBOLS.PLAINS || currentTileSymbol === TILE_SYMBOLS.FOREST)) {
-                         bonusDamage += 1; weaponDescription += " (Vantaggio di portata)";
-                     }
-                     break;
-                 // ... (altri casi switch bonus invariati) ...
-            }
-            playerDamage += bonusDamage; // Applica bonus
-
-            // Riduci la durabilità dell'arma dopo l'uso
-            if (weaponData.durability !== undefined && weaponData.maxDurability !== undefined) {
-                 // ... (logica riduzione durabilità invariata) ...
-            }
-
-        } // Fine if arma funzionante
-    } // Fine if equippedWeaponId
-
-    // Costruisci il messaggio finale
-    let message = `Infliggi ${playerDamage} danni con ${weaponName}${weaponDescription}.`;
-    if (durabilityMessage) message += durabilityMessage;
-    if (ammoMessage) message += ammoMessage;
-
-    return message;
-}
-
-
-// --- FINE LOGICA EVENTI ---
-
-// --- DEFINIZIONI FUNZIONI HELPER RIPRISTINATE ---
-
-/**
- * Applica la ricompensa definita in un oggetto choice.
- * Gestisce l'aggiunta di oggetti specifici, oggetti casuali, o altri tipi di ricompense.
- * Dipende da: player.js (addItemToInventory), game_data.js (ITEM_DATA), game_utils.js (getRandomText, chooseWeighted, getRandomInt), game_constants.js (COMMON_RESOURCES_POOL).
- * @param {object} rewardData - L'oggetto reward definito nella scelta (es. { itemId: 'canned_food', quantity: 1 } o { type: 'random_common_resource', quantity: 1 }).
- * @returns {string|null} Una stringa di feedback testuale sulla ricompensa ottenuta, o null se la ricompensa non è valida/gestita.
- */
-function applyChoiceReward(rewardData) {
-    if (!rewardData) return null;
-
-    let feedback = "";
-    let itemAdded = false;
-
-    // Caso 1: Ricompensa è un oggetto specifico
-    if (rewardData.itemId) {
-        const quantity = rewardData.quantity || 1;
-        const itemInfo = ITEM_DATA[rewardData.itemId];
-        if (itemInfo) {
-            addItemToInventory(rewardData.itemId, quantity); // addItemToInventory logga il messaggio
-            feedback = `\nHai ottenuto: ${quantity} x ${itemInfo.name}!`;
-            itemAdded = true;
-        } else {
-            console.warn(`applyChoiceReward: itemId '${rewardData.itemId}' non trovato in ITEM_DATA.`);
-            feedback = "\n(Ricompensa oggetto non valida)";
-        }
-    }
-    // Caso 2: Ricompensa è di un tipo specifico (es. risorsa casuale)
-    else if (rewardData.type) {
-        const quantity = rewardData.quantity || 1;
-        switch (rewardData.type) {
-            case 'random_common_resource':
-                 // Sceglie una risorsa casuale dalla pool definita in game_constants.js
-                 if (Array.isArray(COMMON_RESOURCES_POOL) && COMMON_RESOURCES_POOL.length > 0) {
-                     const randomItemId = getRandomText(COMMON_RESOURCES_POOL); // Sceglie un ID casuale
-                     const itemInfo = ITEM_DATA[randomItemId];
-                     if (itemInfo) {
-                          addItemToInventory(randomItemId, quantity);
-                          feedback = `\nHai trovato qualcosa di utile: ${quantity} x ${itemInfo.name}!`;
-                          itemAdded = true;
-                     } else {
-                          console.warn(`applyChoiceReward: random_common_resource ha scelto itemId '${randomItemId}' non valido.`);
-                          feedback = "\n(Ricompensa risorsa casuale non valida)";
-                     }
-                 } else {
-                      console.warn("applyChoiceReward: COMMON_RESOURCES_POOL non definito o vuoto in game_constants.js.");
-                      feedback = "\n(Impossibile generare risorsa casuale)";
-                 }
-                break;
-            // Aggiungere altri tipi di ricompense (es. 'stat_bonus') qui se necessario
-            /*
-            case 'stat_bonus':
-                if (rewardData.stat && typeof player[rewardData.stat] !== 'undefined') {
-                    player[rewardData.stat] += quantity;
-                    feedback = `\nLa tua statistica ${rewardData.stat} è aumentata di ${quantity}!`;
-                    // Aggiorna UI Stats
-                    if (typeof renderStats === 'function') renderStats();
-                } else {
-                    feedback = "\n(Ricompensa statistica non valida)";
+                // Applica bonus al danno
+                let bonusDamage = 0;
+                switch(weaponData.weaponType) {
+                     // ... (casi switch bonus invariati) ...
+                     case 'bianca_lunga': // Bonus in spazi aperti
+                         // Usa currentTileSymbol passato come argomento
+                         if (currentTileSymbol && (currentTileSymbol === TILE_SYMBOLS.PLAINS || currentTileSymbol === TILE_SYMBOLS.FOREST)) {
+                             bonusDamage += 1; weaponDescription += " (Vantaggio di portata)";
+                         }
+                         break;
+                     // ... (altri casi switch bonus invariati) ...
                 }
-                break;
-            */
-            default:
-                console.warn(`applyChoiceReward: Tipo di ricompensa sconosciuto '${rewardData.type}'.`);
-                feedback = "\n(Tipo ricompensa non gestito)";
-                break;
-        }
-    }
-    // Caso 3: Nessun itemId o type valido
-    else {
-         console.warn("applyChoiceReward: Oggetto ricompensa non valido:", rewardData);
-         feedback = "\n(Definizione ricompensa non valida)";
-    }
+                playerDamage += bonusDamage; // Applica bonus
 
-    // Aggiorna l'inventario nella UI se un oggetto è stato aggiunto
-    if (itemAdded && typeof renderInventory === 'function') {
-        renderInventory();
-    }
-
-    return feedback.trim() || null; // Ritorna il feedback o null
-}
-
-/**
- * Applica una penalità definita in un oggetto choice (solitamente su fallimento).
- * Gestisce danni (con riduzione armatura), perdita risorse, applicazione status, perdita durabilità.
- * Dipende da: game_constants.js (player, ITEM_DATA, ARMOR_DAMAGE_REDUCTION_FACTOR, ARMOR_HORROR_REDUCTION_FACTOR),
- * game_utils.js (getRandomInt, addMessage), ui.js (renderStats), game_core.js (endGame).
- * @param {object} penaltyObject - L'oggetto penalty (es. { type: 'damage', amount: 5, isMentalHorror: false }, { type: 'status', status: 'isInjured' }).
- * @returns {string} Una stringa di feedback testuale sulla penalità subita.
- */
-function applyPenalty(penaltyObject) {
-    if (!penaltyObject || !penaltyObject.type) {
-        console.warn("applyPenalty chiamato con oggetto penalità non valido.");
-        return "(Errore nell'applicazione della penalità)";
-    }
-
-    let feedback = "";
-    let messageType = 'warning'; // Default per penalità
-
-    switch (penaltyObject.type) {
-        case 'damage':
-            let baseDamage = 0;
-            // Calcola danno base (fisso o range)
-            if (typeof penaltyObject.amount === 'number') {
-                baseDamage = penaltyObject.amount;
-            } else if (typeof penaltyObject.amount === 'object' && penaltyObject.amount.min !== undefined && penaltyObject.amount.max !== undefined) {
-                baseDamage = getRandomInt(penaltyObject.amount.min, penaltyObject.amount.max);
-            } else {
-                console.warn("applyPenalty: Danno specificato non valido", penaltyObject.amount);
-                return "(Errore nel calcolo del danno)";
-            }
-
-            let damageReduction = 0;
-            let finalDamage = baseDamage;
-            const isMentalHorror = penaltyObject.isMentalHorror || false;
-
-            // Calcola riduzione armatura
-            if (player.equippedArmor && ITEM_DATA[player.equippedArmor]) {
-                const armorInfo = ITEM_DATA[player.equippedArmor];
-                if (armorInfo.armorValue && armorInfo.armorValue > 0) {
-                    const reductionFactor = isMentalHorror ? ARMOR_HORROR_REDUCTION_FACTOR : ARMOR_DAMAGE_REDUCTION_FACTOR;
-                    damageReduction = Math.round(armorInfo.armorValue * reductionFactor); // Arrotonda la riduzione
-                    finalDamage = Math.max(0, baseDamage - damageReduction); // Danno minimo 0
+                // Riduci la durabilità dell'arma dopo l'uso
+                if (weaponData.durability !== undefined && weaponData.maxDurability !== undefined) {
+                     // ... (logica riduzione durabilità invariata) ...
                 }
-            }
 
-            const oldHp = player.hp;
-            player.hp = Math.max(0, player.hp - finalDamage);
-            const actualDamageTaken = Math.floor(oldHp - player.hp); // Danno effettivo subito (intero)
+            } // Fine if arma funzionante
+        } // Fine if equippedWeaponId
 
-            feedback = `Subisci ${actualDamageTaken} danni`;
-            if (damageReduction > 0) {
-                feedback += ` (ridotti di ${damageReduction} dall'armatura)`;
-            }
-            feedback += ".";
-            messageType = 'danger'; // Danno è sempre 'danger'
+        // Costruisci il messaggio finale
+        let message = `Infliggi ${playerDamage} danni con ${weaponName}${weaponDescription}.`;
+        if (durabilityMessage) message += durabilityMessage;
+        if (ammoMessage) message += ammoMessage;
 
-            // Check morte
-            if (player.hp <= 0) {
-                 feedback += " Sei morto...";
-                 if (typeof endGame === 'function') endGame(false);
-                 // Non aggiornare UI stats se morto, endGame gestisce la schermata finale.
-            } else {
-                 if (typeof renderStats === 'function') renderStats(); // Aggiorna UI se non morto
-            }
-            break;
-
-        case 'status':
-            const statusKey = penaltyObject.status;
-            if (statusKey && typeof player[statusKey] === 'boolean' && !player[statusKey]) {
-                player[statusKey] = true;
-                let statusName = "uno stato alterato";
-                if (statusKey === 'isInjured') statusName = "Ferito";
-                else if (statusKey === 'isSick') statusName = "Infetto";
-                else if (statusKey === 'isPoisoned') statusName = "Avvelenato";
-                feedback = `Hai contratto lo stato: ${statusName}!`;
-                messageType = 'danger'; // Acquisire status è 'danger'
-                 if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
-            } else if (statusKey && player[statusKey]) {
-                 feedback = `(Sei già ${statusKey.replace('is', '')})` // Già afflitto
-                 messageType = 'info';
-            } else {
-                console.warn("applyPenalty: Status specificato non valido", penaltyObject.status);
-                feedback = "(Errore nell'applicazione dello stato)";
-            }
-            break;
-
-        case 'resource_loss':
-            const resource = penaltyObject.resource;
-            const amountLoss = penaltyObject.amount || 1;
-            if ((resource === 'food' || resource === 'water') && player[resource] >= amountLoss) {
-                player[resource] = Math.max(0, player[resource] - amountLoss);
-                feedback = `Perdi ${amountLoss} unità di ${resource === 'food' ? 'cibo' : 'acqua'}.`;
-                messageType = 'warning';
-                 if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
-            } else if ((resource === 'food' || resource === 'water') && player[resource] < amountLoss) {
-                 const actualLoss = player[resource];
-                 player[resource] = 0;
-                 feedback = `Perdi le ultime ${actualLoss} unità di ${resource === 'food' ? 'cibo' : 'acqua'}.`;
-                 messageType = 'warning';
-                  if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
-            } else {
-                console.warn("applyPenalty: Risorsa specificata non valida", penaltyObject.resource);
-                feedback = "(Errore nella perdita di risorse)";
-            }
-            break;
-
-        case 'durability_loss':
-            const targetEquip = penaltyObject.target; // 'weapon' or 'armor'
-            const durabilityLoss = penaltyObject.amount || 1;
-            let equippedItemId = null;
-            if (targetEquip === 'weapon') equippedItemId = player.equippedWeapon;
-            else if (targetEquip === 'armor') equippedItemId = player.equippedArmor;
-
-            if (equippedItemId && ITEM_DATA[equippedItemId] && ITEM_DATA[equippedItemId].durability !== undefined) {
-                 const itemInfo = ITEM_DATA[equippedItemId];
-                 const oldDurability = itemInfo.durability;
-                 itemInfo.durability = Math.max(0, itemInfo.durability - durabilityLoss);
-                 const actualLoss = oldDurability - itemInfo.durability;
-                 feedback = `${itemInfo.name} subisce ${actualLoss} danni alla durabilità.`;
-                 if (itemInfo.durability <= 0) {
-                     feedback += " È rotto!";
-                     messageType = 'danger';
-                 } else {
-                      messageType = 'warning';
-                 }
-                 if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
-            } else {
-                feedback = `(Nessun ${targetEquip} equipaggiato o senza durabilità per subire danni)`;
-                messageType = 'info';
-            }
-            break;
-
-        default:
-            console.warn("applyPenalty: Tipo di penalità sconosciuto", penaltyObject.type);
-            feedback = "(Tipo di penalità non gestito)";
-            break;
+        return message;
     }
 
-    // Logga il messaggio di feedback (potrebbe essere duplicato se chiamato dentro handleEventChoice prima di buildAndShowComplexEventOutcome)
-    // Decidiamo di non loggarlo qui, handleEventChoice si occupa del log dell'esito completo.
-    // addMessage(feedback, messageType);
 
-    return feedback; // Ritorna la stringa di feedback per il popup
-}
+    // --- FINE LOGICA EVENTI ---
 
-/**
- * Esegue un check passivo per trovare loot nel rifugio 'R' durante la notte.
- * Chiamata da closeEventPopup quando viene chiuso il popup specifico.
- * Dipende da: game_constants.js (player, SHELTER_INSPECT_LOOT_WEIGHTS), game_data.js (ITEM_DATA),
- * game_utils.js (addMessage, chooseWeighted), player.js (addItemToInventory).
- */
-function performRestStopNightLootCheck() {
-    // Verifica che le dipendenze necessarie siano disponibili
-    if (typeof player === 'undefined' || typeof player.presagio === 'undefined') {
-        console.error("performRestStopNightLootCheck: Oggetto player o player.presagio non definito.");
-        return; // Esce se il giocatore non è definito
-    }
-    if (typeof SHELTER_INSPECT_LOOT_WEIGHTS === 'undefined') {
-        console.error("performRestStopNightLootCheck: SHELTER_INSPECT_LOOT_WEIGHTS non definito in game_constants.js.");
-        return;
-    }
-    if (typeof ITEM_DATA === 'undefined') {
-        console.error("performRestStopNightLootCheck: ITEM_DATA non definito in game_data.js.");
-        return;
-    }
-    if (typeof chooseWeighted !== 'function') {
-        console.error("performRestStopNightLootCheck: Funzione chooseWeighted non trovata (game_utils.js).");
-        return;
-    }
-     if (typeof addItemToInventory !== 'function') {
-        console.error("performRestStopNightLootCheck: Funzione addItemToInventory non trovata (player.js).");
-        return;
-    }
-    if (typeof addMessage !== 'function') {
-        console.error("performRestStopNightLootCheck: Funzione addMessage non trovata (game_utils.js).");
-        return;
-    }
+    // --- DEFINIZIONI FUNZIONI HELPER RIPRISTINATE ---
 
-    // 1. Calcolare la probabilità di trovare loot basata su Presagio
-    const baseChance = 0.10;
-    // Applica bonus solo se presagio > 10
-    const presagioBonus = player.presagio > 10 ? (player.presagio - 10) * 0.02 : 0;
-    let lootChance = baseChance + presagioBonus;
-    // Limita la probabilità tra 0 e 1
-    lootChance = Math.max(0.0, Math.min(1.0, lootChance));
+    /**
+     * Applica la ricompensa definita in un oggetto choice.
+     * Gestisce l'aggiunta di oggetti specifici, oggetti casuali, o altri tipi di ricompense.
+     * Dipende da: player.js (addItemToInventory), game_data.js (ITEM_DATA), game_utils.js (getRandomText, chooseWeighted, getRandomInt), game_constants.js (COMMON_RESOURCES_POOL).
+     * @param {object} rewardData - L'oggetto reward definito nella scelta (es. { itemId: 'canned_food', quantity: 1 } o { type: 'random_common_resource', quantity: 1 }).
+     * @returns {string|null} Una stringa di feedback testuale sulla ricompensa ottenuta, o null se la ricompensa non è valida/gestita.
+     */
+    function applyChoiceReward(rewardData) {
+        if (!rewardData) return null;
 
-    // 2. Generare numero casuale
-    const randomRoll = Math.random();
+        let feedback = "";
+        let itemAdded = false;
 
-    // 3. Controllare se si trova loot
-    if (randomRoll < lootChance) {
-        // Loot trovato!
-        // Prepara la tabella di loot per chooseWeighted
-        const lootTable = Object.keys(SHELTER_INSPECT_LOOT_WEIGHTS).map(id => ({
-            id: id,
-            weight: SHELTER_INSPECT_LOOT_WEIGHTS[id]
-        }));
-
-        if (lootTable.length === 0) {
-             console.warn("performRestStopNightLootCheck: La tabella di loot SHELTER_INSPECT_LOOT_WEIGHTS è vuota o non valida.");
-             return; // Esci se la tabella è vuota
-        }
-
-        // Scegli un oggetto dalla tabella
-        const chosenLoot = chooseWeighted(lootTable);
-
-        if (chosenLoot && chosenLoot.id) {
-            // Oggetto valido scelto
-            const itemInfo = ITEM_DATA[chosenLoot.id];
-            const quantity = 1; // Quantità fissa per questo check passivo
-
+        // Caso 1: Ricompensa è un oggetto specifico
+        if (rewardData.itemId) {
+            const quantity = rewardData.quantity || 1;
+            const itemInfo = ITEM_DATA[rewardData.itemId];
             if (itemInfo) {
-                // Informazioni oggetto valide, aggiungi all'inventario
-                addItemToInventory(chosenLoot.id, quantity);
-                // Logga il messaggio di successo
-                addMessage(`Durante il riposo, noti qualcosa di utile nascosto! Trovato: ${itemInfo.name}.`, 'success', true);
-                // addItemToInventory aggiorna già renderInventory
+                addItemToInventory(rewardData.itemId, quantity); // addItemToInventory logga il messaggio
+                feedback = `\nHai ottenuto: ${quantity} x ${itemInfo.name}!`;
+                itemAdded = true;
             } else {
-                // Logga warning se l'ID oggetto scelto non esiste in ITEM_DATA
-                console.warn(`performRestStopNightLootCheck: Loot scelto ('${chosenLoot.id}') non trovato in ITEM_DATA.`);
+                console.warn(`applyChoiceReward: itemId '${rewardData.itemId}' non trovato in ITEM_DATA.`);
+                feedback = "\n(Ricompensa oggetto non valida)";
+            }
+        }
+        // Caso 2: Ricompensa è di un tipo specifico (es. risorsa casuale)
+        else if (rewardData.type) {
+            const quantity = rewardData.quantity || 1;
+            switch (rewardData.type) {
+                case 'random_common_resource':
+                     // Sceglie una risorsa casuale dalla pool definita in game_constants.js
+                     if (Array.isArray(COMMON_RESOURCES_POOL) && COMMON_RESOURCES_POOL.length > 0) {
+                         const randomItemId = getRandomText(COMMON_RESOURCES_POOL); // Sceglie un ID casuale
+                         const itemInfo = ITEM_DATA[randomItemId];
+                         if (itemInfo) {
+                              addItemToInventory(randomItemId, quantity);
+                              feedback = `\nHai trovato qualcosa di utile: ${quantity} x ${itemInfo.name}!`;
+                              itemAdded = true;
+                         } else {
+                              console.warn(`applyChoiceReward: random_common_resource ha scelto itemId '${randomItemId}' non valido.`);
+                              feedback = "\n(Ricompensa risorsa casuale non valida)";
+                         }
+                     } else {
+                          console.warn("applyChoiceReward: COMMON_RESOURCES_POOL non definito o vuoto in game_constants.js.");
+                          feedback = "\n(Impossibile generare risorsa casuale)";
+                     }
+                    break;
+                // Aggiungere altri tipi di ricompense (es. 'stat_bonus') qui se necessario
+                /*
+                case 'stat_bonus':
+                    if (rewardData.stat && typeof player[rewardData.stat] !== 'undefined') {
+                        player[rewardData.stat] += quantity;
+                        feedback = `\nLa tua statistica ${rewardData.stat} è aumentata di ${quantity}!`;
+                        // Aggiorna UI Stats
+                        if (typeof renderStats === 'function') renderStats();
+                    } else {
+                        feedback = "\n(Ricompensa statistica non valida)";
+                    }
+                    break;
+                */
+                default:
+                    console.warn(`applyChoiceReward: Tipo di ricompensa sconosciuto '${rewardData.type}'.`);
+                    feedback = "\n(Tipo ricompensa non gestito)";
+                    break;
+            }
+        }
+        // Caso 3: Nessun itemId o type valido
+        else {
+             console.warn("applyChoiceReward: Oggetto ricompensa non valido:", rewardData);
+             feedback = "\n(Definizione ricompensa non valida)";
+        }
+
+        // Aggiorna l'inventario nella UI se un oggetto è stato aggiunto
+        if (itemAdded && typeof renderInventory === 'function') {
+            renderInventory();
+        }
+
+        return feedback.trim() || null; // Ritorna il feedback o null
+    }
+
+    /**
+     * Applica una penalità definita in un oggetto choice (solitamente su fallimento).
+     * Gestisce danni (con riduzione armatura), perdita risorse, applicazione status, perdita durabilità.
+     * Dipende da: game_constants.js (player, ITEM_DATA, ARMOR_DAMAGE_REDUCTION_FACTOR, ARMOR_HORROR_REDUCTION_FACTOR),
+     * game_utils.js (getRandomInt, addMessage), ui.js (renderStats), game_core.js (endGame).
+     * @param {object} penaltyObject - L'oggetto penalty (es. { type: 'damage', amount: 5, isMentalHorror: false }, { type: 'status', status: 'isInjured' }).
+     * @returns {string} Una stringa di feedback testuale sulla penalità subita.
+     */
+    function applyPenalty(penaltyObject) {
+        if (!penaltyObject || !penaltyObject.type) {
+            console.warn("applyPenalty chiamato con oggetto penalità non valido.");
+            return "(Errore nell'applicazione della penalità)";
+        }
+
+        let feedback = "";
+        let messageType = 'warning'; // Default per penalità
+
+        switch (penaltyObject.type) {
+            case 'damage':
+                let baseDamage = 0;
+                // Calcola danno base (fisso o range)
+                if (typeof penaltyObject.amount === 'number') {
+                    baseDamage = penaltyObject.amount;
+                } else if (typeof penaltyObject.amount === 'object' && penaltyObject.amount.min !== undefined && penaltyObject.amount.max !== undefined) {
+                    baseDamage = getRandomInt(penaltyObject.amount.min, penaltyObject.amount.max);
+                } else {
+                    console.warn("applyPenalty: Danno specificato non valido", penaltyObject.amount);
+                    return "(Errore nel calcolo del danno)";
+                }
+
+                let damageReduction = 0;
+                let finalDamage = baseDamage;
+                const isMentalHorror = penaltyObject.isMentalHorror || false;
+
+                // Calcola riduzione armatura
+                if (player.equippedArmor && ITEM_DATA[player.equippedArmor]) {
+                    const armorInfo = ITEM_DATA[player.equippedArmor];
+                    if (armorInfo.armorValue && armorInfo.armorValue > 0) {
+                        const reductionFactor = isMentalHorror ? ARMOR_HORROR_REDUCTION_FACTOR : ARMOR_DAMAGE_REDUCTION_FACTOR;
+                        damageReduction = Math.round(armorInfo.armorValue * reductionFactor); // Arrotonda la riduzione
+                        finalDamage = Math.max(0, baseDamage - damageReduction); // Danno minimo 0
+                    }
+                }
+
+                const oldHp = player.hp;
+                player.hp = Math.max(0, player.hp - finalDamage);
+                const actualDamageTaken = Math.floor(oldHp - player.hp); // Danno effettivo subito (intero)
+
+                feedback = `Subisci ${actualDamageTaken} danni`;
+                if (damageReduction > 0) {
+                    feedback += ` (ridotti di ${damageReduction} dall'armatura)`;
+                }
+                feedback += ".";
+                messageType = 'danger'; // Danno è sempre 'danger'
+
+                // Check morte
+                // RIMOSSO: console.log('applyPenalty: Checking HP after damage. HP =', player.hp);
+                if (player.hp <= 0) {
+                    // RIMOSSO: console.log('applyPenalty: Player HP <= 0, calling endGame(false)...');
+                    feedback += " Sei morto...";
+                    if (typeof endGame === 'function') endGame(false);
+                    // Non aggiornare UI stats se morto, endGame gestisce la schermata finale.
+                } else {
+                     if (typeof renderStats === 'function') renderStats(); // Aggiorna UI se non morto
+                }
+                break;
+
+            case 'status':
+                const statusKey = penaltyObject.status;
+                if (statusKey && typeof player[statusKey] === 'boolean' && !player[statusKey]) {
+                    player[statusKey] = true;
+                    let statusName = "uno stato alterato";
+                    if (statusKey === 'isInjured') statusName = "Ferito";
+                    else if (statusKey === 'isSick') statusName = "Infetto";
+                    else if (statusKey === 'isPoisoned') statusName = "Avvelenato";
+                    feedback = `Hai contratto lo stato: ${statusName}!`;
+                    messageType = 'danger'; // Acquisire status è 'danger'
+                     if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
+                } else if (statusKey && player[statusKey]) {
+                     feedback = `(Sei già ${statusKey.replace('is', '')})` // Già afflitto
+                     messageType = 'info';
+                } else {
+                    console.warn("applyPenalty: Status specificato non valido", penaltyObject.status);
+                    feedback = "(Errore nell'applicazione dello stato)";
+                }
+                break;
+
+            case 'resource_loss':
+                const resource = penaltyObject.resource;
+                const amountLoss = penaltyObject.amount || 1;
+                if ((resource === 'food' || resource === 'water') && player[resource] >= amountLoss) {
+                    player[resource] = Math.max(0, player[resource] - amountLoss);
+                    feedback = `Perdi ${amountLoss} unità di ${resource === 'food' ? 'cibo' : 'acqua'}.`;
+                    messageType = 'warning';
+                     if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
+                } else if ((resource === 'food' || resource === 'water') && player[resource] < amountLoss) {
+                     const actualLoss = player[resource];
+                     player[resource] = 0;
+                     feedback = `Perdi le ultime ${actualLoss} unità di ${resource === 'food' ? 'cibo' : 'acqua'}.`;
+                     messageType = 'warning';
+                      if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
+                } else {
+                    console.warn("applyPenalty: Risorsa specificata non valida", penaltyObject.resource);
+                    feedback = "(Errore nella perdita di risorse)";
+                }
+                break;
+
+            case 'durability_loss':
+                const targetEquip = penaltyObject.target; // 'weapon' or 'armor'
+                const durabilityLoss = penaltyObject.amount || 1;
+                let equippedItemId = null;
+                if (targetEquip === 'weapon') equippedItemId = player.equippedWeapon;
+                else if (targetEquip === 'armor') equippedItemId = player.equippedArmor;
+
+                if (equippedItemId && ITEM_DATA[equippedItemId] && ITEM_DATA[equippedItemId].durability !== undefined) {
+                     const itemInfo = ITEM_DATA[equippedItemId];
+                     const oldDurability = itemInfo.durability;
+                     itemInfo.durability = Math.max(0, itemInfo.durability - durabilityLoss);
+                     const actualLoss = oldDurability - itemInfo.durability;
+                     feedback = `${itemInfo.name} subisce ${actualLoss} danni alla durabilità.`;
+                     if (itemInfo.durability <= 0) {
+                         feedback += " È rotto!";
+                         messageType = 'danger';
+                     } else {
+                          messageType = 'warning';
+                     }
+                     if (typeof renderStats === 'function') renderStats(); // Aggiorna UI
+                } else {
+                    feedback = `(Nessun ${targetEquip} equipaggiato o senza durabilità per subire danni)`;
+                    messageType = 'info';
+                }
+                break;
+
+            default:
+                console.warn("applyPenalty: Tipo di penalità sconosciuto", penaltyObject.type);
+                feedback = "(Tipo di penalità non gestito)";
+                break;
+        }
+
+        // Logga il messaggio di feedback (potrebbe essere duplicato se chiamato dentro handleEventChoice prima di buildAndShowComplexEventOutcome)
+        // Decidiamo di non loggarlo qui, handleEventChoice si occupa del log dell'esito completo.
+        // addMessage(feedback, messageType);
+
+        return feedback; // Ritorna la stringa di feedback per il popup
+    } // Chiusura corretta per applyPenalty
+
+    /**
+     * Esegue un check passivo per trovare loot nel rifugio 'R' durante la notte.
+     * Chiamata da closeEventPopup quando viene chiuso il popup specifico.
+     * Dipende da: game_constants.js (player, SHELTER_INSPECT_LOOT_WEIGHTS), game_data.js (ITEM_DATA),
+     * game_utils.js (addMessage, chooseWeighted), player.js (addItemToInventory).
+     */
+    function performRestStopNightLootCheck() {
+        // Verifica che le dipendenze necessarie siano disponibili
+        if (typeof player === 'undefined' || typeof player.presagio === 'undefined') {
+            console.error("performRestStopNightLootCheck: Oggetto player o player.presagio non definito.");
+            return; // Esce se il giocatore non è definito
+        }
+        if (typeof SHELTER_INSPECT_LOOT_WEIGHTS === 'undefined') {
+            console.error("performRestStopNightLootCheck: SHELTER_INSPECT_LOOT_WEIGHTS non definito in game_constants.js.");
+            return;
+        }
+        if (typeof ITEM_DATA === 'undefined') {
+            console.error("performRestStopNightLootCheck: ITEM_DATA non definito in game_data.js.");
+            return;
+        }
+        if (typeof chooseWeighted !== 'function') {
+            console.error("performRestStopNightLootCheck: Funzione chooseWeighted non trovata (game_utils.js).");
+            return;
+        }
+         if (typeof addItemToInventory !== 'function') {
+            console.error("performRestStopNightLootCheck: Funzione addItemToInventory non trovata (player.js).");
+            return;
+        }
+        if (typeof addMessage !== 'function') {
+            console.error("performRestStopNightLootCheck: Funzione addMessage non trovata (game_utils.js).");
+            return;
+        }
+
+        // 1. Calcolare la probabilità di trovare loot basata su Presagio
+        const baseChance = 0.10;
+        // Applica bonus solo se presagio > 10
+        const presagioBonus = player.presagio > 10 ? (player.presagio - 10) * 0.02 : 0;
+        let lootChance = baseChance + presagioBonus;
+        // Limita la probabilità tra 0 e 1
+        lootChance = Math.max(0.0, Math.min(1.0, lootChance));
+
+        // 2. Generare numero casuale
+        const randomRoll = Math.random();
+
+        // 3. Controllare se si trova loot
+        if (randomRoll < lootChance) {
+            // Loot trovato!
+            // Prepara la tabella di loot per chooseWeighted
+            const lootTable = Object.keys(SHELTER_INSPECT_LOOT_WEIGHTS).map(id => ({
+                id: id,
+                weight: SHELTER_INSPECT_LOOT_WEIGHTS[id]
+            }));
+
+            if (lootTable.length === 0) {
+                 console.warn("performRestStopNightLootCheck: La tabella di loot SHELTER_INSPECT_LOOT_WEIGHTS è vuota o non valida.");
+                 return; // Esci se la tabella è vuota
+            }
+
+            // Scegli un oggetto dalla tabella
+            const chosenLoot = chooseWeighted(lootTable);
+
+            if (chosenLoot && chosenLoot.id) {
+                // Oggetto valido scelto
+                const itemInfo = ITEM_DATA[chosenLoot.id];
+                const quantity = 1; // Quantità fissa per questo check passivo
+
+                if (itemInfo) {
+                    // Informazioni oggetto valide, aggiungi all'inventario
+                    addItemToInventory(chosenLoot.id, quantity);
+                    // Logga il messaggio di successo
+                    addMessage(`Durante il riposo, noti qualcosa di utile nascosto! Trovato: ${itemInfo.name}.`, 'success', true);
+                    // addItemToInventory aggiorna già renderInventory
+                } else {
+                    // Logga warning se l'ID oggetto scelto non esiste in ITEM_DATA
+                    console.warn(`performRestStopNightLootCheck: Loot scelto ('${chosenLoot.id}') non trovato in ITEM_DATA.`);
+                }
+            } else {
+                // Logga warning se chooseWeighted non ha restituito un oggetto valido
+                console.warn("performRestStopNightLootCheck: chooseWeighted non ha restituito un loot valido dalla tabella SHELTER_INSPECT_LOOT_WEIGHTS."); // Mantenuto warn
             }
         } else {
-            // Logga warning se chooseWeighted non ha restituito un oggetto valido
-            console.warn("performRestStopNightLootCheck: chooseWeighted non ha restituito un loot valido dalla tabella SHELTER_INSPECT_LOOT_WEIGHTS.");
+            // 4. Nessun loot trovato
+            addMessage("Riposi senza trovare nulla di particolare nel rifugio.", 'info');
         }
-    } else {
-        // 4. Nessun loot trovato
-        addMessage("Riposi senza trovare nulla di particolare nel rifugio.", 'info');
-    }
-    // Nessun aggiornamento UI diretto necessario qui, dovrebbe essere gestito dopo la chiamata a questa funzione (in closeEventPopup)
-}
+        // Nessun aggiornamento UI diretto necessario qui, dovrebbe essere gestito dopo la chiamata a questa funzione (in closeEventPopup)
+    } // Chiusura corretta per performRestStopNightLootCheck

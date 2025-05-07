@@ -1,5 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -117,7 +118,7 @@ const EVENT_DATA = {
              title: "Frammenti d'Infanzia",
              description: "Un vecchio parco giochi arrugginito emerge dalla sabbia. Altalene contorte cigolano nel vento. Per un attimo, ricordi com'era essere solo un bambino, senza il peso della sopravvivenza.",
              choices: [
-                 { text: "Esplorare i resti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Mentre ti arrampichi sulla struttura del vecchio scivolo, noti un piccolo vano segreto dove qualcuno ha nascosto una scatoletta. Un tesoro infantile dimenticato, ora prezioso.", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "La struttura metallica cede sotto il tuo peso, facendoti cadere. Non c'era nulla di utile, solo fantasmi di risate perdute.", isSearchAction: true },
+                 { text: "Esplorare i resti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Mentre ti arrampichi sulla struttura del vecchio scivolo, noti un piccolo vano segreto dove qualcuno ha nascosto una scatoletta. Un tesoro infantile dimenticato, ora prezioso.", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "La struttura metallica cede sotto il tuo peso, facendoti cadere. Non c'era nulla di utile, solo fantasmi di risate perdute.", isSearchAction: true, actionKey: "explore_playground_remains" },
                  { text: "Riflettere in silenzio", outcome: "Ti siedi sull'altalena, lasciando che i ricordi affiorino. Questa pausa ti ridà energia mentale, anche se il tempo è prezioso." }
              ]
         }
@@ -128,7 +129,7 @@ const EVENT_DATA = {
             title: "Fruscio nel Sottobosco",
             description: "Il silenzio innaturale della foresta è rotto da un fruscio sospetto tra i cespugli. Animale... o qualcos'altro? Indagare potrebbe essere rischioso.",
             choices: [
-                { text: "Indaga furtivamente (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Ti muovi come un'ombra tra gli alberi. È solo un grosso ratto mutato, ma vicino alla sua tana trovi delle bacche.", successReward: { itemId: 'berries', quantity: 1 }, failureText: "Pesti un ramo secco, tradendo la tua presenza! Qualunque cosa fosse, è fuggita nel fitto del bosco." }
+                { text: "Indaga furtivamente (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Ti muovi come un'ombra tra gli alberi. È solo un grosso ratto mutato, ma vicino alla sua tana trovi delle bacche.", successReward: { itemId: 'berries', quantity: 1 }, failureText: "Pesti un ramo secco, tradendo la tua presenza! Qualunque cosa fosse, è fuggita nel fitto del bosco.", actionKey: "investigate_noise_stealthily" }
             ]
         },
         {
@@ -136,7 +137,7 @@ const EVENT_DATA = {
             title: "Tronco Annerito",
             description: "Un albero enorme, sradicato e con la corteccia stranamente annerita, blocca il sentiero. Scavalcarlo sembra difficile, aggirarlo richiede tempo.",
             choices: [
-                 { text: "Tenta di scavalcare (Agilità)", skillCheck: { stat: 'agilita', difficulty: 11 }, successText: "Con un balzo agile e un po' di fortuna, superi l'ostacolo senza intoppi. Noti anche un pezzo di metallo utile incastrato.", successReward: { itemId: 'scrap_metal', quantity: 1 } },
+                 { text: "Tenta di scavalcare (Agilità)", skillCheck: { stat: 'agilita', difficulty: 11 }, successText: "Con un balzo agile e un po' di fortuna, superi l'ostacolo senza intoppi. Noti anche un pezzo di metallo utile incastrato.", successReward: { itemId: 'scrap_metal', quantity: 1 }, actionKey: "climb_fallen_tree" },
                  { text: "Aggira l'ostacolo", outcome: "Decidi di non rischiare. Ti addentri nel bosco fitto, perdendo tempo ma evitando il pericolo immediato." }
             ]
         },
@@ -145,8 +146,8 @@ const EVENT_DATA = {
             title: "Rovi Aggressivi",
             description: "Rampicanti spinosi dall'aspetto malato e aggressivo ostruiscono il passaggio. Sembrano quasi contrarsi al tuo avvicinarsi. Nascondono qualcosa o sono solo un altro pericolo?",
             choices: [
-                { text: "Esamina i rovi (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Osservando attentamente, noti che le spine secernono una linfa densa. Potrebbe essere usata per creare medicine grezze.", successReward: { itemId: 'medicine_crude', quantity: 1 }, failureText: "Queste piante sembrano ostili e forse velenose. Meglio non rischiare di toccarle." },
-                { text: "Forza il passaggio (Potenza)", skillCheck: { stat: 'potenza', difficulty: 13 }, successText: "Con forza bruta, strappi i rampicanti spinosi e ti apri un varco, rimediando solo qualche graffio.", failureText: "Le spine tenaci ti lacerano braccia e vestiti mentre cerchi di passare. Subisci una ferita." }
+                { text: "Esamina i rovi (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Osservando attentamente, noti che le spine secernono una linfa densa. Potrebbe essere usata per creare medicine grezze.", successReward: { itemId: 'medicine_crude', quantity: 1 }, failureText: "Queste piante sembrano ostili e forse velenose. Meglio non rischiare di toccarle.", actionKey: "examine_hostile_vines" },
+                { text: "Forza il passaggio (Potenza)", skillCheck: { stat: 'potenza', difficulty: 13 }, successText: "Con forza bruta, strappi i rampicanti spinosi e ti apri un varco, rimediando solo qualche graffio.", failureText: "Le spine tenaci ti lacerano braccia e vestiti mentre cerchi di passare. Subisci una ferita.", actionKey: "force_passage_vines" }
             ]
         },
          {
@@ -154,8 +155,8 @@ const EVENT_DATA = {
             title: "Rifugio tra gli Alberi",
             description: "Una casa sull'albero malconcia, costruita prima del Crollo, si nasconde tra i rami nodosi. Scale improvvisate di corda danneggiate pendono fino a terra. Potrebbe essere stata il nascondiglio di qualcuno della tua età.",
             choices: [
-                { text: "Arrampicarsi (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Ti arrampichi con cautela. Dentro trovi un diario appartenente a un altro sopravvissuto della tua età. Oltre alle parole di speranza, ha lasciato anche qualcosa di utile.", successReward: { itemId: 'vitamins', quantity: 1 }, failureText: "La corda marcia si spezza sotto il tuo peso. Cadi malamente, sbattendo contro un ramo. Un rifugio fuori portata, per ora.", isSearchAction: true },
-                { text: "Ispezionare la base (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai piedi dell'albero trovi un piccolo contenitore impermeabile nascosto tra le radici. Prudenza di chi sapeva che non sempre si può salire.", successReward: { itemId: 'bandages_clean', quantity: 1 }, failureText: "Non trovi nulla di utile alla base. Forse ogni cosa di valore è stata già presa, o si trova ancora lassù, irraggiungibile.", isSearchAction: true }
+                { text: "Arrampicarsi (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Ti arrampichi con cautela. Dentro trovi un diario appartenente a un altro sopravvissuto della tua età. Oltre alle parole di speranza, ha lasciato anche qualcosa di utile.", successReward: { itemId: 'vitamins', quantity: 1 }, failureText: "La corda marcia si spezza sotto il tuo peso. Cadi malamente, sbattendo contro un ramo. Un rifugio fuori portata, per ora.", isSearchAction: true, actionKey: "climb_treehouse" },
+                { text: "Ispezionare la base (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai piedi dell'albero trovi un piccolo contenitore impermeabile nascosto tra le radici. Prudenza di chi sapeva che non sempre si può salire.", successReward: { itemId: 'bandages_clean', quantity: 1 }, failureText: "Non trovi nulla di utile alla base. Forse ogni cosa di valore è stata già presa, o si trova ancora lassù, irraggiungibile.", isSearchAction: true, actionKey: "inspect_treehouse_base" }
             ]
          }
     ],
@@ -174,8 +175,8 @@ const EVENT_DATA = {
             title: "Riflessi nell'Acqua Torbida",
             description: "La corrente lenta del fiume crea una superficie quasi calma. Ti sporgi per riempire la borraccia e intravedi il tuo riflesso: un volto giovane segnato da esperienze che nessun diciassettenne dovrebbe affrontare. Questo mondo ti ha trasformato.",
             choices: [
-                { text: "Fermarsi a riposare (Vigore)", skillCheck: { stat: 'vigore', difficulty: 10 }, successText: "Ti permetti un raro momento di pace. Lavi via la polvere del viaggio e raccogli i pensieri. Questo breve ristoro rinvigorisce il corpo e lo spirito. Ti senti pronto a continuare.", successReward: { itemId: 'water_purified_small', quantity: 1 }, failureText: "Cercando di rilassarti, la stanchezza ti travolge. Ti addormenti brevemente e ti svegli disorientato, sentendoti più affaticato di prima. Hai perso tempo prezioso.", isSearchAction: true },
-                { text: "Guardare oltre la superficie (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Scrutando più attentamente l'acqua, noti un bagliore metallico sul fondale poco profondo. Immergendo cautamente un braccio, recuperi un oggetto utile che la corrente ha trasportato qui.", successReward: { itemId: 'mechanical_parts', quantity: 2 }, failureText: "Mentre fissi l'acqua, la tua mente vaga. Visioni inquietanti di città sommerse e segreti sepolti ti turbano. Ti allontani dalla riva, sentendoti a disagio.", isSearchAction: true }
+                { text: "Fermarsi a riposare (Vigore)", skillCheck: { stat: 'vigore', difficulty: 10 }, successText: "Ti permetti un raro momento di pace. Lavi via la polvere del viaggio e raccogli i pensieri. Questo breve ristoro rinvigorisce il corpo e lo spirito. Ti senti pronto a continuare.", successReward: { itemId: 'water_purified_small', quantity: 1 }, failureText: "Cercando di rilassarti, la stanchezza ti travolge. Ti addormenti brevemente e ti svegli disorientato, sentendoti più affaticato di prima. Hai perso tempo prezioso.", isSearchAction: true, actionKey: "rest_by_river" },
+                { text: "Guardare oltre la superficie (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Scrutando più attentamente l'acqua, noti un bagliore metallico sul fondale poco profondo. Immergendo cautamente un braccio, recuperi un oggetto utile che la corrente ha trasportato qui.", successReward: { itemId: 'mechanical_parts', quantity: 2 }, failureText: "Mentre fissi l'acqua, la tua mente vaga. Visioni inquietanti di città sommerse e segreti sepolti ti turbano. Ti allontani dalla riva, sentendoti a disagio.", isSearchAction: true, actionKey: "look_beyond_surface" }
             ]
          }
     ],
@@ -185,7 +186,7 @@ const EVENT_DATA = {
             title: "Villaggio Fantasma",
             description: "Le rovine silenziose di un piccolo insediamento. Tende strappate e baracche vuote gemono al vento. Cosa è successo qui? Forse è rimasto qualcosa tra le macerie.",
             choices: [
-                { text: "Cerca tra le macerie (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Dopo un'attenta ricerca tra i detriti polverosi, trovi del cibo in scatola ancora intatto!", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "Trovi solo polvere, vetri rotti e i fantasmi silenziosi di vite spezzate. Nulla di utile.", isSearchAction: true },
+                { text: "Cerca tra le macerie (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Dopo un'attenta ricerca tra i detriti polverosi, trovi del cibo in scatola ancora intatto!", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "Trovi solo polvere, vetri rotti e i fantasmi silenziosi di vite spezzate. Nulla di utile.", isSearchAction: true, actionKey: "search_village_rubble" },
                 { text: "Riposati all'ombra", outcome: "Ti siedi al riparo di un muro diroccato, recuperando un po' il fiato, ma il silenzio del luogo è opprimente." }
             ]
         },
@@ -194,7 +195,7 @@ const EVENT_DATA = {
             title: "Silenzio Innaturale",
             description: "Un silenzio opprimente grava su questo luogo. Non si sente il vento, né il verso di animali. Un brutto presentimento ti attanaglia.",
             choices: [
-                { text: "Ascolta l'istinto (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Il tuo sesto senso ti guida verso una tenda collassata. All'interno, trovi delle bende dimenticate nella fuga.", successReward: { itemId: 'bandages_dirty', quantity: 1 }, failureText: "Ascolti attentamente, ma percepisci solo il silenzio e un crescente senso di disagio. Meglio andarsene.", isSearchAction: true },
+                { text: "Ascolta l'istinto (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Il tuo sesto senso ti guida verso una tenda collassata. All'interno, trovi delle bende dimenticate nella fuga.", successReward: { itemId: 'bandages_dirty', quantity: 1 }, failureText: "Ascolti attentamente, ma percepisci solo il silenzio e un crescente senso di disagio. Meglio andarsene.", isSearchAction: true, actionKey: "listen_to_instinct" },
                 { text: "Allontanati in fretta", outcome: "Fidi del tuo istinto e ti allontani rapidamente da questo luogo silenzioso e inquietante." }
             ]
         },
@@ -203,8 +204,8 @@ const EVENT_DATA = {
              title: "Rovine della Scuola",
              description: "I resti di una piccola scuola si ergono tra le case abbandonate. Graffiti sbiaditi e poster educativi si aggrappano ancora alle pareti crepate. Un luogo che un tempo era pieno di ragazzi come te, ora solo un guscio vuoto.",
              choices: [
-                 { text: "Cercare nella biblioteca (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Tra scaffali crollati e libri ammuffiti, trovi una sezione intatta. Un manuale di primo soccorso, ancora leggibile. Le conoscenze del passato possono salvare vite.", successReward: { itemId: 'first_aid_kit', quantity: 1 }, failureText: "La biblioteca è un disastro di carta marcita e polvere. Qualsiasi cosa utile è stata danneggiata dall'umidità o saccheggiata tempo fa.", isSearchAction: true },
-                 { text: "Ispezionare l'aula di scienze (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Nel laboratorio devastato, il tuo intuito ti guida verso un armadietto chiuso. Sfondandolo, trovi provette sigillate contenenti un liquido lattiginoso etichettato come antitossina.", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Il laboratorio è un pericolo: vetri rotti, sostanze chimiche versate e odori acri. Meglio non rischiare di toccare nulla.", isSearchAction: true }
+                 { text: "Cercare nella biblioteca (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Tra scaffali crollati e libri ammuffiti, trovi una sezione intatta. Un manuale di primo soccorso, ancora leggibile. Le conoscenze del passato possono salvare vite.", successReward: { itemId: 'first_aid_kit', quantity: 1 }, failureText: "La biblioteca è un disastro di carta marcita e polvere. Qualsiasi cosa utile è stata danneggiata dall'umidità o saccheggiata tempo fa.", isSearchAction: true, actionKey: "search_school_library" },
+                 { text: "Ispezionare l'aula di scienze (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Nel laboratorio devastato, il tuo intuito ti guida verso un armadietto chiuso. Sfondandolo, trovi provette sigillate contenenti un liquido lattiginoso etichettato come antitossina.", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Il laboratorio è un pericolo: vetri rotti, sostanze chimiche versate e odori acri. Meglio non rischiare di toccare nulla.", isSearchAction: true, actionKey: "inspect_science_lab" }
              ]
         }
     ],
@@ -214,7 +215,7 @@ const EVENT_DATA = {
             title: "Ombre tra i Grattacieli",
             description: "Scheletri di grattacieli graffiano il cielo plumbeo. Il vento fischia tra le finestre rotte come un lamento. Pericolo e tesori dimenticati si nascondono in ogni angolo.",
             choices: [
-                 { text: "Esplora un palazzo (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi...", successReward: { type: 'random_common_resource', quantity: 1 } }, // Modificato per usare ricompensa generica
+                 { text: "Esplora un palazzo (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi...", successReward: { type: 'random_common_resource', quantity: 1 }, actionKey: "explore_building" }, // Modificato per usare ricompensa generica
                  { text: "Attraversa la strada", outcome: "Corri attraverso lo spazio aperto, sentendo gli occhi invisibili delle finestre vuote su di te. Raggiungi l'altro lato senza incidenti, per ora." }
             ]
         },
@@ -237,7 +238,7 @@ const EVENT_DATA = {
             title: "Farmacia Saccheggiata",
             description: "Le insegne sbiadite di una farmacia. Dentro, scaffali rovesciati e blister vuoti ovunque. Forse è rimasto qualcosa di utile tra il disastro.",
             choices: [
-                 { text: "Cerca medicine (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Con pazienza, rovistando tra scatole rotte e vetri infranti, la tua mano si chiude su una siringa intatta!", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Saccheggiata a fondo. Trovi solo confezioni vuote e odore di disinfettante stantio.", isSearchAction: true }
+                 { text: "Cerca medicine (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Con pazienza, rovistando tra scatole rotte e vetri infranti, la tua mano si chiude su una siringa intatta!", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Saccheggiata a fondo. Trovi solo confezioni vuote e odore di disinfettante stantio.", isSearchAction: true, actionKey: "search_pharmacy" }
             ]
         },
         {
@@ -245,8 +246,8 @@ const EVENT_DATA = {
              title: "Territorio di Banda Giovanile",
              description: "Graffiti colorati segnano questo quartiere come territorio di una banda di ragazzi sopravvissuti. Simboli minacciosi ma anche disegni che rivelano la loro giovane età. Segnali contrastanti di pericolo e di possibilità di contatto.",
              choices: [
-                 { text: "Tentare un contatto (Influenza)", skillCheck: { stat: 'influenza', difficulty: 13 }, successText: "Dopo un teso confronto iniziale, riesci a guadagnarti la fiducia del gruppo grazie alla tua giovane età. Ti offrono un piccolo scambio da pari a pari prima di separarsi.", successReward: { itemId: 'crossbow', quantity: 1 }, failureText: "Un fischio acuto risuona tra gli edifici. Sagome si muovono come ombre. 'Questo non è territorio tuo,' grida una voce giovane. Indietreggi lentamente, sentendoti osservato." }, // Non isSearchAction, è un incontro sociale
-                 { text: "Studiare i loro nascondigli (Tracce)", skillCheck: { stat: 'tracce', difficulty: 14 }, successText: "Evitando sapientemente di farti notare, scopri uno dei loro depositi segreti. Prendi solo il minimo necessario, in silenzio e con rispetto.", successReward: { itemId: 'bolt', quantity: 3 }, failureText: "Un suono metallico scatta vicino al tuo piede. Una trappola rudimentale ma efficace. Un avvertimento. Allontanati rapidamente, sentendoti fortunato.", isSearchAction: true }
+                 { text: "Tentare un contatto (Influenza)", skillCheck: { stat: 'influenza', difficulty: 13 }, successText: "Dopo un teso confronto iniziale, riesci a guadagnarti la fiducia del gruppo grazie alla tua giovane età. Ti offrono un piccolo scambio da pari a pari prima di separarsi.", successReward: { itemId: 'crossbow', quantity: 1 }, failureText: "Un fischio acuto risuona tra gli edifici. Sagome si muovono come ombre. 'Questo non è territorio tuo,' grida una voce giovane. Indietreggi lentamente, sentendoti osservato.", actionKey: "contact_teen_gang" }, // Non isSearchAction, è un incontro sociale
+                 { text: "Studiare i loro nascondigli (Tracce)", skillCheck: { stat: 'tracce', difficulty: 14 }, successText: "Evitando sapientemente di farti notare, scopri uno dei loro depositi segreti. Prendi solo il minimo necessario, in silenzio e con rispetto.", successReward: { itemId: 'bolt', quantity: 3 }, failureText: "Un suono metallico scatta vicino al tuo piede. Una trappola rudimentale ma efficace. Un avvertimento. Allontanati rapidamente, sentendoti fortunato.", isSearchAction: true, actionKey: "study_gang_hideouts" }
              ]
         }
     ],
@@ -256,8 +257,8 @@ const EVENT_DATA = {
             title: "Stazione di Servizio Fantasma",
             description: "La carcassa arrugginita di una stazione di servizio. Pompe divelte, vetri rotti, l'interno buio e pieno di detriti. Potrebbe offrire riparo temporaneo o nascondere brutte sorprese.",
             choices: [
-                 { text: "Ispeziona l'interno (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Frugando con attenzione tra gli scaffali rovesciati e la sporcizia, la tua mano si chiude su qualcosa di utile...", successReward: { type: 'random_common_resource', quantity: 1 } }, // Modificato per usare ricompensa generica
-                 { text: "Cerca forniture mediche (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "In un armadietto metallico ammaccato e nascosto, trovi una siringa etichettata 'Antidoto'. Incredibile!", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Non trovi nulla di medico, solo vecchie mappe stradali ammuffite e attrezzi arrugginiti.", isSearchAction: true }
+                 { text: "Ispeziona l'interno (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Frugando con attenzione tra gli scaffali rovesciati e la sporcizia, la tua mano si chiude su qualcosa di utile...", successReward: { type: 'random_common_resource', quantity: 1 }, actionKey: "inspect_gas_station" }, // Modificato per usare ricompensa generica
+                 { text: "Cerca forniture mediche (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "In un armadietto metallico ammaccato e nascosto, trovi una siringa etichettata 'Antidoto'. Incredibile!", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Non trovi nulla di medico, solo vecchie mappe stradali ammuffite e attrezzi arrugginiti.", isSearchAction: true, actionKey: "search_gas_station_medical" }
             ]
         },
         {
@@ -266,14 +267,13 @@ const EVENT_DATA = {
              description: "In un angolo appartato della vecchia area di servizio, qualcuno ha creato una sorta di 'muro della memoria' con fotografie, pagine di riviste e scritte. Ragazzi e ragazze sorridenti, 'primi baci', 'feste dei 18 anni'. Riti di passaggio di un'era scomparsa.",
              choices: [
                  { text: "Riflettere sulla propria identità", outcome: "Ti soffermi davanti a quelle immagini, pensando a ciò che il mondo ti ha negato. Non c'è più spazio per cerimonie o celebrazioni, solo sopravvivenza. Eppure, in qualche modo, sei diventato adulto troppo presto in questo mondo morente." },
-                 { text: "Cercare dietro il muro (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Spostando alcune foto, scopri che il muro nasconde un piccolo nascondiglio. Qualcuno aveva preparato una 'capsula del tempo' per il futuro, non sapendo quanto sarebbe stato diverso. Trovi oggetti utili tra i ricordi.", successReward: { itemId: 'repair_kit', quantity: 1 }, failureText: "Non trovi nulla dietro le immagini. Solo cemento freddo e la realtà che alcuni passaggi della vita sono andati perduti per sempre.", isSearchAction: true }
+                 { text: "Cercare dietro il muro (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Spostando alcune foto, scopri che il muro nasconde un piccolo nascondiglio. Qualcuno aveva preparato una 'capsula del tempo' per il futuro, non sapendo quanto sarebbe stato diverso. Trovi oggetti utili tra i ricordi.", successReward: { itemId: 'repair_kit', quantity: 1 }, failureText: "Non trovi nulla dietro le immagini. Solo cemento freddo e la realtà che alcuni passaggi della vita sono andati perduti per sempre.", isSearchAction: true, actionKey: "search_behind_wall" }
              ]
         },
         {
             id: "rest_stop_day_interaction",
             title: "Rifugio Precario (Giorno)",
             description: "Questo ammasso di lamiere e teli offre un riparo temporaneo dal vento e dalla polvere. Cosa vuoi fare?",
-            // La condizione 'isDay' verrà verificata in triggerTileEvent
             choices: [
                 {
                     text: "Esplora il rifugio (costa tempo)",
@@ -317,6 +317,22 @@ const ITEM_DATA = {
     'herbal_salve': { id: 'herbal_salve', name: "Unguento Erbaceo", description: "Un unguento denso e aromatico fatto con erbe comuni. Lenisce il dolore e accelera la guarigione.", type: 'healing', category: 'Medical', effect: { type: 'add_resource', resource_type: 'hp', amount: 4 }, usable: true, stackable: true }, // Cure HP
     'first_aid_kit': { id: 'first_aid_kit', name: "Kit Primo Soccorso", description: "Una piccola borsa contenente il necessario per trattare ferite moderate. Meglio delle bende sporche.", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isInjured', chance: 0.9, success_message: "Il kit ti permette di medicare efficacemente la ferita.", failure_message: "Nonostante le cure, la ferita non migliora molto.", heal_hp_on_success: 6 }, usable: true, stackable: false },
     'antidote': { id: 'antidote', name: "Antidoto", description: "Una siringa contenente un liquido lattiginoso. Sembra un antidoto universale, forse...", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isPoisoned', chance: 1.0, success_message: "Il bruciore nelle vene svanisce. L'antidoto ha funzionato!" }, usable: true, stackable: true },
+    'medicine_crude': {
+        id: 'medicine_crude',
+        name: "Medicina Grezza",
+        description: "Una poltiglia appiccicosa e dall'odore pungente, ottenuta da piante mutate. Potrebbe aiutare contro le infezioni, ma ingerirla è sconsigliato.",
+        usable: true,
+        stackable: true,
+        type: 'healing',
+        category: 'Medical',
+        effect: {
+            type: 'cure_status',
+            status_cured: 'isSick',
+            chance: 0.3,
+            success_message: "Applichi la poltiglia. L'infezione sembra regredire leggermente.",
+            failure_message: "La medicina grezza non sembra avere alcun effetto benefico.",
+        }
+    },
 
     // Materiali e Attrezzi (Not Usable directly, Crafting/Tool)
     'scrap_metal': { id: 'scrap_metal', name: "Rottame Metallico", description: "Un pezzo di metallo contorto e arrugginito. Utile per riparazioni o crafting.", usable: false, type: 'crafting', category: 'Crafting', stackable: true },
@@ -346,6 +362,52 @@ const ITEM_DATA = {
 
     // --- FINE DEFINIZIONE OGGETTI ---
 };
+
+// Scenari specifici per eventi Dilemma Morale
+const dilemmaEvents = [
+    {
+        id: "dilemma_scenario_1", // TODO: Sostituire con ID fornito (es. "dilemma_suspicious_cache")
+        title: "Titolo Scenario 1", // TODO: Sostituire con Titolo fornito
+        description: "Descrizione Scenario 1...", // TODO: Sostituire con Descrizione fornita
+        choices: [
+            // TODO: Inserire qui le scelte per lo scenario 1
+            // Esempio scelta:
+            // {
+            //     text: "Testo Scelta A",
+            //     skillCheck: { stat: 'presagio', difficulty: 12 },
+            //     successText: "Esito positivo A...",
+            //     successReward: { itemId: 'canned_food', quantity: 1 },
+            //     failureText: "Esito negativo A..."
+            // },
+            // {
+            //     text: "Testo Scelta B",
+            //     outcome: "Esito diretto B...",
+            //     // Eventuali penalità o effetti diretti
+            // }
+        ]
+    },
+    {
+         id: "dilemma_scenario_2", // TODO: Sostituire con ID fornito (es. "dilemma_wounded_stranger")
+         title: "Titolo Scenario 2", // TODO: Sostituire con Titolo fornito
+         description: "Descrizione Scenario 2...", // TODO: Sostituire con Descrizione fornita
+         choices: [
+             // TODO: Inserire qui le scelte per lo scenario 2
+         ]
+    },
+    {
+         id: "dilemma_scenario_3", // TODO: Sostituire con ID fornito (es. "dilemma_radio_signal")
+         title: "Titolo Scenario 3", // TODO: Sostituire con Titolo fornito
+         description: "Descrizione Scenario 3...", // TODO: Sostituire con Descrizione fornita
+         choices: [
+             // TODO: Inserire qui le scelte per lo scenario 3
+         ]
+    }
+];
+
+// Array per testi di esito generici dei dilemmi (attualmente vuoti)
+const esitiDilemmaSuccessoGenerico = [];
+const esitiDilemmaFallimentoGenerico = [];
+
 
 // --- TESTI VARIABILI (Flavor, Lore, Eventi Complessi) ---
 // Questi array contengono la maggior parte dei testi descrittivi e narrativi del gioco.
@@ -476,6 +538,24 @@ const esitiSeguiTracceOkNulla = [
     "L'istinto ti dice di lasciar perdere. A volte, l'ignoranza è la scelta più sicura."
 ];
 
+// Esiti per Fuga Predoni KO
+const esitiFugaPredoniKo = [
+    "Ti prendono quasi subito. La loro velocità è sorprendente.",
+    "Inciampi e cadi rovinosamente. Sei alla loro mercé.",
+    "Ti circondano rapidamente, bloccando ogni via di fuga.",
+    "Un proiettile vagante o un colpo ben piazzato ti ferisce mentre scappi, rallentandoti.",
+    "Corri in un vicolo cieco. Trappola mortale."
+];
+
+// Esiti per Parla Predoni KO
+const esitiParlaPredoniKo = [
+    "Le tue parole sono solo rumore per loro. Ridono della tua ingenuità prima di colpirti.",
+    "Il capo ti zittisce con uno sguardo gelido. Non c'è spazio per la diplomazia qui.",
+    "Appena apri bocca, uno di loro ti colpisce alle spalle.",
+    "'Parole? Il cibo parla più forte!', ringhia uno di loro.",
+    "Ti ascoltano in silenzio, poi scuotono la testa. Non sono interessati."
+];
+
 // Aggiungere qui altre descrizioni per eventi complessi (Villaggio Ostile, Rifugio Strano, Pericolo Ambientale, Dilemma Morale, Orrore)
 // ...
 
@@ -488,4 +568,13 @@ const mountainBlockMessages = [
     "Un ragazzino di 17 anni non scala queste vette. Ci vuole più di un po' di coraggio.",
     "Queste rocce sono troppo ripide e friabili. Meglio cercare un altro sentiero.",
     "Senti i muscoli lamentarsi solo a guardare quelle cime. Trovare un percorso alternativo è l'unica scelta sensata."
+];
+
+// Descrizioni per eventi complessi di Orrore Indicibile
+const descrizioniOrroreIndicibile = [
+    "Senti un sussurro gelido direttamente nella tua mente, parole in una lingua morta che promettono oblio.",
+    "Le ombre sembrano allungarsi e contorcersi, assumendo forme vagamente umanoidi che ti osservano da ogni angolo.",
+    "Un odore nauseabondo di decomposizione e ozono ti riempie le narici. Qualcosa di innaturale è vicino.",
+    "La temperatura precipita inspiegabilmente. Vedi il tuo respiro condensarsi mentre un terrore primordiale ti attanaglia.",
+    "Una risata infantile e distorta riecheggia nel silenzio, ma non c'è nessuno..."
 ];

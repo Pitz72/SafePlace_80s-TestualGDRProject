@@ -1,5 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/ui.js
  * Descrizione: Gestisce il rendering e l'aggiornamento dell'interfaccia utente.
  * Dipende da: game_constants.js, game_data.js, dom_references.js, game_utils.js
@@ -936,7 +937,19 @@ function closeEventPopup() {
         // Non chiamare enableControls/renderMap/renderStats qui sotto, perché transitionToDay dovrebbe farlo.
     } else {
         // 5. Nel blocco else (tutti gli altri casi):
-        //    * Mantieni la logica originale
+        //    * AGGIUNTO BLOCCO PER IMPOSTARE FLAG dayEventDone
+        if (closingEventContext && closingEventContext.id === 'rest_stop_day_interaction') {
+            // Marca il tile corrente come "evento diurno completato"
+            // Verifica robusta che map, player.y, player.x siano validi
+            if (map && map[player.y] && map[player.y][player.x]) {
+                map[player.y][player.x].dayEventDone = true;
+                console.log(`>>> Tile (${player.x},${player.y}) marcato come dayEventDone.`); // Log diagnostico
+            } else {
+                 console.error("closeEventPopup: Impossibile marcare il tile, coordinate giocatore o mappa non valide?");
+            }
+        }
+
+        //    * Mantieni la logica originale per riabilitare controlli e aggiornare UI
         if(typeof enableControls === 'function') enableControls(); else console.error("closeEventPopup: enableControls non disponibile.");
         if(typeof renderMap === 'function') renderMap(); else console.error("closeEventPopup: renderMap non disponibile.");
         if(typeof renderStats === 'function') renderStats(); else console.error("closeEventPopup: renderStats non disponibile.");

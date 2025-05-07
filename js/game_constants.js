@@ -1,11 +1,12 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.08
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
-const GAME_VERSION = "0.7.02";
+const GAME_VERSION = "0.7.08";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -155,6 +156,8 @@ const PREDATOR_FIGHT_FAIL_DAMAGE_MIN = 5;
 const PREDATOR_FIGHT_FAIL_DAMAGE_MAX = 12;
 const PREDATOR_TALK_FAIL_DAMAGE_MIN = 1; // Danno iniziale da aggressione immediata
 const PREDATOR_TALK_FAIL_DAMAGE_MAX = 4;
+const PREDATOR_FIGHT_FAIL_LOOT_LOSS_CHANCE = 0.50; // 50% chance di perdere loot se fallisci la lotta
+const PREDATOR_FIGHT_FAIL_LOOT_LOSS_MAX = 2; // Massimo 2 unità di cibo/acqua perse
 
 const ANIMAL_EVADE_FAIL_DAMAGE_MIN = 3;
 const ANIMAL_EVADE_FAIL_DAMAGE_MAX = 7;

@@ -30,6 +30,9 @@
 /* Stile specifico per la Schermata di Fine Gioco (sul div #end-screen) */
 #end-screen {
      /* Eredita stili .overlay (display: flex, centrato) */
+     /* Assicuriamoci che abbia uno sfondo (anche se eredita da overlay) e padding */
+     /* background-color: var(--overlay-bg); /* Già ereditato */
+     padding: 40px; /* Aggiungi padding interno */
      /* display: none; */ /* Nascosto inizialmente tramite JS (verrà mostrato impostando display: flex) */
      flex-direction: column; /* Impila gli elementi interni (#end-title, #end-message, button) in una colonna */
      text-align: center; /* Allinea il testo (e gli elementi in-line) al centro */
@@ -43,6 +46,7 @@
 
 #end-screen #end-message { /* Messaggio di fine gioco */
      white-space: pre-wrap; /* Mantiene i caratteri di a capo (\n) e gli spazi nel testo impostato da JS */
+     color: var(--fg-color); /* Colore esplicito per sicurezza (verde brillante) */
      max-height: 60%; /* Limita l'altezza massima del messaggio per evitare overflow su schermi piccoli */
      overflow-y: auto; /* Aggiunge una scrollbar se il messaggio è troppo lungo */
      margin-bottom: 20px; /* Spazio sotto il messaggio */
@@ -54,9 +58,9 @@
 }
 
 #end-screen button { /* Bottone "Ricomincia" */
-     background-color: #111; /* Sfondo scuro */
+     background-color: var(--border-dim-color); /* Usa un verde scuro per distinguerlo */
      color: var(--fg-color); /* Testo verde */
-     border: 1px solid var(--border-color); /* Bordo verde */
+     border: 2px solid var(--border-color); /* Bordo verde più spesso */
      padding: 10px 20px; /* Padding */
      font-family: inherit; /* Eredita il font monospaced */
      font-size: 1.1em; /* Dimensione font */
@@ -67,6 +71,7 @@
 #end-screen button:hover {
      background-color: var(--highlight-bg); /* Sfondo evidenziato */
      color: var(--highlight-fg); /* Testo evidenziato */
+     border-color: var(--highlight-bg); /* Cambia anche colore bordo su hover */
 }
 
 
