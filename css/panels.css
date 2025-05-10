@@ -305,3 +305,29 @@
     background-color: #111;
 }
 */
+
+/* Stili per il pannello statistiche a due colonne */
+#stats-list.two-column-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Due colonne di uguale larghezza */
+    gap: 0px 10px; /* Spazio tra righe (0px) e colonne (10px) */
+    padding-left: 0; /* Rimuove padding di default di ul */
+}
+
+#stats-list.two-column-stats li {
+    list-style-type: none; /* Rimuove i bullet point */
+    /* padding: 2px 0; */ /* Padding verticale per ogni riga di statistica */
+    /* Il testo della statistica è già gestito dallo span e dal testo del li */
+}
+
+/* Stile per gli elementi che devono occupare l'intera larghezza */
+#stats-list.two-column-stats li.full-width-stat,
+#stats-list.two-column-stats li.full-width-separator {
+    grid-column: span 2; /* Occupa entrambe le colonne */
+    text-align: center; /* Centra il testo per separatori e bottoni */
+}
+
+#stats-list.two-column-stats li.full-width-separator {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}

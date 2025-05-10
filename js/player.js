@@ -49,6 +49,9 @@ function generateCharacter() {
         isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check
         isSick: false,    // Malato: Subisce danno per movimento/notte, penalità a Vigore/Adattamento check, consumo extra risorse
         isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
+        poisonDuration: 0,      // Turni rimanenti di avvelenamento
+        currentLocationType: null, // Tipo di tile attuale (simbolo)
+        knownRecipes: [],       // Array delle ricette conosciute
 
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
@@ -133,17 +136,18 @@ function addItemToInventory(itemId, quantity) {
 
     // Cerca se l'oggetto è già presente nell'inventario
     const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
-
-    // Se l'oggetto è stackable (o non ha la proprietà stackable, consideriamo true di default per stackable)
-    // e esiste già nell'inventario:
-    const isStackable = itemInfo.stackable !== false; // stackable: false è esplicito per non stackabili
+    const isStackable = itemInfo.stackable !== false;
+    console.log(`DEBUG: addItemToInventory - INIZIO. Item: ${itemId}, Quantità da aggiungere: ${quantity}, Stackable: ${isStackable}, Slot esistente?: ${existingItemSlot ? 'Sì' : 'No'}`, existingItemSlot || ''); // NUOVO LOG
 
     if (isStackable && existingItemSlot) {
         // Se esiste e stackable, aumenta la quantità
+        console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità precedente: ${existingItemSlot.quantity}, Da aggiungere: ${quantity}`); // NUOVO LOG
         existingItemSlot.quantity += quantity;
+        console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità NUOVA: ${existingItemSlot.quantity}`); // NUOVO LOG
         // console.log(`Aggiunto ${quantity}x ${itemInfo.name} all'inventario. Quantità totale: ${existingItemSlot.quantity}`); // Log di debug
     } else {
         // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
+        console.log(`DEBUG: addItemToInventory - NUOVO SLOT o NON STACKABLE. Item: ${itemId}, Quantità: ${quantity}`); // NUOVO LOG
         if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
             // Inventario pieno, informa il giocatore e non aggiungere
             // console.warn(`addItemToInventory: Inventario pieno, non puoi raccogliere ${itemInfo.name}.`); // Log di debug
@@ -193,9 +197,12 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
 
     const itemInfo = ITEM_DATA[itemId]; // Usato solo per il nome nel log
     const itemName = itemInfo ? itemInfo.name : itemId;
+    const currentQuantityInSlot = player.inventory[itemIndex].quantity;
+    console.log(`DEBUG: removeItemFromInventory - INIZIO. Item: ${itemId}, quantityToRemove: ${quantityToRemove}, currentQuantityInSlot: ${currentQuantityInSlot}`); // NUOVO LOG
 
     // Se quantityToRemove <= 0, rimuovi l'intero stack
-    if (quantityToRemove <= 0 || quantityToRemove >= player.inventory[itemIndex].quantity) {
+    if (quantityToRemove <= 0 || quantityToRemove >= currentQuantityInSlot) {
+        console.log(`DEBUG: removeItemFromInventory - Condizione VERA (rimozione stack). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         const removedQuantity = player.inventory[itemIndex].quantity;
         player.inventory.splice(itemIndex, 1); // Rimuovi l'elemento dall'array
 
@@ -204,6 +211,7 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
 
     } else {
         // Altrimenti, riduci la quantità
+        console.log(`DEBUG: removeItemFromInventory - Condizione FALSA (riduzione quantità). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         player.inventory[itemIndex].quantity -= quantityToRemove;
          // console.log(`Rimosso ${quantityToRemove}x ${itemName} dall'inventario. Rimanenti: ${player.inventory[itemIndex].quantity}.`); // Log di debug
         addMessage(`Hai perso ${itemName} (x${quantityToRemove}).`, 'info');
@@ -241,6 +249,9 @@ function useItem(itemId) {
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
+    const itemSlot = player.inventory[itemIndex]; // Slot originale
+    console.log(`DEBUG: useItem - INIZIO. Item: ${itemId}, Quantità nello slot: ${itemSlot.quantity}, Idratazione iniziale: ${player.water}`); // NUOVO LOG
+
     if (!itemInfo.usable) {
         addMessage(`${itemInfo.name} non può essere usato direttamente.`, "warning");
         if (typeof closeEventPopup === 'function') closeEventPopup();
@@ -289,8 +300,10 @@ function useItem(itemId) {
                  messageType = 'success';
             // MODIFICATO: Usa currentEffect.resource_type
             } else if (currentEffect.resource_type === 'water') {
+                const waterPrimaDellEffetto = player.water; // Salva acqua prima
                 player.water = Math.min(player.water + amountToAdd, 10); // Limite Idratazione a 10
                  consumptionMessage = `Hai usato ${itemInfo.name}. Idratazione +${amountToAdd}. Totale: ${Math.floor(player.water)}.`;
+                 console.log(`DEBUG: useItem - EFFETTO ACQUA. Idratazione Prima: ${waterPrimaDellEffetto}, Amount Aggiunto da Effetto: ${amountToAdd}, Idratazione Dopo: ${player.water}`); // NUOVO LOG
                  messageType = 'success';
             } else {
                 // MODIFICATO: Usa currentEffect.resource_type
@@ -556,6 +569,33 @@ function useItem(itemId) {
             break; // Fine case 'random_pill_effect'
         // ...
 
+        case 'learn_recipe': // NUOVO CASO PER IMPARARE RICETTE
+            if (currentEffect.recipeKey) {
+                if (!player.knownRecipes.includes(currentEffect.recipeKey)) {
+                    player.knownRecipes.push(currentEffect.recipeKey);
+                    const recipeDetails = CRAFTING_RECIPES[currentEffect.recipeKey];
+                    const learnedItemName = recipeDetails ? (recipeDetails.productName || recipeDetails.productId) : currentEffect.recipeKey;
+                    consumptionMessage = `Hai studiato il progetto e imparato a creare: ${learnedItemName}!`;
+                    messageType = 'success';
+                    addMessage(consumptionMessage, messageType, true);
+                    // Il blueprint viene consumato, quindi consumeItem rimane true (default)
+                    effectApplied = true;
+                } else {
+                    consumptionMessage = `Conosci già la ricetta per ${CRAFTING_RECIPES[currentEffect.recipeKey]?.productName || currentEffect.recipeKey}.`;
+                    messageType = 'info';
+                    addMessage(consumptionMessage, messageType);
+                    consumeItem = false; // Non consumare se già conosciuta
+                    effectApplied = false;
+                }
+            } else {
+                console.error(`useItem (learn_recipe): recipeKey mancante nell'effetto per ${itemId}`);
+                consumptionMessage = "Questo progetto sembra incompleto o illeggibile.";
+                messageType = 'warning';
+                consumeItem = true; // Consuma anche se mal definito per non lasciarlo nell'inventario
+                effectApplied = false;
+            }
+            break;
+
         default:
             // MODIFICATO: Usa currentEffect
             console.warn(`useItem: Tipo effetto '${currentEffect.type}' non gestito per item '${itemId}'.`);
@@ -568,9 +608,17 @@ function useItem(itemId) {
 
     // Consumazione dell'oggetto dopo l'applicazione dell'effetto (se consentito)
     if (consumeItem) {
+        const itemSlotPrimaRimozione = player.inventory.find(s => s.itemId === itemId);
+        // Logga una copia profonda per evitare problemi con riferimenti modificati
+        console.log(`DEBUG: useItem - Prima di removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotPrimaRimozione ? itemSlotPrimaRimozione.quantity : 'NON TROVATO'}, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : ''}`, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : '');
+
          // Rimuovi 1 quantità dell'oggetto dall'inventario
          removeItemFromInventory(itemId, 1);
          // removeItemFromInventory chiama già renderInventory e addMessage
+
+        const itemSlotDopoRimozione = player.inventory.find(s => s.itemId === itemId);
+        // Logga una copia profonda
+        console.log(`DEBUG: useItem - Dopo removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotDopoRimozione ? itemSlotDopoRimozione.quantity : 'NON TROVATO (o rimosso)'}, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : ''`, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : '');
     }
 
 
@@ -1105,12 +1153,14 @@ function showItemActionPopup(itemId, source = 'inventory') {
         actions.push({ text: "Usa", handler: () => useItem(itemId), styleKey: 'use' });
     }
     if (source === 'inventory') {
-        if (item.category === 'weapon' || item.category === 'armor') {
+        // CORREZIONE: Controlla item.type invece di item.category
+        if (item.type === 'weapon' || item.type === 'armor') {
             actions.push({ text: "Equipaggia", handler: () => equipItem(itemId), styleKey: 'equip' });
         }
         actions.push({ text: "Lascia", handler: () => dropItem(itemId, 1), styleKey: 'drop' });
     } else if (source === 'equipped') {
-        actions.push({ text: "Rimuovi", handler: () => unequipItem(item.category === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
+        // CORREZIONE: Controlla item.type invece di item.category per coerenza, anche se qui unequipItem prende lo slotKey
+        actions.push({ text: "Rimuovi", handler: () => unequipItem(item.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
     }
 
     actions.forEach(action => {
@@ -1557,6 +1607,17 @@ function attemptCraftItem(recipeKey) {
     }
 
     const recipe = CRAFTING_RECIPES[recipeKey];
+
+    // --- NUOVO CONTROLLO: VERIFICA SE LA RICETTA È CONOSCIUTA ---
+    if (!player.knownRecipes.includes(recipeKey)) {
+        console.warn(`attemptCraftItem: Il giocatore non conosce la ricetta: ${recipeKey}`);
+        addMessage("Non sai ancora come creare questo oggetto. Trova il progetto!", "warning");
+        return;
+    }
+    // --- FINE NUOVO CONTROLLO ---
+
+    // Verifica se il giocatore ha gli ingredienti necessari
+    let hasAllIngredients = true;
 
     // 1. Verifica Requisiti (per ora non ci sono, ma predisponiamo)
     // if (recipe.requirements) {

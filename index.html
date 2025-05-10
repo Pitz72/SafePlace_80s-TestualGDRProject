@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSafePlace v0.7.13 - Roguelike Postapocalittico</title>
+    <title>The Safe Place - v0.7.14</title>
     <meta name="description" content="TheSafePlace v0.7.13 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="css/tooltip.css">
     <link rel="stylesheet" href="css/utilities.css">
     <link rel="stylesheet" href="css/responsive.css"> 
+    <link rel="stylesheet" href="css/reset.css"> 
+    <link rel="stylesheet" href="css/main.css">
     
     <!-- Puoi aggiungere qui altri link per font o icone se necessario -->
 </head>
@@ -78,14 +80,14 @@
                 <div class="control-grid">
                     <!-- I bottoni di movimento chiamano movePlayer direttamente tramite onclick -->
                     <!-- Assicurati che movePlayer sia definita nello scope globale o accessibile -->
-                    <button id="btn-up" onclick="movePlayer(0, -1)">Su (W)</button>
-                    <button id="btn-left" onclick="movePlayer(-1, 0)">Sinistra (A)</button>
-                    <button id="btn-down" onclick="movePlayer(0, 1)">Giù (S)</button>
-                    <button id="btn-right" onclick="movePlayer(1, 0)">Destra (D)</button>
+                    <button id="btn-up" onclick="movePlayer(0, -1)" class="action-button">Su (W)</button>
+                    <button id="btn-left" onclick="movePlayer(-1, 0)" class="action-button">Sinistra (A)</button>
+                    <button id="btn-down" onclick="movePlayer(0, 1)" class="action-button">Giù (S)</button>
+                    <button id="btn-right" onclick="movePlayer(1, 0)" class="action-button">Destra (D)</button>
                     <!-- Aggiungi qui altri bottoni di controllo globale se necessario -->
                     <!-- Il tasto Spazio per "Attendi" è gestito in handleKeyPress, non serve un bottone dedicato per ora -->
                 </div>
-                <button id="save-game-button">Salva Partita</button>
+                <button id="save-game-button" class="action-button">Salva Partita</button>
              </div>
         </section>
 
@@ -102,20 +104,22 @@
              <!-- Pannello Statistiche Personaggio -->
              <section id="stats" class="panel">
                  <h2>STATISTICHE</h2>
-                 <ul id="stats-list">
-                     <li>HP: <span id="stat-hp">--</span> / <span id="stat-maxhp">--</span></li>
-                     <li class="separator">---</li>
-                     <li>Vigore: <span id="stat-vig">--</span></li>
-                     <li>Potenza: <span id="stat-pot">--</span></li>
-                     <li>Agilità: <span id="stat-agi">--</span></li>
-                     <li>Tracce: <span id="stat-tra">--</span></li>
-                     <li>Influenza: <span id="stat-inf">--</span></li>
-                     <li>Presagio: <span id="stat-pre">--</span></li>
-                     <li>Adattamento: <span id="stat-ada">--</span></li>
-                     <li>Acquisita: <span id="stat-acq">--</span></li>
-                     <li class="separator">---</li>
-                     <li>Arma: <span id="stat-weapon">--</span></li>
-                     <li>Armatura: <span id="stat-armor">--</span></li>
+                 <ul id="stats-list" class="two-column-stats">
+                     <!-- Colonna 1 -->
+                     <li>HP: <span id="stat-hp">--</span>/<span id="stat-maxhp">--</span></li>
+                     <li>VIG: <span id="stat-vig">--</span></li>
+                     <li>POT: <span id="stat-pot">--</span></li>
+                     <li>AGI: <span id="stat-agi">--</span></li>
+                     <li>ACQ: <span id="stat-acq">--</span></li> <!-- Acquisita -->
+                     <!-- Colonna 2 -->
+                     <li>TRA: <span id="stat-tra">--</span></li> <!-- Tracce -->
+                     <li>INF: <span id="stat-inf">--</span></li> <!-- Influenza -->
+                     <li>PRE: <span id="stat-pre">--</span></li> <!-- Presagio -->
+                     <li>ADA: <span id="stat-ada">--</span></li> <!-- Adattamento -->
+                     <li class="separator full-width-separator">---</li> <!-- Separatore a larghezza piena -->
+                     <li class="full-width-stat">Arma: <span id="stat-weapon">--</span></li>
+                     <li class="full-width-stat">Armatura: <span id="stat-armor">--</span></li>
+                     <li class="full-width-stat"><button id="open-crafting-button" class="ui-button action-button">Crafting</button></li> 
                  </ul>
              </section>
              <!-- Pannello Legenda Mappa -->
@@ -162,6 +166,39 @@
                 <!-- I bottoni delle azioni (Usa, Equipaggia, Lascia, ecc.) verranno aggiunti qui da JS -->
             </div>
             <button id="item-action-close-button">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- --- Overlay per il Crafting --- -->
+    <div id="crafting-overlay" class="overlay">
+        <div id="crafting-popup" class="popup">
+            <h2>CREA OGGETTO</h2>
+            <div id="crafting-main-content">
+                <div id="crafting-recipe-list-panel">
+                    <h3>Ricette Conosciute</h3>
+                    <ul id="crafting-recipe-list">
+                        <!-- Le ricette verranno popolate da JS -->
+                        <li>Ricetta Placeholder 1</li>
+                        <li>Ricetta Placeholder 2</li>
+                    </ul>
+                </div>
+                <div id="crafting-details-panel">
+                    <h3 id="crafting-recipe-name-title">Seleziona Ricetta</h3>
+                    <p id="crafting-recipe-description">Descrizione dettagliata della ricetta selezionata...</p>
+                    <h4>Ingredienti Richiesti:</h4>
+                    <ul id="crafting-ingredient-list">
+                        <!-- Lista ingredienti (con stato has/missing) popolata da JS -->
+                        <li>Ingrediente A (Ne hai X)</li>
+                        <li>Ingrediente B (Ti manca!)</li>
+                    </ul>
+                    <div id="crafting-requirements">
+                        <!-- Es: Richiede banco da lavoro (se implementato) -->
+                        <p>Requisiti speciali: Nessuno</p>
+                    </div>
+                    <button id="craft-item-button" class="action-button" disabled>Crea Oggetto</button>
+                </div>
+            </div>
+            <button id="crafting-close-button" class="close-button">Chiudi</button>
         </div>
     </div>
 

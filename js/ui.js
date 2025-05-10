@@ -31,13 +31,28 @@ function renderStats() {
     DOM.statHp.textContent = Math.floor(player.hp); // Arrotonda HP a interi per UI
     DOM.statMaxHp.textContent = player.maxHp;
     DOM.statVig.textContent = player.vigore;
+    if (DOM.statVig.parentElement) DOM.statVig.parentElement.setAttribute('title', 'Vigore');
+    
     DOM.statPot.textContent = player.potenza;
+    if (DOM.statPot.parentElement) DOM.statPot.parentElement.setAttribute('title', 'Potenza');
+    
     DOM.statAgi.textContent = player.agilita;
+    if (DOM.statAgi.parentElement) DOM.statAgi.parentElement.setAttribute('title', 'Agilità');
+    
     DOM.statTra.textContent = player.tracce;
+    if (DOM.statTra.parentElement) DOM.statTra.parentElement.setAttribute('title', 'Tracce');
+    
     DOM.statInf.textContent = player.influenza;
+    if (DOM.statInf.parentElement) DOM.statInf.parentElement.setAttribute('title', 'Influenza');
+    
     DOM.statPre.textContent = player.presagio;
+    if (DOM.statPre.parentElement) DOM.statPre.parentElement.setAttribute('title', 'Presagio');
+    
     DOM.statAda.textContent = player.adattamento;
-    DOM.statAcq.textContent = player.acquisita || 0; // Mostra 0 se non definito
+    if (DOM.statAda.parentElement) DOM.statAda.parentElement.setAttribute('title', 'Adattamento');
+    
+    DOM.statAcq.textContent = player.acquisita || 0;
+    if (DOM.statAcq.parentElement) DOM.statAcq.parentElement.setAttribute('title', 'Acquisita');
 
     // Aggiorna visualizzazione risorse (cibo e acqua)
     DOM.statFood.textContent = Math.floor(player.food); // Arrotonda risorse a interi per UI
@@ -779,7 +794,8 @@ function hideItemTooltip() {
  * Dipende da dom_references.js (moveButtons) e game_constants.js (gamePaused).
  */
 function disableControls() {
-    gamePaused = true; // Imposta pausa a livello di logica di gioco
+    // console.log("disableControls: Controlli disabilitati."); // RIMOSSO LOG
+    gamePaused = true; 
     if (!DOM.moveButtons) {
          console.warn("disableControls: moveButtons non trovato.");
          return;
@@ -798,10 +814,9 @@ function disableControls() {
  * Dipende da dom_references.js (moveButtons) e game_constants.js (gamePaused).
  */
 function enableControls() {
-    // Verifica se il gioco è attivo prima di riabilitare (game_core.js lo imposta)
-    // if (!gameActive) return; // Non riabilitare se il gioco è finito
+    // console.log("enableControls: Controlli abilitati."); // RIMOSSO LOG
 
-    gamePaused = false; // Resetta pausa a livello di logica di gioco
+    gamePaused = false; 
     if (!DOM.moveButtons) {
          console.warn("enableControls: moveButtons non trovato.");
          return;
@@ -1269,3 +1284,202 @@ function getItemDetailsHTML(itemInfo) {
 // e le funzioni di logica di gioco principali (initializeGame, movePlayer, endGame,
 // triggerTileEvent, triggerComplexEvent, ecc.) saranno definite in altri moduli.
 // Questo file UI fornisce solo le funzioni per AGGIORNARE LA VISUALIZZAZIONE.                                                                                                                                                                                              
+
+
+// --- NUOVA SEZIONE: Logica Popup Crafting ---
+
+let selectedRecipeKey = null; // Memorizza la ricetta attualmente selezionata nel popup
+
+/**
+ * Mostra il popup di crafting.
+ * Popola la lista delle ricette conosciute dal giocatore.
+ */
+function showCraftingPopup() {
+    // console.log("showCraftingPopup: Apertura popup crafting..."); // RIMOSSO LOG
+    if (!DOM.craftingOverlay || !DOM.craftingPopup || !DOM.craftingRecipeList || !player || !player.knownRecipes) {
+        console.error("showCraftingPopup: Elementi DOM del popup crafting o dati giocatore non pronti.");
+        addMessage("Errore nell'aprire la schermata di crafting.", "error");
+        return;
+    }
+
+    gamePaused = true;
+    eventScreenActive = true; // Usiamo lo stesso flag per coerenza (blocca input mappa)
+    if (typeof disableControls === 'function') disableControls();
+
+    populateCraftingRecipeList(); // RIATTIVATO
+    updateCraftingDetails(null); // RIATTIVATO - Pulisce i dettagli all'inizio
+
+    DOM.craftingOverlay.classList.add('visible');
+    DOM.craftingPopup.classList.add('visible');
+
+    // LOG DI DEBUG RIMOSSI
+    // console.log("CSS - #crafting-overlay opacity:", window.getComputedStyle(DOM.craftingOverlay).opacity);
+    // console.log("CSS - #crafting-overlay visibility:", window.getComputedStyle(DOM.craftingOverlay).visibility);
+    // console.log("CSS - #crafting-overlay z-index:", window.getComputedStyle(DOM.craftingOverlay).zIndex);
+    // console.log("CSS - #crafting-popup display:", window.getComputedStyle(DOM.craftingPopup).display);
+    // if (DOM.craftingCloseButton) {
+    //     console.log("Pulsante Chiudi - offsetParent === null:", DOM.craftingCloseButton.offsetParent === null);
+    // } else {
+    //     console.log("Pulsante Chiudi (DOM.craftingCloseButton) non trovato!");
+    // }
+
+    // Aggiungi listener per chiusura (solo se non già aggiunto in setupInputListeners)
+    if (DOM.craftingCloseButton && !DOM.craftingCloseButton.onclick) {
+        DOM.craftingCloseButton.onclick = () => {
+            // console.log("craftingCloseButton clicked"); // RIMOSSO LOG
+            closeCraftingPopup();
+        };
+    }
+    // Listener per il pulsante "Crea" (solo se non già aggiunto)
+    if (DOM.craftItemButton && !DOM.craftItemButton.onclick) {
+        DOM.craftItemButton.onclick = () => {
+            if (selectedRecipeKey && typeof attemptCraftItem === 'function') {
+                attemptCraftItem(selectedRecipeKey);
+                updateCraftingDetails(selectedRecipeKey); 
+                populateCraftingRecipeList(); 
+            }
+        };
+    }
+}
+
+/**
+ * Nasconde il popup di crafting.
+ */
+function closeCraftingPopup() {
+    // console.log("closeCraftingPopup: Chiusura popup crafting..."); // RIMOSSO LOG
+    if (!DOM.craftingOverlay || !DOM.craftingPopup) {
+        console.warn("closeCraftingPopup: Elementi DOM del popup crafting non pronti.");
+        // Cerca di resettare i flag comunque
+        gamePaused = false;
+        eventScreenActive = false;
+        if (typeof enableControls === 'function') enableControls();
+        return;
+    }
+
+    DOM.craftingOverlay.classList.remove('visible');
+    DOM.craftingPopup.classList.remove('visible');
+    gamePaused = false;
+    eventScreenActive = false;
+    if (typeof enableControls === 'function') enableControls();
+    selectedRecipeKey = null; // Resetta la ricetta selezionata
+}
+
+/**
+ * Popola la lista delle ricette conosciute nel popup di crafting.
+ */
+function populateCraftingRecipeList() {
+    if (!DOM.craftingRecipeList || !player || !player.knownRecipes || !CRAFTING_RECIPES) return;
+
+    DOM.craftingRecipeList.innerHTML = ''; // Pulisce la lista
+
+    if (player.knownRecipes.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = "Non conosci ancora nessuna ricetta. Trova dei progetti!";
+        DOM.craftingRecipeList.appendChild(li);
+        return;
+    }
+
+    player.knownRecipes.forEach(recipeKey => {
+        const recipe = CRAFTING_RECIPES[recipeKey];
+        if (recipe) {
+            const li = document.createElement('li');
+            const button = document.createElement('button');
+            button.textContent = recipe.productName || recipe.productId; // Mostra nome prodotto
+            button.dataset.recipeKey = recipeKey;
+            
+            // Verifica se la ricetta è craftabile (per styling)
+            if (typeof checkIngredients === 'function' && checkIngredients(recipe.ingredients)) {
+                button.classList.add('craftable');
+            } else {
+                button.classList.add('not-craftable');
+            }
+
+            button.onclick = () => {
+                selectedRecipeKey = recipeKey;
+                updateCraftingDetails(recipeKey);
+                // Aggiorna lo stile dei bottoni nella lista per indicare la selezione
+                Array.from(DOM.craftingRecipeList.querySelectorAll('button')).forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                button.classList.add('selected');
+            };
+            li.appendChild(button);
+            DOM.craftingRecipeList.appendChild(li);
+        }
+    });
+}
+
+/**
+ * Aggiorna il pannello dei dettagli della ricetta selezionata.
+ * @param {string | null} recipeKey - La chiave della ricetta selezionata, o null per pulire.
+ */
+function updateCraftingDetails(recipeKey) {
+    if (!DOM.craftingRecipeNameTitle || !DOM.craftingRecipeDescription || !DOM.craftingIngredientList || !DOM.craftItemButton || !DOM.craftingRequirements) return; // UTILIZZA DOM.craftingRecipeNameTitle
+
+    if (!recipeKey || !CRAFTING_RECIPES[recipeKey]) {
+        DOM.craftingRecipeNameTitle.textContent = "Seleziona una ricetta dalla lista."; // UTILIZZA DOM.craftingRecipeNameTitle
+        DOM.craftingRecipeDescription.textContent = "";
+        DOM.craftingIngredientList.innerHTML = "";
+        DOM.craftingRequirements.textContent = "";
+        DOM.craftItemButton.textContent = "Crea";
+        DOM.craftItemButton.classList.add('disabled');
+        DOM.craftItemButton.disabled = true;
+        selectedRecipeKey = null;
+        return;
+    }
+
+    const recipe = CRAFTING_RECIPES[recipeKey];
+    const productInfo = ITEM_DATA[recipe.productId];
+
+    DOM.craftingRecipeNameTitle.textContent = recipe.productName || recipe.productId; // UTILIZZA DOM.craftingRecipeNameTitle
+    DOM.craftingRecipeDescription.textContent = productInfo?.description || recipe.description || "Nessuna descrizione per questa ricetta.";
+    
+    DOM.craftingIngredientList.innerHTML = "";
+    let canCraft = true;
+
+    if (recipe.ingredients) {
+        recipe.ingredients.forEach(ing => {
+            const ingredientInfo = ITEM_DATA[ing.itemId];
+            const li = document.createElement('li');
+            const ownedSlot = player.inventory.find(slot => slot.itemId === ing.itemId);
+            const ownedQuantity = ownedSlot ? ownedSlot.quantity : 0;
+            
+            li.textContent = `${ing.quantity}x ${ingredientInfo?.name || ing.itemId}`;
+            
+            if (ownedQuantity >= ing.quantity) {
+                li.classList.add('has-ingredient');
+                li.textContent += ` (Ne hai: ${ownedQuantity})`;
+            } else {
+                li.classList.add('missing-ingredient');
+                li.textContent += ` (Ne hai: ${ownedQuantity} - MANCANTE)`;
+                canCraft = false;
+            }
+            DOM.craftingIngredientList.appendChild(li);
+        });
+    }
+
+    // Gestione requisiti futuri (es. "Serve Fuoco")
+    DOM.craftingRequirements.innerHTML = "";
+    if (recipe.requirements && recipe.requirements.length > 0) {
+        let reqText = "Richiede: ";
+        // Esempio di gestione:
+        // if (recipe.requirements.includes('needs_fire') && !isPlayerNearFire()) { // isPlayerNearFire() da implementare
+        //     reqText += "<span class=\'missing-requirement\'>Fonte di Fuoco</span>";
+        //     canCraft = false;
+        // }
+        DOM.craftingRequirements.innerHTML = reqText;
+    }
+
+
+    if (canCraft) {
+        DOM.craftItemButton.textContent = `Crea ${recipe.productName || recipe.productId}`;
+        DOM.craftItemButton.classList.remove('disabled');
+        DOM.craftItemButton.disabled = false;
+    } else {
+        DOM.craftItemButton.textContent = "Ingredienti Mancanti";
+        DOM.craftItemButton.classList.add('disabled');
+        DOM.craftItemButton.disabled = true;
+    }
+}
+
+// --- FINE Logica Popup Crafting ---

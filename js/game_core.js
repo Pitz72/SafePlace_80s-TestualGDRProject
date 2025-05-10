@@ -1,9 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.14
  * File: js/game_core.js
- * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (se presente), gestione input globali.
- * Dipende da: game_constants.js, game_data.js, map.js, player.js, ui.js, events.js, game_utils.js, dom_references.js
+ * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (implicito), gestione input.
+ * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
  */
 
 // Dipendenze:
@@ -103,6 +103,7 @@ function initializeGame() {
     if (typeof renderMap === 'function') renderMap(); else console.error("initializeGame: renderMap non trovata!");
     if (typeof renderStats === 'function') renderStats(); else console.error("initializeGame: renderStats non trovata!");
     if (typeof renderInventory === 'function') renderInventory(); else console.error("initializeGame: renderInventory non trovata!");
+    if (typeof renderLegend === 'function') renderLegend(); else console.error("initializeGame: renderLegend non trovata!");
     
     addMessage(`Giorno ${gameDay}. L'avventura inizia...`, "info");
 
@@ -396,6 +397,19 @@ function setupInputListeners() {
          console.error("setupInputListeners: saveGameButton non trovato nel DOM!");
     }
 
+    // NUOVO: Listener per il pulsante "Crafting"
+    if (DOM.openCraftingButton) {
+        DOM.openCraftingButton.addEventListener('click', () => {
+            if (typeof showCraftingPopup === 'function') {
+                showCraftingPopup();
+            } else {
+                console.error("setupInputListeners: Funzione showCraftingPopup non trovata in ui.js");
+                if (typeof addMessage === 'function') addMessage("Errore: Funzione Crafting non disponibile.", "error");
+            }
+        });
+    } else {
+        console.warn("setupInputListeners: Pulsante openCraftingButton non trovato nel DOM.");
+    }
 
     // Aggiungere qui altri listener globali se necessario
      console.log("Input listeners impostati.");

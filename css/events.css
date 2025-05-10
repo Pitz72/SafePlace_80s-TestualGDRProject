@@ -22,8 +22,8 @@
 
 /* Classe 'visible' aggiunta con JS per rendere visibile l'overlay */
 .overlay.visible {
-    opacity: 1; /* Rende completamente opaco */
-    visibility: visible; /* Rende visibile */
+    opacity: 1 !important; /* Rende completamente opaco */
+    visibility: visible !important; /* Rende visibile */
     transition-delay: 0s; /* Rimuove il ritardo quando si rende visibile (transizione immediata) */
 }
 
@@ -261,4 +261,175 @@
     border-color: var(--border-dim-color);
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+/* NUOVI STILI PER IL POPUP CRAFTING */
+#crafting-popup {
+    /* Stili base del popup se non ereditati o per sovrascrivere */
+    background-color: #000000; /* Nero puro, come da richiesta per massima oscurità */
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    max-width: 700px; /* Larghezza massima popup crafting */
+    width: 90%;
+    max-height: 80vh; /* Altezza massima */
+    overflow-y: auto;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.7);
+    text-align: left; /* Allineamento testo default a sinistra per i contenuti */
+    display: none; /* Nascosto di default, .visible lo mostrerà */
+}
+
+#crafting-popup.visible {
+    display: flex !important; /* Usa flex per il layout interno principale */
+    flex-direction: column; /* Impila titolo, contenuto, bottone chiusura */
+    /* Aggiungiamo anche visibility e opacity per sicurezza, sebbene controllate dall'overlay */
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+#crafting-popup h2 {
+    text-align: center;
+    color: var(--accent-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-dim-color);
+}
+
+#crafting-main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* Spazio tra lista ricette e dettagli */
+    margin-bottom: 20px;
+    flex-grow: 1; /* Permette a questo contenuto di espandersi */
+    overflow-y: hidden; /* Evita doppio scrollbar se le sezioni interne scrollano */
+}
+
+#crafting-recipe-list-panel, #crafting-details-panel {
+    flex-basis: 50%;
+    padding: 10px;
+    border: 1px solid var(--border-dim-color);
+    overflow-y: auto; /* Permette scroll indipendente per queste sezioni */
+    display: flex;
+    flex-direction: column;
+}
+
+#crafting-recipe-list-panel h3, #crafting-details-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: var(--fg-color);
+    border-bottom: 1px solid var(--border-dim-color);
+    padding-bottom: 5px;
+}
+
+#crafting-recipe-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#crafting-recipe-list li button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 5px;
+    text-align: left;
+    background-color: #222;
+    color: var(--fg-dim-color);
+    border: 1px solid #333;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+#crafting-recipe-list li button.craftable {
+    color: var(--fg-color);
+    border-color: var(--border-color);
+}
+#crafting-recipe-list li button.not-craftable {
+    color: #666;
+    border-color: #444;
+    cursor: not-allowed;
+}
+
+#crafting-recipe-list li button.selected {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+}
+
+#crafting-recipe-name {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#crafting-recipe-description {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    color: var(--fg-dim-color);
+}
+
+#crafting-ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+    font-size: 0.9em;
+}
+#crafting-ingredient-list li {
+    margin-bottom: 3px;
+}
+.has-ingredient { color: var(--fg-color); }
+.missing-ingredient { color: var(--danger-color); font-weight: bold; }
+
+#crafting-requirements {
+    font-size: 0.8em;
+    font-style: italic;
+    color: var(--warning-color);
+    margin-bottom: 15px;
+}
+
+#crafting-popup button#craft-item-button {
+    /* Stile ereditato da .action-button se applicata quella classe, o definito qui */
+    padding: 10px 20px;
+    font-size: 1em;
+    margin: 10px auto 0 auto; 
+}
+
+#crafting-popup button#crafting-close-button {
+    display: block !important; 
+    visibility: visible !important; 
+    opacity: 1 !important; 
+    padding: 10px 18px; /* Allineato con item-action-close-button */
+    font-size: 1em;     /* Allineato */
+    font-family: inherit;
+    width: 50%;         /* Allineato */
+    margin-left: auto;  /* Per centrare */
+    margin-right: auto; /* Per centrare */
+    text-align: center; /* Allineato */
+    margin-top: 20px;   /* Spazio sopra, coerente o aggiustabile */
+    box-sizing: border-box; /* Buona pratica */
+    /* align-self: center; Rimosso, gestito da margin auto */
+}
+
+/* Ripristino e definizione esplicita per i pulsanti del popup di crafting */
+#crafting-popup .action-button,
+#crafting-popup .close-button { /* La classe .close-button ora si applica a #crafting-close-button */
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#crafting-popup .action-button:hover:not(:disabled),
+#crafting-popup .close-button:hover:not(:disabled) {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+}
+
+#crafting-popup .action-button:disabled {
+    color: #555;
+    border-color: #444;
+    background-color: #222;
+    cursor: not-allowed;
 }

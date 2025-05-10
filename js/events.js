@@ -644,6 +644,7 @@ function handleEventChoice(choiceIndex) {
                            if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) {
                                outcomeDescription = getRandomText(descrizioniTracceOkLoot);
                                messageType = 'success';
+                               console.log("DEBUG: TRACKS_LOOT_WEIGHTS:", TRACKS_LOOT_WEIGHTS); // LOG AGGIUNTO PER DEBUG
                                const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
                                if (lootTable.length > 0) {
                                    const chosenLoot = chooseWeighted(lootTable);
@@ -1129,41 +1130,39 @@ function handleEventChoice(choiceIndex) {
     function applyChoiceReward(rewardData) {
         if (!rewardData) return null;
 
-        if (rewardData.items && Array.isArray(rewardData.items)) {
-            // Nuovo formato: ricompensa multipla
-            addMessage("Hai trovato diverse provviste!", 'success'); // Messaggio generico per ricompense multiple
-            for (const itemToGrant of rewardData.items) {
-                if (itemToGrant.itemId && itemToGrant.quantity > 0) {
-                    const itemDefinition = ITEM_DATA[itemToGrant.itemId];
-                    if (itemDefinition) {
-                        addItemToInventory(itemToGrant.itemId, itemToGrant.quantity);
-                        // Messaggio specifico per ogni item aggiunto (potrebbe essere opzionale se c'è un messaggio cumulativo)
-                        // addMessage(`Hai ottenuto: ${itemToGrant.quantity}x ${itemDefinition.name}.`, 'success');
-                    } else {
-                        console.warn(`applyChoiceReward: Item ID '${itemToGrant.itemId}' nell'array items non trovato in ITEM_DATA.`);
-                    }
-                } else if (itemToGrant.type && itemToGrant.quantity > 0) {
-                    // Gestione ricompense casuali all'interno dell'array items
-                    handleRandomRewardType(itemToGrant.type, itemToGrant.quantity);
-                }
-            }
-        } else if (rewardData.itemId && rewardData.quantity > 0) {
-            // Formato standard: ricompensa singola specificata da itemId
-            const itemDefinition = ITEM_DATA[rewardData.itemId];
-            if (itemDefinition) {
-                addItemToInventory(rewardData.itemId, rewardData.quantity);
-                addMessage(`Hai trovato ${rewardData.quantity}x ${itemDefinition.name}.`, 'success');
+        // Gestione ricompensa singola (itemId) o multipla (items array)
+        if (rewardData.itemId) {
+            // Verifica se l'itemId esiste in ITEM_DATA prima di tentare di aggiungerlo
+            if (ITEM_DATA[rewardData.itemId]) {
+                addItemToInventory(rewardData.itemId, rewardData.quantity || 1);
+                const itemInfo = ITEM_DATA[rewardData.itemId];
+                // Messaggio di default se non specificato nel rewardData, altrimenti usa quello dell'evento
+                // addMessage(`Hai ottenuto: ${itemInfo.name}${(rewardData.quantity || 1) > 1 ? ' (x' + (rewardData.quantity || 1) + ')' : ''}.`, 'success');
             } else {
-                console.warn(`applyChoiceReward: Item ID '${rewardData.itemId}' non trovato in ITEM_DATA.`);
+                // ITEM ID NON TROVATO!
+                console.warn(`applyChoiceReward: Item ID '${rewardData.itemId}' non trovato in ITEM_DATA. Ricompensa non aggiunta.`);
+                addMessage(`Hai trovato degli appunti o un oggetto indecifrabile che non puoi utilizzare.`, 'lore'); // Messaggio generico per il giocatore
             }
-        } else if (rewardData.type && rewardData.quantity > 0) {
-            // Formato standard: ricompensa singola casuale specificata da type
-            handleRandomRewardType(rewardData.type, rewardData.quantity);
+        } else if (rewardData.items && Array.isArray(rewardData.items)) {
+            rewardData.items.forEach(itemReward => {
+                if (itemReward.type && itemReward.type.startsWith('random_')) {
+                    handleRandomRewardType(itemReward.type, itemReward.quantity || 1);
+                } else if (itemReward.itemId) {
+                    // Verifica anche qui se l'itemId esiste
+                    if (ITEM_DATA[itemReward.itemId]) {
+                        addItemToInventory(itemReward.itemId, itemReward.quantity || 1);
+                        // const itemInfo = ITEM_DATA[itemReward.itemId];
+                        // addMessage(`Hai ottenuto: ${itemInfo.name}${(itemReward.quantity || 1) > 1 ? ' (x' + (itemReward.quantity || 1) + ')' : ''}.`, 'success');
+                    } else {
+                        console.warn(`applyChoiceReward (multiple items): Item ID '${itemReward.itemId}' non trovato in ITEM_DATA. Ricompensa specifica non aggiunta.`);
+                        addMessage(`Hai trovato qualcosa di rotto o appunti illeggibili.`, 'lore');
+                    }
+                }
+            });
         }
 
-        // Potrebbero esserci altri tipi di ricompense dirette qui, es. modifiche di statistiche immediate,
-        // ma la maggior parte degli effetti complessi (status, modifiche stats con messaggi) 
-        // sono gestiti da `applyEffect` chiamato da `handleEventChoice`.
+        // Gestione effetto diretto (es. recupero HP, cambiamento status)
+        // ... existing code ...
     }
 
     /**

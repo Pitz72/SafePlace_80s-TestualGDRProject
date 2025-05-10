@@ -160,6 +160,28 @@ function assignAllDOMReferences() {
         DOM.tooltipMapEventChance = null;
     }
 
+    // NUOVO: Riferimenti pulsante e popup Crafting
+    DOM.openCraftingButton = document.getElementById('open-crafting-button') || null;
+    DOM.craftingOverlay = document.getElementById('crafting-overlay') || null;
+    DOM.craftingPopup = document.getElementById('crafting-popup') || null;
+    if (DOM.craftingPopup) {
+        DOM.craftingRecipeList = DOM.craftingPopup.querySelector('#crafting-recipe-list') || null;
+        DOM.craftingRecipeNameTitle = DOM.craftingPopup.querySelector('#crafting-recipe-name-title') || null;
+        DOM.craftingRecipeDescription = DOM.craftingPopup.querySelector('#crafting-recipe-description') || null;
+        DOM.craftingIngredientList = DOM.craftingPopup.querySelector('#crafting-ingredient-list') || null;
+        DOM.craftingRequirements = DOM.craftingPopup.querySelector('#crafting-requirements') || null;
+        DOM.craftItemButton = DOM.craftingPopup.querySelector('#craft-item-button') || null;
+        DOM.craftingCloseButton = DOM.craftingPopup.querySelector('#crafting-close-button') || null;
+    } else {
+        DOM.craftingRecipeList = null;
+        DOM.craftingRecipeNameTitle = null;
+        DOM.craftingRecipeDescription = null;
+        DOM.craftingIngredientList = null;
+        DOM.craftingRequirements = null;
+        DOM.craftItemButton = null;
+        DOM.craftingCloseButton = null;
+    }
+
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
     // console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // RIMOSSO Log finale diagnostico
 }

@@ -1,3 +1,30 @@
+### The Safe Place v0.7.14
+
+Questo aggiornamento rappresenta un consolidamento importante del gioco, portandoci verso la versione v0.7.14 (Lavori in Corso). Abbiamo lavorato sodo per rifinire l'esperienza, correggere bug fastidiosi e, soprattutto, per gettare solide fondamenta e implementare le prime fasi del nuovo sistema di Crafting basato su Progetti (Blueprint).
+
+Cosa c'è di Nuovo e Cosa è Stato Sistemato:
+
+1.  Sistema di Crafting - Le Basi Sono State Gettate!
+
+    - Imparare le Ricette: Ora, per creare certi oggetti, dovrete prima trovare dei "Progetti" sparsi nel mondo di gioco. Una volta trovato un progetto (ad esempio, per purificare l'acqua o costruire un'arma di fortuna) e "usato" dal vostro inventario, imparerete permanentemente quella ricetta. Non preoccupatevi, se trovate un progetto per una ricetta che già conoscete, non verrà consumato!
+    - Nuova Interfaccia di Crafting: Abbiamo introdotto un nuovo popup dedicato alla creazione di oggetti. È accessibile tramite un pulsante nell'interfaccia (attualmente nel pannello delle statistiche). Questa schermata vi mostrerà:
+      - Tutte le ricette che avete imparato.
+      - Quando selezionate una ricetta, vedrete il nome del prodotto che creerete e gli ingredienti necessari.
+      - L'interfaccia evidenzierà chiaramente quali ingredienti avete già nel vostro inventario e quali vi mancano.
+      - Potrete quindi creare l'oggetto, se avete tutto il necessario!
+    - Stile Migliorato: Abbiamo ascoltato i feedback e l'aspetto del popup di crafting è stato rivisto: ora ha uno sfondo nero puro, in linea con l'atmosfera cupa del gioco, migliorando la leggibilità e l'immersione. Anche il pulsante di chiusura è stato reso stilisticamente coerente.
+    - Prime Ricette: Abbiamo definito i progetti e le ricette per iniziare, come purificare l'acqua, cuocere la carne, e creare oggetti di fortuna come un Punteruolo, una Mazza Grezza e un'Armatura di Stracci. _Attenzione: alcuni di questi oggetti finali sono ancora in fase di definizione completa, quindi potreste non essere ancora in grado di craftarli tutti._
+
+2.  Correzioni di Bug Importanti:
+
+    - Stabilità degli Eventi: Abbiamo risolto diversi problemi che potevano causare il blocco del gioco durante alcuni eventi, come l'ispezione di "Tracce Strane" o gli incontri con l'"Orrore Indicibile". Ora queste situazioni dovrebbero svolgersi più fluidamente.
+    - Frammenti di Lore: Trovare indizi sul passato del mondo non dovrebbe più causare errori; riceverete correttamente questi frammenti narrativi.
+    - Popup di Crafting Funzionante: Il problema tecnico che impediva al popup di crafting di aprirsi correttamente o che lo faceva bloccare è stato risolto. Ora potete accedere alla schermata di creazione senza intoppi.
+
+3.  Bilanciamento e Oggetti:
+    - Acqua Purificata: Abbiamo corretto la quantità di idratazione fornita dall'Acqua Purificata Piccola, che ora è +2 (un valore più bilanciato).
+    - Equipaggiamento Arco: Se trovate un Arco Improvvisato, ora dovreste vedere correttamente l'opzione per equipaggiarlo dal vostro inventario.
+
 ### The Safe Place v0.7.13
 
 La versione 0.7.13 di "The Safe Place" si concentra principalmente sulla correzione di bug emersi durante i test e sul miglioramento dell'interfaccia utente (UI) per renderla più chiara e funzionale.

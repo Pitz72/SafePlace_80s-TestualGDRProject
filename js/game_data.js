@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.14
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -557,7 +557,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 8,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 25 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
     },
     'soda_flat': {
         id: 'soda_flat',
@@ -1142,6 +1142,61 @@ const ITEM_DATA = {
         weight: 0.05,
         value: 10,
         effects: [{ type: 'reveal_map_area', radius: 5 }]
+    },
+    'blueprint_water_purified': {
+        id: 'blueprint_water_purified',
+        name: 'Progetto: Acqua Purificata',
+        nameShort: 'Prog: Acqua P.',
+        description: "Istruzioni scarabocchiate su come rendere potabile l'acqua usando carbone.",
+        type: 'blueprint', // Nuovo tipo
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        effects: [{ type: 'learn_recipe', recipeKey: 'purify_water' }] // Nuovo tipo di effetto
+    },
+    'blueprint_meat_cooked': {
+        id: 'blueprint_meat_cooked',
+        name: 'Progetto: Carne Cotta',
+        nameShort: 'Prog: Carne C.',
+        description: "Un disegno grezzo che illustra come cuocere la carne su un fuoco.",
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        effects: [{ type: 'learn_recipe', recipeKey: 'cook_meat' }] // Nuovo tipo di effetto
+    },
+    'blueprint_shiv': { // Assumiamo che 'shiv_improvised' sia un oggetto producibile
+        id: 'blueprint_shiv',
+        name: 'Progetto: Punteruolo',
+        nameShort: 'Prog: Punteruolo',
+        description: "Schizzi su come assemblare un'arma da taglio rudimentale con scarti metallici.",
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 20,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_shiv' }] // Nuova recipeKey
+    },
+    'blueprint_crude_club': {
+        id: 'blueprint_crude_club',
+        name: 'Progetto: Mazza Grezza',
+        nameShort: 'Prog: Mazza Gr.',
+        description: "Istruzioni per legare un pezzo di metallo pesante a un bastone robusto.",
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_crude_club' }] // Nuova recipeKey
+    },
+    'blueprint_rags_armor': {
+        id: 'blueprint_rags_armor',
+        name: 'Progetto: Armatura di Stracci',
+        nameShort: 'Prog: Arm. Stracci',
+        description: "Come assemblare stracci e pezzi di cuoio per una protezione minima.",
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 10,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_rags_armor' }] // Nuova recipeKey
     }
 };
 
@@ -1151,7 +1206,8 @@ const ITEM_DATA = {
 const CRAFTING_RECIPES = {
     // Ricetta per purificare l'acqua
     'purify_water': {
-        productId: 'water_purified_small', // Oggetto prodotto
+        productName: "Acqua Purificata (Piccola)", // Nome per UI
+        productId: 'water_purified_small',
         productQuantity: 1,
         ingredients: [
             { itemId: 'water_dirty', quantity: 1 },
@@ -1163,6 +1219,7 @@ const CRAFTING_RECIPES = {
     },
     // Ricetta per cuocere la carne
     'cook_meat': {
+        productName: "Carne Cotta", // Nome per UI
         productId: 'meat_cooked',
         productQuantity: 1,
         ingredients: [
@@ -1171,6 +1228,40 @@ const CRAFTING_RECIPES = {
         // requirements: ['needs_fire'], // Esempio requisito futuro
         description: "Cuoci Carne Cruda.", // Testo per l'azione nell'UI
         successMessage: "Hai cotto la carne."
+    },
+    // Nuove ricette
+    'craft_shiv': {
+        productName: "Punteruolo Improvvisato", // Nome per UI
+        productId: 'shiv_improvised', // Assicurati che questo item esista in ITEM_DATA
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'scrap_metal', quantity: 2 },
+            { itemId: 'cloth_rags', quantity: 1 } // Esempio
+        ],
+        description: "Crea un Punteruolo con Metallo e Stracci.",
+        successMessage: "Hai creato un Punteruolo Improvvisato."
+    },
+    'craft_crude_club': {
+        productName: "Mazza Grezza", // Nome per UI
+        productId: 'club_crude', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'wood_plank', quantity: 1 }, // Assicurati esista
+            { itemId: 'scrap_metal', quantity: 1 }
+        ],
+        description: "Crea una Mazza Grezza con Legno e Metallo.",
+        successMessage: "Hai creato una Mazza Grezza."
+    },
+    'craft_rags_armor': {
+        productName: "Armatura di Stracci", // Nome per UI
+        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'cloth_rags', quantity: 3 },
+            { itemId: 'string_piece', quantity: 2 } // Assicurati esista
+        ],
+        description: "Crea un'Armatura di Stracci.",
+        successMessage: "Hai creato un'Armatura di Stracci."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
@@ -1433,17 +1524,22 @@ const RANDOM_REWARD_POOLS = {
 
 // Array per descrizioni evento tracce - Esito OK, trovato Lore
 const descrizioniTracceOkLore = [
-    "Le tracce ti conducono a un piccolo nascondiglio dimenticato. Qualcuno ha lasciato una nota...",
-    "Seguendo gli indizi, scopri un vecchio messaggio scarabocchiato su un muro, un frammento del passato.",
-    "Le impronte portano ai resti di un accampamento. Trovi un diario parzialmente bruciato.",
-    "Capisci che le tracce erano un segnale lasciato da qualcuno. Trovi un messaggio nascosto.",
-    "L'istinto ti dice che queste tracce sono importanti. Ti portano a un oggetto che racconta una storia."
+    "Le tracce ti conducono a un vecchio diario consumato. Contiene frammenti di storie del Vecchio Mondo.",
+    "Seguendo le impronte, scopri incisioni sbiadite su una roccia, che narrano di tempi passati.",
+    "Le tracce terminano vicino a un oggetto arrugginito che sembra avere un significato storico o culturale."
+];
+
+const descrizioniTracceOkLoot = [
+    "Seguendo le tracce con attenzione, scopri una piccola scorta di oggetti utili nascosta nelle vicinanze!",
+    "L'analisi meticolosa delle impronte ti porta a un piccolo nascondiglio contenente alcune risorse.",
+    "Le tracce ti conducono a un punto in cui qualcuno ha perso o abbandonato degli oggetti di valore.",
+    "La tua abilità nel seguire le piste ti premia: trovi del loot interessante!"
 ];
 
 const descrizioniTracceNothing = [
-    "Le tracce svaniscono nel nulla, lasciandoti disorientato.",
-    "Era una trappola. E tu ci sei cascato in pieno.",
-    "Le tracce si interrompono bruscamente. Poi senti un ringhio alle tue spalle..."
+    "Le tracce si perdono nel nulla, confuse dal vento o cancellate dal tempo.",
+    "Nonostante i tuoi sforzi, le tracce non portano a nulla di significativo.",
+    "Segui le impronte per un po', ma alla fine si rivelano essere solo quelle di un animale comune che non ha lasciato nulla dietro di sé."
 ];
 
 // Esiti per fallimento evento Pericolo Ambientale
@@ -1483,6 +1579,21 @@ const esitiPericoloAmbientaleEvitato = [
     "Il tuo sesto senso ti aveva avvertito. Ti fermi appena in tempo, schivando la minaccia.",
     "Noti il pericolo nascosto e riesci a trovare un percorso alternativo sicuro.",
     "Un passo falso e sarebbe finita male, ma la fortuna o l'abilità ti hanno assistito."
+];
+
+// NUOVI ARRAY PER ORRORE INDICIBILE (ESITI NEGATIVI)
+const esitiOrroreIndicibileAffrontaKo = [
+    "Tenti di affrontare l'orrore, ma la tua mente vacilla e il coraggio ti abbandona. Subisci le conseguenze.",
+    "L'entità ignota ti sovrasta con la sua mera presenza. Non c'è modo di combatterla direttamente.",
+    "Un urlo primordiale lacera la tua sanità mentale mentre l'orrore si manifesta pienamente.",
+    "Senti un dolore lancinante alla testa e crolli a terra, sopraffatto."
+];
+
+const esitiOrroreIndicibileFugaKo = [
+    "Cerchi di fuggire, ma l'orrore è più veloce, o forse è già dentro di te. Non c'è scampo.",
+    "Corri alla cieca, ma ogni via di fuga sembra condurti più vicino alla fonte del terrore.",
+    "Inciampi e cadi mentre tenti la fuga, l'orrore ti raggiunge.",
+    "Le tue gambe si rifiutano di muoversi, paralizzate dalla paura cosmica."
 ];
 
 // --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---

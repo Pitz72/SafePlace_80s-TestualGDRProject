@@ -6,7 +6,8 @@
  */
 
 // Versione del gioco
-const GAME_VERSION = "v0.7.13";
+const GAME_NAME = "The Safe Place";
+const GAME_VERSION = "0.7.14";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
