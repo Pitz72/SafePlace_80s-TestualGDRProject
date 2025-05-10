@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.15
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -51,7 +51,7 @@ function generateCharacter() {
         isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
         poisonDuration: 0,      // Turni rimanenti di avvelenamento
         currentLocationType: null, // Tipo di tile attuale (simbolo)
-        knownRecipes: [],       // Array delle ricette conosciute
+        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor"],       // Array delle ricette conosciute
 
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
@@ -137,17 +137,17 @@ function addItemToInventory(itemId, quantity) {
     // Cerca se l'oggetto è già presente nell'inventario
     const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
     const isStackable = itemInfo.stackable !== false;
-    console.log(`DEBUG: addItemToInventory - INIZIO. Item: ${itemId}, Quantità da aggiungere: ${quantity}, Stackable: ${isStackable}, Slot esistente?: ${existingItemSlot ? 'Sì' : 'No'}`, existingItemSlot || ''); // NUOVO LOG
+    // console.log(`DEBUG: addItemToInventory - INIZIO. Item: ${itemId}, Quantità da aggiungere: ${quantity}, Stackable: ${isStackable}, Slot esistente?: ${existingItemSlot ? 'Sì' : 'No'}`, existingItemSlot || ''); // NUOVO LOG
 
     if (isStackable && existingItemSlot) {
         // Se esiste e stackable, aumenta la quantità
-        console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità precedente: ${existingItemSlot.quantity}, Da aggiungere: ${quantity}`); // NUOVO LOG
+        // console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità precedente: ${existingItemSlot.quantity}, Da aggiungere: ${quantity}`); // NUOVO LOG
         existingItemSlot.quantity += quantity;
-        console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità NUOVA: ${existingItemSlot.quantity}`); // NUOVO LOG
+        // console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità NUOVA: ${existingItemSlot.quantity}`); // NUOVO LOG
         // console.log(`Aggiunto ${quantity}x ${itemInfo.name} all'inventario. Quantità totale: ${existingItemSlot.quantity}`); // Log di debug
     } else {
         // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
-        console.log(`DEBUG: addItemToInventory - NUOVO SLOT o NON STACKABLE. Item: ${itemId}, Quantità: ${quantity}`); // NUOVO LOG
+        // console.log(`DEBUG: addItemToInventory - NUOVO SLOT o NON STACKABLE. Item: ${itemId}, Quantità: ${quantity}`); // NUOVO LOG
         if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
             // Inventario pieno, informa il giocatore e non aggiungere
             // console.warn(`addItemToInventory: Inventario pieno, non puoi raccogliere ${itemInfo.name}.`); // Log di debug
@@ -198,11 +198,11 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
     const itemInfo = ITEM_DATA[itemId]; // Usato solo per il nome nel log
     const itemName = itemInfo ? itemInfo.name : itemId;
     const currentQuantityInSlot = player.inventory[itemIndex].quantity;
-    console.log(`DEBUG: removeItemFromInventory - INIZIO. Item: ${itemId}, quantityToRemove: ${quantityToRemove}, currentQuantityInSlot: ${currentQuantityInSlot}`); // NUOVO LOG
+    // console.log(`DEBUG: removeItemFromInventory - INIZIO. Item: ${itemId}, quantityToRemove: ${quantityToRemove}, currentQuantityInSlot: ${currentQuantityInSlot}`); // NUOVO LOG
 
     // Se quantityToRemove <= 0, rimuovi l'intero stack
     if (quantityToRemove <= 0 || quantityToRemove >= currentQuantityInSlot) {
-        console.log(`DEBUG: removeItemFromInventory - Condizione VERA (rimozione stack). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
+        // console.log(`DEBUG: removeItemFromInventory - Condizione VERA (rimozione stack). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         const removedQuantity = player.inventory[itemIndex].quantity;
         player.inventory.splice(itemIndex, 1); // Rimuovi l'elemento dall'array
 
@@ -211,7 +211,7 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
 
     } else {
         // Altrimenti, riduci la quantità
-        console.log(`DEBUG: removeItemFromInventory - Condizione FALSA (riduzione quantità). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
+        // console.log(`DEBUG: removeItemFromInventory - Condizione FALSA (riduzione quantità). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         player.inventory[itemIndex].quantity -= quantityToRemove;
          // console.log(`Rimosso ${quantityToRemove}x ${itemName} dall'inventario. Rimanenti: ${player.inventory[itemIndex].quantity}.`); // Log di debug
         addMessage(`Hai perso ${itemName} (x${quantityToRemove}).`, 'info');
@@ -250,7 +250,7 @@ function useItem(itemId) {
         return;
     }
     const itemSlot = player.inventory[itemIndex]; // Slot originale
-    console.log(`DEBUG: useItem - INIZIO. Item: ${itemId}, Quantità nello slot: ${itemSlot.quantity}, Idratazione iniziale: ${player.water}`); // NUOVO LOG
+    // console.log(`DEBUG: useItem - INIZIO. Item: ${itemId}, Quantità nello slot: ${itemSlot.quantity}, Idratazione iniziale: ${player.water}`); // NUOVO LOG
 
     if (!itemInfo.usable) {
         addMessage(`${itemInfo.name} non può essere usato direttamente.`, "warning");
@@ -303,7 +303,7 @@ function useItem(itemId) {
                 const waterPrimaDellEffetto = player.water; // Salva acqua prima
                 player.water = Math.min(player.water + amountToAdd, 10); // Limite Idratazione a 10
                  consumptionMessage = `Hai usato ${itemInfo.name}. Idratazione +${amountToAdd}. Totale: ${Math.floor(player.water)}.`;
-                 console.log(`DEBUG: useItem - EFFETTO ACQUA. Idratazione Prima: ${waterPrimaDellEffetto}, Amount Aggiunto da Effetto: ${amountToAdd}, Idratazione Dopo: ${player.water}`); // NUOVO LOG
+                 // console.log(`DEBUG: useItem - EFFETTO ACQUA. Idratazione Prima: ${waterPrimaDellEffetto}, Amount Aggiunto da Effetto: ${amountToAdd}, Idratazione Dopo: ${player.water}`); // NUOVO LOG
                  messageType = 'success';
             } else {
                 // MODIFICATO: Usa currentEffect.resource_type
@@ -610,7 +610,7 @@ function useItem(itemId) {
     if (consumeItem) {
         const itemSlotPrimaRimozione = player.inventory.find(s => s.itemId === itemId);
         // Logga una copia profonda per evitare problemi con riferimenti modificati
-        console.log(`DEBUG: useItem - Prima di removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotPrimaRimozione ? itemSlotPrimaRimozione.quantity : 'NON TROVATO'}, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : ''}`, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : '');
+        // console.log(`DEBUG: useItem - Prima di removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotPrimaRimozione ? itemSlotPrimaRimozione.quantity : 'NON TROVATO'}, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : ''}`, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : '');
 
          // Rimuovi 1 quantità dell'oggetto dall'inventario
          removeItemFromInventory(itemId, 1);
@@ -618,7 +618,7 @@ function useItem(itemId) {
 
         const itemSlotDopoRimozione = player.inventory.find(s => s.itemId === itemId);
         // Logga una copia profonda
-        console.log(`DEBUG: useItem - Dopo removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotDopoRimozione ? itemSlotDopoRimozione.quantity : 'NON TROVATO (o rimosso)'}, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : ''`, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : '');
+        // console.log(`DEBUG: useItem - Dopo removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotDopoRimozione ? itemSlotDopoRimozione.quantity : 'NON TROVATO (o rimosso)'}, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : ''}`, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : '');
     }
 
 

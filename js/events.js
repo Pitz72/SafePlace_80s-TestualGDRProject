@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.15
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -59,13 +59,13 @@ function triggerTileEvent(tileSymbol) {
         // Cerca l'evento specifico diurno per 'R'
         // AGGIUNTO CONTROLLO FLAG EVENTO GIORNALIERO COMPLETATO
         if (map[player.y] && map[player.y][player.x] && map[player.y][player.x].dayEventDone) {
-            console.log(">>> REST_STOP Event Trigger: Evento giornaliero già eseguito per questo tile.");
+            // console.log(">>> REST_STOP Event Trigger: Evento giornaliero già eseguito per questo tile.");
             return; // Evento già fatto oggi per questo tile
         }
 
         const dayEvent = eventPool.find(event => event.id === 'rest_stop_day_interaction'); // Usa l'ID corretto
         if (dayEvent) {
-            console.log(">>> triggerTileEvent: Attivazione forzata evento diurno 'R'."); // Log diagnostico
+            // console.log(">>> triggerTileEvent: Attivazione forzata evento diurno 'R'."); // Log diagnostico
             showEventPopup(dayEvent); // Mostra l'evento diurno
             return; // Esci dalla funzione, evento attivato
         } else {
@@ -644,7 +644,7 @@ function handleEventChoice(choiceIndex) {
                            if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) {
                                outcomeDescription = getRandomText(descrizioniTracceOkLoot);
                                messageType = 'success';
-                               console.log("DEBUG: TRACKS_LOOT_WEIGHTS:", TRACKS_LOOT_WEIGHTS); // LOG AGGIUNTO PER DEBUG
+                               // console.log("DEBUG: TRACKS_LOOT_WEIGHTS:", TRACKS_LOOT_WEIGHTS); // LOG AGGIUNTO PER DEBUG
                                const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
                                if (lootTable.length > 0) {
                                    const chosenLoot = chooseWeighted(lootTable);
@@ -1192,54 +1192,45 @@ function handleEventChoice(choiceIndex) {
         switch (rewardType) {
             case 'random_common_resource':
                 if (RANDOM_REWARD_POOLS.COMMON_RESOURCE && RANDOM_REWARD_POOLS.COMMON_RESOURCE.length > 0) {
-                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.COMMON_RESOURCE); // chooseWeighted dovrebbe accettare direttamente l'array di oggetti con id e weight
-                } else {
-                    console.warn(`handleRandomRewardType: Pool COMMON_RESOURCE non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.COMMON_RESOURCE);
                 }
                 break;
             case 'random_rare_resource':
                 if (RANDOM_REWARD_POOLS.RARE_RESOURCE && RANDOM_REWARD_POOLS.RARE_RESOURCE.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RARE_RESOURCE);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool RARE_RESOURCE non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
             case 'random_medical_item':
                 if (RANDOM_REWARD_POOLS.MEDICAL_ITEM && RANDOM_REWARD_POOLS.MEDICAL_ITEM.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.MEDICAL_ITEM);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool MEDICAL_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
             case 'random_food_item':
                 if (RANDOM_REWARD_POOLS.FOOD_ITEM && RANDOM_REWARD_POOLS.FOOD_ITEM.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.FOOD_ITEM);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool FOOD_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
             case 'random_water_item':
                 if (RANDOM_REWARD_POOLS.WATER_ITEM && RANDOM_REWARD_POOLS.WATER_ITEM.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.WATER_ITEM);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool WATER_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
-            case 'random_weapon_item': // NUOVO CASO
+            case 'random_blueprint': // NUOVO CASE
+                if (typeof BLUEPRINT_POOL !== 'undefined' && BLUEPRINT_POOL && BLUEPRINT_POOL.length > 0) { // Aggiunto check per undefined
+                    chosenItem = chooseWeighted(BLUEPRINT_POOL);
+                }
+                break;
+            case 'random_weapon_item':
                 if (RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL && RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool RANDOM_WEAPON_POOL non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
-            case 'random_ammo_item': // NUOVO CASO
+            case 'random_ammo_item':
                 if (RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL && RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL.length > 0) {
                     chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL);
-                } else {
-                    console.warn(`handleRandomRewardType: Pool RANDOM_AMMO_POOL non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
-            case 'random_clothing_item':
+            case 'random_clothing_item': // Gestione specifica per abbigliamento
                 const allItems = Object.values(ITEM_DATA);
                 if (allItems.length > 0) {
                     const randomClothingItem = getRandomText(allItems); // getRandomText dovrebbe restituire un oggetto item completo

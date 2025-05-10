@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.15
  * File: js/dom_references.js
  * Descrizione: Centralizza i riferimenti agli elementi DOM per un facile accesso e manutenibilità.
  */

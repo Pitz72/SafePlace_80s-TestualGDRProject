@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.14
+ * Versione: v0.7.15
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -339,8 +339,14 @@ const EVENT_DATA = {
                 {
                     text: "Cerca attentamente (Presagio)",
                     skillCheck: { stat: 'presagio', difficulty: 11 },
-                    successText: "Il tuo intuito ti guida verso un pannello allentato. Dentro trovi provviste e un'arma di fortuna!",
-                    successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_weapon_item', quantity: 1 }, {type: 'random_rare_resource', quantity: 1} ] },
+                    successText: "Il tuo intuito ti guida verso un pannello allentato. Dentro trovi provviste e forse degli schemi utili!",
+                    successReward: { items: [
+                        { itemId: 'ration_pack', quantity: 1 }, 
+                        { itemId: 'water_bottle', quantity: 1 }, 
+                        { type: 'random_weapon_item', quantity: 1 }, 
+                        { type: 'random_rare_resource', quantity: 1 },
+                        { type: 'random_blueprint', quantity: 1 } // Aggiunta possibilità di trovare un blueprint
+                    ] },
                     failureText: "Hai cercato ovunque, ma sembra che la scorta sia già stata trovata o non ci sia mai stata.",
                     isSearchAction: true,
                     actionKey: "search_hidden_stash_rest_stop"
@@ -414,7 +420,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.5,
         value: 10,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 30 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 5 }]
     },
     'ration_pack': {
         id: 'ration_pack',
@@ -424,7 +430,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.4,
         value: 15,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 40 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
     },
     'berries': {
         id: 'berries',
@@ -434,7 +440,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 2,
-        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 10, poison_chance: BERRIES_POISON_CHANCE }]
+        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 3, poison_chance: BERRIES_POISON_CHANCE }]
     },
     'meat_raw': {
         id: 'meat_raw',
@@ -444,7 +450,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.6,
         value: 8,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 25, sickness_chance: RAW_MEAT_SICKNESS_CHANCE }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 4, sickness_chance: RAW_MEAT_SICKNESS_CHANCE }]
     },
     'meat_cooked': {
         id: 'meat_cooked',
@@ -454,7 +460,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.5,
         value: 12,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 35 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
     },
     'chips_stale': {
         id: 'chips_stale',
@@ -464,7 +470,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.2,
         value: 3,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 15 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 3 }]
     },
     'chocolate_bar': {
         id: 'chocolate_bar',
@@ -474,7 +480,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 8,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 20 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 4 }]
     },
     'canned_beans': {
         id: 'canned_beans',
@@ -484,7 +490,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.5,
         value: 12,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 35 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
     },
     'dried_fruit': {
         id: 'dried_fruit',
@@ -494,7 +500,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 10,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 25 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 4 }]
     },
     'mre_pack': {
         id: 'mre_pack',
@@ -504,7 +510,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 1.0,
         value: 25,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 60 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
     },
     'mystery_meat_cooked': {
         id: 'mystery_meat_cooked',
@@ -514,7 +520,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.4,
         value: 10,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 30, sickness_chance: 0.10 }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 5, sickness_chance: 0.10 }]
     },
     'protein_bar_old': {
         id: 'protein_bar_old',
@@ -524,7 +530,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.2,
         value: 9,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 28 }]
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 5 }]
     },
 
     // --- ACQUA E BEVANDE ---
@@ -536,7 +542,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 1.0,
         value: 10,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 40 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 6 }]
     },
     'water_dirty': {
         id: 'water_dirty',
@@ -546,7 +552,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 1.0,
         value: 1,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 20, sickness_chance: DIRTY_WATER_POISON_CHANCE }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 3, sickness_chance: DIRTY_WATER_POISON_CHANCE }]
     },
     'water_purified_small': {
         id: 'water_purified_small',
@@ -567,7 +573,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.4,
         value: 5,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 15 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 3 }]
     },
     'juice_box_found': {
         id: 'juice_box_found',
@@ -577,7 +583,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 6,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 20, sickness_chance: 0.05 }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 4, sickness_chance: 0.05 }]
     },
     'energy_drink_old': {
         id: 'energy_drink_old',
@@ -587,7 +593,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 4,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 10 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
     },
     'rainwater_collected': {
         id: 'rainwater_collected',
@@ -597,7 +603,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 1.0,
         value: 7,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 35, sickness_chance: 0.10 }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 5, sickness_chance: 0.10 }]
     },
     'herbal_tea_crude': {
         id: 'herbal_tea_crude',
@@ -607,7 +613,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 5,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 10 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
     },
 
     // --- MEDICINE ---
@@ -796,16 +802,37 @@ const ITEM_DATA = {
     },
     'shiv_improvised': {
         id: 'shiv_improvised',
-        name: 'Pugnale Improvvisato',
-        description: "Un pezzo di metallo affilato legato a un manico di fortuna. Rozzo ma pericoloso.",
-        type: 'weapon',
-        slot: 'weapon',
-        weaponType: 'bianca_corta',
-        damage: { min: 2, max: 7 },
-        durability: 10,
-        maxDurability: 10,
-        weight: 0.2,
-        value: 4
+        name: "Punteruolo Improvvisato",
+        nameShort: "Punteruolo",
+        description: "Un pezzo di metallo affilato rozzamente, forse legato a un manico di fortuna. Meglio di niente.",
+        type: "weapon",
+        equipable: true,
+        stackable: false,
+        weaponType: "bianca_corta",
+        damage: 2,
+        durability: 25,
+        maxDurability: 25,
+        weight: 0.3,
+        value: 3,
+        effects: [],
+        slot: "weapon"
+    },
+
+    club_crude: {
+        name: "Mazza Grezza",
+        nameShort: "Mazza Gr.",
+        description: "Un pezzo di legno robusto, forse un ramo pesante o una gamba di tavolo rotta. Utile come arma contundente improvvisata nelle situazioni disperate.",
+        type: "weapon",
+        equipable: true,
+        stackable: false,
+        weaponType: "mischia",
+        damage: 3,
+        durability: 30,
+        maxDurability: 30,
+        weight: 1.8,
+        value: 4,
+        effects: [],
+        slot: "weapon"
     },
 
     // BIANCA LUNGA
@@ -1021,16 +1048,34 @@ const ITEM_DATA = {
     // CORPO
     'leather_jacket_worn': {
         id: 'leather_jacket_worn',
-        name: 'Giacca di Pelle Consumata',
-        nameShort: 'Giacca Pelle Cons.',
-        description: "Una vecchia giacca di pelle, offre una minima protezione.",
-        type: 'armor',
-        slot: 'body',
+        name: 'Giacca di Pelle Logora',
+        nameShort: 'Giacca Logora',
+        description: "Una vecchia giacca di pelle, indurita dal tempo e piena di graffi. Offre una protezione modesta.",
+        type: "armor",
+        equipable: true,
+        stackable: false,
+        slot: "body",
+        armorValue: 2,
+        durability: 40,
+        maxDurability: 40,
+        weight: 2.0,
+        value: 15,
+        effects: []
+    },
+    'armor_rags_simple': {
+        name: "Armatura di Stracci Semplice",
+        nameShort: "Arm. Stracci",
+        description: "Diversi strati di tessuto robusto e pelli grezze cuciti insieme in modo rudimentale. Offre una protezione minima contro graffi e urti leggeri.",
+        type: "armor",
+        equipable: true,
+        stackable: false,
+        slot: "body",
         armorValue: 1,
         durability: 25,
         maxDurability: 25,
-        weight: 1.0,
-        value: 15
+        weight: 1.2,
+        value: 3,
+        effects: []
     },
     'padded_jacket': {
         id: 'padded_jacket',
@@ -1169,7 +1214,7 @@ const ITEM_DATA = {
         id: 'blueprint_shiv',
         name: 'Progetto: Punteruolo',
         nameShort: 'Prog: Punteruolo',
-        description: "Schizzi su come assemblare un'arma da taglio rudimentale con scarti metallici.",
+        description: "Affila un pezzo di metallo di scarto e legalo a un'impugnatura di fortuna per creare un'arma da taglio rudimentale.",
         type: 'blueprint',
         usable: true,
         weight: 0.05,
@@ -1197,7 +1242,28 @@ const ITEM_DATA = {
         weight: 0.05,
         value: 10,
         effects: [{ type: 'learn_recipe', recipeKey: 'craft_rags_armor' }] // Nuova recipeKey
+    },
+    'craft_bandages_clean': {
+        id: 'craft_bandages_clean',
+        name: 'Bende Pulite',
+        description: "Bende sterili, buone per ferite superficiali.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 10,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.7, heal_hp_on_success: 10 }]
+    },
+    craft_rags_armor: {
+        productName: "Armatura di Stracci", // Nome per UI
+        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'cloth_rags', quantity: 5 } // Modificato: solo stracci
+        ],
+        description: "Crea un'Armatura di Stracci.",
+        successMessage: "Hai creato un'Armatura di Stracci."
     }
+    // Aggiungere qui altre ricette base in futuro, se necessario
 };
 
 // --- FINE DEFINIZIONE OGGETTI ---
@@ -1235,10 +1301,10 @@ const CRAFTING_RECIPES = {
         productId: 'shiv_improvised', // Assicurati che questo item esista in ITEM_DATA
         productQuantity: 1,
         ingredients: [
-            { itemId: 'scrap_metal', quantity: 2 },
-            { itemId: 'cloth_rags', quantity: 1 } // Esempio
+            { itemId: 'scrap_metal', quantity: 1 },
+            { itemId: 'cloth_rags', quantity: 1 } // Aggiunto per l'impugnatura
         ],
-        description: "Crea un Punteruolo con Metallo e Stracci.",
+        description: "Affila un pezzo di metallo di scarto e legalo a un'impugnatura di fortuna per creare un'arma da taglio rudimentale.",
         successMessage: "Hai creato un Punteruolo Improvvisato."
     },
     'craft_crude_club': {
@@ -1246,11 +1312,10 @@ const CRAFTING_RECIPES = {
         productId: 'club_crude', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
         productQuantity: 1,
         ingredients: [
-            { itemId: 'wood_plank', quantity: 1 }, // Assicurati esista
-            { itemId: 'scrap_metal', quantity: 1 }
+            { itemId: 'wood_planks', quantity: 2 }, // Aumentata quantità
+            { itemId: 'cloth_rags', quantity: 1 }  // Aggiunto per impugnatura/legatura
         ],
-        description: "Crea una Mazza Grezza con Legno e Metallo.",
-        successMessage: "Hai creato una Mazza Grezza."
+        description: "Lega insieme alcuni robusti pezzi di legno con degli stracci per creare una mazza contundente di fortuna."
     },
     'craft_rags_armor': {
         productName: "Armatura di Stracci", // Nome per UI

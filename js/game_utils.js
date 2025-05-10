@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.14
+ * Versione: v0.7.15
  * File: js/game_utils.js
- * Descrizione: Funzioni di utilità generiche per il gioco.
+ * Descrizione: Funzioni di utilità generale (matematica, manipolazione stringhe, logica condivisa)
  */
 
 // Nota: Questo file dipende da variabili e costanti definite in game_constants.js

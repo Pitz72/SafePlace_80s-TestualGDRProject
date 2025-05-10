@@ -7,7 +7,7 @@
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.14";
+const GAME_VERSION = "0.7.15";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -246,3 +246,11 @@ const COMMON_RESOURCES_POOL = [
 
 const MIN_MAP_REVEAL_RADIUS = 3;
 const MAX_MAP_REVEAL_RADIUS = 8;
+
+// NUOVO: Pool per i progetti (blueprints)
+const BLUEPRINT_POOL = [
+    { id: 'blueprint_crude_club', weight: 100 } // Per ora solo questo, peso 100 per assicurare che venga scelto se il pool è selezionato
+];
+
+// Array per descrizioni evento tracce - Esito OK, trovato Lore
+// ... existing code ...
