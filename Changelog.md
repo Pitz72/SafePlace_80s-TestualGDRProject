@@ -1,3 +1,41 @@
+### The Safe Place v0.7.17
+
+- Tooltip Oggetti:
+
+  - Rifattorizzata la funzione getItemDetailsHTML in js/ui.js per separare chiaramente la logica di visualizzazione delle statistiche/effetti da quella di nome e descrizione generale (ora gestite da contenitori separati nel DOM).
+  - Rimossa la duplicazione della funzione getItemDetailsHTML che causava comportamenti incoerenti e bug nei tooltip.
+  - Eliminata la logica di fallback che inseriva dettagli delle statistiche nel contenitore sbagliato del tooltip.
+  - Aggiunti e poi rimossi log di debug mirati per tracciare la generazione dell’HTML dei dettagli oggetto.
+
+- Gestione Effetti Oggetti:
+
+  - Aggiornata la funzione getItemEffectsText in js/game_utils.js per accettare l’intero oggetto itemInfo e iterare correttamente su tutti gli effetti, generando una descrizione leggibile e coerente.
+  - Migliorata la struttura e la chiarezza delle descrizioni degli effetti nell’oggetto ITEM_EFFECT_DESCRIPTIONS in js/game_constants.js, con particolare attenzione ai casi di cura HP, sazietà, idratazione e cura di stati negativi.
+  - Aggiunte descrizioni concise per effetti speciali come random_pill_effect, learn_recipe, reveal_map_area, repair_item_type.
+
+- Dati Oggetti:
+
+  - Modificato l’oggetto vitamins in ITEM_DATA per aumentare l’effetto di cura HP da 5 a 8.
+  - Aggiunto un secondo effetto di cura HP a meat_cooked e herbal_tea_crude per riflettere meglio il valore nutrizionale e curativo di questi oggetti.
+
+- Eventi Complessi:
+
+  - Creato l’array dilemmaEvents in js/game_data.js con tre nuovi eventi narrativi/morali (“Scorta Sospetta”, “Richiesta d’Aiuto”, “Macchina Inerte”), ciascuno con scelte multiple, skill check e ricompense/penalità tematiche.
+
+- Pulizia e Manutenzione del Codice:
+
+  - Rimossi blocchi di codice obsoleti, console.log/commentati e TODO non più pertinenti da tutti i principali file JS (ui.js, player.js, events.js, game_core.js, map.js).
+  - Mantenuti solo i commenti JSDoc, le spiegazioni di logiche complesse e le avvertenze importanti.
+
+- Correzioni UI/UX:
+
+  - Assicurata la coerenza tra i dati visualizzati nei tooltip, popup azioni e contenitori principali dell’interfaccia.
+  - Migliorata la gestione delle quantità negli slot inventario e nei tooltip.
+  - Aggiornata la logica di posizionamento dei tooltip per evitare che escano dai bordi dello schermo.
+
+- Gestione Eventi:
+  - Commentate/rimosse chiamate a funzioni non più definite (applyEffect) e log di debug superflui in events.js e ui.js.
+
 ### The Safe Place v0.7.16
 
 - Correzioni di Bug Cruciali:

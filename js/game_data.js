@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.16
+ * Versione: v0.7.17
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -470,7 +470,10 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.5,
         value: 12,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
+        effects: [
+            { type: 'add_resource', resource_type: 'food', amount: 6 },
+            { type: 'add_resource', resource_type: 'hp', amount: 2 }
+        ]
     },
     'chips_stale': {
         id: 'chips_stale',
@@ -623,7 +626,10 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 5,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 2 },
+            { type: 'add_resource', resource_type: 'hp', amount: 1 }
+        ]
     },
 
     // --- MEDICINE ---
@@ -689,7 +695,7 @@ const ITEM_DATA = {
         weight: 0.1,
         value: 12,
         effects: [
-            { type: 'add_resource', resource_type: 'hp', amount: 5}
+            { type: 'add_resource', resource_type: 'hp', amount: 8 }
         ]
     },
     'suspicious_pills': {
@@ -1682,4 +1688,84 @@ const esitiOrroreIndicibileFugaKo = [
 ];
 
 // --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---
-// ... existing code ...
+const dilemmaEvents = [
+    {
+        id: "dilemma_suspicious_stash",
+        title: "Scorta Sospetta",
+        description: "Tra le rovine trovi una borsa nascosta, apparentemente piena di provviste. Tuttavia, ci sono strani segni attorno: tracce fresche, forse una trappola o qualcuno che osserva.",
+        choices: [
+            {
+                text: "Ispeziona con cautela (Adattamento)",
+                actionKey: "inspect_stash_carefully",
+                skillCheck: { stat: "adattamento", difficulty: 12 },
+                successText: "Con attenzione, disinneschi un filo sottile collegato a una trappola rudimentale. Recuperi la scorta senza danni!",
+                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
+                failureText: "Non noti un meccanismo nascosto: una trappola scatta, ferendoti leggermente.",
+                failurePenalty: { type: 'damage', amount: 5 }
+            },
+            {
+                text: "Prendi la borsa in fretta e scappa",
+                actionKey: "grab_and_run",
+                successText: "Afferra la borsa e corri via. Senti un rumore dietro di te, ma nessuno ti insegue. Forse sei stato fortunato.",
+                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }] }
+            },
+            {
+                text: "Ignora la scorta, troppo rischioso",
+                actionKey: "ignore_stash",
+                outcome: "Decidi che la prudenza è la scelta migliore. Ti allontani senza rischiare nulla."
+            }
+        ]
+    },
+    {
+        id: "dilemma_help_request",
+        title: "Richiesta d'Aiuto",
+        description: "Una voce debole ti chiama da una baracca crollata. Un sopravvissuto, ferito e spaventato, ti implora di aiutarlo. Potrebbe essere una trappola, o davvero qualcuno in difficoltà.",
+        choices: [
+            {
+                text: "Parla con il sopravvissuto (Influenza)",
+                actionKey: "talk_to_survivor",
+                skillCheck: { stat: "influenza", difficulty: 13 },
+                successText: "Riesci a rassicurare la persona, che ti offre in cambio una piccola scorta nascosta.",
+                successReward: { items: [{ itemId: 'bandages_clean', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
+                failureText: "Il sopravvissuto non si fida e si chiude in silenzio. Forse era davvero solo spaventato.",
+                failurePenalty: { type: 'nothing' }
+            },
+            {
+                text: "Ignora la richiesta e prosegui",
+                actionKey: "ignore_help_request",
+                outcome: "Soffochi il senso di colpa e ti allontani, lasciando il sopravvissuto al suo destino."
+            },
+            {
+                text: "Controlla la zona per possibili trappole (Presagio)",
+                actionKey: "check_for_traps",
+                skillCheck: { stat: "presagio", difficulty: 12 },
+                successText: "Noti segni sospetti: qualcuno ha preparato un'imboscata. Ti allontani senza farti notare.",
+                successReward: { type: 'nothing' },
+                failureText: "Non trovi nulla di strano, ma il dubbio ti rimane addosso.",
+                failurePenalty: { type: 'nothing' }
+            }
+        ]
+    },
+    {
+        id: "dilemma_inert_machine",
+        title: "Macchina Inerte",
+        description: "Un vecchio distributore automatico, semi-sepolto tra le macerie, attira la tua attenzione. Potrebbe contenere ancora qualcosa di utile, ma forzarlo potrebbe fare rumore e attirare attenzioni indesiderate.",
+        choices: [
+            {
+                text: "Forza lo sportello (Adattamento)",
+                actionKey: "force_machine_open",
+                skillCheck: { stat: "adattamento", difficulty: 14 },
+                successText: "Con pazienza e ingegno, riesci ad aprire lo sportello senza fare troppo rumore. Trovi una barretta di cioccolato e una bibita!",
+                successReward: { items: [{ itemId: 'chocolate_bar', quantity: 1 }, { itemId: 'soda_flat', quantity: 1 }] },
+                failureText: "Lo sportello si apre di colpo con un forte rumore. Poco dopo, senti passi sospetti nelle vicinanze.",
+                failurePenalty: { type: 'danger', description: 'Attiri attenzioni pericolose.' }
+            },
+            {
+                text: "Lascia perdere, troppo rischioso",
+                actionKey: "leave_machine",
+                outcome: "Decidi che non vale la pena rischiare per così poco. Ti allontani in silenzio."
+            }
+        ]
+    }
+];
+// --- FINE DATI STATICI ---

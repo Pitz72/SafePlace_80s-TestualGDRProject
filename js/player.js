@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.16
+ * Versione: v0.7.17
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -1138,6 +1138,7 @@ function showItemActionPopup(itemId, source = 'inventory') {
     // Pulisce stats precedenti e usa getItemDetailsHTML per coerenza con il tooltip
     if (typeof getItemDetailsHTML === 'function') {
         DOM.itemActionStats.innerHTML = getItemDetailsHTML(item);
+        // RIMOSSO console.log di debug
     } else {
         // Fallback se getItemDetailsHTML non è disponibile (non dovrebbe succedere)
         console.warn("showItemActionPopup: getItemDetailsHTML non disponibile. Statistiche popup potrebbero essere incomplete.");

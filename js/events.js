@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.16
+ * Versione: v0.7.17
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (trigger, logica, esiti)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js

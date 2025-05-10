@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.16
+ * Versione: v0.7.17
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente (rendering, popup, messaggi, interazioni)
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -703,33 +703,18 @@ function showItemTooltip(itemSlot, event) {
     const itemDetails = ITEM_DATA[itemSlot.itemId];
 
     // Popola il contenuto del tooltip
-    DOM.tooltipItemName.textContent = itemDetails.name + (itemSlot.quantity > 1 ? ` (${itemSlot.quantity})` : ''); // Aggiunge quantità se > 1
+    DOM.tooltipItemName.textContent = itemDetails.name + (itemSlot.quantity > 1 ? ` (x${itemSlot.quantity})` : '');
     DOM.tooltipItemDesc.textContent = itemDetails.description || "Nessuna descrizione disponibile.";
 
-     // Aggiunge statistiche specifiche se l'oggetto ha proprietà di arma/armatura
-     // Usa getItemDetailsHTML se è definito (dovrebbe essere in player.js, ma lo usiamo qui per la UI)
-     let statsDetailsHTML = '';
-     if (typeof getItemDetailsHTML === 'function') {
-          statsDetailsHTML = getItemDetailsHTML(itemDetails);
-     } else {
-          console.warn("getItemDetailsHTML non disponibile per dettagli tooltip.");
-          // Fallback testuale per gli effetti usabili se la funzione dettagliata non c'è
-           if (itemDetails.usable && itemDetails.effect && typeof getItemEffectsText === 'function') {
-               statsDetailsHTML = `<div class="item-stats-container"><div class="item-stat">${getItemEffectsText(itemDetails)}</div></div>`;
-           }
-     }
-     // Seleziona l'elemento dove inserire i dettagli delle statistiche (es. una div specifica nel tooltip HTML)
-     const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container'); // Aggiungere questa classe/elemento nel HTML del tooltip
-     if (tooltipStatsContainer) {
-         tooltipStatsContainer.innerHTML = statsDetailsHTML;
-     } else {
-         // Se il contenitore specifico non esiste, potresti aggiungere i dettagli alla descrizione o in un altro modo
-         // Per ora, se getItemDetailsHTML esiste, lo aggiungiamo alla descrizione per semplicità
-          if (statsDetailsHTML && typeof getItemDetailsHTML === 'function') {
-               DOM.tooltipItemDesc.innerHTML = (itemDetails.description || "Nessuna descrizione.") + `<br><br>${statsDetailsHTML}`;
-          }
-     }
-
+    let statsDetailsHTML = '';
+    if (typeof getItemDetailsHTML === 'function') {
+        statsDetailsHTML = getItemDetailsHTML(itemDetails);
+    }
+    // RIMOSSO console.log di debug
+    const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container');
+    if (tooltipStatsContainer) {
+        tooltipStatsContainer.innerHTML = statsDetailsHTML;
+    }
 
     // Posizionamento del tooltip
     const displayRect = DOM.gameContainer.getBoundingClientRect(); // Prendi le dimensioni del contenitore principale (game-container)
@@ -1074,7 +1059,7 @@ function closeEventPopup() {
             // Verifica robusta che map, player.y, player.x siano validi
             if (map && map[player.y] && map[player.y][player.x]) {
                 map[player.y][player.x].dayEventDone = true;
-                console.log(`>>> Tile (${player.x},${player.y}) marcato come dayEventDone.`); // Log diagnostico
+                // console.log(`>>> Tile (${player.x},${player.y}) marcato come dayEventDone.`); // Log diagnostico
             } else {
                  console.error("closeEventPopup: Impossibile marcare il tile, coordinate giocatore o mappa non valide?");
             }
@@ -1196,13 +1181,11 @@ function buildAndShowComplexEventOutcome(title, description, checkDetails, conse
 function getItemDetailsHTML(itemInfo) {
     let detailsHTML = '';
 
-    // Verifica che l'oggetto dati esista
     if (!itemInfo) return '';
 
-    // Dettagli specifici per le armi
+    // Statistiche per armi
     if (itemInfo.type === 'weapon') {
-        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemInfo.weaponType)}</span></div>`; // Usa la utility per la label
-        
+        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemInfo.weaponType)}</span></div>`;
         let damageText = '?';
         if (typeof itemInfo.damage === 'object' && itemInfo.damage !== null && itemInfo.damage.min !== undefined && itemInfo.damage.max !== undefined) {
             damageText = `${itemInfo.damage.min}-${itemInfo.damage.max}`;
@@ -1210,80 +1193,60 @@ function getItemDetailsHTML(itemInfo) {
             damageText = itemInfo.damage;
         }
         detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${damageText}</span></div>`;
-
-        // Aggiungi la visualizzazione della durabilità
         if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
             const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
-
-            let durabilityColor = '#00DD00'; // Verde
-            let durabilityStatus = 'Buono'; // Default status
-             if (itemInfo.durability <= 0) {
-                 durabilityColor = '#FF0000'; // Rosso vivo per rotto
-                 durabilityStatus = 'ROTTA';
-             } else if (durabilityPercent <= 25) {
-                 durabilityColor = '#FF4444'; // Rosso
-                 durabilityStatus = 'Critica';
-             } else if (durabilityPercent <= 50) {
-                 durabilityColor = '#FFAA00'; // Arancio
-                 durabilityStatus = 'Danneggiata';
-             } else if (durabilityPercent <= 75) {
-                 durabilityColor = '#FFFF00'; // Giallo
-                 durabilityStatus = 'Usurata';
-             }
-
+            let durabilityColor = '#00DD00';
+            let durabilityStatus = 'Buono';
+            if (itemInfo.durability <= 0) {
+                durabilityColor = '#FF0000';
+                durabilityStatus = 'ROTTA';
+            } else if (durabilityPercent <= 25) {
+                durabilityColor = '#FF4444';
+                durabilityStatus = 'Critica';
+            } else if (durabilityPercent <= 50) {
+                durabilityColor = '#FFAA00';
+                durabilityStatus = 'Danneggiata';
+            } else if (durabilityPercent <= 75) {
+                durabilityColor = '#FFFF00';
+                durabilityStatus = 'Usurata';
+            }
             detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`; // Arrotonda durabilità corrente per UI
-             // Aggiungi una barra visiva di durabilità se desiderato (richiede CSS dedicato)
-             // detailsHTML += `<div class="durability-bar"><div class="durability-fill" style="width: ${durabilityPercent}%; background-color: ${durabilityColor};"></div></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
         }
-
-        // Aggiungi altre statistiche rilevanti in base al tipo di arma o altre proprietà
         if (itemInfo.peso) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemInfo.peso}</span></div>`;
         if (itemInfo.velocità) detailsHTML += `<div class="item-stat">Velocità: <span class="stat-value">${itemInfo.velocità}</span></div>`;
         if (itemInfo.raggio) detailsHTML += `<div class="item-stat">Raggio: <span class="stat-value">${itemInfo.raggio}</span></div>`;
         if (itemInfo.precisione) detailsHTML += `<div class="item-stat">Precisione: <span class="stat-value">${itemInfo.precisione}</span></div>`;
         if (itemInfo.rumore) detailsHTML += `<div class="item-stat">Rumore: <span class="stat-value">${itemInfo.rumore}</span></div>`;
         if (itemInfo.ammoType) {
-             // Cerca il nome leggibile del tipo di munizione
-             const ammoName = ITEM_DATA[itemInfo.ammoType]?.name || itemInfo.ammoType;
-             detailsHTML += `<div class="item-stat">Munizioni: <span class="stat-value">${ammoName}</span></div>`;
+            const ammoName = ITEM_DATA[itemInfo.ammoType]?.name || itemInfo.ammoType;
+            detailsHTML += `<div class="item-stat">Munizioni: <span class="stat-value">${ammoName}</span></div>`;
         }
-         if (itemInfo.recuperabile !== undefined) {
-             detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemInfo.recuperabile ? 'Sì' : 'No'}</span></div>`;
-         }
-
+        if (itemInfo.recuperabile !== undefined) {
+            detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemInfo.recuperabile ? 'Sì' : 'No'}</span></div>`;
+        }
     }
-    // Dettagli specifici per le armature
+    // Statistiche per armature
     else if (itemInfo.type === 'armor') {
         detailsHTML += `<div class="item-stat">Protezione: <span class="stat-value">${itemInfo.armorValue || 0}</span></div>`;
-        // Aggiungi durabilità per armature se implementata nei dati
-         if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
-              const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
-              let durabilityColor = '#00DD00'; // Verde
-              let durabilityStatus = 'Buono'; // Default status
-               if (itemInfo.durability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
-               else if (durabilityPercent <= 25) { durabilityColor = '#FF4444'; durabilityStatus = 'Critica'; }
-               else if (durabilityPercent <= 50) { durabilityColor = '#FFAA00'; durabilityStatus = 'Danneggiata'; }
-               else if (durabilityPercent <= 75) { durabilityColor = '#FFFF00'; durabilityStatus = 'Usurata'; }
-              detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-              detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
-          }
-    }
-    // Dettagli per altri tipi di oggetti utilizzabili (usando getItemEffectsText da utils)
-     else if (itemInfo.usable && itemInfo.effect && typeof getItemEffectsText === 'function') {
-        const effectText = getItemEffectsText(itemInfo);
-        if (effectText) {
-             detailsHTML += `<div class="item-stat">Effetto: <span class="stat-value">${effectText}</span></div>`;
+        if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
+            const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
+            let durabilityColor = '#00DD00';
+            let durabilityStatus = 'Buono';
+            if (itemInfo.durability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
+            else if (durabilityPercent <= 25) { durabilityColor = '#FF4444'; durabilityStatus = 'Critica'; }
+            else if (durabilityPercent <= 50) { durabilityColor = '#FFAA00'; durabilityStatus = 'Danneggiata'; }
+            else if (durabilityPercent <= 75) { durabilityColor = '#FFFF00'; durabilityStatus = 'Usurata'; }
+            detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
         }
-     }
-     // Dettagli per materiali/attrezzi (se hanno proprietà rilevanti da mostrare)
-     else if (itemInfo.type === 'crafting' || itemInfo.type === 'tool') {
-         // Potresti aggiungere dettagli specifici qui se ci fossero (es. "Peso: leggero")
-     }
-
-
-    // Ritorna l'HTML formattato
-    return detailsHTML ? `<div class="item-stats-container">${detailsHTML}</div>` : '';
+    }
+    // Effetti per oggetti utilizzabili o consumabili
+    const effectsText = typeof getItemEffectsText === 'function' ? getItemEffectsText(itemInfo) : '';
+    if (effectsText) {
+        detailsHTML += `<div class="item-stat">${effectsText}</div>`;
+    }
+    return detailsHTML;
 }
 
 // ----- Fine Implementazione Tooltip Inventario -----
@@ -1492,3 +1455,4 @@ function updateCraftingDetails(recipeKey) {
 }
 
 // --- FINE Logica Popup Crafting ---
+

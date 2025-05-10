@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.16
+ * Versione: v0.7.17
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
@@ -203,35 +203,57 @@ const TIPO_ARMA_LABELS = {
 // Nota: Questo oggetto è solo per la visualizzazione nel tooltip, la logica dell'effetto
 // sarà nel file player.js
 const ITEM_EFFECT_DESCRIPTIONS = {
-     'add_resource': (effect) => {
-         if (effect.resource_type === 'food') return `Sazietà: +${effect.amount}`;
-         if (effect.resource_type === 'water') return `Idratazione: +${effect.amount}`;
-         if (effect.resource_type === 'hp') return `Cura: +${effect.amount} HP`;
-         return "Aggiunge risorse";
-     },
-     'add_resource_poisonable': (effect) => {
-         let desc = ITEM_EFFECT_DESCRIPTIONS.add_resource(effect); // Inizia con la descrizione base
-         if (effect.poison_chance) desc += ` (Rischio veleno: ${Math.floor(effect.poison_chance * 100)}%)`;
-         return desc;
-     },
-     'add_resource_sickness': (effect) => {
-         let desc = ITEM_EFFECT_DESCRIPTIONS.add_resource(effect); // Inizia con la descrizione base
-         if (effect.sickness_chance) desc += ` (Rischio malattia: ${Math.floor(effect.sickness_chance * 100)}%)`;
-         return desc;
-     },
-     'cure_status': (effect) => {
-         let statuses = [];
-         if (effect.status_cured === 'isInjured') statuses.push('Ferite');
-         if (effect.status_cured === 'isSick') statuses.push('Malattie');
-         if (effect.status_cured === 'isPoisoned') statuses.push('Avvelenamento');
-         let desc = `Cura: ${statuses.join(', ')}`;
-         if (effect.chance !== 1.0) desc += ` (${Math.floor(effect.chance * 100)}% chance)`;
-         if (effect.heal_hp_on_success) desc += `, cura ${effect.heal_hp_on_success} HP (su successo)`;
-         return desc;
-     },
-     'repair_weapon': (effect) => `Ripara arma: +${effect.repair_amount} Durabilità`,
-     'show_lore': (effect) => `Rivela un frammento di lore`,
-     // Aggiungere altre descrizioni per altri tipi di effetto se necessario
+    add_resource: (effect) => {
+        if (effect.resource_type === 'hp') {
+            return `Cura HP: +${effect.amount}`;
+        } else if (effect.resource_type === 'food') {
+            return `Sazietà: +${effect.amount}`;
+        } else if (effect.resource_type === 'water') {
+            return `Idratazione: +${effect.amount}`;
+        }
+        return `Aggiunge ${effect.amount} ${effect.resource_type}`;
+    },
+    cure_status: (effect) => {
+        // Mappa status_cured a nome leggibile
+        let statusName = '';
+        switch (effect.status_cured) {
+            case 'isInjured': statusName = 'Ferite'; break;
+            case 'isSick': statusName = 'Malattia'; break;
+            case 'isPoisoned': statusName = 'Avvelenamento'; break;
+            default: statusName = effect.status_cured || 'Status'; break;
+        }
+        let desc = `Cura ${statusName}`;
+        if (effect.chance) {
+            desc += ` (${Math.floor(effect.chance * 100)}%)`;
+        }
+        if (effect.heal_hp_on_success && effect.heal_hp_on_success > 0) {
+            desc += `, Rigenera +${effect.heal_hp_on_success} HP (su successo)`;
+        }
+        return desc;
+    },
+    add_resource_poisonable: (effect) => {
+        let desc = ITEM_EFFECT_DESCRIPTIONS.add_resource(effect);
+        if (effect.poison_chance) desc += ` (Rischio veleno: ${Math.floor(effect.poison_chance * 100)}%)`;
+        return desc;
+    },
+    add_resource_sickness: (effect) => {
+        let desc = ITEM_EFFECT_DESCRIPTIONS.add_resource(effect);
+        if (effect.sickness_chance) desc += ` (Rischio malattia: ${Math.floor(effect.sickness_chance * 100)}%)`;
+        return desc;
+    },
+    repair_item_type: (effect) => {
+        return "Avvia riparazione oggetto";
+    },
+    random_pill_effect: (effect) => {
+        return "Effetto Casuale";
+    },
+    learn_recipe: (effect) => {
+        return "Apprendi Ricetta";
+    },
+    reveal_map_area: (effect) => {
+        return "Rivela area mappa";
+    },
+    show_lore: (effect) => "Rivela un frammento di lore"
 };
 
 // --- FINE COSTANTI NUMERICHE E PROBABILISTICHE ---
