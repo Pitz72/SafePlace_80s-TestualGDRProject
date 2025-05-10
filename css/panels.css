@@ -54,36 +54,47 @@
 
 
 /* Stili per il pannello Inventario */
-#inventory-panel ul { /* Si applica alla <ul> con ID 'inventory' */
+#inventory-panel ul#inventory { /* Selettore più specifico per la ul dell'inventario */
     padding-left: 5px;
+    min-height: 150px; /* Altezza minima per 7 slot (circa 7 * (13px testo + 2px padding + 2px margin) + margine) */
+    height: 150px;     /* Altezza fissa */
+    max-height: 150px; /* Altezza massima */
+    overflow-y: auto;  /* Scrollbar se necessario, ma non dovrebbe con slot fissi */
+    display: flex;
+    flex-direction: column;
+    /* justify-content: flex-start; */ /* Opzionale: allinea i li all'inizio se c'è spazio extra */
 }
 
 /* Stili per gli elementi lista dell'inventario (aggiunti da JS) */
 #inventory li {
-    padding: 2px 0;
-    cursor: pointer; /* Cambia cursore per indicare cliccabilità */
-    transition: background-color 0.1s ease; /* Transizione fluida su hover */
+    padding: 1px 0; /* Ridotto leggermente il padding verticale */
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    font-size: 0.8em; /* <-- RIDOTTO FONT SIZE */
+    margin-bottom: 2px; /* Ridotto margin-bottom per far stare gli elementi nell'altezza fissa */
+    flex-shrink: 0;    /* Impedisce ai li di restringersi */
     /* Stili specifici per categoria item (classi aggiunte da JS) */
 }
 
 /* Stili per i tipi di item (classi aggiunte da JS in renderInventory) */
-/* Basati sulla 'category' definita in ITEM_DATA */
-.item-food { color: var(--plains-color); } /* Verde per Cibo */
-.item-water { color: var(--water-color); } /* Ciano per Acqua */
-.item-medical { color: var(--highlight-bg); } /* Verde brillante per Medico */
-.item-crafting { color: var(--fg-dim-color); } /* Verde scuro per Materiali/Crafting */
-.item-tool { color: var(--special-color); } /* Giallo per Strumenti */
-.item-weapon { color: var(--danger-color); } /* Rosso per Armi */
-.item-armor { color: var(--mountain-color); } /* Grigio-verde per Armature */
-.item-ammo { color: var(--warning-color); } /* Arancio per Munizioni */
-.item-lore { color: var(--fg-dim-color); font-style: italic;} /* Verde scuro/Corsivo per Lore */
-.item-unknown { color: #555; font-style: italic;} /* Grigio per Sconosciuto */
+/* Basati sul 'type' definito in ITEM_DATA */
+.item-type-food { color: hsl(135, 49%, 65%); } /* Schiarito da 56% (era --plains-color) */
+.item-type-water { color: hsl(180, 100%, 40%); } /* Schiarito da 27% (era --water-color) */
+.item-type-medicine { color: var(--highlight-bg); } /* Già chiaro, mantenuto var */
+.item-type-resource { color: hsl(133, 37%, 45%); } /* Schiarito da 30% (era --fg-dim-color) */
+.item-type-tool { color: hsl(60, 100%, 45%); } /* Schiarito da 33% (era --special-color) */
+.item-type-weapon { color: var(--danger-color); } /* Già chiaro, mantenuto var */
+.item-type-armor { color: hsl(137, 17%, 50%); } /* Schiarito da 38% (era --mountain-color) */
+.item-type-ammo { color: hsl(40, 100%, 60%); } /* Schiarito da 50% (era --warning-color) */
+/* .item-type-lore { color: hsl(133, 37%, 45%); font-style: italic;} */ /* Esempio per Lore, schiarito come resource */
+.item-unknown { color: #777; font-style: italic;} /* Grigio per Sconosciuto, schiarito leggermente da #555 */
 
-/* Stile per la quantità degli item nell'inventario */
+/* Stile per la quantità degli oggetti nell'inventario */
 #inventory li .item-quantity {
     font-size: 0.9em; /* Font più piccolo per la quantità */
     color: var(--fg-dim-color); /* Colore dimmerato per la quantità */
     margin-left: 5px; /* Spazio dal nome item */
+    text-shadow: -1px -1px 0 var(--bg-color), 1px -1px 0 var(--bg-color), -1px 1px 0 var(--bg-color), 1px 1px 0 var(--bg-color);
 }
 
 /* Stile su hover per gli elementi dell'inventario (esclusi i placeholder) */
@@ -197,3 +208,65 @@
     font-size: 0.8em; /* Separatore più piccolo */
     letter-spacing: 2px; /* Aumenta la spaziatura tra i trattini */
 }
+
+/* Stili per gli elementi dell'inventario quando selezionati */
+#inventory li.selected {
+    background-color: #111; /* Sfondo leggermente più scuro su hover */
+    color: var(--highlight-fg); /* Testo nero (simulazione) - potrebbe essere solo colore fg */
+}
+
+/* Riduci font per Arma/Armatura nel pannello stats */
+#stats-list li #stat-weapon,
+#stats-list li #stat-armor {
+    font-size: 0.9em; /* <-- RIDOTTO FONT SIZE (relativo al li) */
+    font-weight: normal; /* Assicura che non sia bold */
+}
+
+/* Stili per il pannello Log Messaggi */
+#log-panel {
+    flex-grow: 1; /* Permette al log di crescere verticalmente per riempire lo spazio nel #left-panel */
+    min-height: 100px; /* Altezza minima */
+    overflow-y: auto; /* Abilita scroll verticale se i messaggi superano l'altezza */
+    display: flex; /* Usa flexbox per layout interno (titolo e lista) */
+    flex-direction: column; /* Stack verticale */
+}
+
+#log-panel h2 {
+    margin-bottom: 5px; /* Spazio sotto titolo del log */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi quando la lista cresce */
+}
+
+#log-messages {
+    list-style: none; /* Rimuove i pallini */
+    padding: 0 5px; /* Padding interno */
+    margin: 0; /* Rimuove margini */
+    font-size: 0.8em; /* Font leggermente più piccolo per il log */
+    flex-grow: 1; /* Fa espandere la lista per occupare lo spazio rimanente */
+    overflow-y: auto; /* Scroll interno per la lista dei messaggi */
+    display: flex; /* Necessario per overflow-y e flex-grow */
+    flex-direction: column; /* Ordine degli elementi nella colonna */
+    /* Stili per la scrollbar (personalizzazione, solo per browser che la supportano) */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
+}
+
+#log-messages li {
+    margin-bottom: 3px; /* Spazio tra i messaggi */
+    word-break: break-word; /* Permette al testo lungo di andare a capo */
+    /* Stili specifici per i tipi di messaggio (classi aggiunte da JS) */
+}
+
+/* Stili per i tipi di messaggio (classi aggiunte da JS in addMessage) */
+#log-messages .log-normal { color: var(--fg-color); } /* Messaggio normale (default) */
+#log-messages .log-info { color: var(--fg-dim-color); } /* Messaggio informativo */
+#log-messages .log-warning { color: var(--warning-color); font-weight: bold;} /* Messaggio di avviso */
+#log-messages .log-danger { color: var(--danger-color); font-weight: bold;} /* Messaggio di pericolo/critico */
+#log-messages .log-success { color: lightgreen; } /* Messaggio di successo */
+#log-messages .log-lore { color: var(--fg-dim-color); font-style: italic; } /* Messaggio di lore */
+
+/* Stili per i prefissi dei messaggi (aggiunti da JS in addMessage) */
+#log-messages .msg-info { color: var(--accent-color); } /* Prefisso [*] */
+#log-messages .msg-warning { color: var(--danger-color); } /* Prefisso [!] */
+#log-messages .msg-danger { color: var(--danger-color); } /* Prefisso [X] */
+#log-messages .msg-success { color: lightgreen; } /* Prefisso [+] */
+#log-messages .msg-lore { color: var(--accent-color); } /* Prefisso [?] */

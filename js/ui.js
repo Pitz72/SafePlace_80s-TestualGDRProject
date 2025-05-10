@@ -1,9 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.09
+ * Versione: v0.7.11
  * File: js/ui.js
- * Descrizione: Gestisce il rendering e l'aggiornamento dell'interfaccia utente.
- * Dipende da: game_constants.js, game_data.js, dom_references.js, game_utils.js
+ * Descrizione: Funzioni per l'aggiornamento dell'interfaccia utente (UI)
+ * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
  */
 
 // Dipendenze:
@@ -308,11 +308,11 @@ function renderInventory() {
 
         const listItem = document.createElement("li");
 
-        // Aggiunge classe CSS in base alla categoria dell'oggetto per styling
-        if (itemInfo.category) {
-            listItem.classList.add(`item-${itemInfo.category.toLowerCase()}`);
+        // Aggiunge classe CSS in base al TIPO dell'oggetto per styling
+        if (itemInfo.type) { // Controlla se itemInfo.type esiste
+            listItem.classList.add(`item-type-${itemInfo.type.toLowerCase()}`); // Usa itemInfo.type e aggiungi prefisso "item-type-"
         } else {
-            listItem.classList.add("item-unknown"); // Fallback
+            listItem.classList.add("item-unknown"); // Fallback se itemInfo.type non è definito
         }
 
         // Aggiunge un data attribute per l'ID dell'oggetto (utile per gli event listener)

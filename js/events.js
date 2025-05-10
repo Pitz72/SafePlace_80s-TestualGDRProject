@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.09
+ * Versione: v0.7.11
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -11,7 +11,7 @@
 // - Costanti (EVENT_CHANCE, EVENT_DATA, COMPLEX_EVENT_CHANCE, COMPLEX_EVENT_TYPE_WEIGHTS, TILE_SYMBOLS, STATO_MESSAGGI, ...costanti esiti/probabilità danni/loot) da game_constants.js/game_data.js
 // - Funzioni utility (getRandomInt, addMessage, getRandomText, performSkillCheck, getSkillCheckLikelihood, chooseWeighted) da game_utils.js
 // - Funzioni UI (showEventPopup, closeEventPopup, renderStats, renderMap, disableControls, enableControls) da ui.js
-// - Funzioni Player (addItemToInventory, removeItemFromInventory, consumeAmmo, checkAmmoAvailability) da player.js
+// - Funzioni Player (addItemToInventory, removeItemFromInventory, consumeAmmo, checkAmmoAvailability, applyWearToEquippedItem) da player.js // Aggiunto applyWearToEquippedItem
 // - Funzioni Map (transitionToDay, transitionToNight) da map.js
 // - Funzione endGame (da game_core.js)
 
@@ -140,7 +140,7 @@ function triggerTileEvent(tileSymbol) {
  * Viene chiamato da movePlayer (map.js) SOLO se un evento specifico del tile NON è stato attivato.
  * Dipende da: game_constants.js (gameActive, eventScreenActive, COMPLEX_EVENT_CHANCE, COMPLEX_EVENT_TYPE_WEIGHTS, TILE_SYMBOLS, ...costanti esiti/probabilità danni/loot),
  * game_data.js (...descrizioni eventi complessi arrays, tipiBestie), game_utils.js (addMessage, getRandomText, performSkillCheck, chooseWeighted, getSkillCheckLikelihood, getRandomInt),
- * ui.js (showEventPopup, renderStats), player.js (addItemToInventory, removeItemFromInventory, checkRepairMaterials, applyRepair, checkAmmoAvailability, consumeAmmo),
+ * ui.js (showEventPopup, renderStats), player.js (addItemToInventory, removeItemFromInventory, checkRepairMaterials, applyRepair, checkAmmoAvailability, consumeAmmo, applyWearToEquippedItem), // Aggiunto applyWearToEquippedItem
  * map.js (transitionToDay, transitionToNight), game_core.js (endGame).
  * @param {string} tileSymbol - Il simbolo del tipo di casella su cui si trova il giocatore.
  */
@@ -357,6 +357,14 @@ function triggerComplexEvent(tileSymbol) {
             eventChoices = horrorChoices; // Imposta le scelte
 
             break;
+        case 'HUNT_SUCCESS_RAW_MEAT':
+            // Caso speciale: caccia successo, ottieni carne cruda
+            // La descrizione dell'esito è gestita da getRandomText(descrizioniCacciaSuccessoCarne)
+            // Qui assegniamo direttamente la ricompensa.
+            const rewardFeedbackMeat = applyChoiceReward({ itemId: 'meat_raw', quantity: 1 });
+            combinedOutcome = `${outcomeText}${rewardFeedbackMeat}`;
+            outcomeMessageType = 'success';
+            break;
         default:
              console.error(`triggerComplexEvent: Tipo evento complesso '${eventType}' non gestito nella costruzione.`);
              // Fallback a un evento semplice "nulla"
@@ -405,7 +413,7 @@ function triggerComplexEvent(tileSymbol) {
  * o preme un tasto numerico corrispondente (handleEventKeyPress).
  * Dipende da: game_constants.js (player, currentEventChoices, currentEventContext, ...costanti status/probabilità/danni/loot),
  * game_data.js (ITEM_DATA, loreFragments, ...descrizioni esiti), game_utils.js (performSkillCheck, addMessage, getRandomText, getRandomInt, chooseWeighted),
- * ui.js (renderStats, renderInventory, buildAndShowComplexEventOutcome), player.js (addItemToInventory, removeItemFromInventory, checkAmmoAvailability, consumeAmmo, checkRepairMaterials, applyRepair),
+ * ui.js (renderStats, renderInventory, buildAndShowComplexEventOutcome), player.js (addItemToInventory, removeItemFromInventory, checkAmmoAvailability, consumeAmmo, checkRepairMaterials, applyRepair, applyWearToEquippedItem), // Aggiunto applyWearToEquippedItem
  * map.js (transitionToDay), game_core.js (endGame).
  * @param {number} choiceIndex - L'indice (0-based) della scelta selezionata dall'utente.
  */
@@ -422,7 +430,7 @@ function handleEventChoice(choiceIndex) {
     }
 
     // Ottieni la scelta selezionata e i dati dell'evento dal contesto
-    const choice = currentEventChoices[choiceIndex];
+    const choice = currentEventChoices[choiceIndex]; // <<<< VARIABILE CORRETTA
     // RIMOSSO: console.log('handleEventChoice: Oggetto choice recuperato:', choice);
     if (!choice) { console.error("!!! ERRORE: Oggetto choice è null o undefined!"); return; } // Aggiungi controllo di sicurezza
     // Ottieni l'oggetto specifico del dilemma dal contesto, se esiste
@@ -579,17 +587,13 @@ function handleEventChoice(choiceIndex) {
         // --- Gestione Esito Check (Successo o Fallimento) ---
         if (checkResult.success) {
             // --- Successo del Check ---
-            // RIMOSSO: console.log('>>> handleEventChoice: SKILL CHECK SUCCESSO!');
             outcomeTitle = "Successo!";
             messageType = 'success';
             outcomeDescription = choice.successText || "Hai avuto successo!";
-            // RIMOSSO: console.log('>>> handleEventChoice SUCCESSO: outcomeDescription impostata:', outcomeDescription);
 
             if (choice.successReward) {
-                const rewardFeedback = applyChoiceReward(choice.successReward);
-                 if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                applyChoiceReward(choice.successReward); // Chiamata modificata
             }
-            // RIMOSSO: console.log('>>> handleEventChoice SUCCESSO: Ricompensa applicata (se presente). Conseguenze finora:', outcomeConsequencesText);
 
             // Logica specifica per il successo di eventi complessi
             switch (eventType) {
@@ -604,8 +608,10 @@ function handleEventChoice(choiceIndex) {
                                 if (lootTable.length > 0) {
                                     const chosenLoot = chooseWeighted(lootTable);
                                     if (chosenLoot && chosenLoot.id) {
-                                        const rewardFeedbackLoot = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
-                                        if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
+                                        // Chiamiamo applyChoiceReward che ora gestisce messaggi interni
+                                        applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                                        // Rimuoviamo la vecchia logica di feedback qui
+                                        // if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
                                     }
                                 }
                            }
@@ -635,25 +641,38 @@ function handleEventChoice(choiceIndex) {
                 case 'TRACKS':
                      if (actionKey === 'segui' || actionKey === 'ispeziona') {
                            const trackOutcomeRoll = Math.random();
-                           if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) { // <<<< CORRETTO
+                           if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) {
                                outcomeDescription = getRandomText(descrizioniTracceOkLoot);
                                messageType = 'success';
                                const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
                                if (lootTable.length > 0) {
                                    const chosenLoot = chooseWeighted(lootTable);
                                    if (chosenLoot && chosenLoot.id) {
-                                       const rewardFeedbackLoot = applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
-                                       if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
+                                       // Chiamiamo applyChoiceReward che ora gestisce messaggi interni
+                                       applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                                       // Rimuoviamo la vecchia logica di feedback qui
+                                       // if (rewardFeedbackLoot) outcomeConsequencesText += rewardFeedbackLoot;
                                    }
                                }
-                           } else if (trackOutcomeRoll < TRACCE_LOOT_CHANCE + TRACCE_LORE_CHANCE) { // <<<< CORRETTO ANCHE QUI PER COERENZA
-                               outcomeDescription = getRandomText(descrizioniTracceOkLore);
+                           } else if (trackOutcomeRoll < TRACCE_LOOT_CHANCE + TRACCE_LORE_CHANCE) {
+                               outcomeDescription = getRandomText(descrizioniTracceOkLore); // USA NUOVO ARRAY
                                messageType = 'lore';
-                                const loreRewardFeedback = applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
-                                if (loreRewardFeedback) outcomeConsequencesText += "<br>Hai trovato un frammento di lore.";
-                                else outcomeDescription = getRandomText(descrizioniTracceOkNulla); // Fallback a Nulla se lore fallisce
+                                // Chiama applyChoiceReward per dare l'item lore
+                                applyChoiceReward({ itemId: 'lore_fragment_item', quantity: 1 });
+                                // Aggiungiamo un messaggio lore generico se l'item è stato aggiunto
+                                // (applyChoiceReward ora gestisce il messaggio "Hai trovato X")
+                                // Verifichiamo se l'item è stato effettivamente aggiunto (opzionale, ma buono)
+                                if (player.inventory.find(slot => slot.itemId === 'lore_fragment_item')) {
+                                    outcomeConsequencesText += "<br>Hai trovato un frammento del passato.";
+                                } else {
+                                    // Fallback a Nulla se l'inventario era pieno?
+                                    console.warn("handleEventChoice(TRACKS/Lore): lore_fragment_item non aggiunto (inventario pieno?)");
+                                    outcomeDescription = getRandomText(descrizioniTracceNothing); // FALLBACK CORRETTO
+                                    messageType = 'info';
+                                    outcomeConsequencesText = ""; // Resetta conseguenze
+                                }
                            } else {
-                               outcomeDescription = getRandomText(descrizioniTracceOkNulla);
+                               outcomeDescription = getRandomText(descrizioniTracceNothing); // NOME CORRETTO
                                messageType = 'info';
                            }
                       }
@@ -820,7 +839,7 @@ function handleEventChoice(choiceIndex) {
 
                 case 'TRACKS':
                      if (actionKey === 'segui' || actionKey === 'ispeziona') {
-                         outcomeDescription = getRandomText(descrizioniTracceNothing);
+                         outcomeDescription = getRandomText(descrizioniTracceNothing); // CORRETTO: Usa nome giusto
                          outcomeConsequencesText += "<br>Perdi tempo prezioso seguendo tracce sbagliate o confondendoti.";
                          messageType = 'info';
                      }
@@ -973,8 +992,8 @@ function handleEventChoice(choiceIndex) {
     }
 
     // Applica effetti diretti (es. danno, recupero risorse) se definiti nella scelta
-    if (chosenChoice.effect) {
-        applyEffect(chosenChoice.effect, chosenChoice.text); // Passa anche il testo della scelta per messaggi contestuali
+    if (choice && choice.effect) { // CORRETTO: usa choice
+        applyEffect(choice.effect, choice.text); // Passa anche il testo della scelta per messaggi contestuali
     }
 
     // Aggiorna le statistiche del giocatore e la mappa sull'interfaccia utente.
@@ -983,18 +1002,25 @@ function handleEventChoice(choiceIndex) {
     renderMap(); // Aggiunto per riflettere eventuali cambiamenti (es. tile esplorato)
 
     // APPLICA USURA ARMA SE NECESSARIO (NUOVA LOGICA)
-    if (chosenChoice && chosenChoice.usesWeapon === true && player.equippedWeapon) {
+    console.log("[DEBUG Wear Weapon] Checking if choice uses weapon:", choice?.usesWeapon, "Player weapon:", player.equippedWeapon);
+    if (choice && choice.usesWeapon === true && player.equippedWeapon) { // CORRETTO: usa choice
         const weaponId = player.equippedWeapon;
         const weaponData = ITEM_DATA[weaponId];
         // Verifica che l'oggetto esista in ITEM_DATA e abbia le proprietà di durabilità
         if (weaponData && weaponData.hasOwnProperty('durability') && weaponData.hasOwnProperty('maxDurability')) {
+            console.log(`[DEBUG Wear Weapon] Applying wear to ${weaponId}. Current durability: ${weaponData.durability}`);
             if (typeof applyWearToEquippedItem === 'function') {
                 applyWearToEquippedItem('equippedWeapon', 1); // Applica 1 punto di usura
+                console.log(`[DEBUG Wear Weapon] Durability after wear applied: ${weaponData.durability}`);
                 // logMessage("L'uso ha usurato la tua arma."); // Opzionale, potrebbe essere verboso
             } else {
                 console.error("handleEventChoice: Funzione applyWearToEquippedItem non trovata!");
             }
+        } else {
+            console.log("[DEBUG Wear Weapon] Weapon exists but lacks durability properties or is invalid.");
         }
+    } else {
+         console.log("[DEBUG Wear Weapon] Conditions for weapon wear not met.");
     }
 
     // Controlla se il giocatore è morto dopo l'esito dell'evento.
@@ -1103,75 +1129,142 @@ function handleEventChoice(choiceIndex) {
     function applyChoiceReward(rewardData) {
         if (!rewardData) return null;
 
-        let feedback = "";
-        let itemAdded = false;
-
-        // Caso 1: Ricompensa è un oggetto specifico
-        if (rewardData.itemId) {
-            const quantity = rewardData.quantity || 1;
-            const itemInfo = ITEM_DATA[rewardData.itemId];
-            if (itemInfo) {
-                addItemToInventory(rewardData.itemId, quantity); // addItemToInventory logga il messaggio
-                feedback = `\nHai ottenuto: ${quantity} x ${itemInfo.name}!`;
-                itemAdded = true;
-            } else {
-                console.warn(`applyChoiceReward: itemId '${rewardData.itemId}' non trovato in ITEM_DATA.`);
-                feedback = "\n(Ricompensa oggetto non valida)";
-            }
-        }
-        // Caso 2: Ricompensa è di un tipo specifico (es. risorsa casuale)
-        else if (rewardData.type) {
-            const quantity = rewardData.quantity || 1;
-            switch (rewardData.type) {
-                case 'random_common_resource':
-                     // Sceglie una risorsa casuale dalla pool definita in game_constants.js
-                     if (Array.isArray(COMMON_RESOURCES_POOL) && COMMON_RESOURCES_POOL.length > 0) {
-                         const randomItemId = getRandomText(COMMON_RESOURCES_POOL); // Sceglie un ID casuale
-                         const itemInfo = ITEM_DATA[randomItemId];
-                         if (itemInfo) {
-                              addItemToInventory(randomItemId, quantity);
-                              feedback = `\nHai trovato qualcosa di utile: ${quantity} x ${itemInfo.name}!`;
-                              itemAdded = true;
-                         } else {
-                              console.warn(`applyChoiceReward: random_common_resource ha scelto itemId '${randomItemId}' non valido.`);
-                              feedback = "\n(Ricompensa risorsa casuale non valida)";
-                         }
-                     } else {
-                          console.warn("applyChoiceReward: COMMON_RESOURCES_POOL non definito o vuoto in game_constants.js.");
-                          feedback = "\n(Impossibile generare risorsa casuale)";
-                     }
-                    break;
-                // Aggiungere altri tipi di ricompense (es. 'stat_bonus') qui se necessario
-                /*
-                case 'stat_bonus':
-                    if (rewardData.stat && typeof player[rewardData.stat] !== 'undefined') {
-                        player[rewardData.stat] += quantity;
-                        feedback = `\nLa tua statistica ${rewardData.stat} è aumentata di ${quantity}!`;
-                        // Aggiorna UI Stats
-                        if (typeof renderStats === 'function') renderStats();
+        if (rewardData.items && Array.isArray(rewardData.items)) {
+            // Nuovo formato: ricompensa multipla
+            addMessage("Hai trovato diverse provviste!", 'success'); // Messaggio generico per ricompense multiple
+            for (const itemToGrant of rewardData.items) {
+                if (itemToGrant.itemId && itemToGrant.quantity > 0) {
+                    const itemDefinition = ITEM_DATA[itemToGrant.itemId];
+                    if (itemDefinition) {
+                        addItemToInventory(itemToGrant.itemId, itemToGrant.quantity);
+                        // Messaggio specifico per ogni item aggiunto (potrebbe essere opzionale se c'è un messaggio cumulativo)
+                        // addMessage(`Hai ottenuto: ${itemToGrant.quantity}x ${itemDefinition.name}.`, 'success');
                     } else {
-                        feedback = "\n(Ricompensa statistica non valida)";
+                        console.warn(`applyChoiceReward: Item ID '${itemToGrant.itemId}' nell'array items non trovato in ITEM_DATA.`);
                     }
-                    break;
-                */
-                default:
-                    console.warn(`applyChoiceReward: Tipo di ricompensa sconosciuto '${rewardData.type}'.`);
-                    feedback = "\n(Tipo ricompensa non gestito)";
-                    break;
+                } else if (itemToGrant.type && itemToGrant.quantity > 0) {
+                    // Gestione ricompense casuali all'interno dell'array items
+                    handleRandomRewardType(itemToGrant.type, itemToGrant.quantity);
+                }
             }
-        }
-        // Caso 3: Nessun itemId o type valido
-        else {
-             console.warn("applyChoiceReward: Oggetto ricompensa non valido:", rewardData);
-             feedback = "\n(Definizione ricompensa non valida)";
+        } else if (rewardData.itemId && rewardData.quantity > 0) {
+            // Formato standard: ricompensa singola specificata da itemId
+            const itemDefinition = ITEM_DATA[rewardData.itemId];
+            if (itemDefinition) {
+                addItemToInventory(rewardData.itemId, rewardData.quantity);
+                addMessage(`Hai trovato ${rewardData.quantity}x ${itemDefinition.name}.`, 'success');
+            } else {
+                console.warn(`applyChoiceReward: Item ID '${rewardData.itemId}' non trovato in ITEM_DATA.`);
+            }
+        } else if (rewardData.type && rewardData.quantity > 0) {
+            // Formato standard: ricompensa singola casuale specificata da type
+            handleRandomRewardType(rewardData.type, rewardData.quantity);
         }
 
-        // Aggiorna l'inventario nella UI se un oggetto è stato aggiunto
-        if (itemAdded && typeof renderInventory === 'function') {
-            renderInventory();
+        // Potrebbero esserci altri tipi di ricompense dirette qui, es. modifiche di statistiche immediate,
+        // ma la maggior parte degli effetti complessi (status, modifiche stats con messaggi) 
+        // sono gestiti da `applyEffect` chiamato da `handleEventChoice`.
+    }
+
+    /**
+     * Gestisce il conferimento di un tipo di ricompensa casuale.
+     * @param {string} rewardType - Es. 'random_common_resource', 'random_medical_item', 'random_clothing_item'.
+     * @param {number} quantity - La quantità da dare.
+     */
+    function handleRandomRewardType(rewardType, quantity) {
+        let foundItemId = null;
+        let foundItemName = "un oggetto casuale"; // Default
+        let chosenItem = null; // Per i risultati di chooseWeighted
+
+        // Assicurati che RANDOM_REWARD_POOLS sia accessibile.
+        // Se non lo fosse, questa funzione non potrebbe funzionare correttamente per la maggior parte dei tipi.
+        if (typeof RANDOM_REWARD_POOLS === 'undefined' && rewardType !== 'random_clothing_item') {
+            console.error(`handleRandomRewardType: RANDOM_REWARD_POOLS non è definito! Impossibile trovare ricompense casuali per tipo '${rewardType}'.`);
+            addMessage(`Errore interno: impossibile generare ricompensa casuale.`, 'danger');
+            return;
+        }
+        if (typeof ITEM_DATA === 'undefined') {
+            console.error(`handleRandomRewardType: ITEM_DATA non è definito! Impossibile trovare ricompense casuali per tipo '${rewardType}'.`);
+            addMessage(`Errore interno: dati oggetti mancanti.`, 'danger');
+            return;
         }
 
-        return feedback.trim() || null; // Ritorna il feedback o null
+
+        switch (rewardType) {
+            case 'random_common_resource':
+                if (RANDOM_REWARD_POOLS.COMMON_RESOURCE && RANDOM_REWARD_POOLS.COMMON_RESOURCE.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.COMMON_RESOURCE); // chooseWeighted dovrebbe accettare direttamente l'array di oggetti con id e weight
+                } else {
+                    console.warn(`handleRandomRewardType: Pool COMMON_RESOURCE non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_rare_resource':
+                if (RANDOM_REWARD_POOLS.RARE_RESOURCE && RANDOM_REWARD_POOLS.RARE_RESOURCE.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RARE_RESOURCE);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool RARE_RESOURCE non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_medical_item':
+                if (RANDOM_REWARD_POOLS.MEDICAL_ITEM && RANDOM_REWARD_POOLS.MEDICAL_ITEM.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.MEDICAL_ITEM);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool MEDICAL_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_food_item':
+                if (RANDOM_REWARD_POOLS.FOOD_ITEM && RANDOM_REWARD_POOLS.FOOD_ITEM.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.FOOD_ITEM);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool FOOD_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_water_item':
+                if (RANDOM_REWARD_POOLS.WATER_ITEM && RANDOM_REWARD_POOLS.WATER_ITEM.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.WATER_ITEM);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool WATER_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_clothing_item':
+                const allClothing = Object.values(ITEM_DATA).filter(item => item.type === 'armor' || item.category === 'Clothing');
+                if (allClothing.length > 0) {
+                    const randomClothingItem = getRandomText(allClothing); // getRandomText dovrebbe restituire un oggetto item completo
+                    if (randomClothingItem && randomClothingItem.id) {
+                        foundItemId = randomClothingItem.id;
+                    } else {
+                        console.warn(`handleRandomRewardType: getRandomText(allClothing) non ha restituito un item valido.`);
+                    }
+                } else {
+                     console.warn(`handleRandomRewardType: Nessun oggetto di tipo 'armor' o categoria 'Clothing' trovato in ITEM_DATA per 'random_clothing_item'.`);
+                }
+                break;
+            default:
+                console.warn(`handleRandomRewardType: Tipo di ricompensa casuale sconosciuto: '${rewardType}'.`);
+                addMessage(`Non hai trovato nulla di utile (tipo sconosciuto: ${rewardType}).`, 'warning');
+                return; // Esci dalla funzione se il tipo non è gestito
+        }
+
+        if (chosenItem && chosenItem.id) {
+            foundItemId = chosenItem.id;
+        }
+        // Per 'random_clothing_item', foundItemId è già impostato se trovato.
+
+        if (foundItemId) {
+            const itemDefinition = ITEM_DATA[foundItemId];
+            if (itemDefinition) { // Verifica aggiuntiva che l'ID esista in ITEM_DATA
+                foundItemName = itemDefinition.name;
+                addItemToInventory(foundItemId, quantity);
+                addMessage(`Hai trovato ${quantity}x ${foundItemName} (casuale).`, 'success');
+            } else {
+                console.error(`handleRandomRewardType: ID oggetto '${foundItemId}' (determinato per tipo '${rewardType}') non trovato in ITEM_DATA.`);
+                addMessage(`Errore: oggetto casuale non valido.`, 'danger');
+            }
+        } else {
+            // Questo log è utile se un pool è vuoto o chooseWeighted/getRandomText fallisce
+            console.log(`handleRandomRewardType: Nessun oggetto specifico trovato per il tipo casuale '${rewardType}'. Potrebbe essere intenzionale se il pool è vuoto o la selezione non ha avuto successo.`);
+            addMessage(`Non hai trovato nulla di utile questa volta.`, 'neutral');
+        }
     }
 
     /**
@@ -1211,11 +1304,32 @@ function handleEventChoice(choiceIndex) {
                 // Calcola riduzione armatura
                 if (player.equippedArmor && ITEM_DATA[player.equippedArmor]) {
                     const armorInfo = ITEM_DATA[player.equippedArmor];
-                    if (armorInfo.armorValue && armorInfo.armorValue > 0) {
+                    // Verifica che l'armatura abbia un valore e non sia già rotta per applicare riduzione e usura
+                    if (armorInfo.armorValue && armorInfo.armorValue > 0 && (armorInfo.durability === undefined || armorInfo.durability > 0)) {
                         const reductionFactor = isMentalHorror ? ARMOR_HORROR_REDUCTION_FACTOR : ARMOR_DAMAGE_REDUCTION_FACTOR;
                         damageReduction = Math.round(armorInfo.armorValue * reductionFactor); // Arrotonda la riduzione
                         finalDamage = Math.max(0, baseDamage - damageReduction); // Danno minimo 0
+
+                        // APPLICA USURA ARMOR SE IL DANNO È STATO EFFETTIVAMENTE RIDOTTO
+                        console.log(`[DEBUG Wear Armor] Damage reduction: ${damageReduction}. Checking if wear should be applied to ${player.equippedArmor}.`);
+                        if (damageReduction > 0) { // Solo se l'armatura ha fatto qualcosa
+                            console.log(`[DEBUG Wear Armor] Applying wear to ${player.equippedArmor}. Current durability: ${armorInfo.durability}`);
+                            if (typeof applyWearToEquippedItem === 'function') {
+                                applyWearToEquippedItem('equippedArmor', 1); // Applica 1 punto di usura
+                                console.log(`[DEBUG Wear Armor] Durability after wear applied: ${armorInfo.durability}`);
+                            } else {
+                                console.error("applyPenalty: Funzione applyWearToEquippedItem non trovata!");
+                            }
+                        } else {
+                            console.log("[DEBUG Wear Armor] Damage reduction is 0, no wear applied.");
+                        }
+                    } else {
+                        // L'armatura è equipaggiata ma non ha valore o è rotta, nessuna riduzione/usura.
+                        finalDamage = baseDamage;
                     }
+                } else {
+                    // Nessuna armatura equipaggiata
+                    finalDamage = baseDamage;
                 }
 
                 const oldHp = player.hp;

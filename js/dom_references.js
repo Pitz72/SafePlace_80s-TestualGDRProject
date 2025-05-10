@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.10
+ * Versione: v0.7.11
  * File: js/dom_references.js
  * Descrizione: Centralizza i riferimenti agli elementi DOM per un facile accesso e manutenibilità.
  */
@@ -116,7 +116,7 @@ function assignAllDOMReferences() {
     DOM.endMessage = document.getElementById('end-message') || null;
 
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
-    console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // Log finale diagnostico
+    // console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // RIMOSSO Log finale diagnostico
 }
 
 // --- ESECUZIONE AUTOMATICA QUANDO IL DOM È PRONTO ---

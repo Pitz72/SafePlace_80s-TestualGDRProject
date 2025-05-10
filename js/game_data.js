@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.10
+ * Versione: v0.7.11
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -118,7 +118,7 @@ const EVENT_DATA = {
              title: "Frammenti d'Infanzia",
              description: "Un vecchio parco giochi arrugginito emerge dalla sabbia. Altalene contorte cigolano nel vento. Per un attimo, ricordi com'era essere solo un bambino, senza il peso della sopravvivenza.",
              choices: [
-                 { text: "Esplorare i resti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Mentre ti arrampichi sulla struttura del vecchio scivolo, noti un piccolo vano segreto dove qualcuno ha nascosto una scatoletta. Un tesoro infantile dimenticato, ora prezioso.", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "La struttura metallica cede sotto il tuo peso, facendoti cadere. Non c'era nulla di utile, solo fantasmi di risate perdute.", isSearchAction: true, actionKey: "explore_playground_remains" },
+                 { text: "Esplorare i resti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Mentre ti arrampichi sulla struttura del vecchio scivolo, noti un piccolo vano segreto dove qualcuno ha nascosto una scatoletta. Un tesoro infantile dimenticato, ora prezioso.", successReward: { items: [{ itemId: 'canned_food', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] }, failureText: "La struttura metallica cede sotto il tuo peso, facendoti cadere. Non c'era nulla di utile, solo fantasmi di risate perdute.", isSearchAction: true, actionKey: "explore_playground_remains" },
                  { text: "Riflettere in silenzio", outcome: "Ti siedi sull'altalena, lasciando che i ricordi affiorino. Questa pausa ti ridà energia mentale, anche se il tempo è prezioso." }
              ]
         }
@@ -186,7 +186,7 @@ const EVENT_DATA = {
             title: "Villaggio Fantasma",
             description: "Le rovine silenziose di un piccolo insediamento. Tende strappate e baracche vuote gemono al vento. Cosa è successo qui? Forse è rimasto qualcosa tra le macerie.",
             choices: [
-                { text: "Cerca tra le macerie (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Dopo un'attenta ricerca tra i detriti polverosi, trovi del cibo in scatola ancora intatto!", successReward: { itemId: 'canned_food', quantity: 1 }, failureText: "Trovi solo polvere, vetri rotti e i fantasmi silenziosi di vite spezzate. Nulla di utile.", isSearchAction: true, actionKey: "search_village_rubble" },
+                { text: "Cerca tra le macerie (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Dopo un'attenta ricerca tra i detriti polverosi, trovi del cibo in scatola ancora intatto e una bottiglia d'acqua!", successReward: { items: [{ itemId: 'canned_food', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] }, failureText: "Trovi solo polvere, vetri rotti e i fantasmi silenziosi di vite spezzate. Nulla di utile.", isSearchAction: true, actionKey: "search_village_rubble" },
                 { text: "Riposati all'ombra", outcome: "Ti siedi al riparo di un muro diroccato, recuperando un po' il fiato, ma il silenzio del luogo è opprimente." }
             ]
         },
@@ -218,8 +218,8 @@ const EVENT_DATA = {
                  {
                      text: "Esplora un palazzo (Presagio)",
                      skillCheck: { stat: 'presagio', difficulty: 13 },
-                     successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi...",
-                     successReward: { type: 'random_common_resource', quantity: 1 },
+                     successText: "Il tuo istinto ti guida verso un edificio che sembra meno pericolante degli altri. All'interno, tra le macerie, trovi alcune provviste e dei materiali utili.",
+                     successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }, { itemId: 'scrap_metal', quantity: 2 }] },
                      failureText: "Il palazzo è un labirinto di pericoli e vicoli ciechi. Non trovi nulla di utile e rischi di perderti o peggio. Meglio ritirarsi.",
                      actionKey: "explore_building"
                  },
@@ -260,53 +260,48 @@ const EVENT_DATA = {
     ],
      REST_STOP: [
          {
-            id: "rest_stop_gas_station",
-            title: "Stazione di Servizio Fantasma",
-            description: "La carcassa arrugginita di una stazione di servizio. Pompe divelte, vetri rotti, l'interno buio e pieno di detriti. Potrebbe offrire riparo temporaneo o nascondere brutte sorprese.",
+            id: "rest_stop_shelter",
+            title: "Riparo Improvvisato",
+            description: "Un piccolo rifugio, forse una vecchia stazione di servizio o un capanno abbandonato. Offre una tregua momentanea dal mondo esterno.",
             choices: [
-                 { text: "Ispeziona l'interno (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Frugando con attenzione tra gli scaffali rovesciati e la sporcizia, la tua mano si chiude su qualcosa di utile...", successReward: { type: 'random_common_resource', quantity: 1 }, actionKey: "inspect_gas_station" }, // Modificato per usare ricompensa generica
-                 { text: "Cerca forniture mediche (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "In un armadietto metallico ammaccato e nascosto, trovi una siringa etichettata 'Antidoto'. Incredibile!", successReward: { itemId: 'antidote', quantity: 1 }, failureText: "Non trovi nulla di medico, solo vecchie mappe stradali ammuffite e attrezzi arrugginiti.", isSearchAction: true, actionKey: "search_gas_station_medical" }
+                { text: "Fruga tra le provviste (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Dopo un'attenta ricerca, trovi una buona scorta di cibo e acqua!", successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 2 }] }, failureText: "Qualcuno è già passato di qui e ha preso tutto. Non c'è nulla di commestibile.", isSearchAction: true, actionKey: "search_shelter_supplies" },
+                { text: "Riposa al sicuro", outcome: "Ti concedi una breve pausa, recuperando le energie. Il rifugio sembra sicuro, per ora." }
             ]
         },
         {
-             id: "rest_stop_coming_of_age",
-             title: "Tracce di Crescita",
-             description: "In un angolo appartato della vecchia area di servizio, qualcuno ha creato una sorta di 'muro della memoria' con fotografie, pagine di riviste e scritte. Ragazzi e ragazze sorridenti, 'primi baci', 'feste dei 18 anni'. Riti di passaggio di un'era scomparsa.",
-             choices: [
-                 { text: "Riflettere sulla propria identità", outcome: "Ti soffermi davanti a quelle immagini, pensando a ciò che il mondo ti ha negato. Non c'è più spazio per cerimonie o celebrazioni, solo sopravvivenza. Eppure, in qualche modo, sei diventato adulto troppo presto in questo mondo morente." },
-                 { text: "Cercare dietro il muro (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Spostando alcune foto, scopri che il muro nasconde un piccolo nascondiglio. Qualcuno aveva preparato una 'capsula del tempo' per il futuro, non sapendo quanto sarebbe stato diverso. Trovi oggetti utili tra i ricordi.", successReward: { itemId: 'repair_kit', quantity: 1 }, failureText: "Non trovi nulla dietro le immagini. Solo cemento freddo e la realtà che alcuni passaggi della vita sono andati perduti per sempre.", isSearchAction: true, actionKey: "search_behind_wall" }
-             ]
+            id: "rest_stop_vehicle",
+            title: "Veicolo Abbandonato",
+            description: "Un'auto arrugginita o un furgone bloccato sul ciglio della strada. Potrebbe contenere qualcosa di utile, o solo brutte sorprese.",
+            choices: [
+                { text: "Controlla il bagagliaio (Potenza)", skillCheck: { stat: 'potenza', difficulty: 12 }, successText: "Forzi il bagagliaio e trovi dei rottami metallici riutilizzabili.", successReward: { itemId: 'scrap_metal', quantity: 2 }, failureText: "Il bagagliaio è bloccato o completamente vuoto.", actionKey: "check_vehicle_trunk" },
+                { text: "Controlla la cabina (Tracce)", skillCheck: { stat: 'tracce', difficulty: 9 }, successText: "All'interno trovi delle vecchie bende, non il massimo ma meglio di niente.", successReward: { itemId: 'bandages_dirty', quantity: 1 }, failureText: "La cabina è stata saccheggiata o è piena di spazzatura inutile.", actionKey: "check_vehicle_cabin" },
+                { text: "Cerca nel vano portaoggetti (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 10 }, successText: "Frugando nel piccolo scomparto, trovi provviste utili lasciate indietro!", successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 1 }] }, failureText: "Il vano portaoggetti è vuoto, a parte qualche vecchia mappa inutile e polvere.", isSearchAction: true, actionKey: "search_glove_compartment" }
+            ]
         },
         {
-            id: "rest_stop_day_interaction",
-            title: "Rifugio Precario (Giorno)",
-            description: "Questo ammasso di lamiere e teli offre un riparo temporaneo dal vento e dalla polvere. Cosa vuoi fare?",
+            id: "rest_stop_old_camp",
+            title: "Vecchio Accampamento",
+            description: "I resti di un accampamento frettolosamente abbandonato. Ceneri fredde di un falò, una tenda strappata che sventola al vento. Chissà cosa è successo.",
+            choices: [
+                { text: "Ispeziona i resti del fuoco (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Tra le ceneri fredde trovi dei pezzi di carbone ancora utilizzabili.", successReward: { itemId: 'charcoal', quantity: 1}, failureText: "Solo cenere e vecchi ricordi.", actionKey: "inspect_campfire_remains" },
+                { text: "Esamina una tenda strappata (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Dentro la tenda trovi del cibo, acqua e un indumento dimenticato.", successReward: { items: [{ itemId: 'canned_food', quantity: 1 }, { itemId: 'water_bottle', quantity: 2 }, { type: 'random_clothing_item', quantity: 1 }] }, failureText: "La tenda è vuota e logora, non c'è nulla di valore.", isSearchAction: true, actionKey: "examine_torn_tent" }
+            ]
+        },
+        {
+            id: "rest_stop_hidden_stash",
+            title: "Scorta Nascosta",
+            description: "Sembra che qualcuno abbia usato questo posto come nascondiglio temporaneo. Forse hanno lasciato qualcosa di utile.",
             choices: [
                 {
-                    text: "Esplora il rifugio (costa tempo)",
-                    skillCheck: { stat: 'presagio', difficulty: 10 }, // Check Presagio per intuire pericoli/opportunità
-                    successText: "Dopo un'attenta ricerca tra i detriti e gli angoli bui...", // Esito gestito in handleEventChoice
-                    failureText: "Non trovi nulla di utile, solo polvere e rifiuti senza valore.",
-                    isSearchAction: true, // Costo tempo
-                    actionKey: "explore_shelter"
+                    text: "Cerca attentamente (Presagio)",
+                    skillCheck: { stat: 'presagio', difficulty: 11 },
+                    successText: "Il tuo intuito ti guida verso un pannello allentato / una cassa ben nascosta. Dentro trovi delle provviste!",
+                    successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 2 }] },
+                    failureText: "Hai cercato ovunque, ma sembra che la scorta sia già stata trovata o non ci sia mai stata.",
+                    isSearchAction: true,
+                    actionKey: "search_hidden_stash_rest_stop"
                 },
-                {
-                    text: "Riposa brevemente (+1 HP, costa 1 passo)", // Testo aggiornato
-                    actionKey: "rest_short",
-                    isSearchAction: true, // Già presente
-                    timeCost: 1,          // Costo tempo specifico
-                    effect: {             // Nuovo oggetto effect
-                        type: 'add_resource',
-                        resource_type: 'hp',
-                        amount: 1,
-                        message: "Ti fermi per qualche minuto, recuperando un po' il fiato e 1 HP. Non è molto, ma aiuta a schiarire le idee prima di ripartire."
-                    }
-                },
-                {
-                    text: "Lascia il rifugio",
-                    outcome: "Decidi di non perdere altro tempo qui. Prosegui il tuo viaggio.",
-                    actionKey: "leave"
-                }
+                { text: "Non perdere tempo", outcome: "Decidi che è meglio non rischiare o perdere tempo prezioso a cercare." }
             ]
         }
     ]
@@ -314,120 +309,779 @@ const EVENT_DATA = {
 };
 
 
-// Database degli oggetti presenti nel gioco
+// --- DEFINIZIONE OGGETTI DI GIOCO ---
+// Contiene tutti gli oggetti utilizzabili, equipaggiabili o trovabili nel gioco.
+// Ogni oggetto ha un ID univoco e varie proprietà che ne definiscono il comportamento.
 const ITEM_DATA = {
-    // Risorse e Consumabili (Usable)
-    'water_purified_small': { id: 'water_purified_small', name: "Acqua Purificata (P)", description: "Una piccola borraccia d'acqua, sigillata. Ogni sorso è prezioso in queste terre.", usable: true, type: 'water', category: 'Water', effect: { type: 'add_resource', resource_type: 'water', amount: 3 } },
-    'canned_food': { id: 'canned_food', name: "Cibo in Scatola", description: "Una scatoletta ammaccata, ma l'integrità del sigillo fa ben sperare. Meglio di niente.", usable: true, stackable: true, type: 'food', category: 'Food', effect: { type: 'add_resource', resource_type: 'food', amount: 4 } }, // Aumentato a 4
-    'berries': { id: 'berries', name: "Bacche Sconosciute", description: "Un pugno di bacche selvatiche di un colore incerto. Comestibili o velenose? Un rischio da valutare.", usable: true, type: 'food', category: 'Food', stackable: true, effect: { type: 'add_resource_poisonable', resource_type: 'food', amount: 1, poison_chance: 0.20 } },
-    'water_dirty': { id: 'water_dirty', name: "Acqua Sporca", description: "Acqua torbida raccolta da una pozza o un contenitore abbandonato. Berla senza purificarla è un invito alla malattia... o peggio.", usable: true, type: 'water', category: 'Water', stackable: true, effect: { type: 'add_resource_poisonable', resource_type: 'water', amount: 0.5, poison_chance: 0.70 } },
-    'raw_meat': { id: 'raw_meat', name: "Carne Cruda", description: "Un pezzo di carne sanguinante da una bestia appena uccisa. Potrebbe nutrire, ma consumarla cruda è rischioso.", type: 'food', category: 'Food', usable: true, stackable: true, effect: { type: 'add_resource_sickness', resource_type: 'food', amount: 3, sickness_chance: 0.25 } }, // Aggiunto sickness_chance nell'effetto
-
-    // Oggetti Curativi (Usable)
-    'bandages_dirty': { id: 'bandages_dirty', name: "Bende Sporche", description: "Strisce di tessuto recuperate chissà dove. Non ispirano fiducia, ma possono tamponare una ferita.", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isInjured', chance: 0.4, success_message: "Le bende sembrano aver fermato il peggio.", failure_message: "Le bende sono troppo sporche, non hanno aiutato." }, usable: true, stackable: true },
-    'bandages_clean': { id: 'bandages_clean', name: "Bende Pulite", description: "Garze sterilizzate, ancora nella loro confezione originale. Una rarità, utile per curare ferite aperte.", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isInjured', chance: 0.75, success_message: "Le bende pulite sono efficaci, la ferita migliora.", failure_message: "Nonostante le bende, la ferita è ancora brutta.", heal_hp_on_success: 2 }, usable: true, stackable: true },
-    'suspicious_pills': { id: 'suspicious_pills', name: "Pillole Sospette", description: "Pasticche di colore indefinito in un blister rovinato. Una scommessa contro la malattia.", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isSick', chance: 0.7, success_message: "La febbre sembra scendere un po'. Ti senti leggermente meglio.", failure_message: "Non ti senti affatto meglio.", heal_hp_on_success: 1 }, usable: true, stackable: true },
-    'vitamins': { id: 'vitamins', name: "Vitamine", description: "Flacone quasi intatto di integratori. Forse possono dare un po' di vigore o aiutare a recuperare energie.", type: 'consumable', category: 'Medical', usable: true, stackable: true, effect: { type: 'add_resource', resource_type: 'hp', amount: 3 } }, // Cure HP
-    'herbal_salve': { id: 'herbal_salve', name: "Unguento Erbaceo", description: "Un unguento denso e aromatico fatto con erbe comuni. Lenisce il dolore e accelera la guarigione.", type: 'healing', category: 'Medical', effect: { type: 'add_resource', resource_type: 'hp', amount: 4 }, usable: true, stackable: true }, // Cure HP
-    'first_aid_kit': { id: 'first_aid_kit', name: "Kit Primo Soccorso", description: "Una piccola borsa contenente il necessario per trattare ferite moderate. Meglio delle bende sporche.", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isInjured', chance: 0.9, success_message: "Il kit ti permette di medicare efficacemente la ferita.", failure_message: "Nonostante le cure, la ferita non migliora molto.", heal_hp_on_success: 6 }, usable: true, stackable: false },
-    'antidote': { id: 'antidote', name: "Antidoto", description: "Una siringa contenente un liquido lattiginoso. Sembra un antidoto universale, forse...", type: 'healing', category: 'Medical', effect: { type: 'cure_status', status_cured: 'isPoisoned', chance: 1.0, success_message: "Il bruciore nelle vene svanisce. L'antidoto ha funzionato!" }, usable: true, stackable: true },
-    'medicine_crude': {
-        id: 'medicine_crude',
-        name: "Medicina Grezza",
-        description: "Una poltiglia appiccicosa e dall'odore pungente, ottenuta da piante mutate. Potrebbe aiutare contro le infezioni, ma ingerirla è sconsigliato.",
-        usable: true,
-        stackable: true,
-        type: 'healing',
-        category: 'Medical',
-        effect: {
-            type: 'cure_status',
-            status_cured: 'isSick',
-            chance: 0.3,
-            success_message: "Applichi la poltiglia. L'infezione sembra regredire leggermente.",
-            failure_message: "La medicina grezza non sembra avere alcun effetto benefico.",
-        }
+    // --- RISORSE BASE ---
+    'scrap_metal': {
+        id: 'scrap_metal',
+        name: 'Metallo Riciclato',
+        description: "Pezzi di metallo arrugginito e contorto. Utile per riparazioni e costruzioni.",
+        type: 'resource',
+        weight: 0.5,
+        value: 5,
+        stackable: true
+    },
+    'mechanical_parts': {
+        id: 'mechanical_parts',
+        name: 'Parti Meccaniche',
+        description: "Ingranaggi, molle e piccoli componenti. Essenziali per meccanismi complessi.",
+        type: 'resource',
+        weight: 0.3,
+        value: 10,
+        stackable: true
+    },
+    'charcoal': {
+        id: 'charcoal',
+        name: 'Carbone',
+        description: "Pezzi di legno carbonizzato. Utile per purificare l'acqua o come combustibile.",
+        type: 'resource',
+        weight: 0.2,
+        value: 3,
+        stackable: true
+    },
+    'wood_planks': {
+        id: 'wood_planks',
+        name: 'Assi di Legno',
+        description: "Assi recuperate da vecchie strutture. Materiale da costruzione versatile.",
+        type: 'resource',
+        weight: 0.8,
+        value: 4,
+        stackable: true
+    },
+    'cloth_rags': {
+        id: 'cloth_rags',
+        name: 'Stracci di Stoffa',
+        description: "Pezzi di tessuto sporco e logoro. Possono essere usati per bende o riparazioni.",
+        type: 'resource',
+        weight: 0.1,
+        value: 2,
+        stackable: true
     },
 
-    // Materiali e Attrezzi (Not Usable directly, Crafting/Tool)
-    'scrap_metal': { id: 'scrap_metal', name: "Rottame Metallico", description: "Un pezzo di metallo contorto e arrugginito. Utile per riparazioni o crafting.", usable: false, type: 'crafting', category: 'Crafting', stackable: true },
-    'mechanical_parts': { id: 'mechanical_parts', name: "Parti Meccaniche", description: "Piccoli ingranaggi, molle e viti recuperati da dispositivi rotti. Essenziali per riparare armi completamente danneggiate.", usable: false, type: 'crafting', category: 'Crafting', stackable: true },
-    'repair_kit': { id: 'repair_kit', name: "Kit di Riparazione", description: "Un set di strumenti e materiali per riparare equipaggiamento danneggiato.", type: 'crafting', category: 'Crafting', usable: true, stackable: true, effect: { type: 'repair_weapon', repair_amount: 10 } }, // Usable to repair weapons
-    'small_knife': { id: 'small_knife', name: "Piccolo Coltello", description: "Un coltellino multiuso, logoro ma ancora affilato. Utile per molti lavori di precisione.", usable: false, type: 'tool', category: 'Tool' }, // Non equipaggiabile come arma principale?
+    // --- CIBO ---
+    'canned_food': {
+        id: 'canned_food',
+        name: 'Cibo in Scatola',
+        description: "Una scatoletta ammaccata ma sigillata. Chissà cosa contiene, ma è cibo.",
+        type: 'food',
+        usable: true,
+        weight: 0.5,
+        value: 10,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 30 }]
+    },
+    'ration_pack': {
+        id: 'ration_pack',
+        name: 'Pacco Razione',
+        description: "Razione di sopravvivenza compatta. Non un granché, ma nutriente.",
+        type: 'food',
+        usable: true,
+        weight: 0.4,
+        value: 15,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 40 }]
+    },
+    'berries': {
+        id: 'berries',
+        name: 'Bacche Sospette',
+        description: "Bacche colorate trovate su un cespuglio. Potrebbero essere commestibili... o velenose.",
+        type: 'food',
+        usable: true,
+        weight: 0.1,
+        value: 2,
+        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 10, poison_chance: BERRIES_POISON_CHANCE }]
+    },
+    'meat_raw': {
+        id: 'meat_raw',
+        name: 'Carne Cruda',
+        description: "Un pezzo di carne fresca, ma cruda. Mangiarla così è rischioso.",
+        type: 'food',
+        usable: true,
+        weight: 0.6,
+        value: 8,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 25, sickness_chance: RAW_MEAT_SICKNESS_CHANCE }]
+    },
+    'meat_cooked': {
+        id: 'meat_cooked',
+        name: 'Carne Cotta',
+        description: "Carne arrostita su un fuoco improvvisato. Sicuramente più sicura di quella cruda.",
+        type: 'food',
+        usable: true,
+        weight: 0.5,
+        value: 12,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 35 }]
+    },
+    'chips_stale': {
+        id: 'chips_stale',
+        name: 'Patatine Stantie',
+        description: "Un sacchetto aperto, sapore di cartone, ma è pur sempre cibo.",
+        type: 'food',
+        usable: true,
+        weight: 0.2,
+        value: 3,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 15 }]
+    },
+    'chocolate_bar': {
+        id: 'chocolate_bar',
+        name: 'Barretta di Cioccolato',
+        description: "Fonde un po' in mano, un lusso raro.",
+        type: 'food',
+        usable: true,
+        weight: 0.1,
+        value: 8,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 20 }]
+    },
+    'canned_beans': {
+        id: 'canned_beans',
+        name: 'Fagioli in Scatola',
+        description: "Un classico della dispensa post-apocalittica.",
+        type: 'food',
+        usable: true,
+        weight: 0.5,
+        value: 12,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 35 }]
+    },
+    'dried_fruit': {
+        id: 'dried_fruit',
+        name: 'Frutta Essiccata',
+        description: "Leggera e nutriente, se non è ammuffita.",
+        type: 'food',
+        usable: true,
+        weight: 0.3,
+        value: 10,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 25 }]
+    },
+    'mre_pack': {
+        id: 'mre_pack',
+        name: 'Razione Militare (MRE)',
+        description: "Pasto completo, sigillato. Pesante ma saziante.",
+        type: 'food',
+        usable: true,
+        weight: 1.0,
+        value: 25,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 60 }]
+    },
+    'mystery_meat_cooked': {
+        id: 'mystery_meat_cooked',
+        name: 'Carne Misteriosa Cotta',
+        description: "Cucinata alla meno peggio, odore incerto.",
+        type: 'food',
+        usable: true,
+        weight: 0.4,
+        value: 10,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 30, sickness_chance: 0.10 }]
+    },
+    'protein_bar_old': {
+        id: 'protein_bar_old',
+        name: 'Barretta Proteica Vecchia',
+        description: "Dura come un sasso, ma piena di... qualcosa.",
+        type: 'food',
+        usable: true,
+        weight: 0.2,
+        value: 9,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 28 }]
+    },
 
-    // Armi (Not Usable directly, Equipable)
-    'pipe_wrench': { id: 'pipe_wrench', name: "Tubo di Metallo", description: "Un pesante tubo di metallo arrugginito. Non elegante, ma efficace per colpire.", type: 'weapon', category: 'Weapon', weaponType: 'mischia', damage: 3, peso: 'medio', velocità: 'media', raggio: 'corto', durability: 15, maxDurability: 15, usable: false, stackable: false },
-    'spear_makeshift': { id: 'spear_makeshift', name: "Lancia Improvvisata", description: "Un lungo tubo o bastone con una punta metallica affilata legata all'estremità. Offre portata ma è ingombrante.", type: 'weapon', category: 'Weapon', weaponType: 'bianca_lunga', damage: 4, durability: 12, maxDurability: 12, usable: false, stackable: false },
-    'machete_rusty': { id: 'machete_rusty', name: "Machete Arrugginito", description: "Una pesante lama da machete, intaccata dalla ruggine ma ancora capace di tagliare. Ottima per combattimenti ravvicinati.", type: 'weapon', category: 'Weapon', weaponType: 'bianca_corta', damage: 4, durability: 18, maxDurability: 18, usable: false, stackable: false },
-    'throwing_knives_crude': { id: 'throwing_knives_crude', name: "Coltelli da Lancio Grezzi", description: "Pezzi di metallo affilati e appesantiti, non bilanciati ma possono essere lanciati con discreta efficacia. Si consumano dopo l'uso.", type: 'weapon', category: 'Weapon', weaponType: 'lancio', damage: 3, durability: 1, maxDurability: 1, usable: false, stackable: true }, // Stackable perché sono consumabili
-    'pistol_makeshift': { id: 'pistol_makeshift', name: "Pistola Improvvisata", description: "Un'arma da fuoco grezza assemblata con pezzi di recupero. Potenzialmente potente, ma inaffidabile.", type: 'weapon', category: 'Weapon', weaponType: 'fuoco', damage: 5, precisione: 'bassa', raggio: 'medio', rumore: 'alto', durability: 30, maxDurability: 30, ammoType: 'munizioni', usable: false, stackable: false },
-    'crossbow': { id: 'crossbow', name: "Balestra Artigianale", description: "Una balestra assemblata con materiali di recupero. Silenziosa e potente, ma lenta da ricaricare.", type: 'weapon', category: 'Weapon', weaponType: 'balestra', damage: 4, precisione: 'alta', raggio: 'lungo', rumore: 'basso', durability: 25, maxDurability: 25, ammoType: 'dardi', usable: false, stackable: false },
-    'bow': { id: 'bow', name: "Arco di Fortuna", description: "Un arco ricavato da un ramo flessibile e corda. Silenzioso ma richiede abilità.", type: 'weapon', category: 'Weapon', weaponType: 'arco', damage: 3, precisione: 'media', raggio: 'long', rumore: 'basso', durability: 20, maxDurability: 20, ammoType: 'frecce', usable: false, stackable: false }, // Raggio cambiato in 'long' per consistenza
+    // --- ACQUA E BEVANDE ---
+    'water_bottle': {
+        id: 'water_bottle',
+        name: 'Borraccia d\'Acqua',
+        description: "Una borraccia piena d'acqua, sembra pulita.",
+        type: 'water',
+        usable: true,
+        weight: 1.0,
+        value: 10,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 40 }]
+    },
+    'water_dirty': {
+        id: 'water_dirty',
+        name: 'Acqua Sporca',
+        description: "Acqua torbida e dall'odore sgradevole. Berla così è un azzardo.",
+        type: 'water',
+        usable: true,
+        weight: 1.0,
+        value: 1,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 20, sickness_chance: DIRTY_WATER_POISON_CHANCE }]
+    },
+    'water_purified_small': {
+        id: 'water_purified_small',
+        name: 'Acqua Purificata (Piccola)',
+        description: "Una piccola quantità di acqua resa potabile. Preziosa.",
+        type: 'water',
+        usable: true,
+        weight: 0.3,
+        value: 8,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 25 }]
+    },
+    'soda_flat': {
+        id: 'soda_flat',
+        name: 'Bibita Gassata Sgasata',
+        description: "Dolce e appiccicosa, ha perso tutta l'effervescenza.",
+        type: 'water',
+        usable: true,
+        weight: 0.4,
+        value: 5,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 15 }]
+    },
+    'juice_box_found': {
+        id: 'juice_box_found',
+        name: 'Succo di Frutta Trovato',
+        description: "Zuccherino, sperando non sia fermentato.",
+        type: 'water',
+        usable: true,
+        weight: 0.3,
+        value: 6,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 20, sickness_chance: 0.05 }]
+    },
+    'energy_drink_old': {
+        id: 'energy_drink_old',
+        name: 'Bevanda Energetica Vecchia',
+        description: "Sapore chimico, promette una carica che non arriverà.",
+        type: 'water',
+        usable: true,
+        weight: 0.3,
+        value: 4,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 10 }]
+    },
+    'rainwater_collected': {
+        id: 'rainwater_collected',
+        name: 'Acqua Piovana Raccolta',
+        description: "Fresca, ma la purezza dipende da dove è stata raccolta.",
+        type: 'water',
+        usable: true,
+        weight: 1.0,
+        value: 7,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 35, sickness_chance: 0.10 }]
+    },
+    'herbal_tea_crude': {
+        id: 'herbal_tea_crude',
+        name: 'Tisana d\'Erbe Grezza',
+        description: "Foglie bollite, sapore amaro, forse calmante.",
+        type: 'water',
+        usable: true,
+        weight: 0.1,
+        value: 5,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 10 }]
+    },
 
-    // Armature (Not Usable directly, Equipable)
-    'leather_jacket_worn': { id: 'leather_jacket_worn', name: "Giacca di Pelle Consunta", description: "Una vecchia giacca di pelle, indurita dal tempo e dalle intemperie. Offre una protezione minima.", type: 'armor', category: 'Armor', armorValue: 2, durability: 25, maxDurability: 25, usable: false, stackable: false },
-
-    // Munizioni (Not Usable directly, Consumed by Weapons)
-    'ammo_generic': { id: 'ammo_generic', name: "Munizioni", description: "Proiettili comuni per armi da fuoco leggere.", type: 'ammo', category: 'Ammo', ammoType: 'munizioni', usable: false, stackable: true, recuperabile: false }, // ID generalizzato
-    'bolt': { id: 'bolt', name: "Dardi", description: "Dardi metallici per balestra, recuperabili dopo l'uso se non danneggiati.", type: 'ammo', category: 'Ammo', ammoType: 'dardi', usable: false, stackable: true, recuperabile: true },
-    'arrow': { id: 'arrow', name: "Frecce", description: "Frecce rudimentali con punte di metallo. Possono essere recuperate dopo l'uso.", type: 'ammo', category: 'Ammo', ammoType: 'frecce', usable: false, stackable: true, recuperabile: true },
-
-    // Oggetti Lore (Not Usable directly, Reveal info)
-    'lore_fragment_item': { id: 'lore_fragment_item', name: "Nota Strappata", description: "Un frammento di carta ingiallita. Le scritte sono quasi illeggibili, un eco confuso dal passato.", usable: false, type: 'lore', category: 'Lore', stackable: false, effect: { type: 'show_lore', text_array_ref: 'loreFragments' } }, // Potrebbe essere usato per rivelare lore dal popup
-
-    // --- FINE DEFINIZIONE OGGETTI ---
-};
-
-// Scenari specifici per eventi Dilemma Morale
-const dilemmaEvents = [
-    /*
-    {
-        id: "dilemma_scenario_1", // TODO: Sostituire con ID fornito (es. "dilemma_suspicious_cache")
-        title: "Titolo Scenario 1", // TODO: Sostituire con Titolo fornito
-        description: "Descrizione Scenario 1...", // TODO: Sostituire con Descrizione fornita
-        choices: [
-            // TODO: Inserire qui le scelte per lo scenario 1
-            // Esempio scelta:
-            // {
-            //     text: "Testo Scelta A",
-            //     skillCheck: { stat: 'presagio', difficulty: 12 },
-            //     successText: "Esito positivo A...",
-            //     successReward: { itemId: 'canned_food', quantity: 1 },
-            //     failureText: "Esito negativo A..."
-            // },
-            // {
-            //     text: "Testo Scelta B",
-            //     outcome: "Esito diretto B...",
-            //     // Eventuali penalità o effetti diretti
-            // }
+    // --- MEDICINE ---
+    'bandages_dirty': {
+        id: 'bandages_dirty',
+        name: 'Bende Sporche',
+        description: "Bende recuperate, non proprio sterili. Meglio di niente, forse.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 3,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.3, heal_hp_on_success: 5 }]
+    },
+    'bandages_clean': {
+        id: 'bandages_clean',
+        name: 'Bende Pulite',
+        description: "Bende sterili, buone per ferite superficiali.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 10,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.7, heal_hp_on_success: 10 }]
+    },
+    'first_aid_kit': {
+        id: 'first_aid_kit',
+        name: 'Kit Pronto Soccorso',
+        description: "Un kit medico ben fornito. Può curare ferite più serie.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.7,
+        value: 25,
+        effects: [
+            { type: 'cure_status', status_cured: 'isInjured', chance: 0.9, heal_hp_on_success: 20 },
+            { type: 'add_resource', resource_type: 'hp', amount: 10 }
         ]
     },
-    */
-    /*
-    {
-         id: "dilemma_scenario_2", // TODO: Sostituire con ID fornito (es. "dilemma_wounded_stranger")
-         title: "Titolo Scenario 2", // TODO: Sostituire con Titolo fornito
-         description: "Descrizione Scenario 2...", // TODO: Sostituire con Descrizione fornita
-         choices: [
-             // TODO: Inserire qui le scelte per lo scenario 2
-         ]
+    'antidote': {
+        id: 'antidote',
+        name: 'Antidoto',
+        description: "Una siringa con un liquido lattiginoso. Speriamo funzioni contro i veleni.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 30,
+        effects: [{ type: 'cure_status', status_cured: 'isPoisoned', chance: 0.8, heal_hp_on_success: 5 }]
     },
-    */
-    /*
-    {
-         id: "dilemma_scenario_3", // TODO: Sostituire con ID fornito (es. "dilemma_radio_signal")
-         title: "Titolo Scenario 3", // TODO: Sostituire con Titolo fornito
-         description: "Descrizione Scenario 3...", // TODO: Sostituire con Descrizione fornita
-         choices: [
-             // TODO: Inserire qui le scelte per lo scenario 3
-         ]
+    'medicine_crude': {
+        id: 'medicine_crude',
+        name: 'Medicina Grezza',
+        description: "Un intruglio di erbe dall'odore pungente. Chissà se funziona.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.3,
+        value: 15,
+        effects: [{ type: 'cure_status', status_cured: 'isSick', chance: 0.5, heal_hp_on_success: 5 }]
+    },
+    'vitamins': {
+        id: 'vitamins',
+        name: 'Vitamine',
+        description: "Pillole colorate. Forse aiutano a sentirsi meglio o a prevenire malattie.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 12,
+        effects: [
+            { type: 'add_resource', resource_type: 'hp', amount: 5}
+        ]
+    },
+    'suspicious_pills': {
+        id: 'suspicious_pills',
+        name: 'Pillole Sospette',
+        description: "Trovate in un contenitore non etichettato. Cosa faranno?",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 5,
+        effects: []
+    },
+     'herbal_salve': {
+        id: 'herbal_salve',
+        name: 'Unguento Erbale',
+        description: "Un unguento denso fatto con erbe sconosciute. Lenitivo.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 18,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.6, heal_hp_on_success: 12 }]
+    },
+
+    // --- ARMI ---
+    // MISCHIA
+    'pipe_wrench': {
+        id: 'pipe_wrench',
+        name: 'Chiave Inglese Pesante',
+        description: "Una grossa chiave inglese, buona per colpire forte... o stringere bulloni.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'mischia',
+        damage: { min: 5, max: 10 },
+        durability: 30,
+        maxDurability: 30,
+        weight: 1.5,
+        value: 20
+    },
+    'wooden_club': {
+        id: 'wooden_club',
+        name: 'Clava di Legno',
+        description: "Un pezzo di legno robusto, grezzamente sagomato per colpire.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'mischia',
+        damage: { min: 2, max: 5 },
+        durability: 20,
+        maxDurability: 20,
+        weight: 1.0,
+        value: 5
+    },
+    'metal_bar': {
+        id: 'metal_bar',
+        name: 'Barra di Metallo',
+        description: "Una barra di ferro arrugginita, pesante e sbilanciata, ma efficace.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'mischia',
+        damage: { min: 4, max: 8 },
+        durability: 35,
+        maxDurability: 35,
+        weight: 1.8,
+        value: 15
+    },
+    'machete_rusty': {
+        id: 'machete_rusty',
+        name: 'Machete Arrugginito',
+        description: "Una lama lunga e pesante, ideale per farsi strada o per... altro. La ruggine ne compromette l'efficacia.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'mischia',
+        damage: { min: 6, max: 12 },
+        durability: 25,
+        maxDurability: 25,
+        weight: 1.2,
+        value: 22
+    },
+
+    // BIANCA CORTA
+    'combat_knife': {
+        id: 'combat_knife',
+        name: 'Coltello da Combattimento',
+        description: "Un coltello militare, affilato e ben bilanciato. Veloce e letale.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'bianca_corta',
+        damage: { min: 4, max: 9 },
+        durability: 25,
+        maxDurability: 25,
+        weight: 0.4,
+        value: 25
+    },
+    'kitchen_knife': {
+        id: 'kitchen_knife',
+        name: 'Coltello da Cucina',
+        description: "Un grosso coltello da cucina. Non ideale per combattere, ma meglio di niente.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'bianca_corta',
+        damage: { min: 3, max: 6 },
+        durability: 15,
+        maxDurability: 15,
+        weight: 0.3,
+        value: 8
+    },
+    'shiv_improvised': {
+        id: 'shiv_improvised',
+        name: 'Pugnale Improvvisato',
+        description: "Un pezzo di metallo affilato legato a un manico di fortuna. Rozzo ma pericoloso.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'bianca_corta',
+        damage: { min: 2, max: 7 },
+        durability: 10,
+        maxDurability: 10,
+        weight: 0.2,
+        value: 4
+    },
+
+    // BIANCA LUNGA
+     'baseball_bat': {
+        id: 'baseball_bat',
+        name: 'Mazza da Baseball',
+        description: "Un classico. Solida e affidabile per colpire forte.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'bianca_lunga',
+        damage: { min: 5, max: 10 },
+        durability: 30,
+        maxDurability: 30,
+        weight: 1.3,
+        value: 18
+    },
+    'spear_sharpened_pipe': {
+        id: 'spear_sharpened_pipe',
+        name: 'Lancia con Tubo Appuntito',
+        description: "Un tubo di metallo con un'estremità affilata. Permette di colpire a distanza.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'bianca_lunga',
+        damage: { min: 7, max: 14 },
+        durability: 25,
+        maxDurability: 25,
+        weight: 1.6,
+        value: 28
+    },
+
+    // LANCIO
+    'throwing_knife': {
+        id: 'throwing_knife',
+        name: 'Coltello da Lancio',
+        description: "Piccolo e bilanciato per essere lanciato. Silenzioso, ma difficile da recuperare.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'lancio',
+        damage: { min: 4, max: 7 },
+        durability: 1,
+        maxDurability: 1,
+        weight: 0.1,
+        value: 6,
+        stackable: true,
+        recoverable_chance: 0.5
+    },
+    'rock_sharp': {
+        id: 'rock_sharp',
+        name: 'Pietra Affilata',
+        description: "Una semplice pietra con un bordo appuntito. Arma disperata.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'lancio',
+        damage: { min: 1, max: 3 },
+        durability: 1,
+        maxDurability: 1,
+        weight: 0.3,
+        value: 1,
+        stackable: true
+    },
+
+    // FUOCO
+    'pistol_makeshift': {
+        id: 'pistol_makeshift',
+        name: 'Pistola Improvvisata',
+        description: "Un ammasso di tubi e molle che spara proiettili da 9mm. Inaffidabile e pericolosa anche per chi la usa.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'fuoco',
+        damage: { min: 8, max: 15 },
+        durability: 15,
+        maxDurability: 15,
+        weight: 1.0,
+        value: 30,
+        ammoType: 'ammo_9mm',
+        ammoPerShot: 1,
+        magazineSize: 5
+    },
+    'revolver_old': {
+        id: 'revolver_old',
+        name: 'Revolver Consumato',
+        description: "Un vecchio revolver, ha visto giorni migliori ma spara ancora.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'fuoco',
+        damage: { min: 10, max: 18 },
+        durability: 25,
+        maxDurability: 25,
+        weight: 1.2,
+        value: 45,
+        ammoType: 'ammo_revolver_generic',
+        ammoPerShot: 1,
+        magazineSize: 6
+    },
+    'shotgun_sawed_off': {
+        id: 'shotgun_sawed_off',
+        name: 'Fucile a Canne Mozze',
+        description: "Potente a corto raggio, ma con solo due colpi e una grande dispersione.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'fuoco',
+        damage: { min: 15, max: 30 },
+        durability: 20,
+        maxDurability: 20,
+        weight: 2.0,
+        value: 60,
+        ammoType: 'ammo_shell',
+        ammoPerShot: 1,
+        magazineSize: 2
+    },
+
+    // BALESTRA/ARCO
+    'crossbow_simple': {
+        id: 'crossbow_simple',
+        name: 'Balestra Semplice',
+        description: "Una balestra rudimentale, lenta da caricare ma silenziosa.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'balestra',
+        damage: { min: 12, max: 20 },
+        durability: 20,
+        maxDurability: 20,
+        weight: 2.2,
+        value: 40,
+        ammoType: 'ammo_bolt',
+        ammoPerShot: 1
+    },
+    'improvised_bow': {
+        id: 'improvised_bow',
+        name: 'Arco Improvvisato',
+        description: "Un arco fatto con materiali di fortuna. Richiede abilità e frecce grezze.",
+        type: 'weapon',
+        slot: 'weapon',
+        weaponType: 'arco',
+        damage: { min: 6, max: 10 },
+        durability: 18,
+        maxDurability: 18,
+        weight: 0.8,
+        value: 25,
+        ammoType: 'ammo_arrow_crude',
+        ammoPerShot: 1
+    },
+
+    // --- MUNIZIONI ---
+    'ammo_9mm': {
+        id: 'ammo_9mm',
+        name: 'Munizioni 9mm',
+        description: "Una scatola di proiettili calibro 9mm.",
+        type: 'ammo',
+        ammoType: 'ammo_9mm',
+        weight: 0.02,
+        value: 2,
+        stackable: true,
+        quantityPerStack: 20
+    },
+    'ammo_bolt': {
+        id: 'ammo_bolt',
+        name: 'Dardi da Balestra',
+        description: "Dardi grezzi per balestra.",
+        type: 'ammo',
+        ammoType: 'ammo_bolt',
+        weight: 0.05,
+        value: 3,
+        stackable: true,
+        quantityPerStack: 10
+    },
+    'ammo_generic': {
+        id: 'ammo_generic',
+        name: 'Munizioni Generiche',
+        description: "Proiettili di calibro sconosciuto o misto.",
+        type: 'ammo',
+        ammoType: 'ammo_generic',
+        weight: 0.03,
+        value: 1,
+        stackable: true,
+        quantityPerStack: 15
+    },
+    'ammo_revolver_generic': {
+        id: 'ammo_revolver_generic',
+        name: 'Munizioni per Revolver',
+        description: "Proiettili di grosso calibro, adatti a vecchi revolver.",
+        type: 'ammo',
+        ammoType: 'ammo_revolver_generic',
+        weight: 0.04,
+        value: 3,
+        stackable: true,
+        quantityPerStack: 12
+    },
+    'ammo_shell': {
+        id: 'ammo_shell',
+        name: 'Cartucce da Fucile',
+        description: "Pesanti cartucce caricate a pallettoni.",
+        type: 'ammo',
+        ammoType: 'ammo_shell',
+        weight: 0.08,
+        value: 5,
+        stackable: true,
+        quantityPerStack: 8
+    },
+    'ammo_arrow_crude': {
+        id: 'ammo_arrow_crude',
+        name: 'Frecce Grezze',
+        description: "Frecce improvvisate, non molto aerodinamiche ma appuntite.",
+        type: 'ammo',
+        ammoType: 'ammo_arrow_crude',
+        weight: 0.06,
+        value: 2,
+        stackable: true,
+        quantityPerStack: 10
+    },
+
+    // --- ARMATURE ---
+    // CORPO
+    'leather_jacket_worn': {
+        id: 'leather_jacket_worn',
+        name: 'Giacca di Pelle Consumata',
+        description: "Una vecchia giacca di pelle, offre una minima protezione.",
+        type: 'armor',
+        slot: 'body',
+        armorValue: 1,
+        durability: 25,
+        maxDurability: 25,
+        weight: 1.0,
+        value: 15
+    },
+    'padded_jacket': {
+        id: 'padded_jacket',
+        name: 'Giacca Imbottita',
+        description: "Una giacca spessa con imbottiture. Offre una protezione decente dal freddo e dai colpi.",
+        type: 'armor',
+        slot: 'body',
+        armorValue: 2,
+        durability: 35,
+        maxDurability: 35,
+        weight: 1.5,
+        value: 25
+    },
+    'metal_plate_vest_crude': {
+        id: 'metal_plate_vest_crude',
+        name: 'Corpetto di Placche Metalliche Grezzo',
+        description: "Placche di metallo di recupero cucite su un giubbotto. Pesante ma protettivo.",
+        type: 'armor',
+        slot: 'body',
+        armorValue: 4,
+        durability: 50,
+        maxDurability: 50,
+        weight: 3.0,
+        value: 40
+    },
+
+    // TESTA
+    'hard_hat': {
+        id: 'hard_hat',
+        name: 'Casco da Cantiere',
+        description: "Un casco di plastica rigida. Protegge da colpi leggeri alla testa.",
+        type: 'armor',
+        slot: 'head',
+        armorValue: 1,
+        durability: 25,
+        maxDurability: 25,
+        weight: 0.5,
+        value: 10
+    },
+    'motorcycle_helmet': {
+        id: 'motorcycle_helmet',
+        name: 'Casco da Moto',
+        description: "Un casco integrale da motociclista, offre una buona protezione alla testa.",
+        type: 'armor',
+        slot: 'head',
+        armorValue: 2,
+        durability: 40,
+        maxDurability: 40,
+        weight: 1.2,
+        value: 28
+    },
+
+    // ACCESSORI
+    'gas_mask_damaged': {
+        id: 'gas_mask_damaged',
+        name: 'Maschera Antigas Danneggiata',
+        description: "Una vecchia maschera antigas con il filtro rovinato. Potrebbe offrire una protezione limitata.",
+        type: 'armor',
+        slot: 'accessory',
+        armorValue: 0,
+        durability: 15,
+        maxDurability: 15,
+        weight: 0.6,
+        value: 20
+    },
+    'knee_pads_worn': {
+        id: 'knee_pads_worn',
+        name: 'Ginocchiere Consumate',
+        description: "Vecchie ginocchiere, utili per attutire qualche colpo o caduta.",
+        type: 'armor',
+        slot: 'accessory',
+        armorValue: 1,
+        durability: 20,
+        maxDurability: 20,
+        weight: 0.4,
+        value: 12
+    },
+
+    // --- STRUMENTI E ALTRO ---
+    'repair_kit': {
+        id: 'repair_kit',
+        name: 'Kit di Riparazione',
+        description: "Attrezzi e materiali per riparare armi e armature danneggiate.",
+        type: 'tool',
+        usable: true,
+        weight: 0.8,
+        value: 35,
+        effects: [{ type: 'repair_item_type', item_type_target: ['weapon', 'armor'], repair_amount: 15, charges: 1 }]
+    },
+    'lockpick_set_crude': {
+        id: 'lockpick_set_crude',
+        name: 'Set di Grimaldelli Grezzo',
+        description: "Ferri sottili e piegati, utili per tentare di scassinare serrature semplici.",
+        type: 'tool',
+        usable: true,
+        weight: 0.1,
+        value: 20,
+        charges: 3,
+        effects: []
+    },
+    'map_fragment_local': {
+        id: 'map_fragment_local',
+        name: 'Frammento di Mappa Locale',
+        description: "Un pezzo strappato di una mappa, mostra alcuni dettagli dell'area circostante.",
+        type: 'tool',
+        usable: true,
+        weight: 0.05,
+        value: 10,
+        effects: [{ type: 'reveal_map_area', radius: 5 }]
     }
-    */
-];
+};
 
-// Array per testi di esito generici dei dilemmi (attualmente vuoti)
-const esitiDilemmaSuccessoGenerico = [];
-const esitiDilemmaFallimentoGenerico = [];
-
+// --- FINE DEFINIZIONE OGGETTI ---
 
 // --- TESTI VARIABILI (Flavor, Lore, Eventi Complessi) ---
 // Questi array contengono la maggior parte dei testi descrittivi e narrativi del gioco.
@@ -598,3 +1252,74 @@ const descrizioniOrroreIndicibile = [
     "La temperatura precipita inspiegabilmente. Vedi il tuo respiro condensarsi mentre un terrore primordiale ti attanaglia.",
     "Una risata infantile e distorta riecheggia nel silenzio, ma non c'è nessuno..."
 ];
+
+// Pool di ricompense casuali per handleRandomRewardType in js/events.js
+const RANDOM_REWARD_POOLS = {
+    COMMON_RESOURCE: [
+        { id: 'scrap_metal', weight: 40 },
+        { id: 'charcoal', weight: 20 },
+        { id: 'bandages_dirty', weight: 25 },
+        { id: 'water_dirty', weight: 15 }
+    ],
+    RARE_RESOURCE: [
+        { id: 'mechanical_parts', weight: 50 },
+        { id: 'repair_kit', weight: 30 },
+        { id: 'vitamins', weight: 20 }
+    ],
+    MEDICAL_ITEM: [
+        { id: 'bandages_clean', weight: 30 },
+        { id: 'suspicious_pills', weight: 25 },
+        { id: 'herbal_salve', weight: 20 },
+        { id: 'medicine_crude', weight: 15 },
+        { id: 'antidote', weight: 10 }
+    ],
+    FOOD_ITEM: [
+        { id: 'canned_food', weight: 50 },
+        { id: 'ration_pack', weight: 35 },
+        { id: 'berries', weight: 15 },
+        { id: 'chips_stale', weight: 25 },
+        { id: 'chocolate_bar', weight: 20 },
+        { id: 'canned_beans', weight: 30 },
+        { id: 'dried_fruit', weight: 22 },
+        { id: 'mre_pack', weight: 10 },
+        { id: 'mystery_meat_cooked', weight: 18 },
+        { id: 'protein_bar_old', weight: 20 }
+    ],
+    WATER_ITEM: [
+        { id: 'water_purified_small', weight: 70 },
+        { id: 'water_dirty', weight: 30 },
+        { id: 'soda_flat', weight: 25 },
+        { id: 'juice_box_found', weight: 20 },
+        { id: 'energy_drink_old', weight: 15 },
+        { id: 'rainwater_collected', weight: 28 },
+        { id: 'herbal_tea_crude', weight: 18 }
+    ]
+    // CLOTHING_ITEM è gestito dinamicamente in handleRandomRewardType filtrando ITEM_DATA per type 'armor' o category 'Clothing'.
+};
+
+// Array per descrizioni evento tracce - Esito OK, trovato Lore
+const descrizioniTracceOkLore = [
+    "Le tracce ti conducono a un piccolo nascondiglio dimenticato. Qualcuno ha lasciato una nota...",
+    "Seguendo gli indizi, scopri un vecchio messaggio scarabocchiato su un muro, un frammento del passato.",
+    "Le impronte portano ai resti di un accampamento. Trovi un diario parzialmente bruciato.",
+    "Capisci che le tracce erano un segnale lasciato da qualcuno. Trovi un messaggio nascosto.",
+    "L'istinto ti dice che queste tracce sono importanti. Ti portano a un oggetto che racconta una storia."
+];
+
+const descrizioniTracceNothing = [
+    "Le tracce svaniscono nel nulla, lasciandoti disorientato.",
+    "Era una trappola. E tu ci sei cascato in pieno.",
+    "Le tracce si interrompono bruscamente. Poi senti un ringhio alle tue spalle..."
+];
+
+// Esiti per fallimento evento Pericolo Ambientale
+const esitiPericoloAmbientaleColpito = [
+    "Non sei stato abbastanza veloce o attento. Il pericolo ti raggiunge!",
+    "Un passo falso e sei nel mezzo del pericolo ambientale. Subisci le conseguenze.",
+    "Non hai notato i segnali in tempo. L'ambiente ostile ti colpisce.",
+    "La tua valutazione del rischio era sbagliata. Ora ne paghi il prezzo.",
+    "Il terreno cede / l'aria si fa irrespirabile / una scarica ti colpisce!"
+];
+
+// Aggiungere qui altre descrizioni per eventi complessi (Villaggio Ostile, Rifugio Strano, Dilemma Morale, Orrore)
+// ...

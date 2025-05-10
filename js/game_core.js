@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.10
+ * Versione: v0.7.11
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (se presente), gestione input globali.
  * Dipende da: game_constants.js, game_data.js, map.js, player.js, ui.js, events.js, game_utils.js, dom_references.js
@@ -200,7 +200,6 @@ function initializeGame() {
     } catch (e) {
         console.warn("initializeGame: Impossibile impostare il focus iniziale.", e);
     }
-    console.log("Gioco Iniziato!");
 }
 
 // Rinomina handleKeyPress a handleGlobalKeyPress per evitare confusione

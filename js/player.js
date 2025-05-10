@@ -1,9 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.09
+ * Versione: v0.7.11
  * File: js/player.js
- * Descrizione: Gestisce i dati e le azioni del giocatore.
- * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js
+ * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
+ * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
  */
 
 // Dipendenze:
@@ -55,7 +55,7 @@ function generateCharacter() {
 
         // Equipaggiamento (memorizza l'itemId dell'oggetto equipaggiato)
         equippedWeapon: null, // ID dell'arma equipaggiata
-        equippedArmor: null,  // ID dell'armatura equipaggiata
+        equippedArmor: null,  // ID dell'armatura equipaggiata // Verrà impostato sotto
 
         // Inventario: array di oggetti { itemId: string, quantity: number }
         inventory: []
@@ -82,6 +82,15 @@ function generateCharacter() {
         // logMessage(`Equipaggiato automaticamente: \${ITEM_DATA[startingWeaponId].name}\`); // Opzionale, potrebbe essere un po' di spam all'inizio
     } else {
         console.warn(`generateCharacter: Arma iniziale '${startingWeaponId}' non trovata in ITEM_DATA.`);
+    }
+
+    // Equipaggia un'armatura base all'inizio
+    const startingArmorId = 'leather_jacket_worn';
+    if (ITEM_DATA[startingArmorId]) {
+        player.equippedArmor = startingArmorId;
+        // logMessage(`Equipaggiato automaticamente: ${ITEM_DATA[startingArmorId].name}`); // Opzionale
+    } else {
+        console.warn(`generateCharacter: Armatura iniziale '${startingArmorId}' non trovata in ITEM_DATA.`);
     }
 
     // Aggiorna la UI delle stats iniziali
@@ -1121,25 +1130,30 @@ function attemptRepairItem(itemToRepair, index, source) {
         const oldDurability = actualItemData.durability;
         actualItemData.durability = Math.min(actualItemData.maxDurability, actualItemData.durability + repairAmount);
         
-        logMessage(`Hai riparato ${actualItemData.name} da ${oldDurability}/${actualItemData.maxDurability} a ${actualItemData.durability}/${actualItemData.maxDurability} usando ${repairMaterialCost} ${ITEM_DATA[repairMaterialId].name}.`, 'success');
+        addMessage(`Hai riparato ${actualItemData.name} da ${Math.floor(oldDurability)}/${actualItemData.maxDurability} a ${actualItemData.durability}/${actualItemData.maxDurability} usando ${repairMaterialCost} ${ITEM_DATA[repairMaterialId].name}.`, 'success');
 
         // Aggiorna UI specifica dell'oggetto
         if (source === 'inventory') {
-            updateInventoryDisplay(); // Rirenderizza l'inventario per mostrare la durabilità aggiornata
+            // USA LA FUNZIONE UI CORRETTA
+            if (typeof renderInventory === 'function') renderInventory(); else console.warn("attemptRepairItem: renderInventory non disponibile");
         } else if (source === 'equipped') {
-            updateEquippedDisplay(); // Rirenderizza l'equipaggiamento
+            // USA LA FUNZIONE UI CORRETTA (renderStats aggiorna anche l'equip)
+            if (typeof renderStats === 'function') renderStats(); else console.warn("attemptRepairItem: renderStats non disponibile");
         }
         
-        updatePlayerStatsUI(); // Aggiorna le statistiche del giocatore e la UI generale (pannello stats)
+        // Aggiorna comunque le stats generali (anche se già fatto sopra per 'equipped')
+        // Questo era updatePlayerStatsUI() -> diventa renderStats()
+        if (typeof renderStats === 'function') renderStats(); else console.warn("attemptRepairItem: renderStats non disponibile per aggiornamento generale.");
 
         // Chiudi il popup delle azioni, dato che l'azione è stata completata
-        closeItemActionsPopup();
+        // USA LA FUNZIONE UI CORRETTA
+        if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("attemptRepairItem: closeEventPopup non disponibile");
         
         // Il tooltip si aggiornerà automaticamente al prossimo hover se l'oggetto è ancora visibile
         // e la sua visualizzazione dipende dai dati aggiornati in ITEM_DATA.
 
     } else {
-        logMessage(`Non hai abbastanza ${ITEM_DATA[repairMaterialId].name} per riparare ${actualItemData.name}.`, 'warning');
+        addMessage(`Non hai abbastanza ${ITEM_DATA[repairMaterialId].name} per riparare ${actualItemData.name}.`, 'warning');
         showTemporaryMessage(`Materiali insufficienti: ${ITEM_DATA[repairMaterialId].name} (ne servono ${repairMaterialCost}).`);
         // Non chiudiamo il popup in caso di fallimento per materiali, così l'utente vede le altre opzioni.
     }

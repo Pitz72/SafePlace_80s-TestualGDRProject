@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSafePlace v0.7.10 - Roguelike Postapocalittico</title>
-    <meta name="description" content="TheSafePlace - Un roguelike postapocalittico basato su testo e griglia.">
+    <title>TheSafePlace v0.7.11 - Roguelike Postapocalittico</title>
+    <meta name="description" content="TheSafePlace v0.7.11 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
     
@@ -32,14 +32,9 @@
                 <ul>
                     <li>Sazietà: <span id="stat-food">--</span></li>
                     <li>Idratazione: <span id="stat-water">--</span></li>
+                    <li>Status: <span id="stat-condition" class="status-normal">Normale</span></li>
                     <!-- Potresti aggiungere qui altre stats di survival future -->
                 </ul>
-            </section>
-            <!-- Pannello Condizione (Stato) -->
-            <section id="condition" class="panel">
-                 <h2>CONDIZIONE</h2>
-                 <!-- La classe per lo stato (es. status-normal, status-warning) sarà gestita da JS -->
-                 <p><span id="stat-condition" class="status-normal">Normale</span></p>
             </section>
             <!-- Pannello Inventario -->
             <section id="inventory-panel" class="panel">
@@ -217,15 +212,15 @@
     <!-- --- Inclusione dei file JavaScript ristrutturati --- -->
     <!-- Assicurati che i file JS siano nella sottocartella 'js/' -->
     <!-- L'ordine di inclusione è FONDAMENTALE per garantire che le dipendenze siano soddisfatte -->
-    <script src="js/game_data.js"></script>         <!-- 1. Dati statici (nessuna dipendenza) -->
-    <script src="js/game_constants.js"></script>   <!-- 2. Stato e costanti (dipende da game_data per TILE_SYMBOLS, ecc.) -->
-    <script src="js/game_utils.js"></script>       <!-- 3. Funzioni utility (dipende da game_constants per variabili/costanti globali) -->
-    <script src="js/dom_references.js"></script>   <!-- 4. Dichiarazioni variabili DOM e assegnazione automatica -->
-    <script src="js/ui.js"></script>               <!-- 5. Rendering UI (dipende da game_constants, game_data, game_utils, dom_references) -->
-    <script src="js/player.js"></script>           <!-- 6. Logica Player (dipende da game_constants, game_data, game_utils, ui) -->
-    <script src="js/map.js"></script>              <!-- 7. Logica Mappa (dipende da game_constants, game_data, game_utils, ui, events, player) -->
-    <script src="js/events.js"></script>           <!-- 8. Logica Eventi (dipende da TUTTI gli altri moduli) -->
-    <script src="js/game_core.js"></script>        <!-- 9. Logica Principale (contiene window.onload) -->
+    <script src="js/game_constants.js"></script>   <!-- 1. Stato e costanti (nessuna dipendenza diretta critica da game_data se non TILE_SYMBOLS, ma game_data usa le costanti qui) -->
+    <script src="js/game_data.js"></script>         <!-- 2. Dati statici (usa costanti da game_constants.js) -->
+    <script src="js/game_utils.js"></script>       <!-- 3. Funzioni utility (dipende da game_constants) -->
+    <script src="js/dom_references.js"></script>   <!-- 4. Riferimenti DOM -->
+    <script src="js/ui.js"></script>               <!-- 5. UI (dipende da costanti, dati, utils, dom) -->
+    <script src="js/player.js"></script>           <!-- 6. Player (dipende da costanti, dati, utils, ui) -->
+    <script src="js/events.js"></script>           <!-- 7. Eventi (dipende da quasi tutto) -->
+    <script src="js/map.js"></script>              <!-- 8. Mappa (dipende da costanti, dati, utils, ui, events, player) -->
+    <script src="js/game_core.js"></script>        <!-- 9. Core (usa tutto, avvia il gioco) -->
 
     <!-- Fine inclusione script -->
 
