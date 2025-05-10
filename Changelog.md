@@ -1,3 +1,56 @@
+### The Safe Place v0.7.16
+
+- Correzioni di Bug Cruciali:
+
+  - Fine Partita Funzionante: Abbiamo risolto un problema importante che impediva al gioco di terminare correttamente quando la vostra salute arrivava a zero. Ora, la schermata di "Game Over" apparirà come previsto, segnando la fine (o un nuovo inizio!) della vostra avventura.
+  - Kit di Riparazione Affidabili: Usare i Kit di Riparazione era diventato problematico a causa di alcuni errori. Abbiamo sistemato il sistema: ora potete selezionare l'oggetto da riparare e il kit verrà consumato correttamente. Niente più messaggi di errore inaspettati durante questa operazione!
+  - Ricette Coerenti: La ricetta per creare l'"Armatura di Stracci Semplice" richiedeva un materiale che non esisteva nel gioco. L'abbiamo corretta, e ora potrete fabbricarla con gli ingredienti giusti.
+  - Errori Misteriosi Risolti: Abbiamo scovato e corretto un errore tecnico un po' sfuggente (chiamato "handleEventChoice") che poteva capitare durante l'esplorazione o quando si interagiva con oggetti specifici, specialmente durante la riparazione. Il gioco dovrebbe essere più stabile ora.
+
+- Miglioramenti all'Interfaccia e all'Esperienza di Gioco:
+
+  - Dettagli Oggetto Chiariti: Quando cliccate su un oggetto, specialmente armi o equipaggiamento, vedrete informazioni più dettagliate e complete, simili a quelle che appaiono quando ci passate sopra con il mouse (il "tooltip").
+  - Visualizzazione Danni Corretta: Alcune armi hanno un danno variabile (ad esempio, da 5 a 10 punti). Prima, questa informazione non veniva mostrata bene, mostrando un incomprensibile "[object Object]". Ora vedrete chiaramente l'intervallo di danno.
+  - Piccoli Ritocchi:
+    - Abbiamo sistemato un piccolo errore relativo all'icona del gioco (quella che vedete nella linguetta del browser).
+    - Corretti alcuni messaggi di avviso che potevano apparire (invisibili ai più, ma fastidiosi per noi!) quando il personaggio si trovava in particolari stati di salute (come "ferito e malato").
+    - Abbiamo fatto pulizia di molti messaggi tecnici (log di debug) che venivano stampati "dietro le quinte" e che non erano utili per i giocatori.
+
+- Supporto ai Test:
+  - Per aiutarci a testare meglio la funzione di riparazione, abbiamo aggiunto temporaneamente un Kit di Riparazione all'inventario con cui iniziate la partita.
+
+Speriamo che queste modifiche rendano "The Safe Place" un'esperienza ancora più coinvolgente e priva di intoppi!
+
+### The Safe Place v0.7.15
+
+1.  Il Nuovo Sistema di Crafting (Creazione Oggetti):
+
+    - Ricette Iniziali: Iniziate una nuova partita. Dovreste già conoscere come creare: Acqua Purificata, Carne Cotta, un Punteruolo Improvvisato e un'Armatura di Stracci Semplice. Provate a realizzarli!
+    - Trovare e Usare i "Progetti": Abbiamo introdotto i "Progetti" (o Blueprints). Cercateli! Un modo per trovarne uno (per la Mazza Grezza) è avere successo nell'evento "Scorta Nascosta" in un'Area di Sosta ('R'). Una volta trovato un progetto, provate a "usarlo" dall'inventario: dovreste imparare la ricetta. Testate se il progetto viene consumato correttamente e se la ricetta appare nella vostra lista di crafting.
+    - Creare i Nuovi Oggetti: Mettetevi alla prova cercando i materiali e creando:
+      - Punteruolo Improvvisato (richiede Metallo Riciclato e Stracci di Stoffa)
+      - Mazza Grezza (richiede Assi di Legno e Stracci di Stoffa)
+      - Armatura di Stracci Semplice (ora richiede solo Stracci di Stoffa, in quantità maggiore)
+    - Interfaccia di Crafting: Esplorate la schermata di crafting (c'è un nuovo pulsante per aprirla!). Verificate che la lista delle ricette sia chiara, che gli ingredienti posseduti/mancanti siano corretti e che il pulsante "Crea" si attivi/disattivi come dovrebbe.
+    - Consumo Materiali: Quando create un oggetto, controllate che i materiali vengano scalati correttamente dal vostro inventario e che l'oggetto prodotto venga aggiunto.
+
+2.  Riparazione con il Kit:
+
+    - Procuratevi un "Kit di Riparazione".
+    - Danneggiate un'arma o un'armatura (usandola in combattimento o in eventi che la usurano).
+    - Provate a usare il Kit di Riparazione: si apre una finestra per scegliere cosa riparare? L'oggetto selezionato recupera durabilità? Il kit viene consumato?
+
+3.  Gestione degli Oggetti Impilabili (Stack):
+
+    - Prestate particolare attenzione a come vengono gestiti gli oggetti che si accumulano (come l'Acqua Purificata Piccola, le munizioni, ecc.). Raccoglietene più unità, verificate che si impilino correttamente nell'inventario e che, quando ne usate uno, la quantità diminuisca correttamente.
+
+4.  Loot dalle "Tracce Strane":
+
+    - Quando vi imbattete nell'evento "Tracce Strane" e riuscite a trovare del loot, prestate attenzione a cosa trovate. È coerente? Vi sembra bilanciato?
+
+5.  Bilanciamento Fame e Sete:
+    - Abbiamo modificato quanto cibo e acqua vengono ripristinati dagli oggetti consumabili. Ora i valori sono più bassi (generalmente da +2 a +6). Come percepite questa modifica? Rende la sopravvivenza troppo difficile, troppo facile o giusta?
+
 ### The Safe Place v0.7.14
 
 Questo aggiornamento rappresenta un consolidamento importante del gioco, portandoci verso la versione v0.7.14 (Lavori in Corso). Abbiamo lavorato sodo per rifinire l'esperienza, correggere bug fastidiosi e, soprattutto, per gettare solide fondamenta e implementare le prime fasi del nuovo sistema di Crafting basato su Progetti (Blueprint).
