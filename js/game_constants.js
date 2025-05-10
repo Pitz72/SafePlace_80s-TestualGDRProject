@@ -1,12 +1,12 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.12
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
-const GAME_VERSION = "v0.7.11";
+const GAME_VERSION = "v0.7.12";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.

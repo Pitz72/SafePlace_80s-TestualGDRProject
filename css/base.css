@@ -118,7 +118,8 @@ li.separator {
 }
 
 /* Stile per i bottoni del menu principale e "Torna al Menu" */
-#main-menu button,
+/* #main-menu button, RIMOSSO VECCHIO SELETTORE */
+#start-screen-container .button-container button, /* NUOVO SELETTORE PER I BOTTONI DEL MENU */
 .back-to-menu-btn {
     background-color: #111;                /* Da #event-choices button */
     color: var(--fg-color);                 /* Da #event-choices button */
@@ -130,15 +131,16 @@ li.separator {
     transition: background-color 0.2s, color 0.2s; /* Da #event-choices button */
 
     /* Adattamenti per menu */
-    display: inline-block; /* Permette ai bottoni di stare sulla stessa riga se c'è spazio, o andare a capo come blocco */
-    margin: 8px 5px;       /* Margine verticale come scelte, orizzontale minimo */
+    display: block; /* MODIFICATO DA inline-block per impilare i bottoni */
+    margin: 8px auto;       /* Margine verticale, 'auto' orizzontale per centrarli se block */
     min-width: 200px;      /* Larghezza minima per leggibilità/tocco */
     width: auto;           /* Larghezza si adatta al contenuto + padding */
     text-align: center;
 }
 
 /* Effetto Hover */
-#main-menu button:hover:not(:disabled),
+/* #main-menu button:hover:not(:disabled), RIMOSSO VECCHIO SELETTORE */
+#start-screen-container .button-container button:hover:not(:disabled), /* NUOVO SELETTORE */
 .back-to-menu-btn:hover {
     background-color: var(--fg-color); /* Usa il verde principale (#4EA162) per lo sfondo hover */
     color: var(--highlight-fg);            /* Mantiene testo nero per contrasto */
@@ -146,7 +148,8 @@ li.separator {
 }
 
 /* Stato Disabilitato (per "CARICA PARTITA") */
-#main-menu button:disabled {
+/* #main-menu button:disabled, RIMOSSO VECCHIO SELETTORE */
+#start-screen-container .button-container button:disabled { /* NUOVO SELETTORE (non serve .back-to-menu-btn qui) */
     color: var(--border-dim-color);         /* Da :disabled di #event-choices button */
     border-color: var(--border-dim-color);  /* Da :disabled di #event-choices button */
     cursor: not-allowed;                    /* Da :disabled di #event-choices button */
@@ -155,18 +158,19 @@ li.separator {
 }
 
 /* Assicura che il contenitore del menu centri i bottoni se sono inline-block */
-#main-menu {
+/* #main-menu { RIMOSSO VECCHIO SELETTORE */
+#start-screen-container .button-container { /* NUOVO SELETTORE PER IL CONTENITORE */
     text-align: center;
 }
 
-#main-menu ul {
-    list-style-type: none;
+/* #main-menu ul { RIMOSSO VECCHIO SELETTORE - non sembra più esserci una <ul> per i bottoni */
+/*    list-style-type: none;
     padding: 0;
-}
+} */
 
-#main-menu li {
-    margin-bottom: 5px; /* Riduci spazio extra se margin è già sul bottone */
-}
+/* #main-menu li { RIMOSSO VECCHIO SELETTORE - non sembra più esserci una <ul> per i bottoni */
+/*    margin-bottom: 5px; 
+} */
 
 /* Stile per il footer nella schermata iniziale */
 .start-screen-footer {
@@ -175,6 +179,8 @@ li.separator {
     border-top: 1px solid var(--border-dim-color); /* Linea separatrice sottile verde scuro */
     width: 80%; /* Limita la larghezza per leggibilità */
     max-width: 800px; /* Larghezza massima */
+    margin-left: auto; /* AGGIUNTO per forzare il centraggio */
+    margin-right: auto; /* AGGIUNTO per forzare il centraggio */
 }
 
 .start-screen-footer p {

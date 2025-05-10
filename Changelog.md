@@ -1,3 +1,53 @@
+### The Safe Place v0.7.12
+
+Questo log riassume il lavoro svolto per portare "The Safe Place" dalla versione 0.7.09 alla 0.7.12. Dato che il contesto della nostra chat di sviluppo è stato perso, questo documento serve come riferimento unificato dei progressi fatti e dello stato attuale.
+
+In questo periodo di sviluppo, abbiamo introdotto cambiamenti significativi sia nell'aspetto che nel funzionamento del gioco:
+
+1.  Nuova Esperienza Iniziale: Il cambiamento più evidente è l'introduzione di una nuova schermata iniziale con un menu principale. Prima di iniziare la partita, ora puoi consultare una pagina "Storia" per immergerti nell'ambientazione e una pagina "Istruzioni" (sotto forma di lettera del padre di Ultimo) per un ripasso delle meccaniche di sopravvivenza.
+2.  Restyling Grafico: L'interfaccia ha ricevuto una nuova palette di colori, con tonalità di verde riviste, un colore d'accento per i titoli e sfondi più curati, per migliorare l'atmosfera e la leggibilità.
+3.  Correzioni Fondamentali: Abbiamo risolto diversi bug critici che affliggevano le versioni precedenti:
+    - La schermata di Game Over ora appare correttamente quando gli HP scendono a zero, sostituendo la fastidiosa schermata nera.
+    - Sono stati corretti errori che impedivano al gioco di avviarsi o che causavano blocchi improvvisi durante alcune azioni o eventi (come gli eventi "Orrore Indicibile" di notte o il fallimento nella fuga dai Predoni).
+    - È stato risolto un problema per cui i popup degli eventi a volte non si chiudevano dopo aver fatto una scelta, bloccando la progressione del gioco. Ora gli eventi testati si concludono correttamente.
+    - Abbiamo sistemato i colori degli oggetti nell'inventario e risolto un bug che impediva di usare correttamente cibo, acqua e medicine.
+4.  Nuove Meccaniche e Contenuti:
+    - Usura Armi: Le armi equipaggiate ora subiscono un leggero deterioramento quando usate per compiti faticosi, aggiungendo un livello di gestione dell'equipaggiamento.
+    - Nuovi Oggetti: Il mondo è stato popolato con decine di nuovi oggetti, inclusi vari tipi di cibo, bevande, armi da mischia e da fuoco, munizioni, armature e strumenti, aumentando notevolmente la varietà del loot.
+    - Logica Rifugi ('R') Migliorata: Entrare in un Rifugio ('R') ora ha un comportamento specifico e coerente: di notte offre riposo automatico fino all'alba (con un piccolo check per trovare oggetti), mentre di giorno attiva sempre un evento che permette di esplorare (costando tempo) o riposare brevemente. Un rifugio esplorato di giorno non si riattiva fino al giorno successivo.
+    - Eventi Dilemma Morale: Questi eventi ora presentano scenari specifici e dettagliati invece di testi generici, offrendo scelte più significative.
+5.  Bilanciamento Iniziale: Abbiamo fatto alcuni aggiustamenti iniziali, come ridurre il consumo di risorse durante la notte e aumentare leggermente la possibilità di trovare cibo e acqua nei rifugi.
+6.  Problemi Noti (Analisi): Abbiamo identificato alcuni nuovi errori tecnici (legati all'usura delle armi e alla visualizzazione dei popup delle azioni oggetto) che necessitano di correzione. Abbiamo anche confermato la presenza della funzionalità di salvataggio/caricamento, che richiederà test approfonditi.
+
+Stato Attuale (v0.7.12): Il gioco è ora molto più stabile, giocabile e ricco rispetto alla v0.7.09. L'interfaccia è stata migliorata e molti bug critici sono stati eliminati. Rimangono alcuni errori tecnici specifici da risolvere e aree di contenuto/bilanciamento da rifinire (come i testi placeholder e la frequenza degli eventi) prima di poter introdurre meccaniche più complesse come il combattimento dettagliato.
+
+### The Safe Place v0.7.11
+
+- Bilanciamento Risorse & Loot:
+  - Aumentata la quantità di cibo e acqua che si può trovare nei Rifugi Precari (R).
+  - Introdotta maggiore varietà nel loot casuale trovato durante l'esplorazione (più tipi di cibo, risorse, ecc.).
+  - Ridotto il consumo base di cibo e acqua durante la notte (da 2 a 1 unità ciascuno).
+- Espansione Oggetti:
+  - Il mondo di gioco è ora più ricco! Sono stati aggiunti moltissimi nuovi oggetti, tra cui:
+    - Cibo: Patatine stantie, barrette di cioccolato, fagioli in scatola, frutta essiccata, razioni militari (MRE), carne misteriosa cotta, barrette proteiche vecchie.
+    - Bevande: Soda sgasata, succhi di frutta trovati, vecchie bevande energetiche, acqua piovana raccolta, tisane grezze.
+    - Armi: Nuove varietà di armi da mischia (mazza, barra di metallo, machete), armi bianche corte (coltelli da cucina/combattimento, pugnali improvvisati), armi bianche lunghe (mazza da baseball, lancia), armi da lancio (coltelli, pietre), armi da fuoco (pistola improvvisata, revolver, fucile a canne mozze) e archi/balestre (semplici e improvvisati).
+    - Munizioni: Aggiunte munizioni specifiche per le nuove armi (9mm, dardi, revolver, cartucce, frecce grezze).
+    - Armature: Nuovi tipi di protezioni per corpo (giacche imbottite, corpetti di placche), testa (caschi) e accessori (maschera antigas, ginocchiere).
+    - Strumenti: Kit di riparazione, set di grimaldelli grezzo, frammenti di mappa locale.
+- Correzioni Critiche e Funzionalità:
+  - Colori Inventario: Risolto un problema per cui gli oggetti nell'inventario apparivano tutti dello stesso colore (grigio scuro). Ora i colori specifici per tipo di oggetto (cibo, acqua, armi, ecc.) sono stati ripristinati e leggermente schiariti per migliore leggibilità.
+  - Usabilità Oggetti: Risolto un problema che impediva di usare oggetti come cibo, acqua e medicine dall'inventario. Ora le azioni "Mangia", "Bevi", "Usa Medicina" dovrebbero apparire correttamente.
+  - Errori Eventi: Corretti alcuni errori che potevano verificarsi durante specifici eventi, come ottenere carne cruda dalla caccia o affrontare pericoli ambientali, che potevano causare messaggi di errore o comportamenti imprevisti.
+  - Errori Avvio Gioco: Risolti diversi errori interni che potevano impedire al gioco di avviarsi correttamente o causare arresti anomali dopo alcune azioni.
+- Miglioramenti Interfaccia Utente:
+  - Pannello Status: La sezione "CONDIZIONE" (che mostrava se eri Ferito, Malato, ecc.) è stata integrata nel pannello "SOPRAVVIVENZA" per risparmiare spazio. Ora lo status appare subito sotto Fame e Sete.
+  - Inventario:
+    - La dimensione del riquadro dell'inventario è ora fissa per contenere fino a 7 oggetti, indipendentemente da quanti ne hai, evitando così che il layout "salti".
+    - La dimensione del testo per gli oggetti nell'inventario è stata ridotta per migliorare la leggibilità e l'aspetto generale.
+  - Statistiche Equip: La dimensione del testo per visualizzare l'arma e l'armatura equipaggiate nel pannello STATISTICHE è stata ridotta.
+- Pulizia Console: Rimossi alcuni messaggi di debug dalla console del browser che non erano più necessari.
+
 ### The Safe Place v0.7.10
 
 - Nuova interfaccia e miglioramenti gameplay

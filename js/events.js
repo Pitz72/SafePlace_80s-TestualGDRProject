@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.12
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -1002,25 +1002,25 @@ function handleEventChoice(choiceIndex) {
     renderMap(); // Aggiunto per riflettere eventuali cambiamenti (es. tile esplorato)
 
     // APPLICA USURA ARMA SE NECESSARIO (NUOVA LOGICA)
-    console.log("[DEBUG Wear Weapon] Checking if choice uses weapon:", choice?.usesWeapon, "Player weapon:", player.equippedWeapon);
+    // console.log("[DEBUG Wear Weapon] Checking if choice uses weapon:", choice?.usesWeapon, "Player weapon:", player.equippedWeapon); // RIMOSSO LOG
     if (choice && choice.usesWeapon === true && player.equippedWeapon) { // CORRETTO: usa choice
         const weaponId = player.equippedWeapon;
         const weaponData = ITEM_DATA[weaponId];
         // Verifica che l'oggetto esista in ITEM_DATA e abbia le proprietà di durabilità
         if (weaponData && weaponData.hasOwnProperty('durability') && weaponData.hasOwnProperty('maxDurability')) {
-            console.log(`[DEBUG Wear Weapon] Applying wear to ${weaponId}. Current durability: ${weaponData.durability}`);
+            // console.log(`[DEBUG Wear Weapon] Applying wear to ${weaponId}. Current durability: ${weaponData.durability}`); // RIMOSSO LOG
             if (typeof applyWearToEquippedItem === 'function') {
-                applyWearToEquippedItem('equippedWeapon', 1); // Applica 1 punto di usura
-                console.log(`[DEBUG Wear Weapon] Durability after wear applied: ${weaponData.durability}`);
+                applyWearToEquippedItem('weapon', 1); // Applica 1 punto di usura
+                // console.log(`[DEBUG Wear Weapon] Durability after wear applied: ${weaponData.durability}`); // RIMOSSO LOG
                 // logMessage("L'uso ha usurato la tua arma."); // Opzionale, potrebbe essere verboso
             } else {
                 console.error("handleEventChoice: Funzione applyWearToEquippedItem non trovata!");
             }
         } else {
-            console.log("[DEBUG Wear Weapon] Weapon exists but lacks durability properties or is invalid.");
+            // console.log("[DEBUG Wear Weapon] Weapon exists but lacks durability properties or is invalid."); // RIMOSSO LOG
         }
     } else {
-         console.log("[DEBUG Wear Weapon] Conditions for weapon wear not met.");
+         // console.log("[DEBUG Wear Weapon] Conditions for weapon wear not met."); // RIMOSSO LOG
     }
 
     // Controlla se il giocatore è morto dopo l'esito dell'evento.
@@ -1226,14 +1226,28 @@ function handleEventChoice(choiceIndex) {
                     console.warn(`handleRandomRewardType: Pool WATER_ITEM non definito o vuoto in RANDOM_REWARD_POOLS.`);
                 }
                 break;
+            case 'random_weapon_item': // NUOVO CASO
+                if (RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL && RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RANDOM_WEAPON_POOL);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool RANDOM_WEAPON_POOL non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
+            case 'random_ammo_item': // NUOVO CASO
+                if (RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL && RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL.length > 0) {
+                    chosenItem = chooseWeighted(RANDOM_REWARD_POOLS.RANDOM_AMMO_POOL);
+                } else {
+                    console.warn(`handleRandomRewardType: Pool RANDOM_AMMO_POOL non definito o vuoto in RANDOM_REWARD_POOLS.`);
+                }
+                break;
             case 'random_clothing_item':
-                const allClothing = Object.values(ITEM_DATA).filter(item => item.type === 'armor' || item.category === 'Clothing');
-                if (allClothing.length > 0) {
-                    const randomClothingItem = getRandomText(allClothing); // getRandomText dovrebbe restituire un oggetto item completo
+                const allItems = Object.values(ITEM_DATA);
+                if (allItems.length > 0) {
+                    const randomClothingItem = getRandomText(allItems); // getRandomText dovrebbe restituire un oggetto item completo
                     if (randomClothingItem && randomClothingItem.id) {
                         foundItemId = randomClothingItem.id;
                     } else {
-                        console.warn(`handleRandomRewardType: getRandomText(allClothing) non ha restituito un item valido.`);
+                        console.warn(`handleRandomRewardType: getRandomText(allItems) non ha restituito un item valido.`);
                     }
                 } else {
                      console.warn(`handleRandomRewardType: Nessun oggetto di tipo 'armor' o categoria 'Clothing' trovato in ITEM_DATA per 'random_clothing_item'.`);
@@ -1311,17 +1325,17 @@ function handleEventChoice(choiceIndex) {
                         finalDamage = Math.max(0, baseDamage - damageReduction); // Danno minimo 0
 
                         // APPLICA USURA ARMOR SE IL DANNO È STATO EFFETTIVAMENTE RIDOTTO
-                        console.log(`[DEBUG Wear Armor] Damage reduction: ${damageReduction}. Checking if wear should be applied to ${player.equippedArmor}.`);
+                        // console.log(`[DEBUG Wear Armor] Damage reduction: ${damageReduction}. Checking if wear should be applied to ${player.equippedArmor}.`); // RIMOSSO LOG
                         if (damageReduction > 0) { // Solo se l'armatura ha fatto qualcosa
-                            console.log(`[DEBUG Wear Armor] Applying wear to ${player.equippedArmor}. Current durability: ${armorInfo.durability}`);
+                            // console.log(`[DEBUG Wear Armor] Applying wear to ${player.equippedArmor}. Current durability: ${armorInfo.durability}`); // RIMOSSO LOG
                             if (typeof applyWearToEquippedItem === 'function') {
-                                applyWearToEquippedItem('equippedArmor', 1); // Applica 1 punto di usura
-                                console.log(`[DEBUG Wear Armor] Durability after wear applied: ${armorInfo.durability}`);
+                                applyWearToEquippedItem('armor', 1); // Applica 1 punto di usura
+                                // console.log(`[DEBUG Wear Armor] Durability after wear applied: ${armorInfo.durability}`); // RIMOSSO LOG
                             } else {
                                 console.error("applyPenalty: Funzione applyWearToEquippedItem non trovata!");
                             }
                         } else {
-                            console.log("[DEBUG Wear Armor] Damage reduction is 0, no wear applied.");
+                            // console.log("[DEBUG Wear Armor] Damage reduction is 0, no wear applied."); // RIMOSSO LOG
                         }
                     } else {
                         // L'armatura è equipaggiata ma non ha valore o è rotta, nessuna riduzione/usura.

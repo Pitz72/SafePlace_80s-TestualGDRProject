@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSafePlace v0.7.11 - Roguelike Postapocalittico</title>
-    <meta name="description" content="TheSafePlace v0.7.11 - Un roguelike postapocalittico basato su testo e griglia.">
+    <title>TheSafePlace v0.7.12 - Roguelike Postapocalittico</title>
+    <meta name="description" content="TheSafePlace v0.7.12 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
     
@@ -85,6 +85,7 @@
                     <!-- Aggiungi qui altri bottoni di controllo globale se necessario -->
                     <!-- Il tasto Spazio per "Attendi" è gestito in handleKeyPress, non serve un bottone dedicato per ora -->
                 </div>
+                <button id="save-game-button">Salva Partita</button>
              </div>
         </section>
 
@@ -159,21 +160,21 @@
     </div>
 
     <div id="start-screen-container" class="screen-container">
-        <img src="image/thesafeplace_immagine.jpg" alt="The Safe Place - Immagine Titolo" id="start-screen-image">
-        <h1 id="game-title">The Safe Place</h1>
-        <p class="game-signature">un gioco di Simone Pizzi</p>
-        <nav id="main-menu">
-            <ul>
-                <li><button id="menu-btn-new-game">NUOVA PARTITA</button></li>
-                <li><button id="menu-btn-load-game" disabled>CARICA PARTITA</button></li>
-                <li><button id="menu-btn-story">STORIA</button></li>
-                <li><button id="menu-btn-instructions">ISTRUZIONI</button></li>
-            </ul>
-        </nav>
-        <footer class="start-screen-footer">
-            <p>Questo GDR Testuale in stile retrocomputazionale è una sperimentazione di cooperazione diretta tra umano designer non programmatore e i modelli LLM tramite Cursor.</p>
-            <p>Il progetto è un (C) di Runtime Radio.</p>
-        </footer>
+        <div class="start-screen-content">
+            <img src="image/thesafeplace_immagine.jpg" alt="The Safe Place Logo" class="title-image" id="start-screen-image">
+            <h1 id="game-title">The Safe Place</h1>
+            <p class="game-signature">un gioco di Simone Pizzi</p>
+            <div class="button-container">
+                <button id="new-game-button">Nuova Partita</button>
+                <button id="load-game-button">Carica Partita</button>
+                <button id="story-button">Storia</button>
+                <button id="instructions-button">Istruzioni</button>
+            </div>
+            <div class="start-screen-footer">
+                <p>Questo GDR Testuale in stile retrocomputazionale è una sperimentazione di cooperazione diretta tra umano designer non programmatore e i modelli LLM tramite Cursor.</p>
+                <p>Il progetto è un (C) di Runtime Radio.</p>
+            </div>
+        </div>
     </div>
 
     <div id="instructions-screen" class="screen-container" style="display: none;">

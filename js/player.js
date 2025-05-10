@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.12
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -934,188 +934,148 @@ function handleInventoryClick(event) {
  * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
 function showItemActionPopup(itemId, source = 'inventory') { // Aggiunto parametro source con default
-    // console.log(`showItemActionPopup: Creazione popup azioni per item '${itemId}', source: ${source}`);
-
+    console.log(`showItemActionPopup: Chiamata per item ${itemId}, source: ${source}`);
     const itemInfo = ITEM_DATA[itemId];
-    let itemInInventory = null;
-    let itemQuantity = 1; // Default per oggetti equipaggiati
+    const itemSlot = player.inventory.find(slot => slot.itemId === itemId);
+    const itemQuantity = itemSlot ? itemSlot.quantity : 1; // Default a 1 se non trovato (es. equipaggiato)
 
-    if (source === 'inventory') {
-        itemInInventory = player.inventory.find(slot => slot.itemId === itemId);
-        if (itemInInventory) {
-            itemQuantity = itemInInventory.quantity;
-        }
-    } else if (source === 'equipped') {
-        // Per gli oggetti equipaggiati, l'ID è direttamente quello dell'oggetto.
-        // La "quantità" è implicitamente 1.
-        // itemInInventory rimane null, ma itemInfo è il nostro riferimento principale.
-    }
-
-    // Verifiche preliminari
     if (!itemInfo) {
-        console.error(`showItemActionPopup: Dati oggetto '${itemId}' non trovati.`);
-        addMessage("Errore nel selezionare l'oggetto.", "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
-        return;
-    }
-    // Se la sorgente è inventario, l'oggetto DEVE essere lì.
-    if (source === 'inventory' && !itemInInventory) {
-        console.error(`showItemActionPopup: Oggetto '${itemId}' non trovato nell'inventario (source: inventory).`);
-        addMessage("Errore: Oggetto non trovato nell'inventario.", "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
+        console.error("showItemActionPopup: Item ID non valido", itemId);
         return;
     }
 
-    const popupTitle = itemInfo.name + (source === 'inventory' && itemQuantity > 1 ? ` (x${itemQuantity})` : '');
-    const popupDescription = itemInfo.description;
+    const popup = DOM.itemActionPopup;
+    const title = DOM.itemActionTitle;
+    const actionsList = DOM.itemActionList;
 
-    // Ottieni statistiche dettagliate dell'oggetto per la descrizione estesa nel popup
-    // Questa funzione (getItemDetailsHTML) è definita in ui.js
-    let itemStatsHTML = '';
-     if (typeof getItemDetailsHTML === 'function') {
-         itemStatsHTML = getItemDetailsHTML(itemInfo); // Ottieni l'HTML dei dettagli statistiche
-     } else {
-         console.warn("showItemActionPopup: getItemDetailsHTML non disponibile in ui.js.");
-         // Fallback testuale per gli effetti usabili se la funzione dettagliata non c'è
-          if (itemInfo.usable && itemInfo.effect && typeof getItemEffectsText === 'function') {
-              itemStatsHTML = `<div class="item-stats-container"><div class="item-stat">${getItemEffectsText(itemInfo)}</div></div>`;
-          }
-     }
-
-
-    // Combina descrizione base e statistiche/effetti dettagliati per il contenuto del popup
-    const fullDescription = popupDescription + itemStatsHTML; // Aggiunge i dettagli HTML
-
-    const popupChoices = [];
-
-    // Aggiunge il pulsante "Usa" se l'oggetto è utilizzabile
-    // Non mettiamo "Usa" per armi/armature/munizioni/crafting/lore che hanno azioni specifiche (Equipaggia, Ripara, ecc.)
-    // E non per oggetti equipaggiati, che avranno "Rimuovi" o "Ripara"
-    if (itemInfo.usable && source === 'inventory' && !['weapon', 'armor', 'ammo', 'crafting', 'lore'].includes(itemInfo.type)) {
-        popupChoices.push({
-            text: `Usa ${itemInfo.name}`,
-            // L'azione chiama la funzione useItem definita in questo modulo player.js
-            action: () => useItem(itemId)
-        });
+    if (!popup || !title || !actionsList) {
+        console.error("showItemActionPopup: Elementi DOM del popup non trovati.");
+        return;
     }
 
-    // Aggiunge "Equipaggia" o "Rimuovi" per armi e armature
-    if (itemInfo.type === 'weapon' || itemInfo.type === 'armor') {
-        const equippedSlotKey = itemInfo.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor';
-        const isCurrentlyEquippedOnPlayer = player[equippedSlotKey] === itemId;
+    // Pulisci azioni precedenti
+    actionsList.innerHTML = '';
+    // Resetta event listener per evitare duplicati
+    // NOTA: Clonare e sostituire è un modo robusto per rimuovere tutti gli listener
+    const actionsListClone = actionsList.cloneNode(false); // Clona solo il nodo, non i figli
+    actionsList.parentNode.replaceChild(actionsListClone, actionsList);
+    DOM.itemActionList = actionsListClone; // Aggiorna il riferimento nel DOM object
+    const newActionsList = DOM.itemActionList; // Usa il riferimento aggiornato
 
-        if (source === 'equipped' || isCurrentlyEquippedOnPlayer) { // Se l'oggetto è quello equipaggiato (source 'equipped') o è nell'inventario MA è quello correntemente equipaggiato
-            popupChoices.push({
-                text: `Rimuovi ${itemInfo.name}`,
-                // L'azione chiama la funzione unequipItem definita in questo modulo player.js
-                action: () => unequipItem(equippedSlotKey)
-            });
-        } else if (source === 'inventory') { // Altrimenti, se è nell'inventario e non equipaggiato, offri Equipaggia
-            popupChoices.push({
-                text: `Equipaggia ${itemInfo.name}`,
-                 // L'azione chiama la funzione equipItem definita in questo modulo player.js
-                action: () => equipItem(itemId)
-            });
+    // Imposta titolo
+    title.textContent = `${itemInfo.name}${itemQuantity > 1 ? ` (x${itemQuantity})` : ''}`;
+
+    let actions = [];
+
+    // Azioni standard
+    if (itemInfo.usable) {
+        actions.push({ text: "Usa", action: () => useItem(itemId) });
+    }
+    if (source === 'inventory') { // Puoi equipaggiare/sganciare solo da inventario
+        if (itemInfo.slot) { // Se l'oggetto ha uno slot (è equipaggiabile)
+            const isEquipped = player[itemInfo.slot] === itemId;
+            if (isEquipped) {
+                actions.push({ text: "Svestiti", action: () => unequipItem(itemInfo.slot) });
+            } else {
+                actions.push({ text: "Equipaggia", action: () => equipItem(itemId) });
+            }
         }
-    }
-
-    // Aggiunge l'opzione per riparare armi/armature danneggiate (se si hanno i materiali)
-    // NOTA: La logica di verifica materiali e applicazione è in applyRepair/showRepairWeaponPopup
-    // Qui aggiungiamo l'opzione "Ripara" che aprirà un nuovo popup di selezione arma se è un repair_kit
-    // O che applicherà la riparazione direttamente se l'oggetto selezionato *è* l'arma/armatura danneggiata.
-     if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-        // Questo oggetto È un kit di riparazione. L'azione deve avviare il processo di selezione arma.
-         const repairAmount = itemInfo.effect.repair_amount || 10;
-         popupChoices.push({
-             text: `Usare per Riparare...`, // Testo che indica che aprirà un'ulteriore scelta
-             // L'azione chiama showRepairWeaponPopup (definita qui) che aprirà il popup successivo
-             action: () => showRepairWeaponPopup(itemId, repairAmount)
-         });
-     }
-     // Puoi aggiungere un'azione "Ripara" sull'arma danneggiata stessa in un futuro,
-     // ma per ora la riparazione parte dal kit.
-
-    // Aggiunge l'opzione per lasciare cadere l'oggetto
-    // Non permettere di lasciare oggetti equipaggiati tramite questo popup (usa Rimuovi prima)
-    // Non permettere di lasciare oggetti unici se necessario
-     if (source === 'inventory' && player.equippedWeapon !== itemId && player.equippedArmor !== itemId && !itemInfo.isUnique) { // isUnique non è ancora usato, ma per futuro
-         popupChoices.push({
-             text: `Lascia a terra ${itemInfo.name}`,
-             cssClass: 'danger-action', // Classe per evidenziare azione potenzialmente negativa
-             // L'azione chiama la funzione dropItem definita in questo modulo player.js
-             action: () => dropItem(itemId, itemQuantity) // Passiamo la quantità attuale
-         });
-     }
-
-    // AZIONE RIPARA (NUOVA) - Inserita qui, prima del pulsante "Chiudi"
-    if (itemInfo.hasOwnProperty('durability') && itemInfo.hasOwnProperty('maxDurability') && itemInfo.durability < itemInfo.maxDurability) {
-        // Controlliamo se è un'arma o un'armatura, poiché solo questi tipi dovrebbero avere l'opzione Ripara direttamente.
-        // I kit di riparazione hanno già la loro azione "Usare per Riparare..."
+        actions.push({ text: "Lascia", action: () => dropItem(itemId) });
+    } else if (source === 'equipped') { // Se l'oggetto è equipaggiato (cliccato da pannello stats)
+        actions.push({ text: "Svestiti", action: () => unequipItem(itemInfo.slot) });
+        // Aggiungi Ripara se è arma/armatura equipaggiata
         if (itemInfo.type === 'weapon' || itemInfo.type === 'armor') {
-            popupChoices.push({
-                text: "Ripara (1 Rottame)", // Testo aggiornato per chiarezza
-                action: () => {
-                    // L'indice non è rilevante se la source è 'equipped' o se operiamo sull'ID dell'itemInfo
-                    const indexInInventory = source === 'inventory' ? player.inventory.findIndex(slot => slot.itemId === itemId) : -1;
-                    attemptRepairItem(itemInfo, indexInInventory, source); 
-                }
-            });
+            // Verifica se il giocatore ha il kit di riparazione
+            const hasRepairKit = player.inventory.some(slot => slot.itemId === 'repair_kit');
+            if (hasRepairKit) {
+                actions.push({ text: "Ripara (Kit)", action: () => attemptRepairItem(itemId, -1, 'equipped') }); // -1 indica nessun index specifico, source è equipped
+            } else {
+                 actions.push({ text: "Ripara (Manca Kit)", action: () => {}, disabled: true });
+            }
         }
-    } else if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-        // Questo oggetto È un kit di riparazione (solo dall'inventario).
-        const repairAmount = itemInfo.effect.repair_amount || 10;
-        popupChoices.push({
-            text: `Usare per Riparare...`, // Testo che indica che aprirà un'ulteriore scelta
-            // L'azione chiama showRepairWeaponPopup (definita qui) che aprirà il popup successivo
-            action: () => showRepairWeaponPopup(itemId, repairAmount)
-        });
     }
 
-
-    // Aggiunge il pulsante "Chiudi" in ogni caso
-    popupChoices.push({
-        text: "Chiudi",
-         // L'azione chiama la funzione closeEventPopup (definita in ui.js)
-        action: () => {
-             // console.log("showItemActionPopup: Popup azione chiuso."); // Log di debug rimosso
-             if (typeof closeEventPopup === 'function') closeEventPopup();
+    // --- NUOVA LOGICA CRAFTING --- 
+    // Controlla se l'oggetto è un ingrediente per purificare acqua
+    if (itemId === 'water_dirty') {
+        const recipe = CRAFTING_RECIPES['purify_water'];
+        const hasCharcoal = player.inventory.some(slot => slot.itemId === 'charcoal' && slot.quantity >= recipe.ingredients.find(ing => ing.itemId === 'charcoal').quantity);
+        if (hasCharcoal) {
+            actions.push({ text: recipe.description, action: () => attemptCraftItem('purify_water') }); // Chiama nuova funzione
+        } else {
+            actions.push({ text: "Purifica (Manca Carbone)", action: () => {}, disabled: true });
         }
+    }
+    // Controlla se l'oggetto è carne cruda da cuocere
+    if (itemId === 'meat_raw') {
+        const recipe = CRAFTING_RECIPES['cook_meat'];
+        // Al momento non controlliamo 'needs_fire'
+        actions.push({ text: recipe.description, action: () => attemptCraftItem('cook_meat') }); // Chiama nuova funzione
+    }
+    // --- FINE LOGICA CRAFTING ---
+
+
+    // Aggiungi azioni al DOM
+    actions.forEach(actionData => {
+        const button = document.createElement("button");
+        button.textContent = actionData.text;
+        button.classList.add("action-button");
+        if (actionData.disabled) {
+             button.disabled = true;
+             button.classList.add("disabled");
+        }
+        // Aggiungi event listener solo se non disabilitato
+        if (!actionData.disabled) {
+             button.addEventListener('click', (e) => {
+                 e.stopPropagation(); // Impedisci la propagazione per non chiudere subito
+                 actionData.action();
+                 // Chiudi il popup DOPO che l'azione è stata eseguita
+                 if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiude anche questo popup
+             });
+        }
+        const listItem = document.createElement("li");
+        listItem.appendChild(button);
+        newActionsList.appendChild(listItem);
     });
 
-    // Crea e mostra il popup.
-    // Questa funzione (showEventPopup) è definita nel modulo ui.js
-    if (typeof showEventPopup === 'function') {
-        showEventPopup({
-            title: popupTitle,
-            description: fullDescription,
-            choices: popupChoices,
-            // Passiamo l'itemId e un flag per indicare che è un popup di azione (non un evento casuale)
-            // Questo aiuta handleChoiceContainerClick in events.js a capire come gestire il click.
-            isActionPopup: true, // Flag per indicare tipo di popup
-            itemId: itemId // Passa l'ID dell'item per riferimento futuro se necessario (non strettamente usato ora)
-        });
-    } else {
-        console.error("showItemActionPopup: showEventPopup non disponibile in ui.js!");
-        addMessage(`Errore nel mostrare le azioni per ${itemInfo.name}.`, "danger");
-    }
+    // Bottone Annulla
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Annulla";
+    cancelButton.classList.add("cancel-button");
+    cancelButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiude anche questo popup
+    });
+    const cancelListItem = document.createElement("li");
+    cancelListItem.appendChild(cancelButton);
+    newActionsList.appendChild(cancelListItem);
+
+    // Mostra il popup
+    popup.style.display = 'block';
+    eventScreenActive = true; // Considera questo popup come un blocco dell'input
+    // gamePaused = true; // Potremmo voler mettere in pausa il gioco? Per ora no.
+
+    // Aggiungi listener per chiudere cliccando fuori (gestito da handleGlobalClick?)
+    // Se non è gestito globalmente, aggiungerlo qui.
+    // document.addEventListener('click', handleClickOutsidePopup, true);
 }
 
 /**
- * Tenta di riparare un oggetto.
- * @param {object} itemToRepair L'oggetto (itemInfo da ITEM_DATA) da riparare.
- * @param {number} index L'indice dell'oggetto nell'inventario (se source è 'inventory'). Non usato se l'oggetto è equipaggiato.
- * @param {string} source La provenienza dell'oggetto ('inventory' o 'equipped').
+ * Tenta di riparare un oggetto usando un kit di riparazione.
+ * @param {string} itemId - L'ID dell'oggetto da riparare.
+ * @param {string} source - La provenienza dell'oggetto ('inventory' o 'equipped').
+ * @param {number} index - L'indice dell'oggetto nell'inventario (se source è 'inventory'). Non usato se l'oggetto è equipaggiato.
  */
-function attemptRepairItem(itemToRepair, index, source) {
+function attemptRepairItem(itemId, source, index) {
     const repairMaterialId = 'scrap_metal';
     const repairMaterialCost = 1;
     const repairAmount = 5; // Punti di durabilità ripristinati
 
     // Assicuriamoci che itemToRepair sia l'oggetto effettivo da ITEM_DATA e non solo un riferimento dall'inventario
     // (Anche se in questo flusso itemToRepair è già l'itemInfo, è una buona pratica se la funzione venisse chiamata da altri contesti)
-    const actualItemData = ITEM_DATA[itemToRepair.id];
+    const actualItemData = ITEM_DATA[itemId];
     if (!actualItemData) {
-        console.error(`attemptRepairItem: Impossibile trovare i dati per l'oggetto con ID ${itemToRepair.id}`);
+        console.error(`attemptRepairItem: Impossibile trovare i dati per l'oggetto con ID ${itemId}`);
         showTemporaryMessage("Errore durante il tentativo di riparazione.");
         closeItemActionsPopup(); // Chiudi il popup in caso di errore grave
         return;
@@ -1473,6 +1433,82 @@ function applyWearToEquippedItem(slotKey, wearAmount = 1) {
     // Non è necessario chiamare updateInventoryDisplay o updateEquippedDisplay qui perché
     // la visualizzazione della durabilità avviene tramite tooltip/popup che leggono direttamente da ITEM_DATA,
     // e renderStats si occupa di aggiornare il nome visualizzato dell'oggetto equipaggiato se necessario.
+}
+
+/**
+ * Verifica se il giocatore possiede gli ingredienti necessari per una ricetta.
+ * @param {Array<object>} ingredients - Array di oggetti ingrediente dalla ricetta (es. [{ itemId: 'id', quantity: 1 }]).
+ * @returns {boolean} True se tutti gli ingredienti sono presenti in quantità sufficiente, false altrimenti.
+ */
+function checkIngredients(ingredients) {
+    if (!Array.isArray(ingredients)) return false;
+    if (!player || !Array.isArray(player.inventory)) return false; // Verifica inventario
+
+    for (const ingredient of ingredients) {
+        const itemInInventory = player.inventory.find(slot => slot.itemId === ingredient.itemId);
+        if (!itemInInventory || itemInInventory.quantity < ingredient.quantity) {
+            // console.log(`checkIngredients: Manca ingrediente ${ingredient.itemId} (richiesti ${ingredient.quantity}, trovati ${itemInInventory ? itemInInventory.quantity : 0})`); // Log di debug
+            return false; // Ingrediente mancante o non sufficiente
+        }
+    }
+    return true; // Tutti gli ingredienti sono presenti
+}
+
+/**
+ * Tenta di eseguire una ricetta di crafting.
+ * @param {string} recipeKey - La chiave della ricetta in CRAFTING_RECIPES (es. 'purify_water').
+ */
+function attemptCraftItem(recipeKey) {
+    // console.log(`attemptCraftItem: Tentativo di craftare recipe '${recipeKey}'`); // Log di debug
+    if (typeof CRAFTING_RECIPES === 'undefined' || !CRAFTING_RECIPES[recipeKey]) {
+        console.error(`attemptCraftItem: Ricetta '${recipeKey}' non trovata in CRAFTING_RECIPES.`);
+        addMessage("Errore: Ricetta di crafting sconosciuta.", "danger");
+        return;
+    }
+
+    const recipe = CRAFTING_RECIPES[recipeKey];
+
+    // 1. Verifica Requisiti (per ora non ci sono, ma predisponiamo)
+    // if (recipe.requirements) {
+    //     for (const req of recipe.requirements) {
+    //         if (req === 'needs_fire' && !isNearFireSource()) { // isNearFireSource() da implementare
+    //             addMessage("Hai bisogno di una fonte di fuoco per creare questo oggetto.", "warning");
+    //             return;
+    //         }
+    //         // Aggiungere altri check requisiti qui
+    //     }
+    // }
+
+    // 2. Verifica Ingredienti
+    if (!checkIngredients(recipe.ingredients)) {
+        addMessage("Mancano gli ingredienti necessari!", "warning");
+        return;
+    }
+
+    // 3. Consuma Ingredienti
+    for (const ingredient of recipe.ingredients) {
+        if (!removeItemFromInventory(ingredient.itemId, ingredient.quantity)) {
+            // Questo non dovrebbe accadere se checkIngredients ha funzionato, ma è una sicurezza
+            console.error(`attemptCraftItem: Fallimento nel rimuovere l'ingrediente ${ingredient.itemId} x${ingredient.quantity}.`);
+            addMessage("Errore nel consumare gli ingredienti.", "danger");
+            // TODO: Logica di rollback? O assumiamo che non accada?
+            return;
+        }
+    }
+
+    // 4. Aggiungi Prodotto
+    addItemToInventory(recipe.productId, recipe.productQuantity);
+
+    // 5. Mostra Messaggio di Successo
+    if (recipe.successMessage) {
+        addMessage(recipe.successMessage, "success", true);
+    }
+
+    // Aggiorna UI (già fatto da removeItem e addItem, ma per sicurezza)
+    if (typeof renderInventory === 'function') renderInventory();
+    if (typeof renderStats === 'function') renderStats(); // Anche le stats per sicurezza
+
+    // La chiusura del popup avviene nell'handler del bottone in showItemActionPopup
 }
 
 // --- FINE LOGICA GIOCATORE ---

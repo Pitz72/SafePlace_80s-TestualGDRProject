@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.12
  * File: js/dom_references.js
  * Descrizione: Centralizza i riferimenti agli elementi DOM per un facile accesso e manutenibilità.
  */
@@ -19,7 +19,7 @@ function assignAllDOMReferences() {
     DOM.startScreenContainer = document.getElementById('start-screen-container') || null;
     DOM.instructionsScreen = document.getElementById('instructions-screen') || null;
     DOM.storyScreen = document.getElementById('story-screen') || null;
-    DOM.gameContainer = document.getElementById('game-container');
+    DOM.gameContainer = document.getElementById('game-container') || null;
     DOM.endScreen = document.getElementById('end-screen') || null;
     DOM.statPanel = document.getElementById('stat-panel'); // Aggiunto, sarà null se non esiste
 
@@ -114,6 +114,22 @@ function assignAllDOMReferences() {
     // Elementi Schermata Fine Gioco (NUOVI)
     DOM.endTitle = document.getElementById('end-title') || null;
     DOM.endMessage = document.getElementById('end-message') || null;
+
+    // Equipaggiamento e Stats
+    DOM.weaponName = document.getElementById('weapon-name');
+    DOM.weaponDurability = document.getElementById('weapon-durability');
+    DOM.armorName = document.getElementById('armor-name');
+    DOM.armorDurability = document.getElementById('armor-durability');
+
+    // Bottone Salvataggio (NUOVO)
+    DOM.saveGameButton = document.getElementById('save-game-button');
+
+    // Schermata Iniziale
+    DOM.startButton = document.getElementById('new-game-button');
+    DOM.instructionsButton = document.getElementById('instructions-button');
+    DOM.storyButton = document.getElementById('story-button');
+    DOM.loadGameButton = document.getElementById('load-game-button');
+    DOM.gameVersionStart = document.getElementById('game-version-start');
 
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
     // console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // RIMOSSO Log finale diagnostico

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.12
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (se presente), gestione input globali.
  * Dipende da: game_constants.js, game_data.js, map.js, player.js, ui.js, events.js, game_utils.js, dom_references.js
@@ -29,12 +29,32 @@ function showScreen(screenToShow) {
         DOM.endScreen
     ];
     screens.forEach(screen => {
-        if (screen && screen !== screenToShow) {
-            screen.style.display = 'none';
+        // Assicurati che screen esista prima di tentare di modificarne lo stile
+        if (screen) { 
+            if (screen !== screenToShow) {
+                screen.style.display = 'none';
+            } else {
+                // Non è necessario fare nulla se screen === screenToShow qui, 
+                // perché lo mostreremo dopo il loop.
+            }
+        } else {
+            // Opzionale: logga un avviso se uno degli screen attesi è mancante
+            // console.warn("showScreen: Uno degli elementi screen nell'array 'screens' è null o undefined.");
         }
     });
+
+    // Mostra lo screen richiesto, solo se esiste
     if (screenToShow) {
+        // Tentativo di forzare il browser a calcolare lo stile
+        try {
+            const _ = screenToShow.style.display; // Leggi lo stile attuale
+        } catch (e) {
+            console.error("showScreen: Errore durante la lettura di screenToShow.style.display", e, screenToShow);
+            return; // Esci se non possiamo nemmeno leggere lo stile
+        }
         screenToShow.style.display = 'flex'; // o 'block' a seconda del tuo CSS
+    } else {
+        console.error("showScreen: screenToShow è null o undefined. Impossibile mostrare la schermata richiesta.");
     }
 }
 
@@ -44,32 +64,7 @@ function initializeStartScreen() {
     gameActive = false;
     gamePaused = true; // Iniziamo in uno stato "pausato" finché non si inizia la partita
 
-    // Configura i listener per i bottoni del menu principale
-    if (DOM.menuBtnNewGame) {
-        DOM.menuBtnNewGame.onclick = function() {
-            showScreen(DOM.gameContainer); // Mostra la schermata di gioco
-            if (DOM.statPanel) DOM.statPanel.style.display = 'flex'; // Assicurati che il pannello stats sia visibile
-            initializeGame(); // Chiama la funzione di inizializzazione del gioco esistente
-        };
-    }
-    if (DOM.menuBtnInstructions) {
-        DOM.menuBtnInstructions.onclick = function() {
-            showScreen(DOM.instructionsScreen);
-            // Potresti popolare #instructions-legend-list qui se necessario
-            // Ad esempio, copiando la logica da renderLegend() o chiamando una sua versione modificata.
-            // Per ora, assumiamo contenuto statico o lo faremo dopo.
-            if (typeof populateInstructionsLegend === 'function') {
-                populateInstructionsLegend();
-            }
-        };
-    }
-    if (DOM.menuBtnStory) {
-        DOM.menuBtnStory.onclick = function() {
-            showScreen(DOM.storyScreen);
-        };
-    }
-
-    // Listener per i bottoni "Torna al Menu"
+    // Listener per i bottoni "Torna al Menu" dalle schermate Istruzioni/Storia
     if (DOM.backToMenuButtons) {
         DOM.backToMenuButtons.forEach(button => {
             button.onclick = function() {
@@ -77,8 +72,6 @@ function initializeStartScreen() {
             };
         });
     }
-    
-    // TODO: Listener per DOM.menuBtnLoadGame (Fase 3)
 }
 
 /**
@@ -86,120 +79,44 @@ function initializeStartScreen() {
  * Chiamata quando si clicca "NUOVA PARTITA".
  */
 function initializeGame() {
-    // La logica esistente di initializeGame va qui, MA:
-    // 1. Rimuovi la parte che mostra/nasconde gameContainer/endScreen,
-    //    perché ora è gestita da showScreen() e initializeStartScreen().
-    // 2. Assicurati che gameActive venga impostato a true ALLA FINE di questa funzione.
-
-    // --- Reset dello stato globale del gioco ---
-    player = {}; 
-    map = []; 
-    messages = []; 
-    // gameActive = false; // Lasciato commentato perché viene impostato alla fine
-    // gamePaused = false; // Lasciato commentato perché viene impostato alla fine
-    currentEventChoices = []; 
-    currentEventContext = null; 
-    dayMovesCounter = 0; 
-    nightMovesCounter = 0;
-    isDay = true; 
-    daysSurvived = 0; 
-    easterEggPixelDebhFound = false; 
-    uniqueEventWebRadioFound = false; 
-    
-
-    // --- Verifica Riferimenti DOM --- 
-    // Rimossi log di DEBUG
-
-    if (!DOM.gameContainer || !DOM.mapDisplay || !DOM.messagesList || !DOM.inventoryList || !DOM.legendList || !DOM.eventOverlay || !DOM.eventPopup || !DOM.eventTitle || !DOM.eventContent || !DOM.eventChoicesContainer || !DOM.continueButton || !DOM.endScreen || !DOM.restartButton || !DOM.statsList || !DOM.itemTooltip || !DOM.tooltipItemName || !DOM.tooltipItemDesc) {
-         console.error("CRITICO: initializeGame: Elementi UI essenziali non trovati in dom_references.js!");
-         if(DOM.gameContainer) DOM.gameContainer.innerHTML = "<p style='color:red; padding: 20px;'>ERRORE CRITICO: Elementi UI mancanti. Controlla l'HTML e la console del browser.</p>";
-         gameActive = false; // Imposta gameActive a false per sicurezza
-         return; 
-    }
-
-
-    // --- Generazione Personaggio e Mappa --- 
-    try {
-        if (typeof generateCharacter === 'function') {
-            generateCharacter();
-             if (!player || typeof player.vigore !== 'number' || player.x === undefined || player.y === undefined) { 
-                 throw new Error("Oggetto player non valido dopo generateCharacter.");
-             }
-        } else { throw new Error("Funzione generateCharacter non disponibile (player.js non caricato?)."); }
-
-        if (typeof generateMap === 'function') {
-            generateMap();
-
-             if (!map || map.length === 0 || map[0]?.length === 0 || typeof player.x !== 'number' || typeof player.y !== 'number' || player.x < 0 || player.y < 0) {
-                 throw new Error("Mappa non valida o posizione giocatore non impostata dopo generateMap.");
-             }
-              if (map[player.y] && map[player.y][player.x]) {
-                   map[player.y][player.x].visited = true;
-              }
-        } else { throw new Error("Funzione generateMap non disponibile (map.js non caricato?)."); }
-
-    } catch(e) {
-        console.error("initializeGame: ERRORE CRITICO DURANTE GENERAZIONE:", e);
-        if(DOM.gameContainer) DOM.gameContainer.innerHTML = `<p style='color:red; padding: 20px;'>ERRORE GRAVE INIZIALIZZAZIONE: ${e.message}. Impossibile avviare il gioco. Controlla la console.</p>`;
-        gameActive = false; 
-        return; 
-    }
-
-
-    // --- Configurazione UI Iniziale ---
-    if(DOM.gameContainer) DOM.gameContainer.classList.remove('overlay-active');
-    if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
-
-
-    try {
-        if (typeof renderLegend === 'function') renderLegend(); else throw new Error("Funzione renderLegend non disponibile (ui.js?).");
-        if (typeof renderStats === 'function') renderStats(); else throw new Error("Funzione renderStats non disponibile (ui.js?)."); 
-        if (typeof renderInventory === 'function') renderInventory(); else throw new Error("Funzione renderInventory non disponibile (ui.js?)."); 
-        if (typeof renderMap === 'function') renderMap(); else throw new Error("Funzione renderMap non disponibile (ui.js?)."); 
-        if (typeof renderMessages === 'function') {
-            renderMessages(); // Pulisce e renderizza
-            // Logga il messaggio iniziale di benvenuto
-            if (typeof addMessage === 'function') {
-                 addMessage(`Inizio del viaggio. HP:${Math.floor(player.hp)}/${player.maxHp}, Sazietà:${Math.floor(player.food)}/10, Idratazione:${Math.floor(player.water)}/10. È Giorno.`, 'info', true);
-                 const startTileSymbol = map[player.y][player.x].type;
-                 if (startTileSymbol === TILE_SYMBOLS.START) {
-                     addMessage(`Ti trovi al ${TILE_DESC[startTileSymbol] || 'Punto di Partenza'}. Trova il ${TILE_DESC[TILE_SYMBOLS.END] || 'Rifugio'} per vincere.`, 'info');
-                 }
-            } else { console.warn("initializeGame: addMessage non disponibile (game_utils.js?)."); }
-        } else { 
-            throw new Error("Funzione renderMessages non disponibile (ui.js?).");
-        }
-    } catch (e) {
-        console.error("initializeGame: ERRORE DURANTE RENDERING INIZIALE:", e);
-        if(DOM.mapDisplay) DOM.mapDisplay.textContent = "Errore nel rendering iniziale!";
-        gameActive = false; 
-        return; 
-    }
-
-
-    // --- Configurazione Input Listener --- 
-    try {
-        setupInputListeners();
-    } catch (e) {
-        console.error("initializeGame: ERRORE DURANTE SETUP INPUT LISTENERS:", e);
-        if(DOM.gameContainer && typeof addMessage === 'function') addMessage("Errore nella configurazione dei controlli.", 'danger');
-        else if (DOM.gameContainer) DOM.gameContainer.innerHTML += "<p style='color:red;'>Errore controlli!</p>";
-        gameActive = false; 
-        return; 
-    }
-
-
-    // --- Avvio Formale del Gioco ---
+    console.log("Inizializzazione gioco...");
     gameActive = true;
-    gamePaused = false; 
-    if (typeof enableControls === 'function') enableControls(); else console.warn("initializeGame: enableControls non disponibile (ui.js?).");
+    gamePaused = false;
+    eventScreenActive = false;
+    gameDay = 1;
+    dayMovesCounter = 0;
+    isDay = true;
+    easterEggPixelDebhFound = false;
+    uniqueEventWebRadioFound = false;
+    currentEventChoices = [];
+    currentEventContext = null;
+
+    // Pulisci log messaggi precedente
+    if(DOM.messagesList) DOM.messagesList.innerHTML = '';
+    messages.length = 0;
+
+    // Genera personaggio e mappa
+    if (typeof generateCharacter === 'function') generateCharacter(); else console.error("initializeGame: generateCharacter non trovata!");
+    if (typeof generateMap === 'function') generateMap(); else console.error("initializeGame: generateMap non trovata!");
+
+    // Renderizza stato iniziale
+    if (typeof renderMap === 'function') renderMap(); else console.error("initializeGame: renderMap non trovata!");
+    if (typeof renderStats === 'function') renderStats(); else console.error("initializeGame: renderStats non trovata!");
+    if (typeof renderInventory === 'function') renderInventory(); else console.error("initializeGame: renderInventory non trovata!");
     
+    addMessage(`Giorno ${gameDay}. L'avventura inizia...`, "info");
+
+    // Aggiorna versione visualizzata (anche se non cambia, buona pratica)
+    if (DOM.gameVersion) DOM.gameVersion.textContent = GAME_VERSION;
+
+    // Imposta focus per input tastiera
     try {
         // document.body.focus(); // Focus su gameContainer potrebbe essere meglio se gameContainer è l'elemento principale per l'input
         if(DOM.gameContainer) DOM.gameContainer.focus();
     } catch (e) {
         console.warn("initializeGame: Impossibile impostare il focus iniziale.", e);
     }
+    // console.log("Gioco Iniziato!"); // RIMOSSO
 }
 
 // Rinomina handleKeyPress a handleGlobalKeyPress per evitare confusione
@@ -413,12 +330,90 @@ function setupInputListeners() {
 
     window.removeEventListener('resize', handleResize); 
     window.addEventListener('resize', handleResize); 
+
+    // Listener per input da tastiera (movimento, azioni rapide)
+    if (DOM.gameContainer) {
+        // Usiamo keydown per catturare anche i tasti freccia/numpad
+        DOM.gameContainer.addEventListener('keydown', handleGlobalKeyPress);
+    } else {
+        console.error("setupInputListeners: gameContainer non trovato nel DOM!");
+    }
+
+    // Listener per click sull'inventario (delegation sul contenitore ul#inventory)
+    if (DOM.inventoryList) {
+        // handleInventoryClick è definita in player.js
+        DOM.inventoryList.addEventListener('click', handleInventoryClick);
+    } else {
+        console.error("setupInputListeners: inventoryList non trovato nel DOM!");
+    }
+
+    // Listener per i pulsanti della schermata iniziale
+    if (DOM.startButton) {
+        DOM.startButton.addEventListener('click', () => {
+            showScreen(DOM.gameContainer);
+            initializeGame();
+        });
+    }
+    if (DOM.instructionsButton) {
+        DOM.instructionsButton.addEventListener('click', () => {
+            // console.log("[Debug] Attempting to show Instructions screen. DOM.instructionsScreen:", DOM.instructionsScreen); // RIMOSSO
+            showScreen(DOM.instructionsScreen)
+        });
+    }
+    if (DOM.storyButton) {
+        DOM.storyButton.addEventListener('click', () => {
+            // console.log("[Debug] Attempting to show Story screen. DOM.storyScreen:", DOM.storyScreen); // RIMOSSO
+            showScreen(DOM.storyScreen)
+        });
+    }
+    // Listener per il NUOVO pulsante Carica Partita
+    if (DOM.loadGameButton) {
+        DOM.loadGameButton.addEventListener('click', () => {
+            if (!loadGame()) { // Tenta di caricare
+                 // Se loadGame ritorna false (errore o nessun salvataggio), rimane sulla schermata iniziale
+                 console.log("Caricamento fallito o nessun salvataggio.");
+            }
+            // Se loadGame() ha successo, si occupa già lui di cambiare schermata e attivare il gioco.
+        });
+
+        // Disabilita il pulsante Carica se non ci sono dati salvati
+        if (!localStorage.getItem(SAVE_KEY)) {
+            DOM.loadGameButton.disabled = true;
+            DOM.loadGameButton.title = "Nessuna partita salvata trovata";
+        }
+    }
+
+    // Listener per i pulsanti "Indietro" nelle schermate Istruzioni/Storia/Fine
+    const backButtons = document.querySelectorAll('.back-to-start-button');
+    backButtons.forEach(button => {
+        button.addEventListener('click', () => showScreen('start-screen-container'));
+    });
+
+    // Listener per il NUOVO pulsante Salva Partita
+    if (DOM.saveGameButton) {
+        DOM.saveGameButton.addEventListener('click', saveGame);
+    } else {
+         console.error("setupInputListeners: saveGameButton non trovato nel DOM!");
+    }
+
+
+    // Aggiungere qui altri listener globali se necessario
+     console.log("Input listeners impostati.");
 }
 
 // --- Helper functions per i listener (per poterli rimuovere facilmente) ---
 
 function handleRestartClick() {
-     initializeStartScreen(); 
+     showScreen(DOM.startScreenContainer); // Mostra la schermata iniziale
+     // initializeStartScreen(); // Non chiamare di nuovo, gameActive/Paused sono già gestiti
+     //                           // e i listener dei bottoni menu sono già in setupInputListeners
+     gameActive = false; // Reimposta lo stato per la schermata iniziale
+     gamePaused = true;
+     // Potrebbe essere necessario disabilitare/riabilitare il bottone loadGame qui
+     if (DOM.loadGameButton) {
+        DOM.loadGameButton.disabled = !localStorage.getItem(SAVE_KEY);
+        DOM.loadGameButton.title = localStorage.getItem(SAVE_KEY) ? "" : "Nessuna partita salvata trovata";
+     }
 }
 
 let resizeTimeout; // Variabile per il debounce
@@ -569,7 +564,10 @@ Il tuo viaggio finisce qui, nell'oblio.`;
 // da cui initializeGame dipende.
 window.onload = function() {
     // L'oggetto DOM dovrebbe essere già popolato da dom_references.js caricato prima
-    initializeStartScreen();
+    // Chiamata a assignAllDOMReferences() è gestita automaticamente da dom_references.js
+    
+    initializeStartScreen(); // Prepara la schermata iniziale
+    setupInputListeners();   // Attacca TUTTI gli event listener necessari, inclusi quelli del menu
 };
 
 
@@ -578,3 +576,127 @@ window.onload = function() {
 // (game_data.js, game_constants.js, game_utils.js, dom_references.js, ui.js, player.js, map.js, events.js, game_core.js)
 
 // --- FINE LOGICA PRINCIPALE ---
+
+// --- FUNZIONI DI SALVATAGGIO E CARICAMENTO ---
+
+const SAVE_KEY = 'theSafePlaceSaveData'; // Chiave per localStorage
+
+/**
+ * Raccoglie lo stato corrente del gioco e lo salva in localStorage.
+ */
+function saveGame() {
+    console.log("Salvataggio partita...");
+    try {
+        const saveData = {
+            player: player,
+            map: map,
+            dayMovesCounter: dayMovesCounter,
+            isDay: isDay,
+            gameDay: gameDay,
+            easterEggPixelDebhFound: easterEggPixelDebhFound,
+            uniqueEventWebRadioFound: uniqueEventWebRadioFound,
+            // Aggiungere qui altre variabili globali da salvare se necessario
+            saveTimestamp: new Date().toISOString() // Data/ora salvataggio
+        };
+
+        // Converti in JSON
+        // Nota: JSON.stringify gestisce bene oggetti semplici e array, ma attenzione a oggetti complessi o con riferimenti circolari (non dovremmo averne qui).
+        const saveDataString = JSON.stringify(saveData);
+
+        // Salva in localStorage
+        localStorage.setItem(SAVE_KEY, saveDataString);
+
+        addMessage("Partita salvata con successo!", "success");
+        console.log("Salvataggio completato.");
+
+    } catch (error) {
+        console.error("Errore durante il salvataggio della partita:", error);
+        addMessage("Errore durante il salvataggio della partita!", "danger");
+    }
+}
+
+/**
+ * Carica lo stato del gioco da localStorage.
+ * @returns {boolean} True se il caricamento ha avuto successo, false altrimenti.
+ */
+function loadGame() {
+    console.log("Caricamento partita...");
+    try {
+        const saveDataString = localStorage.getItem(SAVE_KEY);
+
+        if (!saveDataString) {
+            console.log("Nessun dato di salvataggio trovato.");
+            addMessage("Nessuna partita salvata trovata.", "warning");
+            return false;
+        }
+
+        // Converti da JSON
+        const loadedData = JSON.parse(saveDataString);
+
+        // Verifica dati base (opzionale ma consigliato)
+        if (!loadedData || !loadedData.player || !loadedData.map) {
+             console.error("Dati di salvataggio corrotti o incompleti.", loadedData);
+             addMessage("Errore: Dati di salvataggio corrotti o non validi.", "danger");
+             localStorage.removeItem(SAVE_KEY); // Rimuovi dati corrotti
+             return false;
+        }
+
+        // --- Ripristina Stato Globale --- 
+        // NOTA IMPORTANTE: Sovrascriviamo le variabili globali direttamente.
+        // Per oggetti complessi come player e map, questo è generalmente ok perché
+        // JSON.parse crea nuovi oggetti/array, rompendo i riferimenti precedenti.
+        player = loadedData.player;
+        map = loadedData.map;
+        dayMovesCounter = loadedData.dayMovesCounter;
+        isDay = loadedData.isDay;
+        gameDay = loadedData.gameDay;
+        easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound;
+        uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
+        // Ripristinare qui altre variabili globali salvate
+
+        console.log("Stato del gioco ripristinato:", loadedData);
+
+        // --- Aggiorna Interfaccia --- 
+        // È cruciale chiamare tutte le funzioni di rendering per riflettere lo stato caricato
+        // Usiamo setTimeout per dare tempo al browser di calcolare il layout dopo showScreen
+        setTimeout(() => {
+            console.log("Rendering UI after load timeout...");
+            if (typeof renderMap === 'function') renderMap(); else console.error("loadGame: renderMap non trovata!");
+            if (typeof renderStats === 'function') renderStats(); else console.error("loadGame: renderStats non trovata!");
+            if (typeof renderInventory === 'function') renderInventory(); else console.error("loadGame: renderInventory non trovata!");
+            if (typeof renderLegend === 'function') renderLegend(); // Aggiunto anche renderLegend
+             // Potrebbe essere necessario un refresh specifico per tooltip o altro stato UI?
+        }, 100); // Ritardo di 100ms (aggiustabile se necessario)
+
+        // --- Transizione Schermata e Attivazione Gioco --- 
+        if (typeof showScreen === 'function') {
+            showScreen(DOM.gameContainer); // CORRETTO: Passa l'oggetto DOM
+        } else {
+            console.error("loadGame: showScreen non trovata!");
+        }
+        gameActive = true; // Attiva il gioco
+        gamePaused = false; // Assicura che non sia in pausa
+        eventScreenActive = false; // Assicura che nessun popup evento sia attivo
+        // Imposta focus per input tastiera
+        try {
+            if(DOM.gameContainer) DOM.gameContainer.focus();
+        } catch (e) {
+            console.warn("loadGame: Impossibile impostare il focus iniziale.", e);
+        }
+
+        addMessage(`Partita caricata (salvata il ${new Date(loadedData.saveTimestamp).toLocaleString()}).`, "success");
+        console.log("Caricamento completato.");
+        return true;
+
+    } catch (error) {
+        console.error("Errore durante il caricamento della partita:", error);
+        addMessage("Errore durante il caricamento della partita! Potrebbe essere corrotta.", "danger");
+        // Considera di rimuovere dati corrotti?
+        // localStorage.removeItem(SAVE_KEY);
+        return false;
+    }
+}
+
+
+
+// --- FUNZIONI DI GESTIONE INPUT ---
