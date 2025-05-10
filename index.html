@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSafePlace v0.7.12 - Roguelike Postapocalittico</title>
-    <meta name="description" content="TheSafePlace v0.7.12 - Un roguelike postapocalittico basato su testo e griglia.">
+    <title>TheSafePlace v0.7.13 - Roguelike Postapocalittico</title>
+    <meta name="description" content="TheSafePlace v0.7.13 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
     
@@ -148,6 +148,23 @@
         </div>
     </div>
 
+    <!-- --- Overlay per Azioni Oggetto (NUOVO) --- -->
+    <div id="item-action-overlay" class="overlay">
+        <div id="item-action-popup" class="popup">
+            <h2 id="item-action-title">Nome Oggetto</h2>
+            <div id="item-action-details">
+                <p id="item-action-description">Descrizione oggetto...</p>
+                <div id="item-action-stats">
+                    <!-- Le statistiche specifiche dell'oggetto (es. Danno, Armatura, Durabilità) verranno popolate qui da JS -->
+                </div>
+            </div>
+            <div id="item-action-choices" class="button-choices">
+                <!-- I bottoni delle azioni (Usa, Equipaggia, Lascia, ecc.) verranno aggiunti qui da JS -->
+            </div>
+            <button id="item-action-close-button">Chiudi</button>
+        </div>
+    </div>
+
     <!-- --- Schermata di Fine Gioco (NUOVA) -->
     <div id="end-screen" class="game-screen" style="display: none;">
         <h2 id="end-title">Titolo Fine Gioco</h2>
@@ -224,6 +241,14 @@
     <script src="js/game_core.js"></script>        <!-- 9. Core (usa tutto, avvia il gioco) -->
 
     <!-- Fine inclusione script -->
+
+    <!-- Tooltip per la Mappa (NUOVO) -->
+    <div id="map-tooltip" class="tooltip hidden">
+        <div id="tooltip-map-coords">Coordinate: X, Y</div>
+        <div id="tooltip-map-type">Tipo: Nome Luogo</div>
+        <div id="tooltip-map-event-chance">Prob. Evento (Locale): Percentuale%</div>
+        <!-- Potremmo aggiungere altri dettagli in futuro, come 'Visitato: Sì/No' -->
+    </div>
 
 </body>
 </html>

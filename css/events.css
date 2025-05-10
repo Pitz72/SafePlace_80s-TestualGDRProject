@@ -30,7 +30,7 @@
 /* Stile specifico per la Schermata di Fine Gioco (sul div #end-screen) */
 #end-screen {
      /* Eredita stili .overlay (display: flex, centrato) */
-     /* Assicuriamoci che abbia uno sfondo (anche se eredita da overlay) e padding */
+     /* Assicuriamoci che abbia uno sfondo (anche se ereditato) e padding */
      /* background-color: var(--overlay-bg); /* Già ereditato */
      padding: 40px; /* Aggiungi padding interno */
      /* display: none; */ /* Nascosto inizialmente tramite JS (verrà mostrato impostando display: flex) */
@@ -178,4 +178,87 @@
     border-color: var(--border-dim-color); /* Colore bordo spento */
     cursor: not-allowed; /* Cursore non permesso */
     opacity: 0.5; /* Rendi semi-trasparente */
+}
+
+/* Stili per il Popup Azioni Oggetto (CORRETTO) */
+
+/* Stile per il contenitore dei bottoni azioni oggetto per layout verticale */
+#item-action-choices {
+    display: flex;
+    flex-direction: column; /* Dispone i bottoni verticalmente */
+    gap: 8px; /* Spazio tra i bottoni (simile a margin in event-choices) */
+    margin-top: 15px;
+    margin-bottom: 15px;
+    align-items: center; /* Centra i bottoni se il container è più largo */
+}
+
+/* Stile base per i bottoni nel popup azioni oggetto - IDENTICO a #event-choices button */
+#item-action-popup .action-button {
+    background-color: #111; /* Sfondo scuro */
+    color: var(--fg-color); /* Testo verde */
+    border: 1px solid var(--border-color); /* Bordo verde standard */
+    padding: 10px 18px; /* Padding */
+    font-family: inherit; /* Eredita font monospaced */
+    font-size: 1em; /* Dimensione font normale */
+    cursor: pointer; /* Cambia cursore */
+    /* margin: 8px; */ /* Il gap nel flex container gestisce lo spazio verticale */
+    display: block; /* Già garantito da flex-direction, ma per sicurezza */
+    width: 80%; /* Larghezza reattiva (come eventi) */
+    /* margin-left: auto; margin-right: auto; -> gestito da align-items sul container */
+    text-align: center; /* MODIFICATO: da left a center */
+    transition: background-color 0.2s, color 0.2s; /* Transizione fluida per effetti hover */
+    box-sizing: border-box;
+}
+
+/* Stile hover - IDENTICO a #event-choices button:hover */
+#item-action-popup .action-button:hover:not(:disabled) {
+    background-color: var(--highlight-bg); /* Sfondo evidenziato */
+    color: var(--highlight-fg); /* Testo evidenziato */
+    /* Il bordo può rimanere del colore specifico o cambiare anch'esso */
+     border-color: var(--highlight-bg); /* Cambiamo anche il bordo su hover come per gli eventi */
+}
+
+/* Stili specifici per tipo di azione (solo colore bordo) */
+
+/* Azione "Lascia" -> Bordo Rosso (come .danger-action) */
+#item-action-popup .action-button.action-drop {
+    border-color: var(--danger-color, #f44336); /* Usa variabile danger se definita, altrimenti rosso */
+}
+#item-action-popup .action-button.action-drop:hover:not(:disabled) {
+     background-color: var(--danger-color, #f44336); /* Sfondo rosso su hover */
+     color: var(--bg-color, #000); /* Testo nero/scuro su hover */
+     border-color: var(--danger-color, #f44336); /* Mantiene bordo rosso */
+}
+
+/* Bottone Chiudi -> Stile base standard */
+#item-action-close-button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 15px; /* Spazio sopra */
+    display: block;
+    width: 50%; /* Più stretto? O 80% come gli altri? */
+    margin-left: auto; margin-right: auto; /* Centra */
+    text-align: center; /* Centra testo */
+    transition: background-color 0.2s, color 0.2s;
+    box-sizing: border-box;
+}
+
+#item-action-close-button:hover:not(:disabled) {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+    border-color: var(--highlight-bg);
+}
+
+/* Stile disabilitato (se mai implementeremo azioni disabilitate qui) */
+#item-action-popup .action-button:disabled,
+#item-action-close-button:disabled {
+    color: var(--border-dim-color);
+    border-color: var(--border-dim-color);
+    cursor: not-allowed;
+    opacity: 0.5;
 }

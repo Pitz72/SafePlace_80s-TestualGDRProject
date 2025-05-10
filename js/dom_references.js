@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.12
+ * Versione: v0.7.13
  * File: js/dom_references.js
  * Descrizione: Centralizza i riferimenti agli elementi DOM per un facile accesso e manutenibilità.
  */
@@ -83,6 +83,23 @@ function assignAllDOMReferences() {
        DOM.continueButton = null; // Imposta a null se eventPopup non è trovato
     }
 
+    // Recupera riferimenti per il popup azioni oggetto (NUOVO)
+    DOM.itemActionOverlay = document.getElementById('item-action-overlay') || null;
+    DOM.itemActionPopup = document.getElementById('item-action-popup') || null;
+    if (DOM.itemActionPopup) { // Verifica l'esistenza del popup prima di cercare al suo interno
+        DOM.itemActionTitle = DOM.itemActionPopup.querySelector('#item-action-title') || null;
+        DOM.itemActionDescription = DOM.itemActionPopup.querySelector('#item-action-description') || null;
+        DOM.itemActionStats = DOM.itemActionPopup.querySelector('#item-action-stats') || null;
+        DOM.itemActionChoices = DOM.itemActionPopup.querySelector('#item-action-choices') || null;
+        DOM.itemActionCloseButton = DOM.itemActionPopup.querySelector('#item-action-close-button') || null;
+    } else {
+        DOM.itemActionTitle = null;
+        DOM.itemActionDescription = null;
+        DOM.itemActionStats = null;
+        DOM.itemActionChoices = null;
+        DOM.itemActionCloseButton = null;
+    }
+
     // Recupera riferimento per la legenda
     DOM.legendList = document.getElementById('legend');
 
@@ -130,6 +147,18 @@ function assignAllDOMReferences() {
     DOM.storyButton = document.getElementById('story-button');
     DOM.loadGameButton = document.getElementById('load-game-button');
     DOM.gameVersionStart = document.getElementById('game-version-start');
+
+    // Riferimenti Tooltip Mappa (NUOVO)
+    DOM.mapTooltip = document.getElementById('map-tooltip') || null;
+    if (DOM.mapTooltip) { // Verifica esistenza prima di cercare al suo interno
+        DOM.tooltipMapCoords = DOM.mapTooltip.querySelector('#tooltip-map-coords') || null;
+        DOM.tooltipMapType = DOM.mapTooltip.querySelector('#tooltip-map-type') || null;
+        DOM.tooltipMapEventChance = DOM.mapTooltip.querySelector('#tooltip-map-event-chance') || null;
+    } else {
+        DOM.tooltipMapCoords = null;
+        DOM.tooltipMapType = null;
+        DOM.tooltipMapEventChance = null;
+    }
 
     // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
     // console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // RIMOSSO Log finale diagnostico

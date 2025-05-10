@@ -1,3 +1,19 @@
+### The Safe Place v0.7.13
+
+La versione 0.7.13 di "The Safe Place" si concentra principalmente sulla correzione di bug emersi durante i test e sul miglioramento dell'interfaccia utente (UI) per renderla più chiara e funzionale.
+
+- Correzioni Bug Critici:
+  - Risolto un errore che impediva l'apertura del popup delle azioni quando si cliccava su un oggetto nell'inventario.
+  - Corretti diversi errori JavaScript (ReferenceError, SyntaxError) che bloccavano il caricamento della mappa o l'esecuzione di alcune funzioni di gioco, in particolare legate all'uso degli oggetti e al rendering dell'interfaccia.
+  - Sistemato un problema con la logica degli eventi nei Rifugi ('R'), assicurando che l'interazione diurna funzioni correttamente.
+- Miglioramenti UI e Funzionalità:
+  - Popup Azioni Oggetto: Lo stile dei pulsanti (Usa, Equipaggia, Lascia...) è stato reso coerente con il resto dell'interfaccia e il testo è stato centrato.
+  - Nomi Oggetti: Implementato un sistema per usare nomi abbreviati (nameShort) per gli oggetti nell'inventario, nel popup azioni e nella visualizzazione dell'equipaggiamento, migliorando la leggibilità su schermi piccoli. La visualizzazione del peso nell'inventario è stata rimossa.
+  - Tooltip Mappa: Aggiunta una nuova funzionalità di tooltip che mostra informazioni sulla cella della mappa (coordinate, tipo di terreno, probabilità evento) al passaggio del mouse, fornendo un aiuto strategico al giocatore.
+  - Pillole Sospette: Reso più esplicito l'effetto (o la sua assenza) quando si usano le Pillole Sospette, aggiungendo un effetto casuale (con esiti positivi, negativi contenuti o nulli) e mostrando un messaggio temporaneo su schermo oltre che nel log.
+  - Rifugio Diurno: Aggiunta un'interazione specifica per i Rifugi ('R') durante il giorno, offrendo azioni come cercare provviste con minor rischio, riposare brevemente o tentare di rinforzare il luogo.
+- Pulizia Codice: Rimossi alcuni messaggi di debug superflui dalla console del browser.
+
 ### The Safe Place v0.7.12
 
 Questo log riassume il lavoro svolto per portare "The Safe Place" dalla versione 0.7.09 alla 0.7.12. Dato che il contesto della nostra chat di sviluppo è stato perso, questo documento serve come riferimento unificato dei progressi fatti e dello stato attuale.

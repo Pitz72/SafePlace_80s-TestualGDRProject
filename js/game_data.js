@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.11
+ * Versione: v0.7.13
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -267,7 +267,43 @@ const EVENT_DATA = {
         }
     ],
      REST_STOP: [
-         {
+        {
+            id: "rest_stop_day_interaction", // ID specifico cercato da events.js
+            title: "Rifugio Diurno",
+            description: "Questo posto sembra tranquillo alla luce del giorno. Potrebbe essere un buon momento per riorganizzarsi o cercare meglio.",
+            choices: [
+                {
+                    text: "Cerca Provviste (Tracce)",
+                    skillCheck: { stat: 'tracce', difficulty: 9 }, // Difficoltà leggermente ridotta rispetto a notte/altri eventi
+                    successText: "Approfittando della luce, trovi provviste utili che erano sfuggite a una ricerca frettolosa!",
+                    successReward: { items: [ { type: 'random_food_item', quantity: 1 }, { type: 'random_water_item', quantity: 1 }, { type: 'random_common_resource', quantity: 1 } ] },
+                    failureText: "Hai cercato ovunque, ma sembra che non ci sia rimasto nulla di valore.",
+                    isSearchAction: true, // Costa tempo
+                    actionKey: "search_shelter_day"
+                },
+                {
+                    text: "Breve Riposo (Recupera Energie)",
+                    // Nessun skill check, effetto diretto positivo ma costa un po' di tempo
+                    outcome: "Ti prendi un momento per riposare al sicuro. Recuperi un po' di energie fisiche e mentali.",
+                    effect: { type: 'add_resource', resource_type: 'hp', amount: 5 }, // Recupera un po' di HP
+                    isSearchAction: true, // Costa tempo (come una ricerca)
+                    timeCost: 2, // Costo tempo specifico (inferiore a una ricerca completa?)
+                    actionKey: "rest_briefly"
+                },
+                {
+                    text: "Rinforza il Rifugio (Adattamento)",
+                    skillCheck: { stat: 'adattamento', difficulty: 11 },
+                    successText: "Usando materiali di fortuna, riesci a rendere il rifugio un po' più sicuro per la prossima notte.",
+                    // Effetto futuro: Potrebbe impostare un flag sul tile che riduce la probabilità di eventi negativi notturni
+                    // Per ora, non ha un effetto meccanico diretto, ma è un'azione tematica.
+                    failureText: "Non trovi materiali adatti o le tue riparazioni sono troppo precarie per fare la differenza.",
+                    isSearchAction: true, // Costa tempo
+                    actionKey: "reinforce_shelter"
+                },
+                { text: "Prosegui", outcome: "Decidi di non perdere altro tempo qui e continui il tuo viaggio.", actionKey: "continue_journey_day" }
+            ]
+        },
+        {
             id: "rest_stop_shelter",
             title: "Riparo Improvvisato",
             description: "Un piccolo rifugio, forse una vecchia stazione di servizio o un capanno abbandonato. Offre una tregua momentanea dal mondo esterno.",
@@ -372,6 +408,7 @@ const ITEM_DATA = {
     'canned_food': {
         id: 'canned_food',
         name: 'Cibo in Scatola',
+        nameShort: 'Cibo Scatola',
         description: "Una scatoletta ammaccata ma sigillata. Chissà cosa contiene, ma è cibo.",
         type: 'food',
         usable: true,
@@ -514,6 +551,7 @@ const ITEM_DATA = {
     'water_purified_small': {
         id: 'water_purified_small',
         name: 'Acqua Purificata (Piccola)',
+        nameShort: 'Acqua Purif. (S)',
         description: "Una piccola quantità di acqua resa potabile. Preziosa.",
         type: 'water',
         usable: true,
@@ -646,7 +684,21 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 5,
-        effects: []
+        // MODIFICATO: Aggiunto effetto casuale
+        effects: [{
+            type: 'random_pill_effect', // Nuovo tipo di effetto
+            outcomes: [ // Array di possibili risultati con pesi relativi
+                // Esiti Positivi (Totale peso: 30)
+                { result: 'good_heal_small', weight: 15 },     // Cura 3-7 HP
+                { result: 'good_boost_temp', weight: 10 },     // Messaggio: Ti senti più scattante/concentrato
+                { result: 'good_cure_minor', weight: 5 },      // Cura stato 'Ferito' se presente
+                // Esiti Negativi (Contenuti - Totale peso: 20)
+                { result: 'bad_damage_small', weight: 10 },    // Danno 2-5 HP
+                { result: 'bad_nausea_temp', weight: 10 },     // Messaggio: Nausea/Vertigini temporanee
+                // Esito Neutrale (Totale peso: 50)
+                { result: 'neutral_nothing', weight: 50 }      // Messaggio: Nessun effetto percepibile
+            ]
+        }]
     },
      'herbal_salve': {
         id: 'herbal_salve',
@@ -664,6 +716,7 @@ const ITEM_DATA = {
     'pipe_wrench': {
         id: 'pipe_wrench',
         name: 'Chiave Inglese Pesante',
+        nameShort: 'Chiave Pesante',
         description: "Una grossa chiave inglese, buona per colpire forte... o stringere bulloni.",
         type: 'weapon',
         slot: 'weapon',
@@ -969,6 +1022,7 @@ const ITEM_DATA = {
     'leather_jacket_worn': {
         id: 'leather_jacket_worn',
         name: 'Giacca di Pelle Consumata',
+        nameShort: 'Giacca Pelle Cons.',
         description: "Una vecchia giacca di pelle, offre una minima protezione.",
         type: 'armor',
         slot: 'body',
@@ -993,6 +1047,7 @@ const ITEM_DATA = {
     'metal_plate_vest_crude': {
         id: 'metal_plate_vest_crude',
         name: 'Corpetto di Placche Metalliche Grezzo',
+        nameShort: 'Corpetto Placche',
         description: "Placche di metallo di recupero cucite su un giubbotto. Pesante ma protettivo.",
         type: 'armor',
         slot: 'body',
@@ -1033,6 +1088,7 @@ const ITEM_DATA = {
     'gas_mask_damaged': {
         id: 'gas_mask_damaged',
         name: 'Maschera Antigas Danneggiata',
+        nameShort: 'Masc. Antigas Dan.',
         description: "Una vecchia maschera antigas con il filtro rovinato. Potrebbe offrire una protezione limitata.",
         type: 'armor',
         slot: 'accessory',
@@ -1418,15 +1474,16 @@ const esitiAttaccoAnimaleKo = [
     "La tua arma non è efficace contro la sua coriacea pelle o la sua velocità. L'iniziativa è sua."
 ];
 
-// NUOVO ARRAY AGGIUNTO
-// Esiti per successo nel tentativo di EVITARE un pericolo ambientale
-const esitiPericoloAmbientaleEvitato = [
-    "Con prontezza di riflessi (o un buon presentimento), eviti il pericolo all'ultimo secondo!",
-    "Riesci a notare i segnali di avvertimento e a cambiare strada appena in tempo.",
-    "Un brivido lungo la schiena ti fa fermare un istante prima che il pericolo si manifesti. Scampata bella.",
-    "La tua agilità ti permette di schivare il pericolo ambientale con una mossa acrobatica.",
-    "Il tuo sesto senso ti avverte, permettendoti di aggirare la minaccia senza conseguenze."
-];
-
 // Aggiungere qui altre descrizioni per eventi complessi (Villaggio Ostile, Rifugio Strano, Dilemma Morale, Orrore)
 // ...
+
+// DEVE ESSERE AGGIUNTO QUI:
+const esitiPericoloAmbientaleEvitato = [
+    "Con agilità felina / prontezza di riflessi, riesci a evitare il pericolo all'ultimo istante.",
+    "Il tuo sesto senso ti aveva avvertito. Ti fermi appena in tempo, schivando la minaccia.",
+    "Noti il pericolo nascosto e riesci a trovare un percorso alternativo sicuro.",
+    "Un passo falso e sarebbe finita male, ma la fortuna o l'abilità ti hanno assistito."
+];
+
+// --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---
+// ... existing code ...

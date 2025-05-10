@@ -1,12 +1,12 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.12
+ * Versione: v0.7.13
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
-const GAME_VERSION = "v0.7.12";
+const GAME_VERSION = "v0.7.13";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -114,6 +114,9 @@ const HORROR_ADAPTATION_GAIN = 2;
 
 // Costante per il bonus statistica guadagnato risolvendo Dilemma (se successo check)
 const DILEMMA_STAT_GAIN = 1; // Potrebbe essere Agilità o Influenza
+
+// Quantità di usura applicata all'arma per uso in eventi (es. forzare passaggio)
+const WEAR_FROM_USAGE = 1;
 
 // Probabilità di trovare carne sconfiggendo animali
 const ANIMAL_MEAT_DROP_CHANCE = 0.6; // 60% probabilità di trovare carne.

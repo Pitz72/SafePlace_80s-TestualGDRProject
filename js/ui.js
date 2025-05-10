@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.12
+ * Versione: v0.7.13
  * File: js/ui.js
  * Descrizione: Funzioni per l'aggiornamento dell'interfaccia utente (UI)
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -94,7 +94,8 @@ function renderStats() {
     // Aggiorna visualizzazione Equipaggiamento con stato munizioni
     const weaponId = player.equippedWeapon;
     if (weaponId && ITEM_DATA[weaponId]) {
-        let weaponName = ITEM_DATA[weaponId].name;
+        // MODIFICATO: Usa nameShort se disponibile
+        let weaponName = ITEM_DATA[weaponId].nameShort || ITEM_DATA[weaponId].name;
         // Verifica munizioni se la funzione checkAmmoAvailability esiste nel modulo player
         if (typeof checkAmmoAvailability === 'function') {
             const ammoStatus = checkAmmoAvailability();
@@ -110,7 +111,8 @@ function renderStats() {
 
     const armorId = player.equippedArmor;
     if (armorId && ITEM_DATA[armorId]) {
-        DOM.statArmor.textContent = ITEM_DATA[armorId].name;
+        // MODIFICATO: Usa nameShort se disponibile
+        DOM.statArmor.textContent = ITEM_DATA[armorId].nameShort || ITEM_DATA[armorId].name;
     } else {
         DOM.statArmor.textContent = "Nessuna"; // O "Vestiti"
     }
@@ -293,65 +295,55 @@ function renderInventory() {
     });
 
     // Aggiunge gli elementi dell'inventario alla lista HTML
-    for (const itemSlot of sortedInventory) {
-        // Verifica che l'ID dell'oggetto esista effettivamente nei dati
-        const itemInfo = ITEM_DATA[itemSlot.itemId];
-        if (!itemInfo) {
-            console.warn(`Oggetto con ID ${itemSlot.itemId} nell'inventario non trovato in ITEM_DATA.`);
-            // Aggiunge un elemento placeholder per l'oggetto sconosciuto
-            const listItem = document.createElement("li");
-            listItem.textContent = `Oggetto Sconosciuto (${itemSlot.quantity})`;
-            listItem.classList.add("item-unknown");
-            DOM.inventoryList.appendChild(listItem);
-            continue; // Passa al prossimo elemento nell'inventario
+    sortedInventory.forEach((slot, index) => {
+        const itemData = ITEM_DATA[slot.itemId];
+        if (itemData) {
+            // MODIFICATO: Usa itemData.nameShort se esiste, altrimenti itemData.name
+            const itemName = itemData.nameShort || itemData.name;
+            const itemText = `${itemName} (x${slot.quantity})`;
+            const li = document.createElement("li");
+            li.textContent = itemText;
+            li.dataset.itemId = slot.itemId; // Aggiunge data attribute per click handling
+            li.dataset.itemIndex = index;    // Aggiunge data attribute per indice (opzionale)
+
+            // Aggiunge classe CSS in base al TIPO dell'oggetto per styling
+            if (itemData.type) { // Controlla se itemData.type esiste
+                li.classList.add(`item-type-${itemData.type.toLowerCase()}`); // Usa itemData.type e aggiungi prefisso "item-type-"
+            } else {
+                li.classList.add("item-unknown"); // Fallback se itemData.type non è definito
+            }
+
+            // Aggiunge event listener per mostrare il tooltip (mouseover/pointerenter)
+            // Usiamo pointerenter/pointerleave per supportare meglio i dispositivi touch/penna
+            if (typeof showItemTooltip === 'function' && typeof hideItemTooltip === 'function') {
+                li.addEventListener('pointerenter', (e) => showItemTooltip(slot, e)); // Passa slot (con quantity) e l'evento
+                li.addEventListener('pointerleave', hideItemTooltip);
+                 // Aggiungi listener per touchmove per aggiornare la posizione del tooltip su touch devices
+                 // (Questo può essere gestito meglio nella funzione showItemTooltip stessa)
+            } else {
+                 console.warn("Funzioni showItemTooltip o hideItemTooltip non disponibili.");
+            }
+
+
+            // Aggiunge event listener per il click sull'oggetto (per mostrare le azioni)
+            // Questa funzione (showItemActionPopup) deve essere definita nel modulo player.js
+            // e deve essere accessibile globalmente o tramite un'altra funzione di coordinamento.
+            if (typeof handleInventoryClick === 'function') {
+                // Delega il click handler al container come prima
+                 // NOTE: Il listener handleInventoryClick è aggiunto una volta nel setupInputListeners
+                 // sul container inventoryList, non sui singoli li qui.
+                 // Questo è l'approccio preferito per performance. Quindi non aggiungiamo listeners qui.
+            } else {
+                console.warn("Funzione handleInventoryClick non disponibile. Interazione inventario limitata.");
+                // Aggiungi un listener diretto come fallback per debug se il delegation non funziona
+                 // li.addEventListener('click', () => { console.warn(`handleInventoryClick non disponibile, click su ${slot.itemId}`); /* showItemActionPopup(slot.itemId); */ }); // Commentato showItemActionPopup finché non è certo che funzioni
+            }
+
+
+            // Aggiunge l'elemento lista alla lista dell'inventario nel DOM
+            DOM.inventoryList.appendChild(li);
         }
-
-        const listItem = document.createElement("li");
-
-        // Aggiunge classe CSS in base al TIPO dell'oggetto per styling
-        if (itemInfo.type) { // Controlla se itemInfo.type esiste
-            listItem.classList.add(`item-type-${itemInfo.type.toLowerCase()}`); // Usa itemInfo.type e aggiungi prefisso "item-type-"
-        } else {
-            listItem.classList.add("item-unknown"); // Fallback se itemInfo.type non è definito
-        }
-
-        // Aggiunge un data attribute per l'ID dell'oggetto (utile per gli event listener)
-        listItem.dataset.itemId = itemSlot.itemId;
-
-        // Aggiunge event listener per mostrare il tooltip (mouseover/pointerenter)
-        // Usiamo pointerenter/pointerleave per supportare meglio i dispositivi touch/penna
-        if (typeof showItemTooltip === 'function' && typeof hideItemTooltip === 'function') {
-            listItem.addEventListener('pointerenter', (e) => showItemTooltip(itemSlot, e)); // Passa itemSlot (con quantity) e l'evento
-            listItem.addEventListener('pointerleave', hideItemTooltip);
-             // Aggiungi listener per touchmove per aggiornare la posizione del tooltip su touch devices
-             // (Questo può essere gestito meglio nella funzione showItemTooltip stessa)
-        } else {
-             console.warn("Funzioni showItemTooltip o hideItemTooltip non disponibili.");
-        }
-
-
-        // Aggiunge event listener per il click sull'oggetto (per mostrare le azioni)
-        // Questa funzione (showItemActionPopup) deve essere definita nel modulo player.js
-        // e deve essere accessibile globalmente o tramite un'altra funzione di coordinamento.
-        if (typeof handleInventoryClick === 'function') {
-            // Delega il click handler al container come prima
-             // NOTE: Il listener handleInventoryClick è aggiunto una volta nel setupInputListeners
-             // sul container inventoryList, non sui singoli li qui.
-             // Questo è l'approccio preferito per performance. Quindi non aggiungiamo listeners qui.
-        } else {
-            console.warn("Funzione handleInventoryClick non disponibile. Interazione inventario limitata.");
-            // Aggiungi un listener diretto come fallback per debug se il delegation non funziona
-             // listItem.addEventListener('click', () => { console.warn(`handleInventoryClick non disponibile, click su ${itemSlot.itemId}`); /* showItemActionPopup(itemSlot.itemId); */ }); // Commentato showItemActionPopup finché non è certo che funzioni
-        }
-
-
-        // Costruisce il contenuto HTML dell'elemento lista (Nome Oggetto + Quantità)
-        // Usiamo innerHTML perché potremmo voler includere span per la quantità o altri dettagli grafici
-        listItem.innerHTML = `${itemInfo.name} <span class="item-quantity">(${itemSlot.quantity})</span>`;
-
-        // Aggiunge l'elemento lista alla lista dell'inventario nel DOM
-        DOM.inventoryList.appendChild(listItem);
-    }
+    });
 
     // Aggiorna il numero di slot occupati vs totali (potrebbe essere aggiunto alla UI)
     // const inventoryCount = document.getElementById('inventory-count');
@@ -512,12 +504,13 @@ function renderMap() {
      endY = Math.min(MAP_HEIGHT, endY);
 
 
+    const mapFragment = document.createDocumentFragment();
+
     // Cicla sulle righe della porzione di mappa visibile
     for (let y = startY; y < endY; y++) {
-        // Aggiungi un a capo all'inizio di ogni riga HTML della mappa tranne la prima
-        if (y > startY) {
-            mapHTML += '\n'; // Usa \n per creare nuove righe nel <pre>
-        }
+        // <<< CORRETTO: Crea un fragment PER OGNI RIGA >>>
+        const currentRowFragment = document.createDocumentFragment();
+
         // Cicla sulle colonne della porzione di mappa visibile
         for (let x = startX; x < endX; x++) {
             let tileClass = '';
@@ -560,47 +553,119 @@ function renderMap() {
             }
 
             // Aggiunge lo span per la cella corrente con il simbolo e la classe corretti
-            // Usiamo innerHTML e span per poter applicare stili CSS individualmente a ogni cella.
-            mapHTML += `<span class="${tileClass}">${tileChar}</span>`;
-        }
-    }
+            const span = document.createElement('span');
+            span.className = tileClass;
+            span.textContent = tileChar;
 
-    // Aggiorna l'HTML del display della mappa
-    display.innerHTML = mapHTML;
+            // Aggiunge data attribute per coordinate (utile per tooltip)
+            span.dataset.coordX = x;
+            span.dataset.coordY = y;
+
+            // Aggiungi listener per tooltip mappa (NUOVO)
+            if (typeof showMapTooltip === 'function' && typeof hideMapTooltip === 'function') {
+                // Passa le informazioni necessarie a showMapTooltip
+                span.addEventListener('pointerenter', (e) => showMapTooltip(x, y, tileChar, e));
+                span.addEventListener('pointerleave', hideMapTooltip);
+            }
+
+            // Aggiunge lo span alla stringa HTML
+            // Modifica: invece di costruire mapHTML come stringa, appendiamo i nodi span
+            // mapHTML += `<span class="${tileClass}" data-coord-x="${x}" data-coord-y="${y}">${tileChar}</span>`;
+            currentRowFragment.appendChild(span); // Aggiungi allo span della riga
+        } // End inner loop (x)
+
+        // Append the completed row fragment to the main map fragment
+        mapFragment.appendChild(currentRowFragment);
+
+        // <<< CORREZIONE: Aggiungi il newline DOPO aver aggiunto la riga >>>
+        // Aggiungi un nodo di testo newline per separare le righe nel <pre>
+        // (Non strettamente necessario per l'ultima riga, ma non crea problemi)
+        mapFragment.appendChild(document.createTextNode('\n'));
+
+    } // End outer loop (y)
+
+    // Aggiorna l'HTML del display della mappa usando il fragment
+    display.innerHTML = ''; // Pulisce il contenuto precedente
+    display.appendChild(mapFragment);
 
     // Opzionale: Imposta lo scroll per mantenere il giocatore centrato se l'overflow fosse abilitato.
-    // Ma con overflow: hidden nel CSS, questo non ha effetto e non è necessario.
-    // display.scrollLeft = (player.x * charWidth) - (display.offsetWidth / 2) + (charWidth / 2);
-    // display.scrollTop = (player.y * lineHeight) - (display.offsetHeight / 2) + (lineHeight / 2);
 }
 
-// --- Funzione helper per misurare larghezza carattere (da integrare se necessario, altrimenti usiamo stima in renderMap) ---
-// Potrebbe risiedere qui o in game_utils.js. Per ora, la mettiamo qui come potenziale helper interno a UI.
-// Se non implementata, renderMap userà un valore di fallback.
-/*
-let charWidthCache = {};
-function measureCharacterWidth(font) {
-    if (charWidthCache[font]) {
-        return charWidthCache[font];
+// --- Implementazione Tooltip Mappa (NUOVO) ---
+
+/**
+ * Mostra un tooltip informativo per una cella della mappa.
+ * @param {number} x - Coordinata X della cella.
+ * @param {number} y - Coordinata Y della cella.
+ * @param {string} tileChar - Il simbolo della cella (es. '.', 'F').
+ * @param {Event} event - L'evento pointerenter.
+ */
+function showMapTooltip(x, y, tileChar, event) {
+    // Verifica che gli elementi del tooltip mappa siano pronti
+    if (!DOM.mapTooltip || !DOM.tooltipMapCoords || !DOM.tooltipMapType || !DOM.tooltipMapEventChance) {
+        // console.warn("showMapTooltip: Elementi tooltip mappa non pronti.");
+        hideMapTooltip(); // Assicura che sia nascosto
+        return;
     }
-    try {
-        // Utilizza un canvas temporaneo per misurare il testo
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return 9; // Fallback se canvas non disponibile
-        context.font = font;
-        // Misura la larghezza di un carattere rappresentativo (es. 'M' o '@')
-        const metrics = context.measureText("@");
-        // Usa 'width' o 'actualBoundingBoxRight' se disponibile per maggiore precisione
-        const width = metrics.width || (metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight) || 9; // Fallback a 9px
-        charWidthCache[font] = width;
-        return width;
-    } catch (e) {
-        console.error("Errore misurazione larghezza carattere:", e);
-        return 9; // Fallback generico in caso di errore
+    // Verifica che i dati del tile siano validi
+    if (!TILE_DESC || !TILE_SYMBOLS || !EVENT_CHANCE) {
+        console.error("showMapTooltip: Dati tile (TILE_DESC, TILE_SYMBOLS, EVENT_CHANCE) non disponibili.");
+        hideMapTooltip();
+        return;
     }
+
+    // Trova il nome del tile e la chiave (es. 'PLAINS')
+    const tileTypeName = TILE_DESC[tileChar] || 'Sconosciuto';
+    const tileKey = Object.keys(TILE_SYMBOLS).find(key => TILE_SYMBOLS[key] === tileChar);
+
+    // Trova la probabilità di evento specifico del tile
+    let eventChancePercent = 0;
+    if (tileKey && EVENT_CHANCE[tileKey] !== undefined) {
+        eventChancePercent = Math.round(EVENT_CHANCE[tileKey] * 100);
+    }
+
+    // Popola il tooltip
+    DOM.tooltipMapCoords.textContent = `Coordinate: ${x}, ${y}`;
+    DOM.tooltipMapType.textContent = `Tipo: ${tileTypeName}`;
+    DOM.tooltipMapEventChance.textContent = `Prob. Evento (Locale): ${eventChancePercent}%`;
+
+    // Posizionamento (simile a showItemTooltip)
+    const displayRect = DOM.gameContainer.getBoundingClientRect();
+    const targetRect = event.target.getBoundingClientRect(); // L'elemento span della cella
+
+    let tooltipX = targetRect.right + 10; // A destra della cella
+    let tooltipY = targetRect.top;
+
+    // Adattamenti per non uscire dallo schermo
+    if (tooltipX + DOM.mapTooltip.offsetWidth > displayRect.right) {
+        tooltipX = targetRect.left - DOM.mapTooltip.offsetWidth - 10; // A sinistra
+    }
+    if (tooltipY + DOM.mapTooltip.offsetHeight > displayRect.bottom) {
+        tooltipY = displayRect.bottom - DOM.mapTooltip.offsetHeight - 5;
+    }
+    if (tooltipX < displayRect.left + 5) tooltipX = displayRect.left + 5;
+    if (tooltipY < displayRect.top + 5) tooltipY = displayRect.top + 5;
+
+    DOM.mapTooltip.style.left = `${tooltipX}px`;
+    DOM.mapTooltip.style.top = `${tooltipY}px`;
+    DOM.mapTooltip.style.position = 'fixed';
+    DOM.mapTooltip.style.zIndex = 100;
+
+    // Rende visibile il tooltip
+    DOM.mapTooltip.classList.remove('hidden');
+    DOM.mapTooltip.style.visibility = 'visible';
 }
-*/
+
+/**
+ * Nasconde il tooltip della mappa.
+ */
+function hideMapTooltip() {
+    if (!DOM.mapTooltip) return;
+    DOM.mapTooltip.classList.add('hidden');
+    DOM.mapTooltip.style.visibility = 'hidden';
+}
+
+// --- Fine Implementazione Tooltip Mappa ---
 
 // ----- Implementazione Tooltip Inventario -----
 // Spostiamo qui la logica di visualizzazione del tooltip, che dipende da DOM e Dati/Utils.

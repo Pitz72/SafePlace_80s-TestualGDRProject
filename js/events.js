@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.12
+ * Versione: v0.7.13
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -678,7 +678,7 @@ function handleEventChoice(choiceIndex) {
                       }
                      break;
                 case 'ENVIRONMENTAL':
-                    outcomeDescription = getRandomText(esitiPericoloAmbientaleEvitato);
+                    outcomeDescription = getRandomText(esitiPericoloAmbientaleEvitato); // Riscrivo per sicurezza
                     messageType = 'success';
                     // Nessuna ricompensa base per evitare pericolo
                     break;
@@ -1010,7 +1010,7 @@ function handleEventChoice(choiceIndex) {
         if (weaponData && weaponData.hasOwnProperty('durability') && weaponData.hasOwnProperty('maxDurability')) {
             // console.log(`[DEBUG Wear Weapon] Applying wear to ${weaponId}. Current durability: ${weaponData.durability}`); // RIMOSSO LOG
             if (typeof applyWearToEquippedItem === 'function') {
-                applyWearToEquippedItem('weapon', 1); // Applica 1 punto di usura
+                applyWearToEquippedItem('equippedWeapon', 1); // Applica 1 punto di usura
                 // console.log(`[DEBUG Wear Weapon] Durability after wear applied: ${weaponData.durability}`); // RIMOSSO LOG
                 // logMessage("L'uso ha usurato la tua arma."); // Opzionale, potrebbe essere verboso
             } else {
@@ -1329,7 +1329,7 @@ function handleEventChoice(choiceIndex) {
                         if (damageReduction > 0) { // Solo se l'armatura ha fatto qualcosa
                             // console.log(`[DEBUG Wear Armor] Applying wear to ${player.equippedArmor}. Current durability: ${armorInfo.durability}`); // RIMOSSO LOG
                             if (typeof applyWearToEquippedItem === 'function') {
-                                applyWearToEquippedItem('armor', 1); // Applica 1 punto di usura
+                                applyWearToEquippedItem('equippedArmor', 1); // Applica 1 punto di usura
                                 // console.log(`[DEBUG Wear Armor] Durability after wear applied: ${armorInfo.durability}`); // RIMOSSO LOG
                             } else {
                                 console.error("applyPenalty: Funzione applyWearToEquippedItem non trovata!");
