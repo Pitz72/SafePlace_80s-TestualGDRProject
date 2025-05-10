@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.15
+ * Versione: v0.7.16
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente (rendering, popup, messaggi, interazioni)
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -877,6 +877,8 @@ function showEventPopup(eventData) {
 
     // Memorizza il contesto dell'evento corrente (per riferimento in handleEventChoice e gestione input)
     currentEventContext = eventData; // Salva l'intero oggetto evento
+    // console.log("DEBUG showEventPopup: currentEventContext impostato:", JSON.stringify(currentEventContext, null, 2)); // NUOVO LOG
+    // console.log("DEBUG showEventPopup: currentEventContext.isActionPopup:", currentEventContext ? currentEventContext.isActionPopup : 'contesto nullo o isActionPopup non def'); // NUOVO LOG
 
     // Gestisce la visualizzazione delle scelte o del bottone "Continua"
     const choices = eventData.choices || [];
@@ -1200,7 +1202,14 @@ function getItemDetailsHTML(itemInfo) {
     // Dettagli specifici per le armi
     if (itemInfo.type === 'weapon') {
         detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemInfo.weaponType)}</span></div>`; // Usa la utility per la label
-        detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${itemInfo.damage || '?'}</span></div>`;
+        
+        let damageText = '?';
+        if (typeof itemInfo.damage === 'object' && itemInfo.damage !== null && itemInfo.damage.min !== undefined && itemInfo.damage.max !== undefined) {
+            damageText = `${itemInfo.damage.min}-${itemInfo.damage.max}`;
+        } else if (typeof itemInfo.damage === 'number') {
+            damageText = itemInfo.damage;
+        }
+        detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${damageText}</span></div>`;
 
         // Aggiungi la visualizzazione della durabilità
         if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {

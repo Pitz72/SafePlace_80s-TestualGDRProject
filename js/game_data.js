@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.15
+ * Versione: v0.7.16
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -66,6 +66,16 @@ const STATO_MESSAGGI = {
         "Il sangue caldo impregna la fasciatura di fortuna. Non sta migliorando.",
         "La ferita pulsa, infiammata. Il rischio di infezione è altissimo senza cure adeguate.",
         "Un dolore lancinante ti ricorda costantemente della tua vulnerabilità. Devi medicarti."
+    ],
+    FERITO_E_MALATO: [
+        "Ferite infette e febbre alta ti stanno consumando. Ogni respiro è una sofferenza.",
+        "Il tuo corpo è un campo di battaglia. Sanguini, bruci e tossisci contemporaneamente.",
+        "Sei in pessime condizioni: le ferite bruciano per l'infezione e la malattia ti toglie le forze."
+    ],
+    AFFAMATO_E_ASSETATO: [
+        "La fame e la sete ti tormentano senza tregua. Il corpo e la mente iniziano a cedere.",
+        "Disidratato e senza cibo, ogni passo è un'agonia. Quanto ancora puoi resistere?",
+        "Senti le forze vitali abbandonarti. Hai un disperato bisogno di cibo e acqua."
     ],
     MORENTE: [
         "Le energie vitali ti stanno lasciando. Senza un intervento immediato, non vedrai l'alba.",
@@ -1253,12 +1263,22 @@ const ITEM_DATA = {
         value: 10,
         effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.7, heal_hp_on_success: 10 }]
     },
-    craft_rags_armor: {
-        productName: "Armatura di Stracci", // Nome per UI
-        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+    'craft_crude_club': {
+        productName: "Mazza Grezza", // Nome per UI
+        productId: 'club_crude', 
         productQuantity: 1,
         ingredients: [
-            { itemId: 'cloth_rags', quantity: 5 } // Modificato: solo stracci
+            { itemId: 'wood_planks', quantity: 2 }, 
+            { itemId: 'cloth_rags', quantity: 1 }  
+        ],
+        description: "Lega insieme alcuni robusti pezzi di legno con degli stracci per creare una mazza contundente di fortuna."
+    },
+    'craft_rags_armor': {
+        productName: "Armatura di Stracci", // Nome per UI
+        productId: 'armor_rags_simple', 
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'cloth_rags', quantity: 5 } // Rimosso string_piece, solo cloth_rags
         ],
         description: "Crea un'Armatura di Stracci.",
         successMessage: "Hai creato un'Armatura di Stracci."

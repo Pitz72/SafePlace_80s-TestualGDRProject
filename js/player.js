@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.15
+ * Versione: v0.7.16
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -74,6 +74,7 @@ function generateCharacter() {
     addItemToInventory('canned_food', 1);
     addItemToInventory('suspicious_pills', 1);
     addItemToInventory('scrap_metal', getRandomInt(1,3)); // Inizia con qualche materiale
+    addItemToInventory('repair_kit', 1); // AGGIUNTO PER TEST
     // Non aggiungiamo più l'arma all'inventario, la equipaggiamo direttamente
     // addItemToInventory('pipe_wrench', 1);
 
@@ -855,7 +856,8 @@ function dropItem(itemId, quantity) { // Aggiunto parametro quantity anche se no
  * @param {string} repairKitId - ID del kit di riparazione usato.
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
-function showRepairWeaponPopup(repairKitId, repairAmount) {
+function showRepairItemTypePopup(repairKitId, repairAmount) {
+    // console.log(`showRepairItemTypePopup chiamata con kit: ${repairKitId}, amount: ${repairAmount}`);
     // Trova tutte le armi nell'inventario E quelle equipaggiate che necessitano riparazione
     const repairableItems = player.inventory
         .filter(slot => {
@@ -921,14 +923,19 @@ function showRepairWeaponPopup(repairKitId, repairAmount) {
     // Usiamo showEventPopup, ma con un flag per indicare che è un popup di azione (non un evento complesso)
     // Questo aiuta handleChoiceContainerClick a capire come gestire il click.
     if (typeof showEventPopup === 'function') {
-        showEventPopup({
+        const dataForPopup = {
             title: popupTitle,
             description: popupDescription,
             choices: popupChoices,
-            isActionPopup: true // Flag per indicare che è un popup di azione (gestito diversamente da handleChoiceContainerClick)
-        });
+            isActionPopup: true, // Flag per indicare che è un popup di azione (gestito diversamente da handleChoiceContainerClick)
+            originalActionDetails: { repairKitId: repairKitId, repairAmount: repairAmount, type: 'repair' } // Info per ripristino/logica
+        };
+        // SALVA questo contesto specifico per il popup azione
+        savedActionPopupContext = dataForPopup; 
+        // console.log("DEBUG showRepairItemTypePopup: Dati inviati a showEventPopup E SALVATI in savedActionPopupContext:", JSON.stringify(dataForPopup, null, 2)); 
+        showEventPopup(dataForPopup);
     } else {
-        console.error("showRepairWeaponPopup: showEventPopup non disponibile.");
+        console.error("showRepairItemTypePopup: showEventPopup non disponibile.");
         addMessage("Errore nel mostrare le opzioni di riparazione.", "danger");
     }
 }
@@ -944,6 +951,7 @@ function showRepairWeaponPopup(repairKitId, repairAmount) {
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
 function applyRepair(repairKitId, targetItemId, repairAmount) {
+    // console.log(`DEBUG applyRepair: Inizio. repairKitId='${repairKitId}', targetItemId='${targetItemId}', repairAmount=${repairAmount}`); // NUOVO LOG
      // console.log(`applyRepair: Tentativo di riparare '${targetItemId}' con kit '${repairKitId}' (+${repairAmount} durabilità)`); // Log di debug
 
     // Trova i dati dell'oggetto da riparare (potrebbe essere equipaggiato o in inventario)
@@ -967,7 +975,7 @@ function applyRepair(repairKitId, targetItemId, repairAmount) {
             // Conserviamo l'indice per la possibile rimozione dell'item (anche se repair non rimuove item, solo durabilità)
             // targetItemSlot.inventoryIndex = player.inventory.indexOf(inventorySlot); // Non usata per ora, ma utile
         } else {
-             // Questo caso non dovrebbe accadere se showRepairWeaponPopup funziona correttamente
+             // Questo caso non dovrebbe accadere se showRepairItemTypePopup funziona correttamente
             console.error(`applyRepair: Oggetto target '${targetItemId}' non trovato equipaggiato o nell'inventario!`);
             addMessage("Errore interno durante la riparazione.", "danger");
             if (typeof closeEventPopup === 'function') closeEventPopup();
@@ -984,7 +992,7 @@ function applyRepair(repairKitId, targetItemId, repairAmount) {
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
-    // Anche se showRepairWeaponPopup filtra, ricontrolliamo che l'arma non sia già al massimo
+    // Anche se showRepairItemTypePopup filtra, ricontrolliamo che l'arma non sia già al massimo
     if (targetItemInfo.durability >= targetItemInfo.maxDurability) {
         addMessage(`${targetItemInfo.name} è già in perfette condizioni.`, "info");
          // Consumiamo il kit anche se l'arma è già riparata? Decidiamo di NO.
@@ -993,13 +1001,13 @@ function applyRepair(repairKitId, targetItemId, repairAmount) {
         return;
     }
 
-
+    // console.log(`DEBUG applyRepair: Sto per consumare il kit. repairKitId='${repairKitId}'`); // NUOVO LOG
     // Consuma il kit di riparazione (sempre 1 quantità per uso)
     // Questa funzione (removeItemFromInventory) è definita qui
     const kitConsumed = removeItemFromInventory(repairKitId, 1);
 
     if (!kitConsumed) {
-         // Questo non dovrebbe succedere se showRepairWeaponPopup è chiamato correttamente,
+         // Questo non dovrebbe succedere se showRepairItemTypePopup è chiamato correttamente,
          // ma è una safety check.
          console.error(`applyRepair: Kit di riparazione '${repairKitId}' non trovato nell'inventario!`);
          addMessage("Errore: Kit di riparazione non trovato durante l'applicazione.", "danger");
@@ -1025,7 +1033,7 @@ function applyRepair(repairKitId, targetItemId, repairAmount) {
     addMessage(`Hai riparato ${targetItemInfo.name} (+${actualRepair} durabilità).`, "success", true);
     // console.log(`applyRepair: Riparato '${targetItemId}'. Nuova durabilità: ${targetItemInfo.durability}/${targetItemInfo.maxDurability}.`); // Log di debug
 
-    // Chiude il popup di selezione equipaggiamento (che era stato aperto da showRepairWeaponPopup)
+    // Chiude il popup di selezione equipaggiamento (che era stato aperto da showRepairItemTypePopup)
     if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("applyRepair: closeEventPopup non disponibile.");
 }
 
@@ -1094,7 +1102,7 @@ function handleInventoryClick(event) {
  * Mostra un popup con le azioni disponibili per un oggetto dell'inventario.
  * Costruisce l'evento popup e lo passa alla funzione UI per la visualizzazione.
  * Dipende da: game_constants.js (player, ITEM_DATA), ui.js (showEventPopup, closeEventPopup, getItemDetailsHTML).
- * Richiede useItem, equipItem, dropItem, showRepairWeaponPopup (definite qui).
+ * Richiede useItem, equipItem, dropItem, showRepairItemTypePopup (definite qui).
  * @param {string} itemId - L'ID dell'oggetto selezionato.
  * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
@@ -1127,23 +1135,14 @@ function showItemActionPopup(itemId, source = 'inventory') {
     DOM.itemActionTitle.textContent = item.nameShort || item.name;
     DOM.itemActionDescription.textContent = item.description || "Nessuna descrizione.";
     
-    DOM.itemActionStats.innerHTML = ''; // Pulisce stats precedenti
-    let statsHTML = '';
-    if (item.category === 'weapon') {
-        if (item.damage) statsHTML += `Danno: ${item.damage}<br>`;
-        if (typeof item.durabilityCurrent === 'number') statsHTML += `Durabilità: ${item.durabilityCurrent}/${item.durabilityMax}<br>`;
-    } else if (item.category === 'armor') {
-        if (item.armorValue) statsHTML += `Armatura: ${item.armorValue}<br>`;
-        if (typeof item.durabilityCurrent === 'number') statsHTML += `Durabilità: ${item.durabilityCurrent}/${item.durabilityMax}<br>`;
-    } else if (item.category === 'food' || item.category === 'water' || item.category === 'medical') {
-        if (item.effect && item.effect.amount) {
-            if (item.effect.type === 'heal') statsHTML += `Recupera HP: ${item.effect.amount}<br>`;
-            if (item.effect.type === 'food') statsHTML += `Sazietà: +${item.effect.amount}<br>`;
-            if (item.effect.type === 'water') statsHTML += `Idratazione: +${item.effect.amount}<br>`;
-        }
-        if (item.effect && item.effect.statusToCure) statsHTML += `Cura: ${item.effect.statusToCure.replace('is', '')}<br>`;
+    // Pulisce stats precedenti e usa getItemDetailsHTML per coerenza con il tooltip
+    if (typeof getItemDetailsHTML === 'function') {
+        DOM.itemActionStats.innerHTML = getItemDetailsHTML(item);
+    } else {
+        // Fallback se getItemDetailsHTML non è disponibile (non dovrebbe succedere)
+        console.warn("showItemActionPopup: getItemDetailsHTML non disponibile. Statistiche popup potrebbero essere incomplete.");
+        DOM.itemActionStats.innerHTML = 'Dettagli statistiche non disponibili.';
     }
-    DOM.itemActionStats.innerHTML = statsHTML;
 
     DOM.itemActionChoices.innerHTML = ''; // Pulisce bottoni precedenti
     const actions = [];
@@ -1489,7 +1488,7 @@ function checkAndLogStatusMessages() {
     }
     // Check Malato (solo se non ferito)
     else if (player.isSick && Math.random() < checkChance) {
-        addMessage(getRandomText(STATO_MESSAGGI.MALATO), 'warning');
+        addMessage(getRandomText(STATO_MESSAGGI.INFETTO), 'warning'); // CORRETTO da MALATO a INFETTO
     }
     // Check Ferito (solo se non malato)
     else if (player.isInjured && Math.random() < checkChance) {

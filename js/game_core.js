@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.15
+ * Versione: v0.7.16
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (implicito), gestione input.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
@@ -231,31 +231,68 @@ function handleGlobalKeyPress(event) {
  * @param {MouseEvent} event - L'evento mouse click.
  */
 function handleChoiceContainerClick(event) {
-    // Verifica che il click provenga da un bottone con indice scelta o dal bottone Continua
+    let activeContext = currentEventContext; // Usa currentEventContext di default
+
+    // console.log("DEBUG handleChoiceContainerClick: currentEventContext ALL'INGRESSO:", JSON.stringify(currentEventContext, null, 2));
+    // Assicurati che savedActionPopupContext sia accessibile qui (dovrebbe esserlo se definita in player.js o globalmente)
+    // console.log("DEBUG handleChoiceContainerClick: savedActionPopupContext ALL'INGRESSO:", typeof savedActionPopupContext !== 'undefined' ? JSON.stringify(savedActionPopupContext, null, 2) : 'savedActionPopupContext non definito');
+
+    // Se currentEventContext è null, ma abbiamo un savedActionPopupContext, usiamo quello!
+    if (!activeContext && typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext && savedActionPopupContext.isActionPopup) {
+        // console.log("DEBUG handleChoiceContainerClick: currentEventContext era null, USO savedActionPopupContext!");
+        activeContext = savedActionPopupContext;
+    }
+
+    // console.log("DEBUG handleChoiceContainerClick: Contesto ATTIVO che verrà usato:", JSON.stringify(activeContext, null, 2));
+    // console.log("DEBUG handleChoiceContainerClick: Inizio. Event target:", event.target);
+    
     const button = event.target.closest('button');
-    if (!button || !DOM.eventChoicesContainer || !DOM.eventChoicesContainer.contains(button)) return; // Aggiunto check esistenza container
+    if (!button || !DOM.eventChoicesContainer || !DOM.eventChoicesContainer.contains(button)) return;
 
     const choiceIndexStr = button.dataset.choiceIndex; 
 
     if (choiceIndexStr !== undefined) {
-        const choiceIndex = parseInt(choiceIndexStr, 10); 
-
-        if (currentEventContext && currentEventContext.isActionPopup === true) {
-            if (currentEventContext.choices && currentEventContext.choices[choiceIndex] && typeof currentEventContext.choices[choiceIndex].action === 'function') {
-                currentEventContext.choices[choiceIndex].action();
+        const choiceIndex = parseInt(choiceIndexStr, 10);
+        
+        let isActionPopupValue = 'Non definito/Contesto Falsy';
+        if (activeContext) { 
+            if (activeContext.hasOwnProperty('isActionPopup')) {
+                isActionPopupValue = activeContext.isActionPopup;
             } else {
-                console.error("Azione non trovata o non valida nel popup azione oggetto.");
+                isActionPopupValue = 'isActionPopup non è una proprietà del contesto';
+            }
+        }
+        // console.log("DEBUG handleChoiceContainerClick: choiceIndex:", choiceIndex, "Valore di isActionPopup (da activeContext):", isActionPopupValue);
+
+        if (activeContext && activeContext.isActionPopup === true) { 
+            // console.log("DEBUG handleChoiceContainerClick: Chiamo azione diretta del popup (da activeContext).");
+            if (activeContext.choices && activeContext.choices[choiceIndex] && typeof activeContext.choices[choiceIndex].action === 'function') {
+                activeContext.choices[choiceIndex].action();
+                if (typeof savedActionPopupContext !== 'undefined') savedActionPopupContext = null; // Consumato, quindi pulisci
+            } else {
+                console.error("Azione non trovata o non valida nel popup azione oggetto (da activeContext).");
                 if (typeof closeEventPopup === 'function') closeEventPopup(); 
+                if (typeof savedActionPopupContext !== 'undefined') savedActionPopupContext = null; // Errore, pulisci comunque
             }
         } else {
+            // console.log("DEBUG handleChoiceContainerClick: Chiamo handleEventChoice (activeContext non era per popup azione).");
+            if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext) {
+                 // console.log("DEBUG handleChoiceContainerClick: C'era un savedActionPopupContext, lo pulisco prima di chiamare handleEventChoice.");
+                 savedActionPopupContext = null; 
+            }
+            
             if (typeof handleEventChoice === 'function') {
-                handleEventChoice(choiceIndex);
+                handleEventChoice(choiceIndex); 
             } else {
                 console.error("handleChoiceContainerClick: Funzione handleEventChoice non trovata (events.js)!");
                 if (typeof closeEventPopup === 'function') closeEventPopup(); 
             }
         }
     } else if (button.classList.contains('continue-button')) {
+        if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext) {
+            // console.log("DEBUG handleChoiceContainerClick: Bottone Continua premuto, pulisco savedActionPopupContext.");
+            savedActionPopupContext = null;
+        }
         if (typeof closeEventPopup === 'function') {
             closeEventPopup();
         } else {
@@ -487,21 +524,22 @@ function handleInventoryPointerLeave(event) {
  * @param {boolean} isVictory - True se il giocatore ha vinto, false se ha perso.
  */
 function endGame(isVictory) {
+    console.log("endGame chiamata! Vittoria:", isVictory, "HP Giocatore:", player ? player.hp : 'player non definito');
     gameActive = false;
-    gamePaused = true; 
+    gamePaused = true;
+    console.log("Flag di stato impostati. gameActive:", gameActive, "gamePaused:", gamePaused);
 
-    if (!DOM.gameContainer || !DOM.endScreen || !DOM.endTitle || !DOM.endMessage || !DOM.restartButton || !DOM.statPanel) {
+    if (!DOM.gameContainer || !DOM.endScreen || !DOM.endTitle || !DOM.endMessage || !DOM.restartButton) {
         console.error("endGame: Riferimenti DOM essenziali mancanti! Impossibile mostrare schermata finale.");
-        alert("Errore critico: Impossibile terminare il gioco correttamente.");
-        return;
+        // Forse uscire o mostrare un alert di base?
+        // alert("Errore critico: impossibile terminare il gioco correttamente.");
+        return; // Esce per evitare ulteriori errori
     }
 
-    showScreen(DOM.endScreen); // Usa la nuova funzione helper
-    if(DOM.gameContainer) DOM.gameContainer.style.display = 'none'; // Assicura che sia nascosto
-    if(DOM.statPanel) DOM.statPanel.style.display = 'none'; // Assicura che sia nascosto
+    // Nasconde il contenitore principale del gioco e mostra la schermata di fine
+    if (DOM.gameContainer) DOM.gameContainer.style.display = 'none';
+    if (DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex per centrare il contenuto
 
-
-    // Imposta il messaggio di fine gioco
     if (isVictory) {
         DOM.endTitle.textContent = "Sei Sopravvissuto!";
         if(DOM.endMessage && player) {

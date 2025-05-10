@@ -1,13 +1,13 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.13
+ * Versione: v0.7.16
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.15";
+const GAME_VERSION = "0.7.16";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -184,6 +184,8 @@ const HORROR_FLEE_FAIL_DAMAGE_MAX = 5;
 const HORROR_AFFRONT_FAIL_DAMAGE_MIN = 5;
 const HORROR_AFFRONT_FAIL_DAMAGE_MAX = 15;
 
+// Aggiunta la chance di loot per i predatori
+const PREDATOR_LOOT_CHANCE = 0.5; // 50% di probabilità di loot dopo aver sconfitto un predatore
 
 // Definizione dei tipi di arma per la funzione getTipoArmaLabel (spostato qui da game_logic)
 const TIPO_ARMA_LABELS = {

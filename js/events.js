@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.15
+ * Versione: v0.7.16
  * File: js/events.js
- * Descrizione: Gestione degli eventi di gioco (specifici del tile, complessi, popup)
+ * Descrizione: Gestione degli eventi di gioco (trigger, logica, esiti)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
  */
 
@@ -65,7 +65,7 @@ function triggerTileEvent(tileSymbol) {
 
         const dayEvent = eventPool.find(event => event.id === 'rest_stop_day_interaction'); // Usa l'ID corretto
         if (dayEvent) {
-            // console.log(">>> triggerTileEvent: Attivazione forzata evento diurno 'R'."); // Log diagnostico
+//            // console.log(">>> triggerTileEvent: Attivazione forzata evento diurno 'R'."); // Log diagnostico
             showEventPopup(dayEvent); // Mostra l'evento diurno
             return; // Esci dalla funzione, evento attivato
         } else {
@@ -645,7 +645,7 @@ function handleEventChoice(choiceIndex) {
                                outcomeDescription = getRandomText(descrizioniTracceOkLoot);
                                messageType = 'success';
                                // console.log("DEBUG: TRACKS_LOOT_WEIGHTS:", TRACKS_LOOT_WEIGHTS); // LOG AGGIUNTO PER DEBUG
-                               const lootTable = Object.keys(TRACKS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACKS_LOOT_WEIGHTS[id] }));
+                               const lootTable = Object.keys(TRACCE_SUCCESS_LOOT_WEIGHTS).map(id => ({ id: id, weight: TRACCE_SUCCESS_LOOT_WEIGHTS[id] }));
                                if (lootTable.length > 0) {
                                    const chosenLoot = chooseWeighted(lootTable);
                                    if (chosenLoot && chosenLoot.id) {
