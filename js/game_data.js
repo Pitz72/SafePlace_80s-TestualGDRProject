@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/game_data.js
  * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
  */
@@ -442,8 +442,8 @@ const ITEM_DATA = {
         value: 15,
         effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
     },
-    'berries': {
-        id: 'berries',
+    'berries_suspicious': {
+        id: 'berries_suspicious',
         name: 'Bacche Sospette',
         description: "Bacche colorate trovate su un cespuglio. Potrebbero essere commestibili... o velenose.",
         type: 'food',
@@ -451,6 +451,18 @@ const ITEM_DATA = {
         weight: 0.1,
         value: 2,
         effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 3, poison_chance: BERRIES_POISON_CHANCE }]
+    },
+    'berries': {
+        id: 'berries',
+        name: 'Bacche Comuni',
+        nameShort: 'Bacche',
+        description: 'Alcune bacche selvatiche. Potrebbero sfamare un po\', ma è sempre saggio essere cauti con ciò che si trova.',
+        type: 'food',
+        usable: true,
+        weight: 0.1,
+        value: 3,
+        stackable: true,
+        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 1, poison_chance: 0.05 }]
     },
     'meat_raw': {
         id: 'meat_raw',
@@ -561,10 +573,11 @@ const ITEM_DATA = {
         id: 'water_dirty',
         name: 'Acqua Sporca',
         description: "Acqua torbida e dall'odore sgradevole. Berla così è un azzardo.",
-        type: 'water',
+        type: 'water', // Manteniamo 'water' per coerenza con gli altri oggetti acqua
         usable: true,
         weight: 1.0,
         value: 1,
+        stackable: true, // Esplicitiamo stackable
         effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 3, sickness_chance: DIRTY_WATER_POISON_CHANCE }]
     },
     'water_purified_small': {
@@ -731,6 +744,18 @@ const ITEM_DATA = {
         weight: 0.2,
         value: 18,
         effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.6, heal_hp_on_success: 12 }]
+    },
+    'healing_poultice': {
+        id: 'healing_poultice',
+        name: 'Impiastro Curativo Semplice',
+        nameShort: 'Impiastro Cur.',
+        description: 'Un impacco di erbe non identificate e argilla. Applicato su ferite superficiali, sembra favorire la guarigione.',
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 12,
+        stackable: true,
+        effects: [{ type: 'add_resource', resource_type: 'hp', amount: 10 }]
     },
 
     // --- ARMI ---
@@ -1281,13 +1306,26 @@ const ITEM_DATA = {
     },
     'craft_rags_armor': {
         productName: "Armatura di Stracci", // Nome per UI
-        productId: 'armor_rags_simple', 
+        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
         productQuantity: 1,
         ingredients: [
-            { itemId: 'cloth_rags', quantity: 5 } // Rimosso string_piece, solo cloth_rags
+            { itemId: 'cloth_rags', quantity: 3 },
+            { itemId: 'string_piece', quantity: 2 } // Assicurati esista
         ],
         description: "Crea un'Armatura di Stracci.",
         successMessage: "Hai creato un'Armatura di Stracci."
+    },
+    'craft_healing_poultice': {
+        productName: "Impiastro Curativo Semplice",
+        productId: 'healing_poultice',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'berries', quantity: 2 },
+            { itemId: 'cloth_rags', quantity: 1 },
+            { itemId: 'water_dirty', quantity: 1 }
+        ],
+        description: "Combina bacche frantumate, stracci e un po' d'acqua sporca per creare un semplice impiastro curativo.",
+        successMessage: "Hai creato un Impiastro Curativo Semplice."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
@@ -1298,67 +1336,76 @@ const ITEM_DATA = {
 const CRAFTING_RECIPES = {
     // Ricetta per purificare l'acqua
     'purify_water': {
-        productName: "Acqua Purificata (Piccola)", // Nome per UI
+        productName: "Acqua Purificata (Piccola)",
         productId: 'water_purified_small',
         productQuantity: 1,
         ingredients: [
             { itemId: 'water_dirty', quantity: 1 },
             { itemId: 'charcoal', quantity: 1 }
         ],
-        // requirements: ['needs_fire'] // Esempio requisito futuro
-        description: "Purifica Acqua Sporca usando Carbone.", // Testo per l'azione nell'UI
+        description: "Purifica Acqua Sporca usando Carbone.",
         successMessage: "Hai purificato con successo l'acqua!"
     },
     // Ricetta per cuocere la carne
     'cook_meat': {
-        productName: "Carne Cotta", // Nome per UI
+        productName: "Carne Cotta",
         productId: 'meat_cooked',
         productQuantity: 1,
         ingredients: [
             { itemId: 'meat_raw', quantity: 1 }
         ],
-        // requirements: ['needs_fire'], // Esempio requisito futuro
-        description: "Cuoci Carne Cruda.", // Testo per l'azione nell'UI
+        description: "Cuoci Carne Cruda.",
         successMessage: "Hai cotto la carne."
     },
     // Nuove ricette
     'craft_shiv': {
-        productName: "Punteruolo Improvvisato", // Nome per UI
-        productId: 'shiv_improvised', // Assicurati che questo item esista in ITEM_DATA
+        productName: "Punteruolo Improvvisato",
+        productId: 'shiv_improvised',
         productQuantity: 1,
         ingredients: [
             { itemId: 'scrap_metal', quantity: 1 },
-            { itemId: 'cloth_rags', quantity: 1 } // Aggiunto per l'impugnatura
+            { itemId: 'cloth_rags', quantity: 1 }
         ],
         description: "Affila un pezzo di metallo di scarto e legalo a un'impugnatura di fortuna per creare un'arma da taglio rudimentale.",
         successMessage: "Hai creato un Punteruolo Improvvisato."
     },
     'craft_crude_club': {
-        productName: "Mazza Grezza", // Nome per UI
-        productId: 'club_crude', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productName: "Mazza Grezza",
+        productId: 'club_crude',
         productQuantity: 1,
         ingredients: [
-            { itemId: 'wood_planks', quantity: 2 }, // Aumentata quantità
-            { itemId: 'cloth_rags', quantity: 1 }  // Aggiunto per impugnatura/legatura
+            { itemId: 'wood_planks', quantity: 2 },
+            { itemId: 'cloth_rags', quantity: 1 }
         ],
         description: "Lega insieme alcuni robusti pezzi di legno con degli stracci per creare una mazza contundente di fortuna."
     },
     'craft_rags_armor': {
-        productName: "Armatura di Stracci", // Nome per UI
-        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productName: "Armatura di Stracci",
+        productId: 'armor_rags_simple',
         productQuantity: 1,
         ingredients: [
-            { itemId: 'cloth_rags', quantity: 3 },
-            { itemId: 'string_piece', quantity: 2 } // Assicurati esista
+            { itemId: 'cloth_rags', quantity: 5 }
         ],
         description: "Crea un'Armatura di Stracci.",
         successMessage: "Hai creato un'Armatura di Stracci."
+    },
+    'craft_healing_poultice': {
+        productName: "Impiastro Curativo Semplice",
+        productId: 'healing_poultice',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'berries', quantity: 2 },
+            { itemId: 'cloth_rags', quantity: 1 },
+            { itemId: 'water_dirty', quantity: 1 }
+        ],
+        description: "Combina bacche frantumate, stracci e un po' d'acqua sporca per creare un semplice impiastro curativo.",
+        successMessage: "Hai creato un Impiastro Curativo Semplice."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
 // --- FINE RICETTE --- 
 
-
+console.log('[DEBUG game_data.js Definizione] CRAFTING_RECIPES:', JSON.stringify(CRAFTING_RECIPES, null, 2));
 
 // --- TESTI VARIABILI (Flavor, Lore, Eventi Complessi) ---
 // Questi array contengono la maggior parte dei testi descrittivi e narrativi del gioco.
@@ -1687,6 +1734,18 @@ const esitiOrroreIndicibileFugaKo = [
     "Le tue gambe si rifiutano di muoversi, paralizzate dalla paura cosmica."
 ];
 
+const esitiOrroreIndicibileFugaOk = [
+    "Con un urlo terrorizzato, ti volti e corri più veloce che puoi, senza guardarti indietro. Per ora, sembra che tu l'abbia seminato.",
+    "La paura ti mette le ali ai piedi. Scappi a perdifiato, il suono dei tuoi stessi passi che rimbomba nelle orecchie, fino a quando il silenzio non ti avvolge di nuovo.",
+    "Riesci a trovare un nascondiglio improbabile e attendi, tremando, che la presenza innominabile si allontani."
+];
+
+const esitiOrroreIndicibileAffrontaOk = [
+    "Chiudi gli occhi e concentri ogni tua fibra di volontà per resistere all'ondata di terrore. Lentamente, la sensazione opprimente si ritira, lasciandoti esausto ma intatto.",
+    "Trovi una forza interiore che non sapevi di possedere. Affronti l'orrore con uno sguardo determinato, e inspiegabilmente, esso esita e svanisce.",
+    "Nonostante la paura paralizzante, riesci a recitare mentalmente vecchi versi o canzoni infantili, aggrappandoti a un briciolo di sanità. L'orrore sembra perdere interesse."
+];
+
 // --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---
 const dilemmaEvents = [
     {
@@ -1706,7 +1765,7 @@ const dilemmaEvents = [
             {
                 text: "Prendi la borsa in fretta e scappa",
                 actionKey: "grab_and_run",
-                successText: "Afferra la borsa e corri via. Senti un rumore dietro di te, ma nessuno ti insegue. Forse sei stato fortunato.",
+                outcome: "Afferra la borsa e corri via. Senti un rumore dietro di te, ma nessuno ti insegue. Forse sei stato fortunato.",
                 successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }] }
             },
             {

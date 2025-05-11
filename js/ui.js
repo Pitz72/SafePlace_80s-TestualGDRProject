@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente (rendering, popup, messaggi, interazioni)
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -1343,6 +1343,7 @@ function populateCraftingRecipeList() {
     if (!DOM.craftingRecipeList || !player || !player.knownRecipes || !CRAFTING_RECIPES) return;
 
     DOM.craftingRecipeList.innerHTML = ''; // Pulisce la lista
+    // console.log('[DEBUG populateCrafting Lista] Ricette conosciute dal giocatore:', JSON.stringify(player.knownRecipes));
 
     if (player.knownRecipes.length === 0) {
         const li = document.createElement('li');
@@ -1353,6 +1354,7 @@ function populateCraftingRecipeList() {
 
     player.knownRecipes.forEach(recipeKey => {
         const recipe = CRAFTING_RECIPES[recipeKey];
+        // console.log('[DEBUG populateCrafting Lookup] Processo chiave:', recipeKey, 'Trovata in CRAFTING_RECIPES:', recipe ? 'Sì' : 'No', 'Oggetto CRAFTING_RECIPES intero in questo momento:', JSON.stringify(CRAFTING_RECIPES, null, 0));
         if (recipe) {
             const li = document.createElement('li');
             const button = document.createElement('button');

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -51,7 +51,7 @@ function generateCharacter() {
         isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
         poisonDuration: 0,      // Turni rimanenti di avvelenamento
         currentLocationType: null, // Tipo di tile attuale (simbolo)
-        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor"],       // Array delle ricette conosciute
+        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor", "craft_healing_poultice"],       // Array delle ricette conosciute
 
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
@@ -74,9 +74,10 @@ function generateCharacter() {
     addItemToInventory('canned_food', 1);
     addItemToInventory('suspicious_pills', 1);
     addItemToInventory('scrap_metal', getRandomInt(1,3)); // Inizia con qualche materiale
-    addItemToInventory('repair_kit', 1); // AGGIUNTO PER TEST
-    // Non aggiungiamo più l'arma all'inventario, la equipaggiamo direttamente
-    // addItemToInventory('pipe_wrench', 1);
+    addItemToInventory('berries', 2);         // Per le Bacche Comuni
+    addItemToInventory('cloth_rags', 1);      // Per gli Stracci di Stoffa
+    addItemToInventory('water_dirty', 1);     // Per l'Acqua Sporca
+    // addItemToInventory('repair_kit', 1); // RIMOSSO: non dare più il kit di riparazione all'inizio
 
     // Equipaggia un'arma base all'inizio
     const startingWeaponId = 'pipe_wrench';

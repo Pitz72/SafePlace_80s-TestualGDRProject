@@ -1,3 +1,30 @@
+### The Safe Place v0.7.18
+
+1.  Risoluzione Bug Critici degli Eventi:
+
+    - Eventi di Orrore e Scelte con Effetti Diretti: Abbiamo scovato e corretto un errore tecnico (ReferenceError: applyEffect is not defined) che poteva causare il blocco del gioco durante la conclusione di alcuni eventi, in particolare quelli che applicavano effetti diretti al giocatore (come il "Breve Riposo" nei rifugi diurni). Ora questi eventi dovrebbero risolversi correttamente.
+    - Testi Esito Eventi Orrore: Sono state aggiunte le definizioni mancanti per i testi di successo degli eventi "Orrore Indicibile" (sia per la fuga che per l'affrontare l'orrore), prevenendo errori.
+    - Logica Dilemma "Scorta Sospetta": Una delle scelte in questo dilemma non era strutturata correttamente per il sistema di eventi, causando un errore. Ora è stata sistemata per funzionare come previsto.
+    - Penalità "Nulle": Corretto un messaggio di avviso (invisibile ai giocatori ma presente nei log tecnici) che appariva quando un evento risultava in una "nessuna penalità".
+
+2.  Funzionalità di Gioco Ripristinate e Verificate:
+
+    - Ricompensa Carne Cruda: Risolto un problema per cui, in alcuni eventi (come il successo nell'evento "Banchetto Funebre" nelle pianure), la ricompensa di "Carne Cruda" non veniva assegnata a causa di un errore nell'identificativo dell'oggetto. Ora dovreste ricevere correttamente la carne.
+    - Crafting "Impiastro Curativo Semplice": La ricetta per questo nuovo oggetto medico ora appare correttamente nel menu di crafting. Abbiamo anche risolto un problema con l'inventario iniziale che non forniva tutti gli ingredienti a causa del limite di slot (ora aumentato a 9) e assicurato che la definizione dell'oggetto "Acqua Sporca" (ingrediente chiave) sia corretta. Potete ora creare e usare l'impiastro per recuperare 10 HP.
+
+3.  Miglioramenti Minori e Preparazione Futura:
+    - La definizione dell'oggetto "Acqua Sporca" è stata standardizzata per coerenza.
+    - Il codice è stato ulteriormente ripulito da log di debug non più necessari.
+
+Cosa Significa per Voi:
+L'esperienza di gioco dovrebbe essere notevolmente più stabile. Incontrare eventi, usare oggetti e craftare dovrebbe ora avvenire senza gli errori tecnici che potevano precedentemente interrompere la partita. La possibilità di craftare l'Impiastro Curativo Semplice fornisce una nuova opzione, seppur modesta, per il recupero della salute.
+
+Problemi Noti (Ancora da Risolvere):
+
+- Abbiamo ancora un bug segnalato per cui, se si muore durante un evento (es. "Bestia Pericolosa"), il popup dell'evento potrebbe non chiudersi correttamente, oscurando parzialmente la schermata di "Game Over". Questo sarà una priorità per la prossima versione.
+
+Vi ringraziamo per la vostra pazienza e per i vostri test, che sono fondamentali per scovare questi problemi! Continuate a esplorare e a inviarci i vostri feedback.
+
 ### The Safe Place v0.7.17
 
 - Tooltip Oggetti:

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
@@ -59,7 +59,7 @@ const SEARCH_TIME_COST = 3;
 const SHELTER_TILES = ['R']; // TILE_SYMBOLS.REST_STOP
 
 // Limite slot inventario
-const MAX_INVENTORY_SLOTS = 7;
+const MAX_INVENTORY_SLOTS = 9;
 
 // Probabilità eventi casuali minori (avvengono ad ogni passo se non c'è evento maggiore/tile specifico)
 const FLAVOR_TEXT_CHANCE = 0.20; // Probabilità di mostrare un flavor text ambientale.

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco (trigger, logica, esiti)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js
@@ -504,42 +504,38 @@ function handleEventChoice(choiceIndex) {
     // RIMOSSO: console.log('handleEventChoice: Controllo if (choice.outcome)...');
     // Se la scelta ha un esito diretto predefinito (outcome o effect)
     if (choice.outcome || choice.effect) { // <<<< CONDIZIONE MODIFICATA
-        if (choice.effect) { // <<<< NUOVA LOGICA PER choice.effect
-            outcomeDescription = choice.effect.message || "L'azione ha un effetto."; // Usa il messaggio dell'effetto
-            messageType = 'info'; // Default, può essere sovrascritto
+        // --- Inizio Blocco Modificato ---
 
+        // Parte A: Esegui la logica degli effetti di `choice.effect` (es. cura HP) se `choice.effect` esiste.
+        // Questa parte aggiorna `outcomeConsequencesText` e può influenzare `messageType`.
+        // messageType è già 'info' a questo punto per impostazione predefinita (riga ~530).
+        if (choice.effect) {
             if (choice.effect.type === 'add_resource' && choice.effect.resource_type === 'hp') {
                 const amountToHeal = choice.effect.amount || 1;
                 const oldHp = player.hp;
                 player.hp = Math.min(player.maxHp, player.hp + amountToHeal);
                 const actualHeal = player.hp - oldHp;
-                if (actualHeal > 0) { // Solo se c'è stata cura effettiva
+                if (actualHeal > 0) { 
                     outcomeConsequencesText += `<br>Recuperi ${Math.floor(actualHeal)} HP.`;
-                    messageType = 'success';
-                } else {
-                    // Nessun HP recuperato (es. già al massimo), il messaggio dell'effetto dovrebbe già coprire
-                    // il sentirsi meglio. messageType rimane 'info' o quello del messaggio originale.
+                    messageType = 'success'; // Sovrascrive 'info'
                 }
                 if (typeof renderStats === 'function') renderStats();
             }
             // TODO: Aggiungere qui la gestione per altri tipi di choice.effect.type se necessario
             // (es. 'add_status', 'remove_status', 'stat_buff', ecc.)
+        }
 
-            // Applica successReward se esiste insieme a un effect (improbabile ma sicuro)
-            if (choice.successReward) {
-                const rewardFeedback = applyChoiceReward(choice.successReward);
-                if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
-            }
-
-        } else if (choice.outcome) { // <<<< LOGICA ESISTENTE PER choice.outcome (stringa), eseguita solo se choice.effect non esiste
+        // Parte B: Determina `outcomeDescription` e gestisci la logica principale di `outcome` o `effect` (rewards, take_cache).
+        // Si dà priorità a `choice.outcome` per la descrizione.
+        if (choice.outcome && typeof choice.outcome === 'string' && choice.outcome.trim() !== '') {
             outcomeDescription = choice.outcome;
 
             // Logica specifica per 'take_cache' (MANTENUTA COME PRIMA)
             if (actionKey === 'take_cache') {
-                const cacheSafeChance = 0.70; // Costante locale, potrebbe essere spostata in game_constants.js
+                const cacheSafeChance = 0.70; 
                 if (Math.random() < cacheSafeChance) {
                     outcomeDescription += "<br>Fortunatamente, sembra tutto a posto.";
-                    messageType = 'success';
+                    messageType = 'success'; // Sovrascrive o conferma
                     if (choice.successReward) {
                         const rewardFeedback = applyChoiceReward(choice.successReward);
                         if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
@@ -548,7 +544,7 @@ function handleEventChoice(choiceIndex) {
                     }
                 } else {
                     outcomeDescription += "<br>Pessima idea! La scorta era contaminata o una trappola.";
-                    messageType = 'danger';
+                    messageType = 'danger'; // Sovrascrive
                     if (choice.failurePenalty) {
                         const penaltyFeedback = applyPenalty(choice.failurePenalty);
                         if (penaltyFeedback) outcomeConsequencesText += `<br>${penaltyFeedback}`;
@@ -562,12 +558,42 @@ function handleEventChoice(choiceIndex) {
             // Per altri outcome diretti (non 'take_cache'), verifica se c'è una ricompensa (MANTENUTA COME PRIMA)
             else if (choice.successReward) {
                  const rewardFeedback = applyChoiceReward(choice.successReward);
-                 if (rewardFeedback) outcomeConsequencesText += rewardFeedback;
+                 if (rewardFeedback) {
+                    outcomeConsequencesText += rewardFeedback;
+                    // Se c'è reward e messageType non è 'danger' (da un effetto precedente o take_cache fallito), è 'success'.
+                    if (messageType !== 'danger') messageType = 'success';
+                 }
+            } else {
+                // Solo outcomeDescription testuale, nessun reward. 
+                // messageType rimane quello impostato dalla Parte A (effetti) o 'info' se non modificato.
+                if (messageType !== 'success' && messageType !== 'danger') messageType = 'info';
+            }
+
+        } else if (choice.effect) {
+            // Se choice.outcome non è stato usato (o non valido), e choice.effect esiste,
+            // la descrizione viene da choice.effect.message.
+            // Gli effetti (es. cura HP) sono già stati processati nella Parte A.
+            outcomeDescription = choice.effect.message || "L'azione ha un effetto.";
+            // messageType è già stato influenzato dalla Parte A.
+            
+            // Applica successReward se definito nella scelta (questo era nel blocco if(choice.effect) originale)
+            if (choice.successReward) {
+                const rewardFeedback = applyChoiceReward(choice.successReward);
+                if (rewardFeedback) {
+                    outcomeConsequencesText += rewardFeedback;
+                     // Se c'è reward e messageType non è già 'danger', allora è 'success'.
+                    if (messageType !== 'danger') messageType = 'success';
+                }
+            } else {
+                 // Nessun successReward specifico per l'effetto.
+                 // messageType rimane come impostato dalla Parte A. Se non è 'success' o 'danger', è 'info'.
+                 if (messageType !== 'success' && messageType !== 'danger') messageType = 'info';
             }
         }
+        // --- Fine Blocco Modificato ---
 
         // Log e visualizzazione del popup di esito (comune a choice.effect e choice.outcome)
-        addMessage(outcomeDescription + (outcomeConsequencesText ? `\n${outcomeConsequencesText.replace(/<br>/g, '\n')}` : ''), messageType, true);
+        addMessage(outcomeDescription + (outcomeConsequencesText ? `\\n${outcomeConsequencesText.replace(/<br>/g, '\\n')}` : ''), messageType, true);
         buildAndShowComplexEventOutcome(outcomeTitle, outcomeDescription + (outcomeConsequencesText ? `${outcomeConsequencesText}` : ''), null, null, messageType);
 
     }
@@ -633,7 +659,7 @@ function handleEventChoice(choiceIndex) {
                            if (playerDamageDescription) outcomeConsequencesText += `\n${playerDamageDescription}`;
                            // Loot Carne
                             if (Math.random() < ANIMAL_MEAT_DROP_CHANCE) {
-                                const rewardFeedbackMeat = applyChoiceReward({ itemId: 'raw_meat', quantity: 1 });
+                                const rewardFeedbackMeat = applyChoiceReward({ itemId: 'meat_raw', quantity: 1 });
                                 if (rewardFeedbackMeat) outcomeConsequencesText += rewardFeedbackMeat;
                             }
                      }
@@ -993,9 +1019,9 @@ function handleEventChoice(choiceIndex) {
     }
 
     // Applica effetti diretti (es. danno, recupero risorse) se definiti nella scelta
-    if (choice && choice.effect) { // CORRETTO: usa choice
-        applyEffect(choice.effect, choice.text); // Passa anche il testo della scelta per messaggi contestuali
-    }
+    // if (choice && choice.effect) { // CORRETTO: usa choice
+    //     applyEffect(choice.effect, choice.text); // Passa anche il testo della scelta per messaggi contestuali
+    // }
 
     // Aggiorna le statistiche del giocatore e la mappa sull'interfaccia utente.
     // FATTO PRIMA DELL'EVENTUALE FINE GIOCO, COSÌ LO STATO È AGGIORNATO
@@ -1128,6 +1154,7 @@ function handleEventChoice(choiceIndex) {
      * @returns {string|null} Una stringa di feedback testuale sulla ricompensa ottenuta, o null se la ricompensa non è valida/gestita.
      */
     function applyChoiceReward(rewardData) {
+        // console.log('[DEBUG applyChoiceReward] Dati ricompensa ricevuti:', JSON.stringify(rewardData, null, 2));
         if (!rewardData) return null;
 
         // Gestione ricompensa singola (itemId) o multipla (items array)
@@ -1423,6 +1450,11 @@ function handleEventChoice(choiceIndex) {
                     feedback = `(Nessun ${targetEquip} equipaggiato o senza durabilità per subire danni)`;
                     messageType = 'info';
                 }
+                break;
+
+            case 'nothing':
+                feedback = "(Nessuna conseguenza negativa di rilievo.)";
+                messageType = 'info';
                 break;
 
             default:

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.17
+ * Versione: v0.7.18
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (implicito), gestione input.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
