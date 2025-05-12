@@ -1,3 +1,27 @@
+### The Safe Place v0.7.19
+
+1.  Risoluzione Bug Eventi e Interfaccia:
+
+    - Testo Risultati Evento "Breve Riposo": Corretta la visualizzazione del testo nel popup di risultato per l'azione "Breve Riposo" nei rifugi diurni, che ora mostra la descrizione corretta dell'esito invece di un messaggio generico.
+    - Gestione Penalità "Nulle": Eliminato un messaggio di avviso tecnico che poteva apparire in console quando un evento risultava in nessuna penalità specifica per il giocatore.
+    - Popup di Morte Durante Eventi: È stato ulteriormente testato e confermato che, se il giocatore muore a causa di un danno subito durante un evento, il popup dell'evento si chiude correttamente, permettendo la visualizzazione chiara della schermata di "Game Over".
+    - Ricompensa "Carne Cruda": Testata e confermata la correzione del bug che impediva la corretta assegnazione della carne cruda come ricompensa in alcuni eventi.
+
+2.  Miglioramenti all'Interfaccia Utente (UI):
+
+    - Schermata Iniziale:
+      - Aggiunta la visualizzazione del numero di versione del gioco direttamente nella schermata principale, sotto la firma dell'autore, con un font piccolo e discreto.
+      - Risolti alcuni problemi di layout e stile (font, dimensioni, spaziature) che erano stati introdotti accidentalmente dall'IA nella schermata iniziale, ripristinando l'aspetto grafico desiderato. Il titolo e la firma ora hanno dimensioni più appropriate e la spaziatura tra gli elementi è stata corretta.
+    - Popup di Crafting: Ripristinata la corretta visualizzazione e funzionalità dei bottoni cliccabili per ogni ricetta nella lista "Ricette Conosciute". Ora è di nuovo chiaro quale ricetta è selezionata, grazie al ripristino dello stile per l'elemento attivo.
+
+3.  Gestione Inventario e Ricette:
+
+    - Inventario Iniziale: L'inventario con cui il giocatore inizia la partita è stato bilanciato per i test, assicurando la presenza degli ingredienti per le ricette base di crafting, inclusa l'acqua sporca e il carbone (quest'ultimo poi rimosso dopo i test specifici). Il limite massimo di slot inventario era stato precedentemente aumentato a 9.
+    - Ricetta "Medicina Grezza": La ricetta è stata correttamente definita e resa apprendibile tramite il suo blueprint (blueprint_medicine_crude), come pianificato. Per finalizzare, è stata rimossa dalle ricette conosciute all'inizio del gioco; ora i giocatori dovranno trovare il progetto per imparare a crearla.
+
+4.  Pulizia Generale del Codice:
+    - Rimossi numerosi log di debug temporanei che erano stati inseriti nei file JavaScript durante le fasi di diagnosi dei bug, rendendo la console del browser più pulita durante il gioco.
+
 ### The Safe Place v0.7.18
 
 1.  Risoluzione Bug Critici degli Eventi:
