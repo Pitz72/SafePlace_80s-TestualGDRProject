@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/game_data.js
- * Descrizione: Strutture dati principali del gioco (oggetti, eventi, luoghi, testi vari)
+ * Descrizione: Contiene tutti i dati statici del gioco come definizioni di oggetti, eventi, ecc.
  */
 
 // --- CONFIGURAZIONE E COSTANTI STATICHE ---
@@ -120,12 +120,58 @@ const EVENT_CHANCE = {
 // Contiene eventi standard, unici e basati sulla giovinezza
 const EVENT_DATA = {
     PLAINS: [
-        { id: "plains_bones", title: "Ossa nella Polvere", description: "Ossa sbiancate dal sole, forse umane, affiorano dal terreno screpolato. Un macabro segnale della fragilità della vita qui.", choices: [
-            { text: "Ispeziona (Tracce)", skillCheck: { stat: 'tracce', difficulty: 8 }, successText: "Tra le ossa trovi una vecchia sacca logora. Dentro, qualche misera risorsa.", successReward: { items: [{ type: 'random_common_resource', quantity: 1 }, { itemId: 'bandages_dirty', quantity: 1 }] }, failureText: "Solo ossa e polvere. Nulla di utile.", isSearchAction: true, actionKey: "inspect_bones" }
-        ] },
-        { id: "plains_carcass", title: "Banchetto Funebre", description: "Una carcassa gonfia di animale non identificabile giace sotto il sole implacabile, divorata da sciami di insetti ronzanti. L'odore è nauseante.", choices: [
-            { text: "Avvicinati con cautela (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 10 }, successText: "Nonostante il tanfo, riesci a recuperare qualche pezzo di carne utilizzabile, anche se cruda.", successReward: { itemId: 'meat_raw', quantity: 1 }, failureText: "L'odore è troppo forte e gli insetti troppo aggressivi. Meglio lasciar perdere.", isSearchAction: true, actionKey: "approach_carcass" }
-        ] },
+        { id: "plains_bones", title: "Ossa nella Polvere", description: "Ossa sbiancate dal sole, forse umane, affiorano dal terreno screpolato. Un macabro segnale della fragilità della vita qui.", 
+            choices: [
+                {
+                    text: "Ispeziona le ossa (Tracce)", 
+                    actionKey: "inspect_bones_carefully", 
+                    skillCheck: { stat: 'tracce', difficulty: 9 }, 
+                    successText: "Esaminando con attenzione, trovi una vecchia fibbia di metallo e qualche moneta arrugginita di un'era dimenticata. Forse non molto utili ora, ma un segno del passato.",
+                    successReward: { items: [{ itemId: 'scrap_metal', quantity: 1 }, { itemId: 'bandages_dirty', quantity: 1 }] }, 
+                    failureText: "Solo ossa sbiancate e polvere. Qualunque cosa di valore è andata perduta da tempo.",
+                    isSearchAction: true
+                },
+                {
+                    text: "Cerca indizi sulla causa della morte (Presagio)",
+                    actionKey: "investigate_bones_cause",
+                    skillCheck: { stat: 'presagio', difficulty: 11 },
+                    successText: "Un brivido ti percorre la schiena. Percepisci un'eco di violenza e disperazione legata a queste ossa. Trovi un piccolo, enigmatico frammento di un diario.",
+                    successReward: { itemId: 'lore_fragment_item', quantity: 1 }, 
+                    failureText: "Non riesci a cogliere nulla di particolare, solo la tristezza della morte in un luogo desolato.",
+                    isSearchAction: true 
+                },
+                {
+                    text: "Lascia riposare i morti (Ignora)",
+                    actionKey: "ignore_bones",
+                    outcome: "Decidi di non disturbare ulteriormente i resti. Mostri rispetto e prosegui il tuo cammino."
+                }
+            ]
+        },
+        { id: "plains_carcass", title: "Banchetto Funebre", description: "Una carcassa gonfia di animale non identificabile giace sotto il sole implacabile, divorata da sciami di insetti ronzanti. L'odore è nauseante.", 
+            choices: [
+                {
+                    text: "Avvicinati con cautela (Adattamento)",
+                    skillCheck: { stat: 'adattamento', difficulty: 10 },
+                    successText: "Nonostante il tanfo, riesci a recuperare qualche pezzo di carne utilizzabile, anche se cruda.",
+                    successReward: { itemId: 'meat_raw', quantity: 1 },
+                    failureText: "L'odore è troppo forte e gli insetti troppo aggressivi. Meglio lasciar perdere.",
+                    isSearchAction: true,
+                    actionKey: "approach_carcass"
+                },
+                {
+                    text: "Ispeziona da lontano (Presagio)",
+                    skillCheck: { stat: 'presagio', difficulty: 9 },
+                    successText: "Osservando da una distanza sicura, noti che la carcassa è fresca e non sembra attirare altri predatori al momento. Potrebbe valere la pena rischiare.",
+                    failureText: "Da questa distanza è difficile capire molto, se non che puzza terribilmente.",
+                    actionKey: "inspect_carcass_distance"
+                },
+                {
+                    text: "Ignora e prosegui",
+                    actionKey: "ignore_carcass",
+                    outcome: "Decidi che il rischio o il tanfo non valgono la pena. Ti allontani rapidamente."
+                }
+            ]
+        },
         { id: "plains_wind", title: "Vento della Desolazione", description: "Il vento spazza la pianura arida, sollevando polvere e sussurrando storie di vuoto. Non c'è nient'altro.", choices: [] },
         {
              id: "plains_youth_memory",
@@ -689,14 +735,28 @@ const ITEM_DATA = {
         value: 30,
         effects: [{ type: 'cure_status', status_cured: 'isPoisoned', chance: 0.8, heal_hp_on_success: 5 }]
     },
+    'blueprint_medicine_crude': {
+        id: 'blueprint_medicine_crude',
+        name: 'Progetto: Medicina Grezza',
+        nameShort: 'Prog: Medic. Grezza',
+        description: 'Istruzioni su come preparare un semplice rimedio contro le malattie comuni usando erbe e altri ingredienti di fortuna.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 25, 
+        stackable: false, 
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_medicine_crude' }]
+    },
     'medicine_crude': {
         id: 'medicine_crude',
         name: 'Medicina Grezza',
-        description: "Un intruglio di erbe dall'odore pungente. Chissà se funziona.",
+        nameShort: 'Medic. Grezza', // AGGIUNTO
+        description: "Un intruglio di erbe dall'odore pungente e dal sapore amaro. Chissà se funziona contro le infezioni più comuni.", // AGGIORNATO
         type: 'medicine',
         usable: true,
         weight: 0.3,
         value: 15,
+        stackable: true, // AGGIUNTO
         effects: [{ type: 'cure_status', status_cured: 'isSick', chance: 0.5, heal_hp_on_success: 5 }]
     },
     'vitamins': {
@@ -1284,6 +1344,18 @@ const ITEM_DATA = {
         value: 10,
         effects: [{ type: 'learn_recipe', recipeKey: 'craft_rags_armor' }] // Nuova recipeKey
     },
+    'lore_fragment_item': {
+        id: 'lore_fragment_item',
+        name: 'Frammento di Lore',
+        nameShort: 'Framm. Lore',
+        description: 'Un appunto sbiadito, un chip dati incrinato o un oggetto enigmatico che sussurra storie del mondo perduto. Usalo per cercare di decifrarlo.',
+        type: 'tool',
+        usable: true,
+        weight: 0.05,
+        value: 5,
+        stackable: true,
+        effects: [{ type: 'show_lore' }]
+    },
     'craft_bandages_clean': {
         id: 'craft_bandages_clean',
         name: 'Bende Pulite',
@@ -1326,6 +1398,29 @@ const ITEM_DATA = {
         ],
         description: "Combina bacche frantumate, stracci e un po' d'acqua sporca per creare un semplice impiastro curativo.",
         successMessage: "Hai creato un Impiastro Curativo Semplice."
+    },
+    'craft_bandages_clean': {
+        productName: "Bende Pulite",
+        productId: 'bandages_clean',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'bandages_dirty', quantity: 2 },
+            { itemId: 'water_purified_small', quantity: 1 }
+        ],
+        description: "Sterilizza delle bende sporche usando acqua purificata.",
+        successMessage: "Hai creato delle Bende Pulite."
+    },
+    'craft_medicine_crude': {
+        productName: "Medicina Grezza",
+        productId: 'medicine_crude',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'berries', quantity: 2 },
+            { itemId: 'charcoal', quantity: 1 },
+            { itemId: 'water_dirty', quantity: 1 }
+        ],
+        description: "Prepara una medicina grezza con erbe (bacche), carbone e acqua.",
+        successMessage: "Hai preparato una Medicina Grezza."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
@@ -1357,7 +1452,6 @@ const CRAFTING_RECIPES = {
         description: "Cuoci Carne Cruda.",
         successMessage: "Hai cotto la carne."
     },
-    // Nuove ricette
     'craft_shiv': {
         productName: "Punteruolo Improvvisato",
         productId: 'shiv_improvised',
@@ -1400,431 +1494,33 @@ const CRAFTING_RECIPES = {
         ],
         description: "Combina bacche frantumate, stracci e un po' d'acqua sporca per creare un semplice impiastro curativo.",
         successMessage: "Hai creato un Impiastro Curativo Semplice."
+    }, // <<< VIRGOLA QUI
+    'craft_bandages_clean': { // Ricetta che avevamo aggiunto
+        productName: "Bende Pulite",
+        productId: 'bandages_clean',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'bandages_dirty', quantity: 2 },
+            { itemId: 'water_purified_small', quantity: 1 }
+        ],
+        description: "Sterilizza delle bende sporche usando acqua purificata.",
+        successMessage: "Hai creato delle Bende Pulite."
+    }, // <<< VIRGOLA QUI
+    'craft_medicine_crude': { // LA RICETTA CHE MANCAVA
+        productName: "Medicina Grezza",
+        productId: 'medicine_crude',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'berries', quantity: 2 },
+            { itemId: 'charcoal', quantity: 1 },
+            { itemId: 'water_dirty', quantity: 1 }
+        ],
+        description: "Prepara una medicina grezza con erbe (bacche), carbone e acqua.",
+        successMessage: "Hai preparato una Medicina Grezza."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
 // --- FINE RICETTE --- 
 
-console.log('[DEBUG game_data.js Definizione] CRAFTING_RECIPES:', JSON.stringify(CRAFTING_RECIPES, null, 2));
-
-// --- TESTI VARIABILI (Flavor, Lore, Eventi Complessi) ---
-// Questi array contengono la maggior parte dei testi descrittivi e narrativi del gioco.
-
-// Flavor text per diversi tipi di tile (Giorno)
-const flavorTextsPlains = [
-    "Raffiche di vento sollevano polvere rossa che acceca e irrita i polmoni.", "Il silenzio qui è assoluto, innaturale. Pesa come una lapide sulla pianura.", "Ossa sbiancate dal sole, forse umane, punteggiano il terreno arido come macabri segnali.", "Una carcassa gonfia di animale non identificabile giace sotto il sole implacabile, divorata da sciami di insetti ronzanti. L'odore è nauseante.", "Un cielo color cenere si stende sopra di te, vasto e vuoto. Nessun uccello osa volare.",
-    "Arbusti scheletrici e contorti artigliano la terra secca, un'ultima, vana resistenza.", "I resti contorti di una linea elettrica serpeggiano tra l'erba morta, inutili monumenti metallici.", "Il terreno duro e crepato sotto i tuoi stivali sembra assetato quanto te.", "Nessuna traccia di acqua o vita recente. Solo il vuoto che ti osserva.", "Ti senti terribilmente esposto e solo, un puntino insignificante in questo nulla sconfinato.",
-    "Un sole pallido filtra a stento attraverso la cappa di polvere perenne, offrendo un calore illusorio.", "La carcassa arrugginita di un veicolo agricolo affonda nel terreno, quasi inghiottita dalla desolazione.", "Una colonna di fumo si leva all'orizzonte. Segnale di vita o presagio di pericolo?", "Nuvole basse e dense corrono veloci, minacciando una pioggia acida che non cade mai.", "Schegge di vetro scintillano nella polvere, frammenti di finestre esplose chissà quando.",
-    "Lo scheletro arrugginito di una vecchia automobile giace riverso, le portiere spalancate come fauci.", "Uno stormo di uccelli neri come la pece si alza in volo all'improvviso, un grido rauco che lacera il silenzio.", "Il sole implacabile trasforma l'orizzonte in un miraggio tremolante di calore e disperazione.", "Una folata di vento porta un odore metallico e dolciastro... sangue vecchio o ruggine?", "Il terreno vibra leggermente sotto i piedi. Qualcosa di molto grosso si muove, non troppo lontano.",
-    "Una singola antenna radio, piegata come un dito accusatore, si erge silenziosa contro il cielo pallido.", "Carcasse sbiancate di bestiame mutato punteggiano il paesaggio, moniti silenziosi.", "Il silenzio è così opprimente che il battito del tuo cuore rimbomba nelle orecchie.", "Piccoli vortici di sabbia danzano come spettri efimeri sul terreno crepato.", "Il sole malato si riflette su una distesa di vetro fuso, cicatrice lucida di un antico incendio.",
-    "Schegge di plastica dai colori vivaci spuntano dalla polvere, ironici fiori di un'era morta.", "Il suolo sotto i tuoi piedi è stranamente caldo, come se un fuoco antico covasse ancora sotto la cenere.", "Una serie di crateri poco profondi deturpa la pianura, ricordo di bombardamenti o impatti?", "Un cartellone pubblicitario sbiadito mostra un sorriso congelato, promessa di un paradiso perduto per sempre.", "Resti contorti di un sistema di irrigazione arrugginito segnano il fantasma di campi un tempo fertili.",
-    "Una singola scarpa da bambino, stranamente intatta, giace nella polvere. Un piccolo mistero doloroso."
-];
-const flavorTextsForest = [
-    "Alberi contorti e malati si ergono come spettri, rami scheletrici che artigliano l'aria.", "Una luce verdastra filtra a stento dal fogliame innaturale, intrappolandoti in un crepuscolo perenne.", "Funghi bioluminescenti e pulsanti crescono sui tronchi marci, emettendo una luce fredda e spettrale.", "Una nebbiolina grigiastra e oleosa ristagna tra gli alberi, limitando la visibilità e irritando la gola.", "Movimenti furtivi nel sottobosso ti fanno trasalire, ma il silenzio torna subito, denso e ostile.",
-    "Il terreno è un tappeto di foglie marce. L'odore dolciastro di decomposizione è quasi soffocante.", "Trappole arrugginite per animali, alcune ancora armate, sono nascoste sotto le foglie.", "Simboli inquietanti, incisi di recente sulla corteccia degli alberi, sembrano osservarti.", "Cervi dagli occhi vitrei e dal pelo chiazzato ti osservano immobili, prima di dissolversi come fumo tra gli alberi.", "Linfa rossastra e densa cola da alcuni tronchi, come sangue rappreso.",
-    "Il vento tra le fronde malate sussurra parole indistinte, o forse è solo la tua immaginazione.", "Resti di un accampamento: un cerchio di cenere fredda, ossa animali spolpate e un silenzio pesante.", "Brandelli di teli di plastica impigliati tra i rami sbattono al vento, fantasmi di rifugi effimeri.", "La corteccia di un vecchio albero si contorce in una smorfia che ricorda un volto umano sofferente.", "Un cartello metallico arrugginito è quasi illeggibile: 'PER... ZONA ... NON PRO...'. Meglio non sapere.",
-    "Ragnatele innaturalmente spesse, simili a corde, bloccano il passaggio tra gli alberi più nodosi.", "Un vecchio albero è ammantato da uno sciame di farfalle nere immobili. Un sudario vivente.", "Il terreno sotto i tuoi piedi è stranamente elastico, come se camminassi sul fianco di una bestia addormentata.", "Una polvere grigiastra e scintillante cade dai rami, depositandosi sui tuoi vestiti. Non sembra neve...", "Un cerchio perfetto di funghi color sangue circonda un piccolo altare di pietre annerite.",
-    "Un ruscello serpeggia tra le radici, l'acqua ha un colore innaturale e rilascia vapori irritanti.", "Manichini mutilati, forse provenienti da un vecchio magazzino, pendono dai rami come macabri impiccati.", "Una pila ordinata di piccoli teschi animali giace in una radura silenziosa. Un rituale recente?"
-];
-const flavorTextsMountain = [
-    "Un'eco distorta rimbalza tra le vette aguzze, suono inquietante che gela il sangue.", "Il sentiero è una sfida: ripido, franoso, disseminato di rocce taglienti come vetro.", "Un rapace solitario volteggia nel cielo plumbeo, un osservatore silenzioso e indifferente.", "Piccole pietre rotolano dall'alto. Una frana naturale o qualcuno ti osserva?", "La carcassa congelata di uno scalatore, un monito silenzioso contro la superbia in queste terre ostili.",
-    "Il vento ulula tra le creste rocciose, un lamento spettrale che sembra portare voci dimenticate.", "Strutture metalliche contorte emergono dalla roccia come ossa spezzate, cicatrici di guerre passate.", "Dalla cima, la vista è immensa e desolata. Chilometri di nulla fino all'orizzonte.", "L'aria rarefatta brucia i polmoni. Ogni respiro è una conquista faticosa.", "L'imboccatura oscura di una caverna si apre nella roccia. Riparo o tomba?",
-    "Chiazzze di neve sporca e antica resistono nelle zone d'ombra perenne.", "Un passaggio angusto tra pareti rocciose incombe, minacciando di schiacciarti come un insetto.", "Vecchi segni di piccozza sulla roccia, testimonianza silenziosa di chi ha osato sfidare queste vette prima di te.", "Un rivolo d'acqua gelida, quasi miracoloso, sgorga da una crepa nella roccia arida.", "Una croce fatta di tubi saldati svetta su un picco vicino. Monumento alla fede o semplice avvertimento?",
-    "Ghiaccio sporco e antico, venato di nero, si aggrappa alle rocce sfidando il sole malato.", "Una frana recente ha squarciato il fianco della montagna, rivelando l'ingresso di una grotta profonda e buia.", "La carcassa di un piccolo velivolo è incastrata tra due picchi aguzzi, come un insetto in una ragnatela.", "Incisioni erose dal tempo sulla roccia... non sembrano opera umana. Qualcosa di più antico?", "Il freddo tagliente penetra i tuoi stracci logori, arrivando dritto alle ossa.",
-    "Un tanfo nauseabondo di decomposizione fuoriesce da un passaggio stretto tra le rocce.", "I resti congelati di una spedizione: zaini intatti, occhi vitrei fissi sul vuoto. Un avvertimento muto.", "Il panorama sarebbe magnifico, se non fosse per il silenzio assoluto e mortale che lo avvolge."
-];
-const flavorTextsRiver = [
-    "Detriti irriconoscibili e chiazze iridescenti fluttuano sulla corrente lenta e torbida.", "La riva fangosa cerca di inghiottire i tuoi stivali a ogni passo. Avanzare è estenuante.", "Un pesce mutato, gonfio e con occhi vitrei, galleggia a pancia in su, prova della tossicità dell'acqua.", "Il mormorio costante dell'acqua che scorre ha un effetto quasi ipnotico, pericoloso in questo silenzio.", "Le rovine di un vecchio ponte di cemento emergono dall'acqua come denti spezzati, creando gorghi insidiosi.",
-    "Bolle maleodoranti salgono in superficie a intervalli irregolari. Gas o il respiro di qualcosa di sommerso?", "Immergendo una mano, senti che l'acqua è innaturalmente calda. Qualcosa non va.", "L'acqua ha un colore verdastro e lattiginoso, innaturale e respingente.", "Lo scheletro arrugginito di una barca da pesca giace incagliato sulla riva opposta, un monito silenzioso.", "Uno sciame di insetti mutati, grandi come il tuo pollice e dal ronzio metallico, pattuglia la riva.",
-    "Il letto del fiume è un cimitero di oggetti contorti dal tempo e dalla corrente.", "Luci deboli tremolano sulla riva opposta. Sopravvissuti, miraggio o un'esca?", "L'aria vicino all'acqua ha un odore chimico acre che brucia le narici.", "Una scarpa logora è semisepolta nel fango della riva. Qualcuno è stato trascinato via qui?", "Banchi di nebbia innaturale e densa si aggrappano alla superficie dell'acqua, anche in pieno giorno.",
-    "L'acqua ha un colore malato, verdastro, con una patina oleosa che luccica debolmente.", "Una barca squarciata è incagliata sulla riva, uno scheletro pieno di fango e lische di pesce.", "Percepisci un movimento lento e pesante sotto la superficie torbida. Qualcosa di grosso e viscido.", "La nebbia sale dall'acqua come un sudario freddo e umido, divorando la visibilità.", "Pilastri di cemento di un vecchio molo emergono dall'acqua come lapidi dimenticate.",
-    "Un cartello arrugginito è ancora leggibile: 'DIVIETO DI BALNEAZIONE - RISCHIO BIOLOGICO ESTREMO'.", "Bolle ritmiche salgono in superficie, come il respiro regolare di una creatura sommersa.", "Un'onda improvvisa, troppo grande per essere causata dal vento, increspa la superficie torbida."
-];
-const flavorTextsCity = [
-    "Il vento geme lugubremente attraverso le finestre sfondate di grattacieli scheletrici.", "Un vecchio manifesto strappato raffigurante una famiglia sorridente sventola pateticamente da un muro crepato.", "Carcasse arrugginite di veicoli di ogni tipo formano barricate contorte e inutili lungo le strade.", "Un silenzio spettrale avvolge le strade deserte, rotto solo dai tuoi passi e dal crepitio dei detriti.", "Trovi una bambola rotta, con un occhio mancante e un sorriso inquietante, tra le macerie di una casa.",
-    "Un monitor rotto emette ancora una debole luce statica verdastra, come un fantasma tecnologico.", "Graffiti criptici e simboli inquietanti coprono quasi ogni superficie verticale, messaggi dai folli o dagli avvertiti.", "L'odore acre di bruciato e decomposizione persiste nell'aria, un profumo costante di morte.", "Hai la costante, spiacevole sensazione di essere osservato dalle migliaia di finestre vuote.", "Polvere di cemento ti irrita gli occhi e la gola, rendendo ogni respiro difficoltoso.",
-    "Un semaforo dondola precariamente da un palo piegato, bloccato su un rosso eterno.", "Un negozio di lusso saccheggiato, manichini nudi e vetrine infrante giacciono come corpi.", "La carcassa scheletrica di un autobus urbano giace su un fianco, le porte aperte come una bocca urlante.", "Un vento freddo si incanala tra gli edifici, portando con sé suoni indistinti... voci o lamenti?", "Il fruscio della plastica impigliata tra le macerie suona come passi furtivi.",
-    "Un palazzo di uffici ha un intero lato collassato, rivelando piani devastati come un alveare aperto.", "Un semaforo dondola cigolando nel vento, le luci spente per sempre.", "Senti il pianto soffocato di un bambino... ma quando ti avvicini, è solo il vento che fischia in un tubo rotto.", "Manifesti sbiaditi promettono un futuro luminoso che non è mai arrivato.", "Un orsacchiotto di peluche, sporco e senza un occhio, è seduto su una pila di macerie.",
-    "L'odore acre di bruciato persiste nell'aria, anche dopo anni.", "Qualcosa stride e si trascina all'interno di un edificio abbandonato vicino."
-];
-const flavorTextsVillage = [
-    "Tende lacere e baracche di lamiera sbattono nel vento, scheletri di un accampamento abbandonato.", "Le ceneri fredde di un fuoco da campo sono circondate da pentole arrugginite e ossa animali spolpate.", "Oggetti personali dimenticati nella polvere: una scarpa da bambino, un libro ammuffito, una foto sbiadita.", "Nessun segno di vita recente. Solo silenzio, polvere e un leggero odore di morte.", "Un'atmosfera opprimente grava su questo luogo. Qui è accaduto qualcosa di terribile, lo senti.",
-    "Resti di barricate rudimentali e macchie scure sul terreno testimoniano una lotta violenta.", "Una pentola ammaccata accanto alla cenere fredda. L'ultimo, misero pasto, non fu mai consumato.", "Chi viveva qui ha cercato disperatamente di fortificare il posto. Le difese violate raccontano il loro fallimento.", "L'aria sa di polvere stantia, abbandono e quel sottile, dolce odore di malattia.", "Piccoli tumuli di terra smossa segnati da croci fatte di rami. Tombe fresche ai margini dell'accampamento.",
-    "Un carillon rotto, mosso dal vento, emette una melodia stonata e malinconica.", "Le tende squarciate e vuote sembrano bocche spalancate che urlano al cielo silenziosamente.", "Un orsacchiotto senza un occhio giace nel fango vicino a una tenda. Un piccolo fantasma di innocenza perduta.", "Brandelli logori di una bandiera dimenticata sbattono debolmente su un palo improvvisato.", "Il silenzio qui è innaturale, pesante. Come se tutti fossero svaniti in un istante.",
-    "Una pentola annerita dondola su un treppiede improvvisato, sopra un letto di cenere fredda.", "Disegni infantili, tracciati col carbone su un pezzo di lamiera, raffigurano eroi improbabili e mostri fin troppo reali.", "Una fila di piccole tombe, segnate da pietre rozze, si allinea ai margini del villaggio. Molte sono piccole.", "Una scritta frettolosa sulla parete di una baracca: 'SONO ANDATI A NORD. CHE DIO CI AIUTI'.", "C'è un silenzio carico di attesa, come se gli abitanti fossero appena usciti e potessero tornare da un momento all'altro.",
-    "Una scacchiera fatta a mano, con tappi di bottiglia e bulloni arrugginiti come pezzi. Qualcuno cercava normalità qui.", "Un diario recuperato da una pozza d'acqua: le pagine sono incollate, piene di simboli indecifrabili e macchie scure.", "Tracce di un esodo disperato e improvviso sono ovunque. Cosa li ha fatti fuggire così in fretta?"
-];
-const flavorTextsRestStop = [
-    "Questo rifugio è un fragile assemblaggio di lamiere arrugginite, teli strappati e speranze infrante.", "Segni di passaggio recente: un graffito sul muro ('NON DORMIRE'), strani talismani fatti di ossa e fili.", "Un odore acre di fumo stantio, urina e umidità impregna l'aria. Il fetore della sopravvivenza.", "Dall'esterno sembra quasi sicuro, ma una volta dentro, un senso di disagio ti attanaglia.", "Un giaciglio di stracci luridi in un angolo. Qualcuno ha dormito qui, forse stanotte stessa.",
-    "Il silenzio qui è innaturale, opprimente. Come se le pareti avessero assorbito le urla dei precedenti occupanti.", "Il tetto improvvisato gocciola un liquido scuro e viscoso, anche se fuori non piove.", "Scritte sul muro contano i giorni: 'Sopravvissuto: 12', '13'... poi solo un graffio profondo che cancella ogni speranza.", "Un materasso sudicio e squarciato è gettato in un angolo, coperto di macchie scure e inquietanti.", "Una lattina vuota rotola rumorosamente sul pavimento al tuo ingresso, un suono assordante nel silenzio.",
-    "Un debole odore dolciastro aleggia nell'aria. Prodotti chimici, decomposizione... o qualcos'altro?", "Le pareti sono una tela per disegni infantili disturbanti e simboli arcani che non riconosci.", "Una vecchia radio a manovella giace su un tavolo improvvisato. Silenziosa, ma forse non per sempre.", "Il gocciolio ritmico e costante di acqua (o qualcos'altro?) da qualche parte nel buio è l'unico suono.", "La polvere spessa attutisce ogni rumore, creando una cappa di silenzio quasi soffocante.",
-    "Qualcuno ha tentato di rendere questo posto 'casa', appendendo tendine strappate che ora penzolano come fantasmi.", "Un graffito rozzo avverte: 'Non fidarti delle ombre. Cantano.'", "C'è un odore pungente di disinfettante chimico, un tentativo disperato di coprire un tanfo ben peggiore.", "Un elenco di nomi è graffiato sul metallo arrugginito. Molti nomi sono stati violentemente cancellati.", "La porta di questo rifugio è stata chiaramente rinforzata dall'interno. Paura di cosa?",
-    "Una vecchia foto di famiglia è incollata al muro. I volti sono stati accuratamente bruciati via.", "Resti di provviste accumulate: scatole vuote, involucri strappati. Qualcuno si preparava a resistere a lungo.", "Una cassetta del pronto soccorso aperta e saccheggiata pende dal muro, garze sporche sparse sul pavimento."
-];
-
-// Flavor text per diversi tipi di tile (Notte) - Meno variati per ora, focalizzati su Pianura e Foresta
-const flavorTextsNightPlains = [
-    "Un silenzio innaturale avvolge la pianura. Solo il tuo respiro rompe la quiete sotto la luna malata.", "La luna proietta ombre danzanti e distorte. Per un attimo, sembrano creature striscianti.", "Il vento notturno ulula tra l'erba secca, portando echi di voci o forse solo fischi sinistri.", "Un fruscio improvviso nell'erba alta ti fa trasalire. Ti giri di scatto, ma vedi solo ombre.", "Le stelle sono punte di ghiaccio in un cielo nero e profondo. Osservatori freddi e distanti.",
-    "Un grido disumano lacera la quiete notturna in lontananza. Meglio non sapere cosa fosse.", "L'oscurità qui è quasi tangibile, densa, pronta a divorare la luce flebile della tua torcia.", "Una sagoma indistinta corre veloce all'orizzonte, troppo rapida per essere identificata. O per essere naturale.", "Il terreno sembra pulsare debolmente sotto i tuoi piedi, come il respiro di una bestia enorme addormentata.", "Il freddo pungente della notte penetra fino alle ossa, portando una stanchezza profonda e pericolosa.",
-    "Luci fatue, fredde e azzurrine, danzano all'orizzonte. Spiriti erranti o gas velenosi?", "L'orizzonte notturno è un mare nero e infinito. Nessuno riparo, nessuna speranza in vista.", "Nuvole rapide oscurano la luna a intermittenza, immergendo il mondo in un buio ancora più profondo e improvviso.", "Una brezza gelida porta un odore acre e metallico. Ruggine, o sangue rappreso?", "Un suono basso e vibrante sale da sottoterra. Lontano, ma abbastanza vicino da inquietarti.",
-    "La temperatura crolla bruscamente. Il tuo respiro si condensa in nuvole spettrali davanti a te.", "Coppie di occhi luminosi ti osservano dall'erba alta, immobili, per poi svanire nel nulla.", "Un bagliore verdastro e pulsante illumina debolmente l'orizzonte. Non sembra un fenomeno naturale.", "Colonne di vapore caldo salgono dal terreno screpolato in alcuni punti, come sbuffi dalla terra.", "Alla luce spettrale della luna, la tua ombra sembra muoversi per conto proprio, un compagno infido.",
-    "Sciami di piccoli insetti luminescenti pulsano nell'aria con una luce fredda e innaturale.", "Echi distanti portano frammenti di conversazioni spezzate o forse solo il lamento del vento.", "Le stelle sembrano convergere tutte verso un punto oscuro all'orizzonte. Un presagio?"
-];
-const flavorTextsNightForest = [
-    "Ogni scricchiolio di rami secchi sotto i piedi suona come uno sparo nel silenzio notturno.", "Forme contorte si muovono furtive tra gli alberi, ai margini della tua vista. Ombre o creature?", "Un odore dolciastro e metallico impregna l'aria gelida della notte. Sangue fresco?", "Il buio qui è quasi assoluto, denso, soffocante come terra bagnata.", "Senti il fruscio pesante di grandi ali che passano silenziose sopra la tua testa, oscurando le stelle.",
-    "Due occhi gialli e innaturali ti fissano dal buio più profondo, poi svaniscono con un fruscio.", "La foresta notturna è viva e ostile. Ogni albero sembra nascondere un predatore in agguato.", "Inciampi su una radice nascosta nell'ombra, cadendo quasi. Il cuore ti balza in gola.", "Un sussurro gelido ti sfiora l'orecchio, sembra pronunciare il tuo nome... o è solo il vento tra le foglie?", "La luce spettrale della luna filtra a fatica tra le chiome contorte, disegnando ombre ingannevoli.",
-    "Un respiro rauco e umido, molto vicino. Ma da dove proviene?", "Il silenzio è così teso e carico che senti il sangue pulsare forte nelle tempie.", "Funghi bioluminescenti proiettano una luce fredda e inquietante su tronchi e radici contorte.", "Il terreno cede leggermente sotto i tuoi passi, soffice e umido come carne.", "All'improvviso, ogni suono cessa. Un silenzio innaturale e pesante cala sulla foresta, più terrificante di qualsiasi rumore."
-];
-// Aggiungere array simili per altri biomi di notte se necessario (flavorTextsNightRiver, etc.)
-
-
-// Descrizioni per incontri con predoni
-const descrizioniIncontroPredoni = [
-    "Figure minacciose emergono dall'ombra. I loro vestiti sono logori ma le armi sono ben tenute. Nei loro occhi vedi la fame... e qualcosa di peggio.",
-    "Un fischio acuto rompe il silenzio. Ti ritrovi circondato da sagome umane con volti nascosti da maschere improvvisate e stracci. Le loro intenzioni sono chiare.",
-    "Un gruppo di sopravvissuti dall'aspetto feroce blocca il tuo cammino. Le loro facce sono segnate dalle cicatrici, sia visibili che nascoste. Uno di loro avanza, mano sull'arma.",
-    "Vedi troppo tardi i segni di un'imboscata. Una decina di occhi affamati ti fissano dalle posizioni di agguato. Il loro capo gesticola in un linguaggio silenzioso di predazione.",
-    "Dei reietti emergono dalle rovine, accerchiandoti con movimenti studiati. Le loro armi di fortuna sono logoranti quanto i loro corpi, ma non meno letali.",
-    "Una banda di sopravvissuti ti circonda con freddezza calcolata. La disperazione ha trasformato queste persone in predatori. Oggi tu sei la preda.",
-    "Una donna con metà volto coperto da cicatrici ti punta contro un fucile arrugginito. Dietro di lei, altri predoni attendono il segnale. Nessuno sorride, è solo sopravvivenza.",
-    "Un gruppo di giovani dall'aspetto selvaggio si para davanti a te. Troppo giovani per ricordare il mondo prima, conoscono solo la legge del più forte.",
-    "Uomini e donne con simboli tribali dipinti sul viso si materializzano come spettri attorno a te. Le loro intenzioni sono chiare: ciò che è tuo presto sarà loro."
-];
-
-// Frammenti di Lore (trovati casualmente o legati a eventi)
-const loreFragments = [
-    "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'", "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà del Lab 7 - TERMINATO'", "Ologramma tremolante da un dispositivo rotto: '...protocollo di contenimento fallito... bio-agente [CLASSIFICATO] fuori controllo... Evacuare immediatamente... che Dio ci aiuti...'", "Scheda dati danneggiata e macchiata: '...mutazione instabile di Tipo IV... aggressività esponenziale... protocollo suggerito: eliminare a vista con armi incendiarie...'", "Scarpa da bambino logora accanto a una piccola croce fatta di rametti e filo spinato.",
-    "Graffito tracciato col sangue su un muro: 'Non fidatevi dell'acqua che brilla. NON BEVETELA.'", "Registrazione audio disturbata, voce maschile: '...stanno arrivando... le pareti non reggeranno... dite a mia figlia che l'amavo... il suo nome è Lily... *statica assordante*'", "Mappa disegnata a mano su un pezzo di pelle umana conciata: Indica un percorso verso un luogo chiamato 'L'Oasi sotto le Stelle Cadute', ma è strappata a metà.", "Messaggio inciso rozzamente su una capsula di proiettile 7.62: 'Per Mamma. Mi dispiaccio.'", "Libro bruciacchiato ('Miti Pre-Collasso') con una sola pagina leggibile: '...e così gli Antichi Dei dormirono nelle profondità della terra e del cielo, lasciando il mondo al silenzio e ai loro figli distorti...'",
-    "Audio-log recuperato da un registratore militare: '...Soggetto 17 mostra rigenerazione cellulare accelerata... ma anche psicosi acuta... aggressività incontrollabile... perdita contenimento imminente... sterilizzare l'area...'", "Biglietto scritto a mano con grafia tremante: 'Se leggi questo, sono andato a cercare acqua al Vecchio Impianto Idrico. Non seguirmi, è pieno di Quei Cosi. Trova il Safe Place. Ti voglio bene. Papà.'", "Distintivo militare corroso dall'acido: Riporta il simbolo di un teschio alato e la scritta 'Guardiani del Lab - Unità Epurazione'.", "Terminale medico portatile, schermo rotto ma leggibile: Mostra una lettura parziale: 'Contaminazione Biologica Tipo Gamma - Necrosi Tessutale Rapida - Esposizione fatale entro 2 ore...'.", "Fotografia olografica incrinata e tremolante: Mostra una città vibrante e piena di luci volanti colorate, un'immagine quasi dolorosa da guardare ora.",
-    "Bozza di messaggio non inviato, scritta su un tablet rotto: '...Eliza, non ce la faremo a raggiungerti. Le scorte bastano per uno solo. Prenditi cura di Ultimo... digli che la sua mamma era un'eroina... e che...'", "Schema tecnico strappato e macchiato: Descrive un 'Generatore Atmosferico Classe Arca' progettato per purificare l'aria su larga scala... mai attivato?", "Simbolo religioso improvvisato fatto di ossa umane, fili metallici e componenti elettronici.", "Ritaglio di giornale pre-guerra ('Il Cronista Globale'): Titolo: 'Nuova Era di Prosperità o Fuga dalla Realtà? Le Volte Salveranno l'Umanità o la Divideranno per Sempre?'", "Piccolo carillon arrugginito a forma di stella. Quando lo apri, suona una melodia triste e rivela uno scomparto segreto con dentro una chiave minuscola e ossidata.",
-    "Appunto scarabocchiato su un tovagliolo unto: 'Segui il fiume morto verso il sole calante. Cerca la roccia che piange. Lì troverai la porta... se oserai bussare.'", "Chip dati incrinato e parzialmente fuso. Impossibile leggerlo senza l'attrezzatura di un Lab... o forse qualcosa di peggio.", "Manuale tecnico strappato ('Manutenzione Ripari Classe-C'): '...il sistema di filtraggio dell\'aria HEPA richiede sostituzione nucleo ogni 500 ore operative per evitare contaminazione interna...'", "Lista della spesa macchiata di sangue: 'Acqua (min. 5L), Munizioni (tutte!), Scatolette (proteine!), Nastro adesivo (molto!), Antidolorifici... Speranza (se ne trovi)...'", "Pagina di un bestiario improvvisato, scritto a mano con disegni disturbanti: Descrive una creatura notturna senza volto chiamata 'Il Sussurrante delle Ombre', che si nutre di ricordi.",
-    "Rapporto tecnico parzialmente bruciato: '...il Geo-Core di Sektor Gamma è instabile. Rischio di collasso quantico entro 48h. Evacuare...'", "Messaggio scarabocchiato sul retro di una foto di famiglia sorridente: 'Non sono riuscito a salvarli. La nebbia... li ha presi...'", "Ordine militare criptato (decifrato parzialmente): '...Protocollo Cenere attivato su [REDACTED]. Nessun sopravvissuto autorizzato. Silenzio totale.'", "Capsula medica vuota etichettata 'Naniti Riparatori - Prototipo X'. Sembra usata di recente.", "Frammento di trasmissione radio intercettata: '...i Corvi Neri hanno sfondato a ovest. Ripeto, i Corvi Neri... la Vecchia Capitale cadrà...'",
-    "Diario di un medico del Lab 9: 'Giorno 112. Le mutazioni accelerate nel Settore Delta sono... inaspettate. Aggressività fuori scala. Abbiamo creato mostri.'", "Tessera d'accesso corrosa: 'Lab 4 - Livello Sicurezza Alpha - Dott.ssa Eva Rostova'", "Manifesto propagandistico strappato: 'L'Unione Pan-Europea garantisce sicurezza! Denunciate i dissidenti! Il futuro è ordine!'", "Lista di nomi incisa su un muro con un coltello: 'Hans, Greta, Lena, Karl... Perdonatemi.'", "Progetto tecnico di un'arma energetica portatile chiamata 'Lancia Solare'. Manca la pagina del generatore.",
-    "Avviso di quarantena biologica sbiadito e strappato, affisso alla porta di un bunker sigillato dall'esterno.", "Registrazione audio recuperata da un drone abbattuto: '...zona contaminata confermata. Livelli Gamma letali. Nessun segno di vita organica... solo... movimento...'", "Lettera non spedita: 'Mia cara Anya, se leggi questo, vuol dire che non torno. Ho visto cose indicibili oltre il Muro Est. Il 'Safe Place' non è ciò che credono...'", "Simbolo tribale dipinto con sangue e fango su un carro armato abbandonato. Sembra un avvertimento.", "Schema di un 'Filtro Psichico Classe-3'. Promette protezione dalle 'influenze esterne', ma richiede componenti introvabili.",
-    "Etichetta di razione militare: 'Eurasian Concordat - Pasto N.7 - Scadenza: --/--/--'", "Richiesta di evacuazione medica urgente, negata: '...impossibile raggiungere la posizione. Priorità strategiche altrove. Sacrificio necessario.'", "Pagina di libro per bambini ('Le Fiabe della Vecchia Europa') con disegni inquietanti scarabocchiati sopra le illustrazioni originali.", "Componente elettronico non identificato, ancora caldo al tatto, che emette un debole ronzino.", "Messaggio in codice lasciato in un punto di scambio morto: 'Aquila non risponde. Il pacco è compromesso. Procedere con Protocollo Omega.'",
-    "Registrazione su un vecchio data-slate crepato: 'Giorno 112. La mutazione si diffonde più velocemente del previsto. I sintomi neurologici sono... preoccupanti. Stiamo perdendo il controllo. Il Lab 7 deve essere sigillato. Ripeto, sigillat...' *fine registrazione*.", "Frammento di tessuto strappato da un'uniforme militare. C'è una mostrina sbiadita con un teschio alato e la scritta 'Angeli della Cenere'.", "Pagina di un manuale tecnico illustrato: mostra lo schema di un 'Purificatore d'Acqua Modello Aqualux VII', ma diverse componenti cruciali sono illeggibili o strappate.", "Graffito complesso tracciato con vernice spray fluorescente su un muro crollato: raffigura un labirinto che converge verso un occhio stilizzato.", "Piccola scatola di metallo arrugginita. Dentro, una ciocca di capelli biondi legata con un nastro sbiadito e una nota: 'Tornerò. Promesso. - Papà'.",
-    "Chip dati militare. Inserendolo in un terminale funzionante, potresti accedere a vecchie mappe tattiche o rapporti classificati.", "Libro di fiabe per bambini, 'Le Avventure di Capitano Cometa'. Le pagine sono rovinate dall'umidità, ma le illustrazioni colorate di razzi e pianeti alieni sono ancora visibili.", "Messaggio lasciato in una bottiglia vicino a un fiume prosciugato: 'Se leggi questo, vai a Ovest. Evita le guglie di vetro. Cantano di notte. Non ascoltarle.'", "Terminale medico portatile, schermo crepato. Log: Paziente 04-B - Esposizione a 'Nebbia Cinerea'. Sintomi: cristallizzazione epidermica, paranoia acuta. Prognosi: infausta. Ultimo aggiornamento: 8 anni fa.", "Pezzo di ceramica dipinta, forse parte di un vaso antico. Raffigura figure umanoidi che adorano un sole nero.",
-    "'Guida Pratica alla Sopravvivenza nel Dopocrollo' - Edizione Pirata. Molte pagine sono dedicate a come cucinare ratti e riconoscere funghi velenosi.", "Comunicazione radio intercettata e trascritta su un foglio: '...ripetere, Eco-Alfa-Uno, la Zona di Quarantena è compromessa. Protocollo Scudo Divino attivato. Che Dio ci perdoni...'", "Schema tracciato su un tovagliolo di carta: mostra come modificare una batteria d'auto per creare un'arma a impulsi elettromagnetici. Sembra pericoloso.", "Un dente innaturalmente grande e affilato, forse appartenuto a una creatura mutata. È stranamente caldo al tatto.", "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'."
-];
-
-const descrizioniIncontroBestie = [
-    "Un {animale} mutato e dall'aspetto aggressivo ti blocca il passo, ringhiando minacciosamente.",
-    "Sbuca dai cespugli un {animale} dalle dimensioni innaturali, gli occhi iniettati di sangue fissi su di te.",
-    "Un {animale} ferito e disperato ti carica, considerandoti una minaccia o un pasto facile.",
-    "Un {animale} dall'aspetto malato e contagioso barcolla verso di te, ignorando ogni tentativo di dissuasione.",
-    "Un {animale} ti osserva da lontano con un'intelligenza inquietante nei suoi occhi non del tutto animali."
-];
-
-const tipiBestie = [
-    "Ratto Gigante", "Cane Selvatico", "Sciame di Insetti Mutati", "Corvo Bicefalo", "Salamandra Velenosa", "Lupo Mutato", "Cinghiale Corazzato"
-];
-
-const descrizioniTracce = [
-    "Noti delle impronte insolite nella polvere, non sembrano umane né di alcun animale conosciuto.",
-    "Una serie di graffi profondi su un muro diroccato attira la tua attenzione. Cosa li ha causati?",
-    "Macchie scure e recenti sul terreno. Sangue, olio o qualcos'altro?",
-    "Un odore metallico e pungente ti guida verso un angolo nascosto. Sembra provenire da lì.",
-    "Piccoli cumuli di pietre disposti in uno schema regolare. Un segnale o solo una coincidenza?",
-    "Segni di trascinamento sul terreno indicano che qualcosa di pesante è stato spostato di recente.",
-    "Un oggetto luccicante è semisepolto tra le macerie. Potrebbe essere qualcosa di utile o solo un riflesso."
-];
-
-const esitiSeguiTracceOkNulla = [
-    "Decidi che non vale la pena rischiare per delle tracce incerte. Prosegui.",
-    "Hai cose più importanti a cui pensare che seguire ogni segno sospetto. Tiri dritto.",
-    "L'istinto ti dice di lasciar perdere. A volte, l'ignoranza è la scelta più sicura."
-];
-
-// Esiti per Fuga Predoni KO
-const esitiFugaPredoniKo = [
-    "Ti prendono quasi subito. La loro velocità è sorprendente.",
-    "Inciampi e cadi rovinosamente. Sei alla loro mercé.",
-    "Ti circondano rapidamente, bloccando ogni via di fuga.",
-    "Un proiettile vagante o un colpo ben piazzato ti ferisce mentre scappi, rallentandoti.",
-    "Corri in un vicolo cieco. Trappola mortale."
-];
-
-// Esiti per Parla Predoni KO
-const esitiParlaPredoniKo = [
-    "Le tue parole sono solo rumore per loro. Ridono della tua ingenuità prima di colpirti.",
-    "Il capo ti zittisce con uno sguardo gelido. Non c'è spazio per la diplomazia qui.",
-    "Appena apri bocca, uno di loro ti colpisce alle spalle.",
-    "'Parole? Il cibo parla più forte!', ringhia uno di loro.",
-    "Ti ascoltano in silenzio, poi scuotono la testa. Non sono interessati."
-];
-
-// Aggiungere qui altre descrizioni per eventi complessi (Villaggio Ostile, Rifugio Strano, Pericolo Ambientale, Dilemma Morale, Orrore)
-// ...
-
-// --- FINE DATI STATICI ---
-
-// Messaggi specifici per il tentativo di attraversare ostacoli
-const mountainBlockMessages = [
-    "Guardando la parete rocciosa, ti rendi conto che tentare la scalata sarebbe un suicidio.",
-    "La montagna sembra fissarti dall'alto. Non hai l'equipaggiamento né l'esperienza per provarci.",
-    "Un ragazzino di 17 anni non scala queste vette. Ci vuole più di un po' di coraggio.",
-    "Queste rocce sono troppo ripide e friabili. Meglio cercare un altro sentiero.",
-    "Senti i muscoli lamentarsi solo a guardare quelle cime. Trovare un percorso alternativo è l'unica scelta sensata."
-];
-
-// Descrizioni per eventi complessi di Orrore Indicibile
-const descrizioniOrroreIndicibile = [
-    "Senti un sussurro gelido direttamente nella tua mente, parole in una lingua morta che promettono oblio.",
-    "Le ombre sembrano allungarsi e contorcersi, assumendo forme vagamente umanoidi che ti osservano da ogni angolo.",
-    "Un odore nauseabondo di decomposizione e ozono ti riempie le narici. Qualcosa di innaturale è vicino.",
-    "La temperatura precipita inspiegabilmente. Vedi il tuo respiro condensarsi mentre un terrore primordiale ti attanaglia.",
-    "Una risata infantile e distorta riecheggia nel silenzio, ma non c'è nessuno..."
-];
-
-// Pool di ricompense casuali per handleRandomRewardType in js/events.js
-const RANDOM_REWARD_POOLS = {
-    COMMON_RESOURCE: [
-        { id: 'scrap_metal', weight: 30 },
-        { id: 'charcoal', weight: 20 },
-        { id: 'bandages_dirty', weight: 20 }, // Spostato qui da medical per renderlo più comune
-        { id: 'water_dirty', weight: 15 },
-        { id: 'wood_planks', weight: 25 },
-        { id: 'cloth_rags', weight: 20 }
-    ],
-    RARE_RESOURCE: [ // Include anche strumenti rari
-        { id: 'mechanical_parts', weight: 35 },
-        { id: 'repair_kit', weight: 20 },
-        { id: 'vitamins', weight: 15 }, // Spostato qui da medical perché più un "consumabile raro" che una cura specifica
-        { id: 'lockpick_set_crude', weight: 15 },
-        { id: 'map_fragment_local', weight: 10 }
-    ],
-    MEDICAL_ITEM: [ // Medicine più mirate e specifiche
-        { id: 'bandages_clean', weight: 30 },
-        { id: 'suspicious_pills', weight: 15 },
-        { id: 'herbal_salve', weight: 20 },
-        { id: 'medicine_crude', weight: 20 },
-        { id: 'antidote', weight: 10 },
-        { id: 'first_aid_kit', weight: 5 } // Raro e potente
-    ],
-    FOOD_ITEM: [
-        // Cibi base/comuni
-        { id: 'canned_food', weight: 25 },
-        { id: 'ration_pack', weight: 20 },
-        { id: 'berries', weight: 10 }, // Rischioso, quindi meno frequente dei cibi sicuri
-        { id: 'chips_stale', weight: 15 },
-        { id: 'canned_beans', weight: 20 },
-        { id: 'meat_raw', weight: 8 }, // Richiede cottura, quindi meno frequente
-        // Cibi migliori/più rari
-        { id: 'chocolate_bar', weight: 12 },
-        { id: 'dried_fruit', weight: 15 },
-        { id: 'protein_bar_old', weight: 12 },
-        { id: 'mystery_meat_cooked', weight: 10 }, // Rischio minore ma sempre "misterioso"
-        { id: 'meat_cooked', weight: 10 },
-        { id: 'mre_pack', weight: 5 } // Molto nutriente, quindi raro
-    ],
-    WATER_ITEM: [
-        // Acqua/bevande base/comuni
-        { id: 'water_purified_small', weight: 30 },
-        { id: 'water_dirty', weight: 20 }, // Comune ma rischiosa
-        { id: 'soda_flat', weight: 15 },
-        { id: 'rainwater_collected', weight: 18 }, // Rischiosa, ma più comune di altre "trovate"
-        // Acqua/bevande migliori/più rare
-        { id: 'juice_box_found', weight: 12 },
-        { id: 'herbal_tea_crude', weight: 10 },
-        { id: 'energy_drink_old', weight: 8 },
-        { id: 'water_bottle', weight: 5 } // Acqua già purificata e in buona quantità, quindi più rara nei pool generici
-    ],
-    RANDOM_WEAPON_POOL: [
-        // Armi da mischia base
-        { id: 'wooden_club', weight: 20 },
-        { id: 'kitchen_knife', weight: 15 },
-        { id: 'shiv_improvised', weight: 18 },
-        { id: 'metal_bar', weight: 12 },
-        // Armi da mischia leggermente migliori o armi da lancio
-        { id: 'pipe_wrench', weight: 8 },
-        { id: 'combat_knife', weight: 7 },
-        { id: 'machete_rusty', weight: 6 },
-        { id: 'baseball_bat', weight: 7 },
-        { id: 'throwing_knife', weight: 10 }, // Stackable, quindi può apparire più spesso
-        { id: 'rock_sharp', weight: 15 }, // Molto comune, arma disperata
-        // Armi a distanza più rare o di livello base
-        { id: 'improvised_bow', weight: 5 },
-        { id: 'pistol_makeshift', weight: 3 } // Rara e inaffidabile
-        // Le armi più potenti (revolver, shotgun, crossbow_simple) sono lasciate per loot specifico
-    ],
-    RANDOM_AMMO_POOL: [
-        // Munizioni più comuni o per armi base
-        { id: 'ammo_arrow_crude', weight: 25 },
-        { id: 'ammo_generic', weight: 20 }, // Generiche, quindi più comuni
-        { id: 'ammo_9mm', weight: 15 }, // Per pistola makeshift
-        { id: 'ammo_bolt', weight: 10 }, // Per balestra semplice (se si trova la balestra)
-        { id: 'ammo_revolver_generic', weight: 8 },
-        { id: 'ammo_shell', weight: 5 } // Per fucile, quindi più rare
-    ]
-    // CLOTHING_ITEM è gestito dinamicamente in handleRandomRewardType filtrando ITEM_DATA per type 'armor' o category 'Clothing'.
-};
-
-// Array per descrizioni evento tracce - Esito OK, trovato Lore
-const descrizioniTracceOkLore = [
-    "Le tracce ti conducono a un vecchio diario consumato. Contiene frammenti di storie del Vecchio Mondo.",
-    "Seguendo le impronte, scopri incisioni sbiadite su una roccia, che narrano di tempi passati.",
-    "Le tracce terminano vicino a un oggetto arrugginito che sembra avere un significato storico o culturale."
-];
-
-const descrizioniTracceOkLoot = [
-    "Seguendo le tracce con attenzione, scopri una piccola scorta di oggetti utili nascosta nelle vicinanze!",
-    "L'analisi meticolosa delle impronte ti porta a un piccolo nascondiglio contenente alcune risorse.",
-    "Le tracce ti conducono a un punto in cui qualcuno ha perso o abbandonato degli oggetti di valore.",
-    "La tua abilità nel seguire le piste ti premia: trovi del loot interessante!"
-];
-
-const descrizioniTracceNothing = [
-    "Le tracce si perdono nel nulla, confuse dal vento o cancellate dal tempo.",
-    "Nonostante i tuoi sforzi, le tracce non portano a nulla di significativo.",
-    "Segui le impronte per un po', ma alla fine si rivelano essere solo quelle di un animale comune che non ha lasciato nulla dietro di sé."
-];
-
-// Esiti per fallimento evento Pericolo Ambientale
-const esitiPericoloAmbientaleColpito = [
-    "Non sei stato abbastanza veloce o attento. Il pericolo ti raggiunge!",
-    "Un passo falso e sei nel mezzo del pericolo ambientale. Subisci le conseguenze.",
-    "Non hai notato i segnali in tempo. L'ambiente ostile ti colpisce.",
-    "La tua valutazione del rischio era sbagliata. Ora ne paghi il prezzo.",
-    "Il terreno cede / l'aria si fa irrespirabile / una scarica ti colpisce!"
-];
-
-// NUOVI ARRAY AGGIUNTI
-// Esiti per fallimento tentativo di EVITARE un animale
-const esitiEvitaAnimaleKo = [
-    "L'animale è troppo veloce o astuto. Non riesci a seminarlo e ti blocca la strada!",
-    "Un movimento goffo ti tradisce. La creatura si accorge di te e si prepara ad attaccare.",
-    "Nonostante i tuoi sforzi, l'animale ti individua. La fuga non è più un'opzione.",
-    "Pensi di averlo distanziato, ma sbuca da un'altra direzione, più aggressivo di prima.",
-    "La bestia non si lascia ingannare e ti carica con ferocia."
-];
-
-// Esiti per fallimento tentativo di ATTACCARE un animale
-const esitiAttaccoAnimaleKo = [
-    "Il tuo attacco va a vuoto e l'animale contrattacca con sorprendente agilità!",
-    "La creatura para il tuo colpo e risponde con furia, mettendoti sulla difensiva.",
-    "Sottovaluti la sua resistenza. Il tuo attacco non sortisce l'effetto sperato e ora sei in pericolo.",
-    "L'animale schiva il tuo fendente e ti morde/colpisce con precisione.",
-    "La tua arma non è efficace contro la sua coriacea pelle o la sua velocità. L'iniziativa è sua."
-];
-
-// Aggiungere qui altre descrizioni per eventi complessi (Villaggio Ostile, Rifugio Strano, Dilemma Morale, Orrore)
-// ...
-
-// DEVE ESSERE AGGIUNTO QUI:
-const esitiPericoloAmbientaleEvitato = [
-    "Con agilità felina / prontezza di riflessi, riesci a evitare il pericolo all'ultimo istante.",
-    "Il tuo sesto senso ti aveva avvertito. Ti fermi appena in tempo, schivando la minaccia.",
-    "Noti il pericolo nascosto e riesci a trovare un percorso alternativo sicuro.",
-    "Un passo falso e sarebbe finita male, ma la fortuna o l'abilità ti hanno assistito."
-];
-
-// NUOVI ARRAY PER ORRORE INDICIBILE (ESITI NEGATIVI)
-const esitiOrroreIndicibileAffrontaKo = [
-    "Tenti di affrontare l'orrore, ma la tua mente vacilla e il coraggio ti abbandona. Subisci le conseguenze.",
-    "L'entità ignota ti sovrasta con la sua mera presenza. Non c'è modo di combatterla direttamente.",
-    "Un urlo primordiale lacera la tua sanità mentale mentre l'orrore si manifesta pienamente.",
-    "Senti un dolore lancinante alla testa e crolli a terra, sopraffatto."
-];
-
-const esitiOrroreIndicibileFugaKo = [
-    "Cerchi di fuggire, ma l'orrore è più veloce, o forse è già dentro di te. Non c'è scampo.",
-    "Corri alla cieca, ma ogni via di fuga sembra condurti più vicino alla fonte del terrore.",
-    "Inciampi e cadi mentre tenti la fuga, l'orrore ti raggiunge.",
-    "Le tue gambe si rifiutano di muoversi, paralizzate dalla paura cosmica."
-];
-
-const esitiOrroreIndicibileFugaOk = [
-    "Con un urlo terrorizzato, ti volti e corri più veloce che puoi, senza guardarti indietro. Per ora, sembra che tu l'abbia seminato.",
-    "La paura ti mette le ali ai piedi. Scappi a perdifiato, il suono dei tuoi stessi passi che rimbomba nelle orecchie, fino a quando il silenzio non ti avvolge di nuovo.",
-    "Riesci a trovare un nascondiglio improbabile e attendi, tremando, che la presenza innominabile si allontani."
-];
-
-const esitiOrroreIndicibileAffrontaOk = [
-    "Chiudi gli occhi e concentri ogni tua fibra di volontà per resistere all'ondata di terrore. Lentamente, la sensazione opprimente si ritira, lasciandoti esausto ma intatto.",
-    "Trovi una forza interiore che non sapevi di possedere. Affronti l'orrore con uno sguardo determinato, e inspiegabilmente, esso esita e svanisce.",
-    "Nonostante la paura paralizzante, riesci a recitare mentalmente vecchi versi o canzoni infantili, aggrappandoti a un briciolo di sanità. L'orrore sembra perdere interesse."
-];
-
-// --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---
-const dilemmaEvents = [
-    {
-        id: "dilemma_suspicious_stash",
-        title: "Scorta Sospetta",
-        description: "Tra le rovine trovi una borsa nascosta, apparentemente piena di provviste. Tuttavia, ci sono strani segni attorno: tracce fresche, forse una trappola o qualcuno che osserva.",
-        choices: [
-            {
-                text: "Ispeziona con cautela (Adattamento)",
-                actionKey: "inspect_stash_carefully",
-                skillCheck: { stat: "adattamento", difficulty: 12 },
-                successText: "Con attenzione, disinneschi un filo sottile collegato a una trappola rudimentale. Recuperi la scorta senza danni!",
-                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
-                failureText: "Non noti un meccanismo nascosto: una trappola scatta, ferendoti leggermente.",
-                failurePenalty: { type: 'damage', amount: 5 }
-            },
-            {
-                text: "Prendi la borsa in fretta e scappa",
-                actionKey: "grab_and_run",
-                outcome: "Afferra la borsa e corri via. Senti un rumore dietro di te, ma nessuno ti insegue. Forse sei stato fortunato.",
-                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }] }
-            },
-            {
-                text: "Ignora la scorta, troppo rischioso",
-                actionKey: "ignore_stash",
-                outcome: "Decidi che la prudenza è la scelta migliore. Ti allontani senza rischiare nulla."
-            }
-        ]
-    },
-    {
-        id: "dilemma_help_request",
-        title: "Richiesta d'Aiuto",
-        description: "Una voce debole ti chiama da una baracca crollata. Un sopravvissuto, ferito e spaventato, ti implora di aiutarlo. Potrebbe essere una trappola, o davvero qualcuno in difficoltà.",
-        choices: [
-            {
-                text: "Parla con il sopravvissuto (Influenza)",
-                actionKey: "talk_to_survivor",
-                skillCheck: { stat: "influenza", difficulty: 13 },
-                successText: "Riesci a rassicurare la persona, che ti offre in cambio una piccola scorta nascosta.",
-                successReward: { items: [{ itemId: 'bandages_clean', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
-                failureText: "Il sopravvissuto non si fida e si chiude in silenzio. Forse era davvero solo spaventato.",
-                failurePenalty: { type: 'nothing' }
-            },
-            {
-                text: "Ignora la richiesta e prosegui",
-                actionKey: "ignore_help_request",
-                outcome: "Soffochi il senso di colpa e ti allontani, lasciando il sopravvissuto al suo destino."
-            },
-            {
-                text: "Controlla la zona per possibili trappole (Presagio)",
-                actionKey: "check_for_traps",
-                skillCheck: { stat: "presagio", difficulty: 12 },
-                successText: "Noti segni sospetti: qualcuno ha preparato un'imboscata. Ti allontani senza farti notare.",
-                successReward: { type: 'nothing' },
-                failureText: "Non trovi nulla di strano, ma il dubbio ti rimane addosso.",
-                failurePenalty: { type: 'nothing' }
-            }
-        ]
-    },
-    {
-        id: "dilemma_inert_machine",
-        title: "Macchina Inerte",
-        description: "Un vecchio distributore automatico, semi-sepolto tra le macerie, attira la tua attenzione. Potrebbe contenere ancora qualcosa di utile, ma forzarlo potrebbe fare rumore e attirare attenzioni indesiderate.",
-        choices: [
-            {
-                text: "Forza lo sportello (Adattamento)",
-                actionKey: "force_machine_open",
-                skillCheck: { stat: "adattamento", difficulty: 14 },
-                successText: "Con pazienza e ingegno, riesci ad aprire lo sportello senza fare troppo rumore. Trovi una barretta di cioccolato e una bibita!",
-                successReward: { items: [{ itemId: 'chocolate_bar', quantity: 1 }, { itemId: 'soda_flat', quantity: 1 }] },
-                failureText: "Lo sportello si apre di colpo con un forte rumore. Poco dopo, senti passi sospetti nelle vicinanze.",
-                failurePenalty: { type: 'danger', description: 'Attiri attenzioni pericolose.' }
-            },
-            {
-                text: "Lascia perdere, troppo rischioso",
-                actionKey: "leave_machine",
-                outcome: "Decidi che non vale la pena rischiare per così poco. Ti allontani in silenzio."
-            }
-        ]
-    }
-];
-// --- FINE DATI STATICI ---
+// --- INIZIO DEFINIZIONE SCHEMI RICOMPENSE EVENTI ---
+// ... existing code ...

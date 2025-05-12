@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/ui.js
- * Descrizione: Gestione dell'interfaccia utente (rendering, popup, messaggi, interazioni)
+ * Descrizione: Gestione dell'interfaccia utente, aggiornamento DOM, popup.
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
  */
 
@@ -1340,28 +1340,38 @@ function closeCraftingPopup() {
  * Popola la lista delle ricette conosciute nel popup di crafting.
  */
 function populateCraftingRecipeList() {
-    if (!DOM.craftingRecipeList || !player || !player.knownRecipes || !CRAFTING_RECIPES) return;
-
-    DOM.craftingRecipeList.innerHTML = ''; // Pulisce la lista
-    // console.log('[DEBUG populateCrafting Lista] Ricette conosciute dal giocatore:', JSON.stringify(player.knownRecipes));
-
-    if (player.knownRecipes.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = "Non conosci ancora nessuna ricetta. Trova dei progetti!";
-        DOM.craftingRecipeList.appendChild(li);
+    if (!DOM.craftingRecipeList || typeof CRAFTING_RECIPES === 'undefined' || !player) {
+        console.error("populateCraftingRecipeList: Elementi DOM mancanti, CRAFTING_RECIPES non definito o player non trovato.");
         return;
     }
 
+    DOM.craftingRecipeList.innerHTML = ''; // Pulisce la lista precedente
+    // Rimosso: console.log('[DEBUG populateCrafting] Ricette conosciute dal giocatore all\'apertura del popup:', JSON.stringify(player.knownRecipes));
+
+    if (!player.knownRecipes || player.knownRecipes.length === 0) {
+        const noRecipesLi = document.createElement('li');
+        noRecipesLi.textContent = "Nessuna ricetta conosciuta.";
+        noRecipesLi.classList.add('no-recipes');
+        DOM.craftingRecipeList.appendChild(noRecipesLi);
+        updateCraftingDetails(null); // Pulisce i dettagli
+        // Rimosso: console.log('[DEBUG populateCrafting] Numero di ricette aggiunte al DOM:', DOM.craftingRecipeList.children.length);
+        return;
+    }
+
+    let firstRecipeKey = null;
+
     player.knownRecipes.forEach(recipeKey => {
         const recipe = CRAFTING_RECIPES[recipeKey];
-        // console.log('[DEBUG populateCrafting Lookup] Processo chiave:', recipeKey, 'Trovata in CRAFTING_RECIPES:', recipe ? 'Sì' : 'No', 'Oggetto CRAFTING_RECIPES intero in questo momento:', JSON.stringify(CRAFTING_RECIPES, null, 0));
+        // Rimosso: console.log('[DEBUG populateCrafting Dettaglio Lookup] Chiave:', recipeKey, 'Valore da CRAFTING_RECIPES:', recipe);
         if (recipe) {
+            if (!firstRecipeKey) {
+                firstRecipeKey = recipeKey;
+            }
             const li = document.createElement('li');
-            const button = document.createElement('button');
-            button.textContent = recipe.productName || recipe.productId; // Mostra nome prodotto
+            const button = document.createElement('button'); // NUOVA LINEA
+            button.textContent = recipe.productName || recipe.productId;
             button.dataset.recipeKey = recipeKey;
-            
-            // Verifica se la ricetta è craftabile (per styling)
+
             if (typeof checkIngredients === 'function' && checkIngredients(recipe.ingredients)) {
                 button.classList.add('craftable');
             } else {
@@ -1369,18 +1379,38 @@ function populateCraftingRecipeList() {
             }
 
             button.onclick = () => {
-                selectedRecipeKey = recipeKey;
+                selectedRecipeKey = recipeKey; // Assicura che selectedRecipeKey sia aggiornato
                 updateCraftingDetails(recipeKey);
-                // Aggiorna lo stile dei bottoni nella lista per indicare la selezione
+                // Rimuovi 'selected' da tutti i bottoni prima di aggiungerlo a quello cliccato
                 Array.from(DOM.craftingRecipeList.querySelectorAll('button')).forEach(btn => {
                     btn.classList.remove('selected');
                 });
                 button.classList.add('selected');
             };
-            li.appendChild(button);
-            DOM.craftingRecipeList.appendChild(li);
+            li.appendChild(button); // NUOVA LINEA - aggiunge bottone al li
+            DOM.craftingRecipeList.appendChild(li); // Aggiunge li alla lista ul
         }
     });
+
+    // Se è stata aggiunta almeno una ricetta, seleziona e mostra i dettagli della prima
+    if (firstRecipeKey) {
+        updateCraftingDetails(firstRecipeKey);
+        // Evidenzia il primo elemento della lista (opzionale)
+        const firstListButton = DOM.craftingRecipeList.querySelector(`button[data-recipe-key="${firstRecipeKey}"]`);
+        if (firstListButton) {
+            // Rimuovi la classe 'selected' da qualsiasi altro elemento (se presente)
+            DOM.craftingRecipeList.querySelectorAll('button.selected').forEach(el => el.classList.remove('selected'));
+            firstListButton.classList.add('selected'); // Aggiungi la classe 'selected'
+            selectedRecipeKey = firstRecipeKey; // Imposta la ricetta selezionata
+        }
+    } else {
+        // Caso in cui knownRecipes non è vuoto, ma nessuna ricetta valida è stata trovata in CRAFTING_RECIPES
+        const errorLi = document.createElement('li');
+        errorLi.textContent = "Errore: Ricette conosciute non valide.";
+        DOM.craftingRecipeList.appendChild(errorLi);
+        updateCraftingDetails(null); // Pulisce i dettagli
+    }
+    // Rimosso: console.log('[DEBUG populateCrafting] Numero di ricette aggiunte al DOM:', DOM.craftingRecipeList.children.length);
 }
 
 /**

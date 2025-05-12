@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/map.js
  * Descrizione: Gestione della mappa di gioco (generazione, movimento, interazioni tile)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js

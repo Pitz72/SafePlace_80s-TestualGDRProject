@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/player.js
- * Descrizione: Gestione del personaggio giocante (statistiche, inventario, equipaggiamento, azioni)
+ * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
  */
 
@@ -36,8 +36,7 @@ function generateCharacter() {
         acquisita: 0,                    // Punti abilità guadagnati da spendere (feature futura)
 
         // Risorse e stato di sopravvivenza
-        maxHp: 0, // Calcolato dopo gli attributi base
-        hp: 0, // Inizializza con HP pieni
+        // maxHp e hp verranno calcolati e impostati dopo la definizione degli attributi base
         food: STARTING_FOOD,
         water: STARTING_WATER,
 
@@ -46,12 +45,12 @@ function generateCharacter() {
         y: -1,
 
         // Stati negativi (boolean flags)
-        isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check
+        isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check (RIPRISTINATO A FALSE)
         isSick: false,    // Malato: Subisce danno per movimento/notte, penalità a Vigore/Adattamento check, consumo extra risorse
         isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
         poisonDuration: 0,      // Turni rimanenti di avvelenamento
         currentLocationType: null, // Tipo di tile attuale (simbolo)
-        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor", "craft_healing_poultice"],       // Array delle ricette conosciute
+        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor", "craft_healing_poultice", "craft_bandages_clean"],       // Array delle ricette conosciute
 
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
@@ -65,8 +64,14 @@ function generateCharacter() {
     };
 
     // Calcola HP massimi basati sul Vigore (formula base: 10 + Vigore)
-    player.maxHp = 10 + player.vigore;
-    player.hp = player.maxHp; // Inizia con HP pieni
+    player.maxHp = 10 + player.vigore; // Calcolo originale
+    player.hp = player.maxHp; // Inizia con HP pieni (RIPRISTINATO)
+
+    // Impostazioni iniziali per lo stato del giocatore (ferito e con HP ridotti) - RIGHE DI TEST COMMENTATE
+    // player.isInjured = true;
+    // player.hp = Math.floor(player.maxHp / 3);
+
+    // Le righe temporanee per il test degli HP sono state rimosse.
 
     // Aggiunge oggetti iniziali all'inventario (usando la funzione addItemToInventory definita qui sotto)
     addItemToInventory('bandages_dirty', 2);
@@ -77,7 +82,8 @@ function generateCharacter() {
     addItemToInventory('berries', 2);         // Per le Bacche Comuni
     addItemToInventory('cloth_rags', 1);      // Per gli Stracci di Stoffa
     addItemToInventory('water_dirty', 1);     // Per l'Acqua Sporca
-    // addItemToInventory('repair_kit', 1); // RIMOSSO: non dare più il kit di riparazione all'inizio
+    // addItemToInventory('charcoal', 1);        // <<< RIMOSSO CARBONE PER TEST
+    // addItemToInventory('repair_kit', 1); // Assicurati che questa riga rimanga commentata o rimossa
 
     // Equipaggia un'arma base all'inizio
     const startingWeaponId = 'pipe_wrench';
@@ -434,11 +440,10 @@ function useItem(itemId) {
                         consumptionMessage += ` Recuperi anche ${actualHeal} HP.`;
                      }
 
-                 } else {
-                     // MODIFICATO: Usa currentEffect
+                 } else { // Se la cura fallisce
                      consumptionMessage = currentEffect.failure_message || `${itemInfo.name} non è riuscito a curare lo stato ${statusToCure.replace('is', '')}.`;
-                     messageType = 'warning';
-                     effectApplied = false; // Effetto non applicato (cura fallita)
+                     messageType = 'warning';      // AGGIUNTA
+                     effectApplied = false;      // AGGIUNTA (o assicurati sia false se già impostato prima)
                  }
             }
             break;
@@ -596,6 +601,21 @@ function useItem(itemId) {
                 consumeItem = true; // Consuma anche se mal definito per non lasciarlo nell'inventario
                 effectApplied = false;
             }
+            break;
+
+        case 'show_lore':
+            // Assumiamo che loreFragments (da game_data.js) sia accessibile globalmente
+            // e getRandomText (da game_utils.js) sia accessibile globalmente.
+            if (typeof getRandomText === 'function' && typeof loreFragments !== 'undefined' && loreFragments.length > 0) {
+                addMessage(getRandomText(loreFragments), 'lore');
+            } else {
+                addMessage("Hai esaminato il frammento, ma le parole svaniscono prima che tu possa comprenderle... (Errore: Risorse lore non trovate)", 'warning');
+                console.warn("useItem (show_lore): getRandomText o loreFragments non disponibili/vuoti.");
+            }
+            consumptionMessage = 'Hai esaminato il frammento...';
+            messageType = 'lore';
+            effectApplied = true;
+            consumeItem = true;
             break;
 
         default:

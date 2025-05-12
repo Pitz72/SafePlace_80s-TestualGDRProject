@@ -79,113 +79,276 @@ li.separator {
 
 /* Stile generale per tutti i container a schermo intero */
 .screen-container {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    min-height: 100vh; /* Usa min-height per coprire almeno tutta l'altezza */
+    height: 100%;
+    background-color: var(--bg-color); /* Sfondo scuro per contrasto */
+    color: var(--fg-color);
+    display: flex; /* Centra il contenuto */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     padding: 20px;
-    box-sizing: border-box; /* Include padding nel calcolo dimensioni */
-    display: flex;
-    flex-direction: column; /* IMPILA GLI ELEMENTI VERTICALMENTE */
-    align-items: center;   /* CENTRA GLI ELEMENTI ORIZZONTALMENTE */
-    justify-content: center; /* CENTRA IL BLOCCO VERTICALMENTE (se possibile) */
-    text-align: center; /* Centra il testo all'interno degli elementi figli (utile per h1, p) */
+    box-sizing: border-box;
+    overflow-y: auto; /* Per scrollare se il contenuto è troppo */
+    z-index: 100; /* Sopra il contenuto del gioco */
 }
 
-/* Stili specifici per gli elementi dentro la schermata iniziale, se necessario */
-#start-screen-container #game-title {
-    /* (Puoi aggiungere/modificare stili qui se necessario, es. margine) */
-    margin-top: 0; /* Rimuove margine sopra il titolo se presente */
-    margin-bottom: 5px; /* Ridotto spazio sotto il titolo */
+.start-screen-content {
+    max-width: 700px; /* Larghezza massima per leggibilità */
+    width: 100%;
 }
 
-#start-screen-container .game-signature {
-     /* (Puoi aggiungere/modificare stili qui se necessario, es. margine) */
-     margin-top: 0; /* Rimuove margine sopra la firma */
-     margin-bottom: 30px; /* Aumenta spazio prima del menu */
-}
-
-#start-screen-container #main-menu {
-    /* (Puoi aggiungere/modificare stili qui se necessario, es. larghezza) */
-    width: auto; /* Lascia che il menu si adatti alla larghezza dei bottoni */
-}
+/* Rimuovo la vecchia regola .title-image se presente e aggiungo #start-screen-image */
+/* .title-image { ... } */
 
 #start-screen-image {
-    max-width: 33%; /* Circa un terzo della larghezza del suo contenitore */
-    height: auto;   /* Mantiene le proporzioni originali dell'immagine */
-    max-height: 30vh; /* Limita l'altezza massima al 30% dell'altezza della viewport */
-    object-fit: contain; /* Assicura che l'immagine si adatti mantenendo le proporzioni */
-    margin-bottom: 20px; /* Spazio sotto l'immagine */
-    /* Rimuovi/commenta il bordo di debug se lo avevi: border: 2px solid #00ff00; */
+    max-width: 33%;
+    height: auto;
+    max-height: 30vh;
+    object-fit: contain;
+    margin-bottom: 20px;
 }
 
-/* Stile per i bottoni del menu principale e "Torna al Menu" */
-/* #main-menu button, RIMOSSO VECCHIO SELETTORE */
-#start-screen-container .button-container button, /* NUOVO SELETTORE PER I BOTTONI DEL MENU */
+/* Ripristino .game-signature */
+#start-screen-container .game-signature {
+     font-size: 1em; /* Leggermente aumentato da un potenziale 0.9em */
+     color: var(--fg-color); /* Assicuriamoci che usi il colore principale del testo */
+     margin-top: 0;
+     margin-bottom: 5px; /* Ridotto drasticamente per avvicinarlo alla riga della versione */
+}
+
+/* Mantengo .game-version-text come l'avevo aggiunto, poi aggiungerò la nuova versione specifica per ID */
+.game-version-text {
+    font-size: 0.7em;
+    color: var(--fg-dim-color); /* Verde scuro per testo secondario o un grigio chiaro */
+    margin-top: 5px;
+    margin-bottom: 10px; /* Spazio prima del menu bottoni */
+    letter-spacing: 0.5px; /* Opzionale, per leggibilità */
+}
+
+/* Sostituisco le regole dei bottoni */
+#start-screen-container .button-container button,
 .back-to-menu-btn {
-    background-color: #111;                /* Da #event-choices button */
-    color: var(--fg-color);                 /* Da #event-choices button */
-    border: 1px solid var(--border-color);  /* Da #event-choices button */
-    padding: 10px 18px;                     /* Da #event-choices button */
-    font-family: inherit;                   /* Da #event-choices button */
-    font-size: 1em;                         /* Da #event-choices button */
-    cursor: pointer;                        /* Da #event-choices button */
-    transition: background-color 0.2s, color 0.2s; /* Da #event-choices button */
-
-    /* Adattamenti per menu */
-    display: block; /* MODIFICATO DA inline-block per impilare i bottoni */
-    margin: 8px auto;       /* Margine verticale, 'auto' orizzontale per centrarli se block */
-    min-width: 200px;      /* Larghezza minima per leggibilità/tocco */
-    width: auto;           /* Larghezza si adatta al contenuto + padding */
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    display: block;
+    margin: 8px auto;
+    min-width: 200px;
+    width: auto;
     text-align: center;
 }
 
-/* Effetto Hover */
-/* #main-menu button:hover:not(:disabled), RIMOSSO VECCHIO SELETTORE */
-#start-screen-container .button-container button:hover:not(:disabled), /* NUOVO SELETTORE */
+#start-screen-container .button-container button:hover:not(:disabled),
 .back-to-menu-btn:hover {
-    background-color: var(--fg-color); /* Usa il verde principale (#4EA162) per lo sfondo hover */
-    color: var(--highlight-fg);            /* Mantiene testo nero per contrasto */
-    border-color: var(--fg-color); /* Cambia anche il bordo al verde principale su hover */
+    background-color: var(--fg-color);
+    color: var(--highlight-fg);
+    border-color: var(--fg-color);
 }
 
-/* Stato Disabilitato (per "CARICA PARTITA") */
-/* #main-menu button:disabled, RIMOSSO VECCHIO SELETTORE */
-#start-screen-container .button-container button:disabled { /* NUOVO SELETTORE (non serve .back-to-menu-btn qui) */
-    color: var(--border-dim-color);         /* Da :disabled di #event-choices button */
-    border-color: var(--border-dim-color);  /* Da :disabled di #event-choices button */
-    cursor: not-allowed;                    /* Da :disabled di #event-choices button */
-    opacity: 0.5;                           /* Da :disabled di #event-choices button */
-    background-color: #111; /* Mantiene lo sfondo scuro anche se disabilitato */
-}
-
-/* Assicura che il contenitore del menu centri i bottoni se sono inline-block */
-/* #main-menu { RIMOSSO VECCHIO SELETTORE */
-#start-screen-container .button-container { /* NUOVO SELETTORE PER IL CONTENITORE */
-    text-align: center;
-}
-
-/* #main-menu ul { RIMOSSO VECCHIO SELETTORE - non sembra più esserci una <ul> per i bottoni */
-/*    list-style-type: none;
-    padding: 0;
-} */
-
-/* #main-menu li { RIMOSSO VECCHIO SELETTORE - non sembra più esserci una <ul> per i bottoni */
-/*    margin-bottom: 5px; 
-} */
-
-/* Stile per il footer nella schermata iniziale */
-.start-screen-footer {
-    margin-top: 40px; /* Aggiunge spazio sopra il footer */
-    padding-top: 15px; /* Spazio tra linea e testo */
-    border-top: 1px solid var(--border-dim-color); /* Linea separatrice sottile verde scuro */
-    width: 80%; /* Limita la larghezza per leggibilità */
-    max-width: 800px; /* Larghezza massima */
-    margin-left: auto; /* AGGIUNTO per forzare il centraggio */
-    margin-right: auto; /* AGGIUNTO per forzare il centraggio */
-}
-
+/* Sostituisco gli stili per .start-screen-footer p */
 .start-screen-footer p {
-    font-size: 0.7em; /* Testo molto più piccolo */
-    color: var(--fg-color); /* Usa il NUOVO colore verde principale (#4EA162) */
-    line-height: 1.4; /* Interlinea per leggibilità */
-    margin: 5px 0; /* Margine tra i paragrafi del footer */
+    font-size: 0.7em;
+    color: var(--fg-color);
+    line-height: 1.4;
+    margin: 5px 0;
 }
+
+/* Stili per la schermata Istruzioni */
+#instructions-screen h2 {
+    color: var(--accent-color);
+    margin-bottom: 20px;
+}
+
+#instructions-content {
+    text-align: left;
+    max-width: 800px; /* Contenitore più largo per il testo */
+    margin: 0 auto 20px auto;
+    padding: 15px;
+    background-color: var(--panel-bg-color); /* Sfondo leggermente diverso per il box */
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    overflow-y: auto; /* Scroll per testo lungo */
+    max-height: 70vh; /* Limita altezza per non coprire tutto */
+}
+
+#instructions-content p {
+    margin-bottom: 1em;
+    line-height: 1.6;
+    color: var(--text-color-main); /* Colore testo standard per leggibilità */
+}
+
+#instructions-content strong {
+    color: var(--accent-color-secondary); /* Colore per evidenziare */
+}
+
+#instructions-content h3 {
+    color: var(--accent-color);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid var(--border-dim-color);
+    padding-bottom: 0.3em;
+}
+
+#instructions-legend-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+#instructions-legend-list li {
+    margin-bottom: 0.5em;
+    color: var(--text-color-main);
+}
+
+.back-to-menu-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: var(--button-bg-color);
+    color: var(--button-fg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+
+.back-to-menu-btn:hover {
+    background-color: var(--button-hover-bg-color);
+}
+
+/* Stili per la schermata di Fine Gioco */
+#end-screen {
+    /* Usa gli stili di .screen-container già definiti */
+}
+
+#end-screen h2 {
+    color: var(--accent-color);
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+#end-screen .story-text {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: var(--fg-color);
+    margin-bottom: 30px;
+    white-space: pre-wrap; /* Per rispettare eventuali a capo nel messaggio di fine */
+}
+
+#end-screen .menu-buttons button {
+    display: inline-block; /* O block se li vuoi uno sotto l'altro */
+    width: auto; /* Larghezza automatica */
+    min-width: 150px;
+    margin: 10px;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    background-color: var(--button-bg-color);
+    color: var(--button-fg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+#end-screen .menu-buttons button:hover,
+#end-screen .menu-buttons button:focus {
+    background-color: var(--button-hover-bg-color);
+    border-color: var(--border-highlight-color);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+
+/* Stili per il popup temporaneo dei messaggi */
+#temporary-message-popup {
+    position: fixed;
+    bottom: 70px; /* Sollevato per non sovrapporsi ai controlli su mobile */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    background-color: var(--popup-bg-color); /* Usa variabile per consistenza */
+    color: var(--popup-fg-color);
+    border: 1px solid var(--border-highlight-color);
+    border-radius: 6px;
+    z-index: 1002; /* Sopra altri popup ma sotto overlay modali */
+    display: none; /* Nascosto di default */
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    font-size: 0.9em;
+    max-width: 80%; /* Per evitare che sia troppo largo su schermi grandi */
+}
+
+
+/* Utility Classes */
+.hidden {
+    display: none !important; /* Importante per sovrascrivere altri display */
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-warning {
+    color: var(--warning-color) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-info {
+    color: var(--info-color) !important;
+}
+
+.text-lore {
+    color: var(--lore-color) !important;
+    font-style: italic;
+}
+
+.highlight {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-fg);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+
+#game-version-display {
+    font-size: 0.7em;
+    color: var(--fg-dim-color);
+    margin-top: 0px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#game-title {
+    font-size: 3.2em; /* Aumentato leggermente da un potenziale 2.8em o default */
+    color: var(--accent-color);
+    margin-top: 0;
+    margin-bottom: 8px; /* Aumentato leggermente per dare più respiro sotto */
+    letter-spacing: 1px;
+    /* text-shadow: none; */ /* Assicuro che non ci sia text-shadow */
+}
+
+/* Se necessario, altri stili base possono essere aggiunti qui */

@@ -1,13 +1,13 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.16";
+const GAME_VERSION = "0.7.19";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -247,13 +247,11 @@ const ITEM_EFFECT_DESCRIPTIONS = {
     random_pill_effect: (effect) => {
         return "Effetto Casuale";
     },
-    learn_recipe: (effect) => {
-        return "Apprendi Ricetta";
-    },
+    learn_recipe: (effect) => `Permette di apprendere la ricetta per: ${CRAFTING_RECIPES[effect.recipeKey]?.productName || effect.recipeKey}.`,
     reveal_map_area: (effect) => {
         return "Rivela area mappa";
     },
-    show_lore: (effect) => "Rivela un frammento di lore"
+    show_lore: (effect) => "Rivela un frammento di conoscenza del passato."
 };
 
 // --- FINE COSTANTI NUMERICHE E PROBABILISTICHE ---

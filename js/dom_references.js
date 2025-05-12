@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/dom_references.js
- * Descrizione: Contiene i riferimenti agli elementi del DOM per un accesso centralizzato e più pulito.
+ * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */
 
 // Oggetto globale per i riferimenti DOM
@@ -32,6 +32,11 @@ function assignAllDOMReferences() {
     DOM.menuBtnInstructions = document.getElementById('menu-btn-instructions');
     DOM.menuBtnStory = document.getElementById('menu-btn-story');
     DOM.backToMenuButtons = document.querySelectorAll('.back-to-menu-btn');
+    DOM.gameVersionDisplay = document.getElementById('game-version-display');
+    DOM.startButton = document.getElementById('new-game-button');
+    DOM.instructionsButton = document.getElementById('instructions-button');
+    DOM.storyButton = document.getElementById('story-button');
+    DOM.loadGameButton = document.getElementById('load-game-button');
 
     // Elementi schermata istruzioni e storia
     DOM.instructionsContent = document.getElementById('instructions-content') || null;
@@ -140,13 +145,6 @@ function assignAllDOMReferences() {
 
     // Bottone Salvataggio (NUOVO)
     DOM.saveGameButton = document.getElementById('save-game-button');
-
-    // Schermata Iniziale
-    DOM.startButton = document.getElementById('new-game-button');
-    DOM.instructionsButton = document.getElementById('instructions-button');
-    DOM.storyButton = document.getElementById('story-button');
-    DOM.loadGameButton = document.getElementById('load-game-button');
-    DOM.gameVersionStart = document.getElementById('game-version-start');
 
     // Riferimenti Tooltip Mappa (NUOVO)
     DOM.mapTooltip = document.getElementById('map-tooltip') || null;

@@ -1,8 +1,8 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.18
+ * Versione: v0.7.19
  * File: js/game_core.js
- * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (implicito), gestione input.
+ * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco e gestione input.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
  */
 
@@ -60,6 +60,9 @@ function showScreen(screenToShow) {
 
 function initializeStartScreen() {
     showScreen(DOM.startScreenContainer);
+    if (DOM.gameVersionDisplay && typeof GAME_VERSION !== 'undefined') {
+        DOM.gameVersionDisplay.textContent = `Versione: ${GAME_VERSION}`;
+    }
     // Assicurati che il gioco NON sia attivo o in pausa all'inizio
     gameActive = false;
     gamePaused = true; // Iniziamo in uno stato "pausato" finché non si inizia la partita
@@ -524,8 +527,13 @@ function handleInventoryPointerLeave(event) {
  * @param {boolean} isVictory - True se il giocatore ha vinto, false se ha perso.
  */
 function endGame(isVictory) {
-    console.log("endGame chiamata! Vittoria:", isVictory, "HP Giocatore:", player ? player.hp : 'player non definito');
-    gameActive = false;
+    // Se un popup evento è attivo, chiudilo prima di procedere con la schermata di fine gioco.
+    if (eventScreenActive && typeof closeEventPopup === 'function') {
+        closeEventPopup(); // Questa funzione dovrebbe resettare eventScreenActive e gamePaused (se necessario)
+    }
+
+    // console.log("endGame chiamata! Vittoria:", isVictory, "HP Giocatore:", player ? player.hp : 'player non definito'); // Log di debug
+    gameActive = false; // Imposta lo stato del gioco come non attivo
     gamePaused = true;
     console.log("Flag di stato impostati. gameActive:", gameActive, "gamePaused:", gamePaused);
 
@@ -540,19 +548,17 @@ function endGame(isVictory) {
     if (DOM.gameContainer) DOM.gameContainer.style.display = 'none';
     if (DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex per centrare il contenuto
 
+    let dayString = (daysSurvived === 1) ? "giorno" : "giorni";
+
     if (isVictory) {
         DOM.endTitle.textContent = "Sei Sopravvissuto!";
         if(DOM.endMessage && player) {
-            let message = `Dopo ${daysSurvived} giorni di viaggio estenuante, hai finalmente raggiunto la destinazione.
-
-Non è un paradiso, ma è un luogo sicuro. Forse qui potrai ricostruire qualcosa che assomigli a una vita.
-
-Ce l'hai fatta. Sei sopravvissuto.`;
+            let message = `Dopo ${daysSurvived} ${dayString} di viaggio estenuante, hai finalmente raggiunto la destinazione.\n\nNon è un paradiso, ma è un luogo sicuro. Forse qui potrai ricostruire qualcosa che assomigli a una vita.\n\nCe l'hai fatta. Sei sopravvissuto.`;
 
             // Aggiungi statistiche finali alla fine del messaggio
             message += `\n\n`; // Due a capo per separare
             message += `--- Statistiche Finali ---`;
-            message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived} ${dayString}`;
             message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
             message += `\nSazietà: ${Math.floor(player.food)}/10`;
             message += `\nIdratazione: ${Math.floor(player.water)}/10`;
@@ -570,17 +576,12 @@ Ce l'hai fatta. Sei sopravvissuto.`;
     } else {
         DOM.endTitle.textContent = "Il Viaggio Finisce Qui";
         if(DOM.endMessage && player) {
-            let message = `Sei sopravvissuto per ${daysSurvived} giorni.
-
-Le terre desolate reclamano un'altra vittima.
-
-La fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la meglio.
-Il tuo viaggio finisce qui, nell'oblio.`;
+            let message = `Sei sopravvissuto per ${daysSurvived} ${dayString}.\n\nLe terre desolate reclamano un'altra vittima.\n\nLa fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la meglio.\nIl tuo viaggio finisce qui, nell'oblio.`;
 
             // Aggiungi statistiche finali alla fine del messaggio
             message += `\n\n`; // Due a capo per separare
             message += `--- Statistiche Finali ---`;
-            message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived} ${dayString}`;
             message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
             message += `\nSazietà: ${Math.floor(player.food)}/10`;
             message += `\nIdratazione: ${Math.floor(player.water)}/10`;
