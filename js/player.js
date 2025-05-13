@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.19
+ * Versione: v0.7.20 BugFix 1
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -352,8 +352,8 @@ function useItem(itemId) {
              // NOTA: La logica originale usava le probabilità direttamente nell'effetto.
              // Ora le probabilità base sono nelle costanti per centralizzazione.
              // MODIFICATO: Usa currentEffect.poison_chance
-             let poisonChance = currentEffect.poison_chance;
-             if (itemId === 'berries') poisonChance = BERRIES_POISON_CHANCE;
+             let poisonChance = currentEffect.poison_chance || 0;
+             // RIMOSSA LA SEGUENTE RIGA: if (itemId === 'berries') poisonChance = BERRIES_POISON_CHANCE;
              // Questo if per water_dirty andrebbe corretto o rimosso se water_dirty ha la sua poison_chance in ITEM_DATA
              // if (itemId === 'water_dirty') poisonChance = DIRTY_WATER_POISON_CHANCE;
 

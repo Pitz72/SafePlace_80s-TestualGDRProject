@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.19
+ * Versione: v0.7.20 BugFix 1
  * File: js/game_data.js
  * Descrizione: Contiene tutti i dati statici del gioco come definizioni di oggetti, eventi, ecc.
  */
@@ -103,6 +103,104 @@ const STATO_MESSAGGI = {
         "Il tuo corpo debilitato soffre terribilmente per l'esposizione agli elementi durante la notte."
     ]
 };
+
+const esitiPericoloAmbientaleEvitato = [
+    "Con agilità felina e prontezza di riflessi, riesci a evitare il pericolo all'ultimo istante!",
+    "Il tuo sesto senso ti aveva avvertito. Ti fermi appena in tempo, schivando la minaccia con un brivido.",
+    "Noti il pericolo nascosto e con astuzia riesci a trovare un percorso alternativo sicuro.",
+    "Un passo falso e sarebbe finita male, ma la fortuna o la tua abilità ti hanno assistito questa volta."
+];
+
+const esitiPericoloAmbientaleColpito = [
+    "Non sei stato abbastanza veloce o attento. Il pericolo ambientale ti raggiunge in pieno!",
+    "Un errore fatale e ti ritrovi nel mezzo della minaccia. Subisci le conseguenze dolorose.",
+    "Non hai colto i segnali di avvertimento in tempo. L'ambiente ostile ti punisce severamente.",
+    "La tua valutazione del rischio era completamente sbagliata. Ora ne paghi il prezzo con la tua stessa pelle.",
+    "Il terreno cede sotto di te / l'aria si fa improvvisamente irrespirabile / una scarica imprevista ti colpisce!"
+];
+
+const mountainBlockMessages = [
+    "Guardando la parete rocciosa, ti rendi conto che tentare la scalata sarebbe un suicidio.",
+    "La montagna sembra fissarti dall'alto. Non hai l'equipaggiamento né l'esperienza per provarci.",
+    "Un ragazzino di 17 anni non scala queste vette. Ci vuole più di un po' di coraggio.",
+    "Queste rocce sono troppo ripide e friabili. Meglio cercare un altro sentiero.",
+    "Senti i muscoli lamentarsi solo a guardare quelle cime. Trovare un percorso alternativo è l'unica scelta sensata."
+];
+
+const tipiBestie = [
+    "Ratto Gigante", "Cane Selvatico", "Sciame di Insetti Mutati", "Corvo Bicefalo", "Salamandra Velenosa", "Lupo Mutato", "Cinghiale Corazzato"
+];
+
+const descrizioniIncontroBestie = [
+    "Un {animale} mutato e dall'aspetto aggressivo ti blocca il passo, ringhiando minacciosamente.",
+    "Sbuca dai cespugli un {animale} dalle dimensioni innaturali, gli occhi iniettati di sangue fissi su di te.",
+    "Un {animale} ferito e disperato ti carica, considerandoti una minaccia o un pasto facile.",
+    "Un {animale} dall'aspetto malato e contagioso barcolla verso di te, ignorando ogni tentativo di dissuasione.",
+    "Un {animale} ti osserva da lontano con un'intelligenza inquietante nei suoi occhi non del tutto animali."
+];
+
+const loreFragments = [
+    "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'",
+    "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà del Lab 7 - TERMINATO'",
+    "Ologramma tremolante da un dispositivo rotto: '...protocollo di contenimento fallito... bio-agente [CLASSIFICATO] fuori controllo... Evacuare immediatamente... che Dio ci aiuti...'",
+    "Scheda dati danneggiata e macchiata: '...mutazione instabile di Tipo IV... aggressività esponenziale... protocollo suggerito: eliminare a vista con armi incendiarie...'",
+    "Scarpa da bambino logora accanto a una piccola croce fatta di rametti e filo spinato.",
+    "Graffito tracciato col sangue su un muro: 'Non fidatevi dell'acqua che brilla. NON BEVETELA.'",
+    "Registrazione audio disturbata, voce maschile: '...stanno arrivando... le pareti non reggeranno... dite a mia figlia che l'amavo... il suo nome è Lily... *statica assordante*'",
+    "Mappa disegnata a mano su un pezzo di pelle umana conciata: Indica un percorso verso un luogo chiamato 'L'Oasi sotto le Stelle Cadute', ma è strappata a metà.",
+    "Messaggio inciso rozzamente su una capsula di proiettile 7.62: 'Per Mamma. Mi dispiaccio.'",
+    "Libro bruciacchiato ('Miti Pre-Collasso') con una sola pagina leggibile: '...e così gli Antichi Dei dormirono nelle profondità della terra e del cielo, lasciando il mondo al silenzio e ai loro figli distorti...'",
+    "Audio-log recuperato da un registratore militare: '...Soggetto 17 mostra rigenerazione cellulare accelerata... ma anche psicosi acuta... aggressività incontrollabile... perdita contenimento imminente... sterilizzare l'area...'",
+    "Biglietto scritto a mano con grafia tremante: 'Se leggi questo, sono andato a cercare acqua al Vecchio Impianto Idrico. Non seguirmi, è pieno di Quei Cosi. Trova il Safe Place. Ti voglio bene. Papà.'",
+    "Distintivo militare corroso dall'acido: Riporta il simbolo di un teschio alato e la scritta 'Guardiani del Lab - Unità Epurazione'.",
+    "Terminale medico portatile, schermo rotto ma leggibile: Mostra una lettura parziale: 'Contaminazione Biologica Tipo Gamma - Necrosi Tessutale Rapida - Esposizione fatale entro 2 ore...'.",
+    "Fotografia olografica incrinata e tremolante: Mostra una città vibrante e piena di luci volanti colorate, un'immagine quasi dolorosa da guardare ora.",
+    "Bozza di messaggio non inviato, scritta su un tablet rotto: '...Eliza, non ce la faremo a raggiungerti. Le scorte bastano per uno solo. Prenditi cura di Ultimo... digli che la sua mamma era un'eroina... e che...'",
+    "Schema tecnico strappato e macchiato: Descrive un 'Generatore Atmosferico Classe Arca' progettato per purificare l'aria su larga scala... mai attivato?",
+    "Simbolo religioso improvvisato fatto di ossa umane, fili metallici e componenti elettronici.",
+    "Ritaglio di giornale pre-guerra ('Il Cronista Globale'): Titolo: 'Nuova Era di Prosperità o Fuga dalla Realtà? Le Volte Salveranno l'Umanità o la Divideranno per Sempre?'",
+    "Piccolo carillon arrugginito a forma di stella. Quando lo apri, suona una melodia triste e rivela uno scomparto segreto con dentro una chiave minuscola e ossidata.",
+    "Appunto scarabocchiato su un tovagliolo unto: 'Segui il fiume morto verso il sole calante. Cerca la roccia che piange. Lì troverai la porta... se oserai bussare.'",
+    "Chip dati incrinato e parzialmente fuso. Impossibile leggerlo senza l'attrezzatura di un Lab... o forse qualcosa di peggio.",
+    "Manuale tecnico strappato ('Manutenzione Ripari Classe-C'): '...il sistema di filtraggio dell'aria HEPA richiede sostituzione nucleo ogni 500 ore operative per evitare contaminazione interna...'",
+    "Lista della spesa macchiata di sangue: 'Acqua (min. 5L), Munizioni (tutte!), Scatolette (proteine!), Nastro adesivo (molto!), Antidolorifici... Speranza (se ne trovi)...'",
+    "Pagina di un bestiario improvvisato, scritto a mano con disegni disturbanti: Descrive una creatura notturna senza volto chiamata 'Il Sussurrante delle Ombre', che si nutre di ricordi.",
+    "Rapporto tecnico parzialmente bruciato: '...il Geo-Core di Sektor Gamma è instabile. Rischio di collasso quantico entro 48h. Evacuare...'",
+    "Messaggio scarabocchiato sul retro di una foto di famiglia sorridente: 'Non sono riuscito a salvarli. La nebbia... li ha presi...'",
+    "Ordine militare criptato (decifrato parzialmente): '...Protocollo Cenere attivato su [REDACTED]. Nessun sopravvissuto autorizzato. Silenzio totale.'",
+    "Capsula medica vuota etichettata 'Naniti Riparatori - Prototipo X'. Sembra usata di recente.",
+    "Frammento di trasmissione radio intercettata: '...i Corvi Neri hanno sfondato a ovest. Ripeto, i Corvi Neri... la Vecchia Capitale cadrà...'",
+    "Diario di un medico del Lab 9: 'Giorno 112. Le mutazioni accelerate nel Settore Delta sono... inaspettate. Aggressività fuori scala. Abbiamo creato mostri.'",
+    "Tessera d'accesso corrosa: 'Lab 4 - Livello Sicurezza Alpha - Dott.ssa Eva Rostova'",
+    "Manifesto propagandistico strappato: 'L'Unione Pan-Europea garantisce sicurezza! Denunciate i dissidenti! Il futuro è ordine!'",
+    "Lista di nomi incisa su un muro con un coltello: 'Hans, Greta, Lena, Karl... Perdonatemi.'",
+    "Progetto tecnico di un'arma energetica portatile chiamata 'Lancia Solare'. Manca la pagina del generatore.",
+    "Avviso di quarantena biologica sbiadito e strappato, affisso alla porta di un bunker sigillato dall'esterno.",
+    "Registrazione audio recuperata da un drone abbattuto: '...zona contaminata confermata. Livelli Gamma letali. Nessun segno di vita organica... solo... movimento...'",
+    "Lettera non spedita: 'Mia cara Anya, se leggi questo, vuol dire che non torno. Ho visto cose indicibili oltre il Muro Est. Il 'Safe Place' non è ciò che credono...'",
+    "Simbolo tribale dipinto con sangue e fango su un carro armato abbandonato. Sembra un avvertimento.",
+    "Schema di un 'Filtro Psichico Classe-3'. Promette protezione dalle 'influenze esterne', ma richiede componenti introvabili.",
+    "Etichetta di razione militare: 'Eurasian Concordat - Pasto N.7 - Scadenza: --/--/--'",
+    "Richiesta di evacuazione medica urgente, negata: '...impossibile raggiungere la posizione. Priorità strategiche altrove. Sacrificio necessario.'",
+    "Pagina di libro per bambini ('Le Fiabe della Vecchia Europa') con disegni inquietanti scarabocchiati sopra le illustrazioni originali.",
+    "Componente elettronico non identificato, ancora caldo al tatto, che emette un debole ronzino.",
+    "Messaggio in codice lasciato in un punto di scambio morto: 'Aquila non risponde. Il pacco è compromesso. Procedere con Protocollo Omega.'",
+    "Registrazione su un vecchio data-slate crepato: 'Giorno 112. La mutazione si diffonde più velocemente del previsto. I sintomi neurologici sono... preoccupanti. Stiamo perdendo il controllo. Il Lab 7 deve essere sigillato. Ripeto, sigillat...' *fine registrazione*.",
+    "Frammento di tessuto strappato da un'uniforme militare. C'è una mostrina sbiadita con un teschio alato e la scritta 'Angeli della Cenere'.",
+    "Pagina di un manuale tecnico illustrato: mostra lo schema di un 'Purificatore d'Acqua Modello Aqualux VII', ma diverse componenti cruciali sono illeggibili o strappate.",
+    "Graffito complesso tracciato con vernice spray fluorescente su un muro crollato: raffigura un labirinto che converge verso un occhio stilizzato.",
+    "Piccola scatola di metallo arrugginita. Dentro, una ciocca di capelli biondi legata con un nastro sbiadito e una nota: 'Tornerò. Promesso. - Papà'.",
+    "Chip dati militare. Inserendolo in un terminale funzionante, potresti accedere a vecchie mappe tattiche o rapporti classificati.",
+    "Libro di fiabe per bambini, 'Le Avventure di Capitano Cometa'. Le pagine sono rovinate dall'umidità, ma le illustrazioni colorate di razzi e pianeti alieni sono ancora visibili.",
+    "Messaggio lasciato in una bottiglia vicino a un fiume prosciugato: 'Se leggi questo, vai a Ovest. Evita le guglie di vetro. Cantano di notte. Non ascoltarle.'",
+    "Terminale medico portatile, schermo crepato. Log: Paziente 04-B - Esposizione a 'Nebbia Cinerea'. Sintomi: cristallizzazione epidermica, paranoia acuta. Prognosi: infausta. Ultimo aggiornamento: 8 anni fa.",
+    "Pezzo di ceramica dipinta, forse parte di un vaso antico. Raffigura figure umanoidi che adorano un sole nero.",
+    "'Guida Pratica alla Sopravvivenza nel Dopocrollo' - Edizione Pirata. Molte pagine sono dedicate a come cucinare ratti e riconoscere funghi velenosi.",
+    "Comunicazione radio intercettata e trascritta su un foglio: '...ripetere, Eco-Alfa-Uno, la Zona di Quarantena è compromessa. Protocollo Scudo Divino attivato. Che Dio ci perdoni...'",
+    "Schema tracciato su un tovagliolo di carta: mostra come modificare una batteria d'auto per creare un'arma a impulsi elettromagnetici. Sembra pericoloso.",
+    "Un dente innaturalmente grande e affilato, forse appartenuto a una creatura mutata. È stranamente caldo al tatto.",
+    "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'."
+];
 
 // Probabilità base degli eventi per tipo di casella (0 = mai, 1 = sempre).
 // Queste sono solo le PROBABILITÀ, non i dati degli eventi.
@@ -1524,3 +1622,100 @@ const CRAFTING_RECIPES = {
 
 // --- INIZIO DEFINIZIONE SCHEMI RICOMPENSE EVENTI ---
 // ... existing code ...
+
+// --- Eventi Complessi: Dilemmi Morali (array di oggetti evento) ---
+const dilemmaEvents = [
+    {
+        id: "dilemma_suspicious_stash",
+        title: "Scorta Sospetta",
+        description: "Tra le rovine trovi una borsa nascosta, apparentemente piena di provviste. Tuttavia, ci sono strani segni attorno: tracce fresche, forse una trappola o qualcuno che osserva.",
+        choices: [
+            {
+                text: "Ispeziona con cautela (Adattamento)",
+                actionKey: "inspect_stash_carefully",
+                skillCheck: { stat: "adattamento", difficulty: 12 },
+                successText: "Con attenzione, disinneschi un filo sottile collegato a una trappola rudimentale. Recuperi la scorta senza danni!",
+                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
+                failureText: "Non noti un meccanismo nascosto: una trappola scatta, ferendoti leggermente.",
+                failurePenalty: { type: 'damage', amount: 5 }
+            },
+            {
+                text: "Prendi la borsa in fretta e scappa",
+                actionKey: "grab_and_run",
+                outcome: "Afferra la borsa e corri via. Senti un rumore dietro di te, ma nessuno ti insegue. Forse sei stato fortunato.",
+                successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }] }
+            },
+            {
+                text: "Ignora la scorta, troppo rischioso",
+                actionKey: "ignore_stash",
+                outcome: "Decidi che la prudenza è la scelta migliore. Ti allontani senza rischiare nulla."
+            }
+        ]
+    },
+    {
+        id: "dilemma_help_request",
+        title: "Richiesta d'Aiuto",
+        description: "Una voce debole ti chiama da una baracca crollata. Un sopravvissuto, ferito e spaventato, ti implora di aiutarlo. Potrebbe essere una trappola, o davvero qualcuno in difficoltà.",
+        choices: [
+            {
+                text: "Parla con il sopravvissuto (Influenza)",
+                actionKey: "talk_to_survivor",
+                skillCheck: { stat: "influenza", difficulty: 13 },
+                successText: "Riesci a rassicurare la persona, che ti offre in cambio una piccola scorta nascosta.",
+                successReward: { items: [{ itemId: 'bandages_clean', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] },
+                failureText: "Il sopravvissuto non si fida e si chiude in silenzio. Forse era davvero solo spaventato.",
+                failurePenalty: { type: 'nothing' }
+            },
+            {
+                text: "Ignora la richiesta e prosegui",
+                actionKey: "ignore_help_request",
+                outcome: "Soffochi il senso di colpa e ti allontani, lasciando il sopravvissuto al suo destino."
+            },
+            {
+                text: "Controlla la zona per possibili trappole (Presagio)",
+                actionKey: "check_for_traps",
+                skillCheck: { stat: "presagio", difficulty: 12 },
+                successText: "Noti segni sospetti: qualcuno ha preparato un'imboscata. Ti allontani senza farti notare.",
+                successReward: { type: 'nothing' },
+                failureText: "Non trovi nulla di strano, ma il dubbio ti rimane addosso.",
+                failurePenalty: { type: 'nothing' }
+            }
+        ]
+    },
+    {
+        id: "dilemma_inert_machine",
+        title: "Macchina Inerte",
+        description: "Un vecchio distributore automatico, semi-sepolto tra le macerie, attira la tua attenzione. Potrebbe contenere ancora qualcosa di utile, ma forzarlo potrebbe fare rumore e attirare attenzioni indesiderate.",
+        choices: [
+            {
+                text: "Forza lo sportello (Adattamento)",
+                actionKey: "force_machine_open",
+                skillCheck: { stat: "adattamento", difficulty: 14 },
+                successText: "Con pazienza e ingegno, riesci ad aprire lo sportello senza fare troppo rumore. Trovi una barretta di cioccolato e una bibita!",
+                successReward: { items: [{ itemId: 'chocolate_bar', quantity: 1 }, { itemId: 'soda_flat', quantity: 1 }] },
+                failureText: "Lo sportello si apre di colpo con un forte rumore. Poco dopo, senti passi sospetti nelle vicinanze.",
+                failurePenalty: { type: 'danger', description: 'Attiri attenzioni pericolose.' }
+            },
+            {
+                text: "Lascia perdere, troppo rischioso",
+                actionKey: "leave_machine",
+                outcome: "Decidi che non vale la pena rischiare per così poco. Ti allontani in silenzio."
+            }
+        ]
+    }
+];
+// ... existing code ...
+
+const esitiSeguiTracceOkNulla = [
+    "Decidi che non vale la pena rischiare per delle tracce incerte. Prosegui.",
+    "Hai cose più importanti a cui pensare che seguire ogni segno sospetto. Tiri dritto.",
+    "L'istinto ti dice di lasciar perdere. A volte, l'ignoranza è la scelta più sicura."
+];
+
+const esitiEvitaAnimaleKo = [
+    "L'animale è troppo veloce o astuto. Non riesci a seminarlo e ti blocca la strada!",
+    "Un movimento goffo ti tradisce. La creatura si accorge di te e si prepara ad attaccare.",
+    "Nonostante i tuoi sforzi, l'animale ti individua. La fuga non è più un'opzione.",
+    "Pensi di averlo distanziato, ma sbuca da un'altra direzione, più aggressivo di prima.",
+    "La bestia non si lascia ingannare e ti carica con ferocia."
+];

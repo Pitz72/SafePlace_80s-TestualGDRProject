@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.19
+ * Versione: v0.7.20 BugFix 1
  * File: js/dom_references.js
  * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */

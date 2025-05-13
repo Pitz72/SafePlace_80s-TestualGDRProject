@@ -1,13 +1,13 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.19
+ * Versione: v0.7.20 BugFix 1
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.19";
+const GAME_VERSION = "0.7.20 BugFix 1";
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -273,6 +273,78 @@ const MAX_MAP_REVEAL_RADIUS = 8;
 const BLUEPRINT_POOL = [
     { id: 'blueprint_crude_club', weight: 100 } // Per ora solo questo, peso 100 per assicurare che venga scelto se il pool è selezionato
 ];
+
+const RANDOM_REWARD_POOLS = {
+    COMMON_RESOURCE: [
+        { id: 'scrap_metal', weight: 30 },
+        { id: 'charcoal', weight: 20 },
+        { id: 'bandages_dirty', weight: 20 },
+        { id: 'water_dirty', weight: 15 },
+        { id: 'wood_planks', weight: 25 },
+        { id: 'cloth_rags', weight: 20 }
+    ],
+    RARE_RESOURCE: [
+        { id: 'mechanical_parts', weight: 35 },
+        { id: 'repair_kit', weight: 20 },
+        { id: 'vitamins', weight: 15 },
+        { id: 'lockpick_set_crude', weight: 15 },
+        { id: 'map_fragment_local', weight: 10 }
+    ],
+    MEDICAL_ITEM: [
+        { id: 'bandages_clean', weight: 30 },
+        { id: 'suspicious_pills', weight: 15 },
+        { id: 'herbal_salve', weight: 20 },
+        { id: 'medicine_crude', weight: 20 },
+        { id: 'antidote', weight: 10 },
+        { id: 'first_aid_kit', weight: 5 }
+    ],
+    FOOD_ITEM: [
+        { id: 'canned_food', weight: 25 },
+        { id: 'ration_pack', weight: 20 },
+        { id: 'berries', weight: 10 },
+        { id: 'chips_stale', weight: 15 },
+        { id: 'canned_beans', weight: 20 },
+        { id: 'meat_raw', weight: 8 },
+        { id: 'chocolate_bar', weight: 12 },
+        { id: 'dried_fruit', weight: 15 },
+        { id: 'protein_bar_old', weight: 12 },
+        { id: 'mystery_meat_cooked', weight: 10 },
+        { id: 'meat_cooked', weight: 10 },
+        { id: 'mre_pack', weight: 5 }
+    ],
+    WATER_ITEM: [
+        { id: 'water_purified_small', weight: 30 },
+        { id: 'water_dirty', weight: 20 },
+        { id: 'soda_flat', weight: 15 },
+        { id: 'rainwater_collected', weight: 18 },
+        { id: 'juice_box_found', weight: 12 },
+        { id: 'herbal_tea_crude', weight: 10 },
+        { id: 'energy_drink_old', weight: 8 },
+        { id: 'water_bottle', weight: 5 }
+    ],
+    RANDOM_WEAPON_POOL: [
+        { id: 'wooden_club', weight: 20 },
+        { id: 'kitchen_knife', weight: 15 },
+        { id: 'shiv_improvised', weight: 18 },
+        { id: 'metal_bar', weight: 12 },
+        { id: 'pipe_wrench', weight: 8 },
+        { id: 'combat_knife', weight: 7 },
+        { id: 'machete_rusty', weight: 6 },
+        { id: 'baseball_bat', weight: 7 },
+        { id: 'throwing_knife', weight: 10 },
+        { id: 'rock_sharp', weight: 15 },
+        { id: 'improvised_bow', weight: 5 },
+        { id: 'pistol_makeshift', weight: 3 }
+    ],
+    RANDOM_AMMO_POOL: [
+        { id: 'ammo_arrow_crude', weight: 25 },
+        { id: 'ammo_generic', weight: 20 },
+        { id: 'ammo_9mm', weight: 15 },
+        { id: 'ammo_bolt', weight: 10 },
+        { id: 'ammo_revolver_generic', weight: 8 },
+        { id: 'ammo_shell', weight: 5 }
+    ]
+};
 
 // Array per descrizioni evento tracce - Esito OK, trovato Lore
 // ... existing code ...
