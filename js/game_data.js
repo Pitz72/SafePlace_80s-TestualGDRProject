@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.21 Durability Reforged
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/game_data.js
  * Descrizione: Contiene tutti i dati statici del gioco come definizioni di oggetti, eventi, ecc.
  */
@@ -139,6 +139,20 @@ const descrizioniIncontroBestie = [
     "Un {animale} ti osserva da lontano con un'intelligenza inquietante nei suoi occhi non del tutto animali."
 ];
 
+const descrizioniTracce = [
+    "Noti delle impronte recenti sul terreno polveroso. Sembrano appartenere a più individui.",
+    "Un debole odore di fumo ti guida verso un piccolo bivacco abbandonato di recente. Qualcuno è passato di qui.",
+    "Delle tracce malcelate indicano un sentiero poco battuto che si inoltra nel fitto della vegetazione.",
+    "Vedi segni di lotta recente: terreno smosso, qualche goccia di sangue scuro.",
+    "Trovi uno strano simbolo tracciato nel fango, quasi cancellato dal vento."
+];
+
+const descrizioniIncontroPredoni = [
+    "Un gruppo di figure ostili emerge dalle ombre, i loro occhi brillano di malizia.",
+    "Ti imbatti in un accampamento di predoni. Sembrano sorpresi quanto te, ma la loro reazione è immediata e aggressiva.",
+    "Senti un fischio acuto, e in un attimo sei circondato da individui dall'aspetto minaccioso."
+];
+
 const loreFragments = [
     "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'",
     "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà del Lab 7 - TERMINATO'",
@@ -200,6 +214,13 @@ const loreFragments = [
     "Schema tracciato su un tovagliolo di carta: mostra come modificare una batteria d'auto per creare un'arma a impulsi elettromagnetici. Sembra pericoloso.",
     "Un dente innaturalmente grande e affilato, forse appartenuto a una creatura mutata. È stranamente caldo al tatto.",
     "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'."
+];
+
+const descrizioniTracceOkLore = [
+    "Le tracce ti conducono a un piccolo nascondiglio dimenticato. Trovi un appunto sbiadito che rivela un frammento del passato.",
+    "Seguendo gli indizi, scopri un vecchio terminale dati parzialmente funzionante. Riesci a recuperare un breve log.",
+    "Le impronte terminano vicino a un oggetto inciso. Contiene simboli strani e un pezzo di una storia più grande.",
+    "In un angolo nascosto, trovi una registrazione audio danneggiata. Ascolti voci distorte che parlano di tempi andati."
 ];
 
 // Probabilità base degli eventi per tipo di casella (0 = mai, 1 = sempre).

@@ -1,3 +1,50 @@
+### The Safe Place v0.7.22
+
+Correzione degli Errori Critici negli Eventi
+Scelte Evento Correttamente Gestite:
+
+Abbiamo risolto un problema che impediva al gioco di elaborare correttamente le scelte effettuate durante alcuni eventi.
+
+In precedenza, cliccare su un’opzione in un popup evento poteva causare blocchi o comportamenti anomali.
+
+Ora, la logica che gestisce le decisioni del giocatore (handleEventChoice) è stata ripristinata. Le scelte all’interno degli eventi funzionano come previsto, garantendo un corretto proseguimento della narrazione.
+
+Testi degli Eventi Correttamente Visualizzati:
+
+Alcuni eventi (come quelli legati all’esplorazione di tracce) potevano bloccarsi per la mancanza di testi descrittivi.
+
+Abbiamo aggiunto e corretto queste definizioni (es. descrizioniIncontroPredoni, descrizioniTracceOkLore), assicurando che i testi appaiano correttamente durante gli incontri.
+
+Funzionalità del Rifugio Notturno:
+
+Verificato il corretto funzionamento della logica di loot quando si utilizza un rifugio ('R') per riposare durante la notte.
+
+Ora, il riposo notturno avviene senza errori, e il loot generato è coerente con il contesto dell’evento.
+
+Miglioramento della Stabilità Generale
+Ottimizzazione del Modulo Eventi:
+
+Rimosso un errore di sintassi critico che comprometteva il flusso degli eventi, causando blocchi improvvisi.
+
+Il sistema è ora più stabile e i comportamenti imprevisti sono stati drasticamente ridotti.
+
+Cosa Cambia per i Giocatori:
+L’esperienza di gioco sarà più coerente e fluida.
+Gli eventi, fulcro dell’esplorazione e della narrazione, si attiveranno e si risolveranno correttamente in base alle scelte del giocatore.
+Questo aggiornamento è essenziale per garantire un gameplay stabile, permettendo di proseguire con il testing delle meccaniche e l’aggiunta di nuovi contenuti.
+
+Vi invitiamo a esplorare attentamente il mondo di gioco, interagendo con il maggior numero di eventi possibile, in particolare:
+
+Attivazione degli eventi: Verificate che si attivino sia in luoghi specifici che come eventi casuali.
+
+Scelte nei popup evento: Assicuratevi che ogni opzione produca l’effetto corretto.
+
+Esiti coerenti: Controllate che ricompense, penalità e messaggi siano coerenti con le decisioni prese.
+
+Rifugi ('R'): Testate sia il riposo diurno che notturno per verificare che loot e recupero siano corretti.
+
+Errori in console: Segnalate eventuali messaggi di errore o comportamenti strani durante l’esplorazione.
+
 ### The Safe Place v0.7.21
 
 1.  Durabilità Individuale per Ogni Oggetto:

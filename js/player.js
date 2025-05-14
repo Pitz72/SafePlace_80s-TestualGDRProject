@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.21 Durability Reforged
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -1132,6 +1132,7 @@ function showItemActionPopup(itemId, source = 'inventory') {
         DOM.itemActionStats.innerHTML = 'Dettagli statistiche non disponibili.';
     }
 
+    // Svuota il contenitore delle scelte
     DOM.itemActionChoices.innerHTML = '';
     const itemTemplate = item; // Per chiarezza nel log richiesto
     const actions = [];
@@ -1150,18 +1151,16 @@ function showItemActionPopup(itemId, source = 'inventory') {
         actions.push({ text: "Rimuovi", handler: () => unequipItem(item.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
     }
 
+    // Crea i bottoni tramite JavaScript e assegna l'onclick richiesto
     actions.forEach(action => {
         const button = document.createElement('button');
         button.textContent = action.text;
-        button.classList.add('action-button');
-        if (action.styleKey) {
-            button.classList.add(`action-${action.styleKey}`);
-        }
+        button.className = `action-button action-${action.styleKey || 'default'}`;
         button.onclick = () => {
             if (DEBUG_MODE) console.log(`[showItemActionPopup] Bottone AZIONE '${action.text}' CLICCATO per item ${itemId}`);
             action.handler(); // Esegue l'azione (es. useItem, equipItem, unequipItem, dropItem)
             if (DEBUG_MODE) console.log(`[showItemActionPopup] Chiamo closeItemActionPopup() DOPO azione '${action.text}'`);
-            if (typeof closeItemActionPopup === 'function') {
+            if (typeof closeItemActionPopup === 'function') { 
                 closeItemActionPopup();
             } else {
                 if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata!");
@@ -1169,23 +1168,25 @@ function showItemActionPopup(itemId, source = 'inventory') {
         };
         DOM.itemActionChoices.appendChild(button);
     });
+
     if (DEBUG_MODE) {
-        const choiceButtonsInDOM = DOM.itemActionChoices.querySelectorAll('button');
-        console.log(`[showItemActionPopup] Listener per Bottoni AZIONE ASSEGNATI: Trovati ${choiceButtonsInDOM.length} bottoni azione nel DOM.`);
-        choiceButtonsInDOM.forEach((btn, index) => {
-            console.log(`    Bottone Azione DOM ${index} ('${btn.textContent.split(' ')[0]}...'): ha un handler onclick? `, !!btn.onclick);
-        });
+        console.log("[showItemActionPopup] DEBUG HTML SCELTE AZIONI:", DOM.itemActionChoices.innerHTML);
+        const buttonsInPopup = DOM.itemActionChoices.querySelectorAll('button');
+        console.log(`[showItemActionPopup] DEBUG BOTTONI AZIONE EFFETTIVI NEL DOM: ${buttonsInPopup.length}`);
+        buttonsInPopup.forEach((btn, idx) => console.log(`    Bottone DOM ${idx}: '${btn.textContent}'`));
     }
 
-    DOM.itemActionCloseButton.onclick = () => {
-        if (DEBUG_MODE) console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO');
-        if (typeof closeItemActionPopup === 'function') {
-            closeItemActionPopup();
-        } else {
-            if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!");
-        }
-    };
-    if (DEBUG_MODE) console.log('[showItemActionPopup] Listener per Bottone CHIUDI ASSEGNATO:', !!DOM.itemActionCloseButton.onclick);
+    // Handler per il bottone di chiusura
+    if (DOM.itemActionCloseButton) {
+        DOM.itemActionCloseButton.onclick = () => {
+            if (DEBUG_MODE) console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO');
+            if (typeof closeItemActionPopup === 'function') {
+                closeItemActionPopup();
+            } else {
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!");
+            }
+        };
+    }
 
     if (DEBUG_MODE) console.log('[showItemActionPopup] Sto per rendere visibile il popup');
     DOM.itemActionOverlay.classList.add('visible');

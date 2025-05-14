@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.21 Durability Reforged
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/dom_references.js
  * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */

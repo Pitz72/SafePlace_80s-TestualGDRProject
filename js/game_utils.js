@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.21 Durability Reforged
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/game_utils.js
  * Descrizione: Funzioni di utilità generiche usate in tutto il gioco.
  * Dipende da: game_constants.js, game_data.js, ui.js (per addMessage)
