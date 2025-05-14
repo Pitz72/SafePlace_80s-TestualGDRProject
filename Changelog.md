@@ -1,3 +1,34 @@
+### The Safe Place v0.7.21
+
+1.  Durabilità Individuale per Ogni Oggetto:
+
+    - Prima: Se trovavate due "Chiavi Inglesi Pesanti", entrambe condividevano magicamente lo stesso livello di usura. Se una si danneggiava, si danneggiava anche l'altra!
+    - Ora: Ogni singola arma e armatura che troverete o creerete avrà la sua durabilità personale e indipendente. Una "Chiave Inglese" usata in combattimento si usurerà, ma un'altra identica trovata nuova di zecca sarà in perfette condizioni. Questo rende la gestione delle risorse e la decisione su quale equipaggiamento usare molto più strategica.
+
+2.  Visualizzazione Chiara della Durabilità:
+
+    - Nell'interfaccia principale, accanto al nome dell'arma e dell'armatura equipaggiate, vedrete ora chiaramente la loro durabilità attuale rispetto a quella massima (es. "Chiave Pesante (25/30)").
+    - Quando passate il mouse sopra un oggetto equipaggiabile nell'inventario (tooltip) o quando cliccate per vederne le azioni (popup), verranno mostrate le informazioni dettagliate sulla sua durabilità specifica, incluso uno stato testuale come "Buono", "Usurata", "Danneggiata", "Critica" o "ROTTA".
+
+3.  Funzionalità Ripristinate e Corrette:
+    - Popup Azioni Oggetto Perfettamente Funzionante: Abbiamo risolto un bug ostinato che a volte impediva l'apertura o la corretta chiusura del popup che appare quando cliccate su un oggetto per usarlo, equipaggiarlo, ecc. Ora dovrebbe funzionare fluidamente, mostrandovi tutte le opzioni disponibili (incluso il tasto "Rimuovi" per gli oggetti equipaggiati) e chiudendosi correttamente dopo ogni azione.
+    - Equipaggiamento Iniziale Visibile: Corretto un problema per cui l'arma e l'armatura con cui iniziate la partita a volte non venivano visualizzate correttamente nell'interfaccia, pur essendo equipaggiate.
+
+### The Safe Place v0.7.20
+
+1.  Risoluzione Errori Critici negli Eventi:
+
+    - Testi degli Eventi Ripristinati: Diversi eventi nel gioco (come quelli legati ai pericoli ambientali, all'incontro con bestie, all'esplorazione di tracce o alla scoperta di frammenti di storia) potevano causare errori o bloccarsi perché mancavano alcuni dei testi descrittivi necessari per i loro esiti. Abbiamo identificato e ripristinato questi testi mancanti, assicurando che gli eventi possano ora concludersi correttamente mostrando il risultato appropriato.
+    - Ricompense Casuali Funzionanti: Un problema tecnico impediva al sistema di assegnare correttamente ricompense casuali (come cibo, acqua o risorse comuni) durante certi eventi. Questa anomalia è stata corretta, quindi ora dovreste ricevere il loot come previsto.
+    - Dilemmi Morali Stabili: Un avviso tecnico relativo alla gestione dei dilemmi morali è stato risolto, anche se i dilemmi stessi sembravano funzionare.
+    - Messaggi di Blocco Montagne: Ripristinati i testi che appaiono quando si tenta di attraversare le montagne.
+
+2.  Funzionalità di Gioco (Nessuna Nuova Aggiunta, Solo Correzioni):
+    - L'attenzione è stata posta sulla stabilità. Non sono state introdotte nuove meccaniche, ma ci siamo assicurati che quelle esistenti funzionino senza generare errori tecnici visibili in console che potevano, in alcuni casi, impattare il flusso di gioco.
+
+Stato Attuale e Prossimi Passi:
+Con queste correzioni, la v0.7.20 dovrebbe offrire un'esperienza di gioco più affidabile. Il focus rimane sul raccogliere feedback dal beta testing esteso della v0.7.19 (ora aggiornata a v0.7.20 con questi fix) per identificare ulteriori aree di miglioramento, problemi di bilanciamento o bug residui.
+
 ### The Safe Place v0.7.19
 
 1.  Risoluzione Bug Eventi e Interfaccia:

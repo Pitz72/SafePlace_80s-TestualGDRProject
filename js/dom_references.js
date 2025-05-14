@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/dom_references.js
  * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */
@@ -13,24 +13,16 @@ let DOM = {};
  * Chiamata automaticamente quando il documento è pronto.
  */
 function assignAllDOMReferences() {
-    // console.log("assignAllDOMReferences: Inizio recupero elementi DOM..."); // Log di debug
-
     // Schermate principali e contenitori
     DOM.startScreenContainer = document.getElementById('start-screen-container') || null;
     DOM.instructionsScreen = document.getElementById('instructions-screen') || null;
     DOM.storyScreen = document.getElementById('story-screen') || null;
     DOM.gameContainer = document.getElementById('game-container') || null;
     DOM.endScreen = document.getElementById('end-screen') || null;
-    DOM.statPanel = document.getElementById('stat-panel'); // Aggiunto, sarà null se non esiste
 
     // Elementi della schermata iniziale
     DOM.gameTitle = document.getElementById('game-title') || null;
     DOM.startScreenImage = document.getElementById('start-screen-image');
-    DOM.mainMenu = document.getElementById('main-menu');
-    DOM.menuBtnNewGame = document.getElementById('menu-btn-new-game');
-    DOM.menuBtnLoadGame = document.getElementById('menu-btn-load-game');
-    DOM.menuBtnInstructions = document.getElementById('menu-btn-instructions');
-    DOM.menuBtnStory = document.getElementById('menu-btn-story');
     DOM.backToMenuButtons = document.querySelectorAll('.back-to-menu-btn');
     DOM.gameVersionDisplay = document.getElementById('game-version-display');
     DOM.startButton = document.getElementById('new-game-button');
@@ -137,12 +129,6 @@ function assignAllDOMReferences() {
     DOM.endTitle = document.getElementById('end-title') || null;
     DOM.endMessage = document.getElementById('end-message') || null;
 
-    // Equipaggiamento e Stats
-    DOM.weaponName = document.getElementById('weapon-name');
-    DOM.weaponDurability = document.getElementById('weapon-durability');
-    DOM.armorName = document.getElementById('armor-name');
-    DOM.armorDurability = document.getElementById('armor-durability');
-
     // Bottone Salvataggio (NUOVO)
     DOM.saveGameButton = document.getElementById('save-game-button');
 
@@ -179,9 +165,6 @@ function assignAllDOMReferences() {
         DOM.craftItemButton = null;
         DOM.craftingCloseButton = null;
     }
-
-    // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
-    // console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // RIMOSSO Log finale diagnostico
 }
 
 // --- ESECUZIONE AUTOMATICA QUANDO IL DOM È PRONTO ---

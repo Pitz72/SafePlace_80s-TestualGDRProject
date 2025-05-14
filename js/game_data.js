@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/game_data.js
  * Descrizione: Contiene tutti i dati statici del gioco come definizioni di oggetti, eventi, ecc.
  */
@@ -927,7 +927,6 @@ const ITEM_DATA = {
         slot: 'weapon',
         weaponType: 'mischia',
         damage: { min: 5, max: 10 },
-        durability: 30,
         maxDurability: 30,
         weight: 1.5,
         value: 20
@@ -940,7 +939,6 @@ const ITEM_DATA = {
         slot: 'weapon',
         weaponType: 'mischia',
         damage: { min: 2, max: 5 },
-        durability: 20,
         maxDurability: 20,
         weight: 1.0,
         value: 5
@@ -953,7 +951,6 @@ const ITEM_DATA = {
         slot: 'weapon',
         weaponType: 'mischia',
         damage: { min: 4, max: 8 },
-        durability: 35,
         maxDurability: 35,
         weight: 1.8,
         value: 15
@@ -1255,7 +1252,6 @@ const ITEM_DATA = {
         stackable: false,
         slot: "body",
         armorValue: 2,
-        durability: 40,
         maxDurability: 40,
         weight: 2.0,
         value: 15,
@@ -1270,7 +1266,6 @@ const ITEM_DATA = {
         stackable: false,
         slot: "body",
         armorValue: 1,
-        durability: 25,
         maxDurability: 25,
         weight: 1.2,
         value: 3,
@@ -1283,7 +1278,6 @@ const ITEM_DATA = {
         type: 'armor',
         slot: 'body',
         armorValue: 2,
-        durability: 35,
         maxDurability: 35,
         weight: 1.5,
         value: 25
@@ -1475,12 +1469,11 @@ const ITEM_DATA = {
         description: "Lega insieme alcuni robusti pezzi di legno con degli stracci per creare una mazza contundente di fortuna."
     },
     'craft_rags_armor': {
-        productName: "Armatura di Stracci", // Nome per UI
-        productId: 'armor_rags_simple', // DEVI AGGIUNGERE QUESTO ITEM A ITEM_DATA
+        productName: "Armatura di Stracci",
+        productId: 'armor_rags_simple',
         productQuantity: 1,
         ingredients: [
-            { itemId: 'cloth_rags', quantity: 3 },
-            { itemId: 'string_piece', quantity: 2 } // Assicurati esista
+            { itemId: 'cloth_rags', quantity: 5 }
         ],
         description: "Crea un'Armatura di Stracci.",
         successMessage: "Hai creato un'Armatura di Stracci."

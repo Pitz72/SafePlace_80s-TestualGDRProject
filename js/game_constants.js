@@ -1,13 +1,14 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.20 BugFix 1";
+const GAME_VERSION = "0.7.21 Durability Reforged";
+const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
 // Queste variabili memorizzano lo stato attuale del gioco.
@@ -345,6 +346,3 @@ const RANDOM_REWARD_POOLS = {
         { id: 'ammo_shell', weight: 5 }
     ]
 };
-
-// Array per descrizioni evento tracce - Esito OK, trovato Lore
-// ... existing code ...

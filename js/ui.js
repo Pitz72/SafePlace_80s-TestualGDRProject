@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente, aggiornamento DOM, popup.
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -21,6 +21,7 @@
  * Aggiorna la visualizzazione delle statistiche del giocatore nell'interfaccia.
  */
 function renderStats() {
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[renderStats] Player Equip LETTO - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
     // Verifica che il giocatore esista e che i riferimenti DOM siano validi.
     if (!player || !DOM.statHp || !DOM.statMaxHp || !DOM.statVig || !DOM.statPot || !DOM.statAgi || !DOM.statTra || !DOM.statInf || !DOM.statPre || !DOM.statAda || !DOM.statAcq || !DOM.statFood || !DOM.statWater || !DOM.statCondition || !DOM.statWeapon || !DOM.statArmor || !DOM.posX || !DOM.posY || !DOM.tileType || !DOM.statDayTime) {
         console.warn("renderStats: Elementi DOM o dati giocatore non pronti.");
@@ -61,9 +62,8 @@ function renderStats() {
     DOM.statFood.classList.toggle('low-resource', player.food <= 1 && player.food > 0);
     DOM.statWater.classList.toggle('low-resource', player.water <= 1 && player.water > 0);
     // Aggiunge classe specifica per risorsa a 0
-     DOM.statFood.classList.toggle('zero-resource', player.food <= 0);
-     DOM.statWater.classList.toggle('zero-resource', player.water <= 0);
-
+    DOM.statFood.classList.toggle('zero-resource', player.food <= 0);
+    DOM.statWater.classList.toggle('zero-resource', player.water <= 0);
 
     // Aggiorna visualizzazione stato condizione
     let statoText = "Normale";
@@ -105,33 +105,51 @@ function renderStats() {
     DOM.statCondition.className = ''; // Pulisce tutte le classi esistenti
     DOM.statCondition.classList.add(statoClass); // Applica solo la classe corretta
 
-
-    // Aggiorna visualizzazione Equipaggiamento con stato munizioni
-    const weaponId = player.equippedWeapon;
-    if (weaponId && ITEM_DATA[weaponId]) {
-        // MODIFICATO: Usa nameShort se disponibile
-        let weaponName = ITEM_DATA[weaponId].nameShort || ITEM_DATA[weaponId].name;
-        // Verifica munizioni se la funzione checkAmmoAvailability esiste nel modulo player
-        if (typeof checkAmmoAvailability === 'function') {
-            const ammoStatus = checkAmmoAvailability();
-            weaponName += ammoStatus.message; // Aggiunge tipo munizione e/o stato (Senza X)
+    // --- Arma equipaggiata ---
+    if (player.equippedWeapon && player.equippedWeapon.itemId) {
+        const weaponInstance = player.equippedWeapon;
+        const weaponTemplate = ITEM_DATA[weaponInstance.itemId];
+        if (weaponTemplate) {
+            let weaponName = weaponTemplate.nameShort || weaponTemplate.name;
+            if (
+                typeof weaponInstance.currentDurability === 'number' &&
+                typeof weaponTemplate.maxDurability === 'number'
+            ) {
+                weaponName += ` (${Math.floor(weaponInstance.currentDurability)}/${weaponTemplate.maxDurability})`;
+            }
+            if (typeof checkAmmoAvailability === 'function') {
+                const ammoStatus = checkAmmoAvailability(); // Assicurati che checkAmmoAvailability sia definita e funzionante
+                weaponName += ammoStatus.message;
+            } else {
+                console.warn("checkAmmoAvailability non disponibile per visualizzazione stato arma.");
+            }
+            DOM.statWeapon.textContent = weaponName;
         } else {
-            // Fallback se checkAmmoAvailability non è ancora disponibile
-            console.warn("checkAmmoAvailability non disponibile per visualizzazione stato arma.");
+            DOM.statWeapon.textContent = "Arma Sconosciuta";
         }
-        DOM.statWeapon.textContent = weaponName;
     } else {
-        DOM.statWeapon.textContent = "Nessuna"; // O "Mani Nude"
+        DOM.statWeapon.textContent = "Nessuna";
     }
 
-    const armorId = player.equippedArmor;
-    if (armorId && ITEM_DATA[armorId]) {
-        // MODIFICATO: Usa nameShort se disponibile
-        DOM.statArmor.textContent = ITEM_DATA[armorId].nameShort || ITEM_DATA[armorId].name;
+    // --- Armatura equipaggiata ---
+    if (player.equippedArmor && player.equippedArmor.itemId) {
+        const armorInstance = player.equippedArmor;
+        const armorTemplate = ITEM_DATA[armorInstance.itemId];
+        if (armorTemplate) {
+            let armorName = armorTemplate.nameShort || armorTemplate.name;
+            if (
+                typeof armorInstance.currentDurability === 'number' &&
+                typeof armorTemplate.maxDurability === 'number'
+            ) {
+                armorName += ` (${Math.floor(armorInstance.currentDurability)}/${armorTemplate.maxDurability})`;
+            }
+            DOM.statArmor.textContent = armorName;
+        } else {
+            DOM.statArmor.textContent = "Armatura Sconosciuta";
+        }
     } else {
-        DOM.statArmor.textContent = "Nessuna"; // O "Vestiti"
+        DOM.statArmor.textContent = "Nessuna";
     }
-
 
     // Aggiorna informazioni di gioco (posizione, luogo, ora, giorno)
     DOM.posX.textContent = player.x;
@@ -146,51 +164,31 @@ function renderStats() {
         DOM.tileType.textContent = '--'; // Valore di default se la posizione non è valida
     }
 
-
     // Aggiorna indicatore Giorno/Notte e Ora
     if (isDay) {
-        // Calcola l'orario simulato in base al progresso del giorno
-        // Mappiamo dayMovesCounter (0 a DAY_LENGTH_MOVES-1) su ore 6:00 a 18:xx
         const totalHoursOfDay = 13; // Dalle 6 alle 19
         const movesPerDay = DAY_LENGTH_MOVES;
         const currentHour = Math.floor(6 + (dayMovesCounter / movesPerDay) * totalHoursOfDay);
-        // Simula i minuti per maggiore precisione (ogni passo ~3-4 minuti d'ora simulata)
         const simulatedMinutesPerMove = Math.floor((totalHoursOfDay * 60) / movesPerDay);
-        const currentMinute = Math.floor((dayMovesCounter % movesPerDay) * simulatedMinutesPerMove) % 60; // Minuti nell'ora corrente
+        const currentMinute = Math.floor((dayMovesCounter % movesPerDay) * simulatedMinutesPerMove) % 60;
         const formattedHour = currentHour.toString().padStart(2, '0');
         const formattedMinute = currentMinute.toString().padStart(2, '0');
-
         DOM.statDayTime.textContent = `${formattedHour}:${formattedMinute}`;
     } else {
-        // Per la notte, mostriamo solo "Notte" o potremmo simulare ore notturne
-        // Simula ore notturne (es. 19:00 a 5:59) in base a nightMovesCounter se non si è in rifugio?
-        // Per ora, semplifichiamo e mostriamo solo "Notte"
         DOM.statDayTime.textContent = 'Notte';
-        // Potresti voler aggiungere un indicatore del progresso notturno se necessario.
     }
 
-    // Aggiungi listener per interazione con oggetti equipaggiati (Tooltip e Azioni)
-    // Assicurati che questi listener vengano aggiunti solo una volta o gestiti correttamente se renderStats viene chiamata frequentemente.
-    // Un modo è rimuovere e riaggiungere, oppure usare un flag.
-    // Per semplicità iniziale, li aggiungiamo qui. Se renderStats è chiamata molto spesso, potremmo spostarli in una initUI una tantum.
-
-    const setupEquippedItemInteraction = (element, itemSlotKey) => {
+    // --- (INIZIO BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---
+    const setupEquippedItemInteraction = (element, slotKey) => {
         if (!element) return;
-
-        // Rimuovi listener esistenti per evitare duplicazioni se questa funzione viene chiamata più volte
-        // Questo richiede che le funzioni handler siano definite in modo da poterle referenziare per la rimozione.
-        // Per ora, ci affidiamo al fatto che gli ID degli oggetti cambiano e quindi i dati del tooltip/popup si aggiornano.
-        // Una soluzione più robusta userebbe .removeEventListener con named functions.
-
+        element.onmouseover = null;
+        element.onmouseout = null;
+        element.onclick = null;
         element.onmouseover = (event) => {
-            const itemId = player[itemSlotKey];
-            if (itemId && ITEM_DATA[itemId]) {
-                // Per showItemTooltip, abbiamo bisogno di un itemSlot (con itemId e quantity) e dell'evento.
-                // Poiché un oggetto equipaggiato ha sempre quantity 1 e non è uno "slot" dell'inventario,
-                // creiamo un oggetto fittizio simile a uno slot.
-                const mockItemSlot = { itemId: itemId, quantity: 1 }; 
+            const equippedItemInstance = player[slotKey];
+            if (equippedItemInstance && equippedItemInstance.itemId && ITEM_DATA[equippedItemInstance.itemId]) {
                 if (typeof showItemTooltip === 'function') {
-                    showItemTooltip(mockItemSlot, event);
+                    showItemTooltip(equippedItemInstance, event);
                 }
             }
         };
@@ -200,23 +198,24 @@ function renderStats() {
             }
         };
         element.onclick = () => {
-            const itemId = player[itemSlotKey];
-            if (itemId && ITEM_DATA[itemId]) {
+            const equippedItemInstance = player[slotKey]; // slotKey è 'equippedWeapon' o 'equippedArmor'
+            if (equippedItemInstance && equippedItemInstance.itemId && ITEM_DATA[equippedItemInstance.itemId]) {
                 if (typeof showItemActionPopup === 'function') {
-                    // Passiamo l'itemId e un'indicazione che la sorgente è 'equipped'
-                    showItemActionPopup(itemId, 'equipped'); 
+                    if (DEBUG_MODE) console.log(`[renderStats/setupEquip] CHIAMO showItemActionPopup per SLOTKEY '${slotKey}': itemId='${equippedItemInstance.itemId}', source='equipped'`);
+                    showItemActionPopup(equippedItemInstance.itemId, 'equipped');
+                } else {
+                    if (DEBUG_MODE) console.error("[renderStats/setupEquip] ERRORE: Funzione showItemActionPopup non trovata!");
                 }
             }
         };
     };
-
-    // Se DOM.statWeapon e DOM.statArmor sono già stati popolati da dom_references.js
     if (DOM.statWeapon) {
         setupEquippedItemInteraction(DOM.statWeapon, 'equippedWeapon');
     }
     if (DOM.statArmor) {
         setupEquippedItemInteraction(DOM.statArmor, 'equippedArmor');
     }
+    // --- (FINE BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---
 }
 
 /**
@@ -695,7 +694,6 @@ function hideMapTooltip() {
 function showItemTooltip(itemSlot, event) {
     // Verifica che gli elementi del tooltip e i dati dell'oggetto siano disponibili
     if (gamePaused || !DOM.itemTooltip || !DOM.tooltipItemName || !DOM.tooltipItemDesc || !itemSlot || !itemSlot.itemId || !ITEM_DATA[itemSlot.itemId]) {
-        // console.warn("showItemTooltip: Elementi tooltip, dati oggetto o gioco in pausa."); // Log di debug rimosso
         hideItemTooltip(); // Assicura che sia nascosto se i dati non sono validi
         return;
     }
@@ -708,9 +706,8 @@ function showItemTooltip(itemSlot, event) {
 
     let statsDetailsHTML = '';
     if (typeof getItemDetailsHTML === 'function') {
-        statsDetailsHTML = getItemDetailsHTML(itemDetails);
+        statsDetailsHTML = getItemDetailsHTML(itemSlot); // Passa l'istanza, non il template!
     }
-    // RIMOSSO console.log di debug
     const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container');
     if (tooltipStatsContainer) {
         tooltipStatsContainer.innerHTML = statsDetailsHTML;
@@ -1178,77 +1175,89 @@ function buildAndShowComplexEventOutcome(title, description, checkDetails, conse
  * @param {object} itemInfo - L'oggetto dati dell'item da ITEM_DATA.
  * @returns {string} Stringa HTML con le statistiche formattate o vuota.
  */
-function getItemDetailsHTML(itemInfo) {
+function getItemDetailsHTML(itemInstance) {
+    // Log per vedere cosa riceve esattamente la funzione
+    if (DEBUG_MODE) console.log('[getItemDetailsHTML] Istanza ricevuta:', JSON.stringify(itemInstance));
+
+    // CONDIZIONE CORRETTA: Verifica itemInstance E itemInstance.itemId
+    if (!itemInstance || !itemInstance.itemId) { 
+        console.warn("getItemDetailsHTML: itemInstance o itemInstance.itemId non validi. Istanza:", itemInstance);
+        return ''; 
+    }
+    const itemTemplate = ITEM_DATA[itemInstance.itemId]; // Usa itemInstance.itemId
+    if (!itemTemplate) {
+        console.warn(`getItemDetailsHTML: Template non trovato in ITEM_DATA per itemId '${itemInstance.itemId}'.`);
+        return ''; 
+    }
+
     let detailsHTML = '';
 
-    if (!itemInfo) return '';
-
-    // Statistiche per armi
-    if (itemInfo.type === 'weapon') {
-        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemInfo.weaponType)}</span></div>`;
+    if (itemTemplate.type === 'weapon') {
+        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemTemplate.weaponType)}</span></div>`;
         let damageText = '?';
-        if (typeof itemInfo.damage === 'object' && itemInfo.damage !== null && itemInfo.damage.min !== undefined && itemInfo.damage.max !== undefined) {
-            damageText = `${itemInfo.damage.min}-${itemInfo.damage.max}`;
-        } else if (typeof itemInfo.damage === 'number') {
-            damageText = itemInfo.damage;
+        if (typeof itemTemplate.damage === 'object' && itemTemplate.damage !== null && itemTemplate.damage.min !== undefined && itemTemplate.damage.max !== undefined) {
+            damageText = `${itemTemplate.damage.min}-${itemTemplate.damage.max}`;
+        } else if (typeof itemTemplate.damage === 'number') {
+            damageText = itemTemplate.damage;
         }
         detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${damageText}</span></div>`;
-        if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
-            const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
-            let durabilityColor = '#00DD00';
+        
+        // Usa itemInstance.currentDurability e itemTemplate.maxDurability
+        // CONDIZIONE CORRETTA: Verifica anche che itemInstance.currentDurability sia un numero
+        if (typeof itemInstance.currentDurability === 'number' && typeof itemTemplate.maxDurability === 'number') {
+            const durabilityPercent = (itemInstance.currentDurability / itemTemplate.maxDurability) * 100;
+            let durabilityColor = '#00DD00'; 
             let durabilityStatus = 'Buono';
-            if (itemInfo.durability <= 0) {
-                durabilityColor = '#FF0000';
+            if (itemInstance.currentDurability <= 0) {
+                durabilityColor = '#FF0000'; 
                 durabilityStatus = 'ROTTA';
             } else if (durabilityPercent <= 25) {
-                durabilityColor = '#FF4444';
+                durabilityColor = '#FF4444'; 
                 durabilityStatus = 'Critica';
             } else if (durabilityPercent <= 50) {
-                durabilityColor = '#FFAA00';
+                durabilityColor = '#FFAA00'; 
                 durabilityStatus = 'Danneggiata';
             } else if (durabilityPercent <= 75) {
-                durabilityColor = '#FFFF00';
+                durabilityColor = '#FFFF00'; 
                 durabilityStatus = 'Usurata';
             }
             detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInstance.currentDurability)}/${itemTemplate.maxDurability}</span></div>`;
         }
-        if (itemInfo.peso) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemInfo.peso}</span></div>`;
-        if (itemInfo.velocità) detailsHTML += `<div class="item-stat">Velocità: <span class="stat-value">${itemInfo.velocità}</span></div>`;
-        if (itemInfo.raggio) detailsHTML += `<div class="item-stat">Raggio: <span class="stat-value">${itemInfo.raggio}</span></div>`;
-        if (itemInfo.precisione) detailsHTML += `<div class="item-stat">Precisione: <span class="stat-value">${itemInfo.precisione}</span></div>`;
-        if (itemInfo.rumore) detailsHTML += `<div class="item-stat">Rumore: <span class="stat-value">${itemInfo.rumore}</span></div>`;
-        if (itemInfo.ammoType) {
-            const ammoName = ITEM_DATA[itemInfo.ammoType]?.name || itemInfo.ammoType;
+        if (itemTemplate.weight) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemTemplate.weight}</span></div>`;
+        if (itemTemplate.ammoType) {
+            const ammoName = ITEM_DATA[itemTemplate.ammoType]?.name || itemTemplate.ammoType;
             detailsHTML += `<div class="item-stat">Munizioni: <span class="stat-value">${ammoName}</span></div>`;
         }
-        if (itemInfo.recuperabile !== undefined) {
-            detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemInfo.recuperabile ? 'Sì' : 'No'}</span></div>`;
-        }
+        if (itemTemplate.velocità) detailsHTML += `<div class="item-stat">Velocità: <span class="stat-value">${itemTemplate.velocità}</span></div>`;
+        if (itemTemplate.raggio) detailsHTML += `<div class="item-stat">Raggio: <span class="stat-value">${itemTemplate.raggio}</span></div>`;
+        if (itemTemplate.precisione) detailsHTML += `<div class="item-stat">Precisione: <span class="stat-value">${itemTemplate.precisione}</span></div>`;
+        if (itemTemplate.rumore) detailsHTML += `<div class="item-stat">Rumore: <span class="stat-value">${itemTemplate.rumore}</span></div>`;
+        if (itemTemplate.recuperabile !== undefined) detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemTemplate.recuperabile ? 'Sì' : 'No'}</span></div>`;
     }
-    // Statistiche per armature
-    else if (itemInfo.type === 'armor') {
-        detailsHTML += `<div class="item-stat">Protezione: <span class="stat-value">${itemInfo.armorValue || 0}</span></div>`;
-        if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
-            const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
+    else if (itemTemplate.type === 'armor') {
+        detailsHTML += `<div class="item-stat">Protezione: <span class="stat-value">${itemTemplate.armorValue || 0}</span></div>`;
+        // CONDIZIONE CORRETTA: Verifica anche che itemInstance.currentDurability sia un numero
+        if (typeof itemInstance.currentDurability === 'number' && typeof itemTemplate.maxDurability === 'number') {
+            const durabilityPercent = (itemInstance.currentDurability / itemTemplate.maxDurability) * 100;
             let durabilityColor = '#00DD00';
             let durabilityStatus = 'Buono';
-            if (itemInfo.durability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
+            if (itemInstance.currentDurability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
             else if (durabilityPercent <= 25) { durabilityColor = '#FF4444'; durabilityStatus = 'Critica'; }
             else if (durabilityPercent <= 50) { durabilityColor = '#FFAA00'; durabilityStatus = 'Danneggiata'; }
             else if (durabilityPercent <= 75) { durabilityColor = '#FFFF00'; durabilityStatus = 'Usurata'; }
             detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInstance.currentDurability)}/${itemTemplate.maxDurability}</span></div>`;
         }
+        if (itemTemplate.weight) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemTemplate.weight}</span></div>`;
     }
-    // Effetti per oggetti utilizzabili o consumabili
-    const effectsText = typeof getItemEffectsText === 'function' ? getItemEffectsText(itemInfo) : '';
+    
+    const effectsText = typeof getItemEffectsText === 'function' ? getItemEffectsText(itemTemplate) : ''; 
     if (effectsText) {
         detailsHTML += `<div class="item-stat">${effectsText}</div>`;
     }
     return detailsHTML;
 }
-
 // ----- Fine Implementazione Tooltip Inventario -----
 
 

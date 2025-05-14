@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/game_utils.js
  * Descrizione: Funzioni di utilità generiche usate in tutto il gioco.
  * Dipende da: game_constants.js, game_data.js, ui.js (per addMessage)
@@ -111,7 +111,7 @@ function addMessage(text, type = 'normal', important = false) {
         renderMessages();
     } else {
         // Fallback console log se la UI non è pronta (usa testo originale senza <br>)
-        console.log(`[Log:${type.toUpperCase()}] ${text}`); 
+        if (DEBUG_MODE) console.log(`[Log:${type.toUpperCase()}] ${text}`); 
     }
 }
 

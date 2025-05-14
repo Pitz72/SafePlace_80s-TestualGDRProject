@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco e gestione input.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
@@ -82,7 +82,7 @@ function initializeStartScreen() {
  * Chiamata quando si clicca "NUOVA PARTITA".
  */
 function initializeGame() {
-    console.log("Inizializzazione gioco...");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Inizializzazione gioco...");
     gameActive = true;
     gamePaused = false;
     eventScreenActive = false;
@@ -451,8 +451,7 @@ function setupInputListeners() {
         console.warn("setupInputListeners: Pulsante openCraftingButton non trovato nel DOM.");
     }
 
-    // Aggiungere qui altri listener globali se necessario
-     console.log("Input listeners impostati.");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Input listeners impostati.");
 }
 
 // --- Helper functions per i listener (per poterli rimuovere facilmente) ---
@@ -535,7 +534,7 @@ function endGame(isVictory) {
     // console.log("endGame chiamata! Vittoria:", isVictory, "HP Giocatore:", player ? player.hp : 'player non definito'); // Log di debug
     gameActive = false; // Imposta lo stato del gioco come non attivo
     gamePaused = true;
-    console.log("Flag di stato impostati. gameActive:", gameActive, "gamePaused:", gamePaused);
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Flag di stato impostati. gameActive:", gameActive, "gamePaused:", gamePaused);
 
     if (!DOM.gameContainer || !DOM.endScreen || !DOM.endTitle || !DOM.endMessage || !DOM.restartButton) {
         console.error("endGame: Riferimenti DOM essenziali mancanti! Impossibile mostrare schermata finale.");
@@ -638,7 +637,7 @@ const SAVE_KEY = 'theSafePlaceSaveData'; // Chiave per localStorage
  * Raccoglie lo stato corrente del gioco e lo salva in localStorage.
  */
 function saveGame() {
-    console.log("Salvataggio partita...");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio partita...");
     try {
         const saveData = {
             player: player,
@@ -660,7 +659,7 @@ function saveGame() {
         localStorage.setItem(SAVE_KEY, saveDataString);
 
         addMessage("Partita salvata con successo!", "success");
-        console.log("Salvataggio completato.");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio completato.");
 
     } catch (error) {
         console.error("Errore durante il salvataggio della partita:", error);
@@ -673,12 +672,12 @@ function saveGame() {
  * @returns {boolean} True se il caricamento ha avuto successo, false altrimenti.
  */
 function loadGame() {
-    console.log("Caricamento partita...");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento partita...");
     try {
         const saveDataString = localStorage.getItem(SAVE_KEY);
 
         if (!saveDataString) {
-            console.log("Nessun dato di salvataggio trovato.");
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Nessun dato di salvataggio trovato.");
             addMessage("Nessuna partita salvata trovata.", "warning");
             return false;
         }
@@ -707,13 +706,13 @@ function loadGame() {
         uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
         // Ripristinare qui altre variabili globali salvate
 
-        console.log("Stato del gioco ripristinato:", loadedData);
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato del gioco ripristinato:", loadedData);
 
         // --- Aggiorna Interfaccia --- 
         // È cruciale chiamare tutte le funzioni di rendering per riflettere lo stato caricato
         // Usiamo setTimeout per dare tempo al browser di calcolare il layout dopo showScreen
         setTimeout(() => {
-            console.log("Rendering UI after load timeout...");
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Rendering UI after load timeout...");
             if (typeof renderMap === 'function') renderMap(); else console.error("loadGame: renderMap non trovata!");
             if (typeof renderStats === 'function') renderStats(); else console.error("loadGame: renderStats non trovata!");
             if (typeof renderInventory === 'function') renderInventory(); else console.error("loadGame: renderInventory non trovata!");
@@ -738,7 +737,7 @@ function loadGame() {
         }
 
         addMessage(`Partita caricata (salvata il ${new Date(loadedData.saveTimestamp).toLocaleString()}).`, "success");
-        console.log("Caricamento completato.");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento completato.");
         return true;
 
     } catch (error) {

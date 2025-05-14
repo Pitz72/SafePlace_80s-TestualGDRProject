@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.20 BugFix 1
+ * Versione: v0.7.21 Durability Reforged
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -55,9 +55,9 @@ function generateCharacter() {
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
 
-        // Equipaggiamento (memorizza l'itemId dell'oggetto equipaggiato)
-        equippedWeapon: null, // ID dell'arma equipaggiata
-        equippedArmor: null,  // ID dell'armatura equipaggiata // Verrà impostato sotto
+        // Equipaggiamento (memorizza l'oggetto equipaggiato come {itemId, currentDurability})
+        equippedWeapon: null, // Verrà impostato sotto
+        equippedArmor: null,  // Verrà impostato sotto
 
         // Inventario: array di oggetti { itemId: string, quantity: number }
         inventory: []
@@ -87,22 +87,31 @@ function generateCharacter() {
 
     // Equipaggia un'arma base all'inizio
     const startingWeaponId = 'pipe_wrench';
-    if (ITEM_DATA[startingWeaponId]) {
-        player.equippedWeapon = startingWeaponId;
-        // Non è necessario rimuoverla dall'inventario perché non l'abbiamo aggiunta lì
-        // logMessage(`Equipaggiato automaticamente: \${ITEM_DATA[startingWeaponId].name}\`); // Opzionale, potrebbe essere un po' di spam all'inizio
+    const startingWeaponData = ITEM_DATA[startingWeaponId];
+    if (startingWeaponData) {
+        player.equippedWeapon = {
+            itemId: startingWeaponId,
+            currentDurability: startingWeaponData.maxDurability
+        };
     } else {
+        player.equippedWeapon = null;
         console.warn(`generateCharacter: Arma iniziale '${startingWeaponId}' non trovata in ITEM_DATA.`);
     }
 
     // Equipaggia un'armatura base all'inizio
     const startingArmorId = 'leather_jacket_worn';
-    if (ITEM_DATA[startingArmorId]) {
-        player.equippedArmor = startingArmorId;
-        // logMessage(`Equipaggiato automaticamente: ${ITEM_DATA[startingArmorId].name}`); // Opzionale
+    const startingArmorData = ITEM_DATA[startingArmorId];
+    if (startingArmorData) {
+        player.equippedArmor = {
+            itemId: startingArmorId,
+            currentDurability: startingArmorData.maxDurability
+        };
     } else {
+        player.equippedArmor = null;
         console.warn(`generateCharacter: Armatura iniziale '${startingArmorId}' non trovata in ITEM_DATA.`);
     }
+
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[generateCharacter] Player Equip INIZIALE - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
 
     // Aggiorna la UI delle stats iniziali
     if (typeof renderStats === 'function') {
@@ -142,31 +151,37 @@ function addItemToInventory(itemId, quantity) {
         return;
     }
 
-    // Cerca se l'oggetto è già presente nell'inventario
-    const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
-    const isStackable = itemInfo.stackable !== false;
-    // console.log(`DEBUG: addItemToInventory - INIZIO. Item: ${itemId}, Quantità da aggiungere: ${quantity}, Stackable: ${isStackable}, Slot esistente?: ${existingItemSlot ? 'Sì' : 'No'}`, existingItemSlot || ''); // NUOVO LOG
-
-    if (isStackable && existingItemSlot) {
-        // Se esiste e stackable, aumenta la quantità
-        // console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità precedente: ${existingItemSlot.quantity}, Da aggiungere: ${quantity}`); // NUOVO LOG
-        existingItemSlot.quantity += quantity;
-        // console.log(`DEBUG: addItemToInventory - AUMENTO STACK. Item: ${itemId}, Quantità NUOVA: ${existingItemSlot.quantity}`); // NUOVO LOG
-        // console.log(`Aggiunto ${quantity}x ${itemInfo.name} all'inventario. Quantità totale: ${existingItemSlot.quantity}`); // Log di debug
-    } else {
-        // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
-        // console.log(`DEBUG: addItemToInventory - NUOVO SLOT o NON STACKABLE. Item: ${itemId}, Quantità: ${quantity}`); // NUOVO LOG
-        if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
-            // Inventario pieno, informa il giocatore e non aggiungere
-            // console.warn(`addItemToInventory: Inventario pieno, non puoi raccogliere ${itemInfo.name}.`); // Log di debug
-            addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Non puoi raccogliere ${itemInfo.name}.`, 'warning');
-            // TODO: Potrebbe essere utile permettere al giocatore di scegliere cosa lasciare cadere
-            return; // Esce dalla funzione senza aggiungere
+    // --- GESTIONE OGGETTI CON DURABILITÀ (maxDurability) ---
+    if (typeof itemInfo.maxDurability === 'number') {
+        // Oggetti con durabilità (armi/armature): aggiungi uno slot per ogni copia
+        let added = 0;
+        for (let i = 0; i < quantity; i++) {
+            if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+                player.inventory.push({ itemId: itemId, quantity: 1, currentDurability: itemInfo.maxDurability });
+                added++;
+            } else {
+                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Solo ${added} su ${quantity} ${itemInfo.name} aggiunti.`, 'warning');
+                break;
+            }
         }
+        // Non serve gestire stackabilità: ogni oggetto con durabilità è slot singolo
+    } else {
+        // --- LOGICA ORIGINALE PER OGGETTI STACKABILI O SENZA DURABILITÀ ---
+        // Cerca se l'oggetto è già presente nell'inventario
+        const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
+        const isStackable = itemInfo.stackable !== false;
 
-        // Aggiungi un nuovo oggetto all'inventario con la quantità specificata
-        player.inventory.push({ itemId: itemId, quantity: quantity });
-        // console.log(`Aggiunto ${itemInfo.name} (x${quantity}) all'inventario in un nuovo slot.`); // Log di debug
+        if (isStackable && existingItemSlot) {
+            // Se esiste e stackable, aumenta la quantità
+            existingItemSlot.quantity += quantity;
+        } else {
+            // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
+            if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
+                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Non puoi raccogliere ${itemInfo.name}.`, 'warning');
+                return;
+            }
+            player.inventory.push({ itemId: itemId, quantity: quantity });
+        }
     }
 
     // Aggiorna la visualizzazione dell'inventario
@@ -701,6 +716,9 @@ function equipItem(itemId) {
     // Anche se non stackable, potremmo avere più copie nell'inventario in slot separati.
     // L'equipaggiamento rimuove SEMPRE lo slot selezionato.
 
+    // Recupera l'intero oggetto slot dall'inventario
+    const itemToEquip = player.inventory[itemIndexInInventory];
+
     // Determina lo slot di equipaggiamento corretto ('equippedWeapon' o 'equippedArmor')
     let equippedSlotKey;
     if (itemInfo.type === 'weapon') {
@@ -709,44 +727,42 @@ function equipItem(itemId) {
         equippedSlotKey = 'equippedArmor';
     }
 
-    const previouslyEquippedItemId = player[equippedSlotKey];
+    // Salva l'oggetto attualmente equipaggiato (se esiste)
+    const previouslyEquippedObject = player[equippedSlotKey]; // { itemId, currentDurability } o null
 
     // 1. Rimuovi il NUOVO oggetto dallo slot dell'inventario da cui è stato selezionato
-    // Dato che armi/armature sono stackable: false, rimuoviamo l'intero slot.
-    // Usiamo splice per rimuovere l'elemento all'indice trovato.
     player.inventory.splice(itemIndexInInventory, 1);
-    // console.log(`equipItem: Rimosso '${itemInfo.name}' dall'inventario (indice ${itemIndexInInventory}).`); // Log di debug
 
-
-    // 2. Se c'era un oggetto equipaggiato prima, rimettilo nell'inventario
-    if (previouslyEquippedItemId) {
-        // console.log(`equipItem: C'era un item equipaggiato: '${previouslyEquippedItemId}'.`); // Log di debug
-        // addItemToInventory gestisce l'aggiunta sia per oggetti stackabili che non.
-        // Passiamo quantity 1 perché stiamo riaggiungendo un singolo oggetto precedentemente equipaggiato.
-        addItemToInventory(previouslyEquippedItemId, 1);
-        const oldItemInfo = ITEM_DATA[previouslyEquippedItemId];
-        // Messaggio automatico dall'aggiunta all'inventario
-        addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'}.`, 'info');
-    } else {
-         // console.log(`equipItem: Nessun item equipaggiato prima.`); // Log di debug
+    // 2. Se c'era un oggetto equipaggiato prima, rimettilo nell'inventario preservando la sua currentDurability
+    if (previouslyEquippedObject) {
+        if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+            player.inventory.push({
+                itemId: previouslyEquippedObject.itemId,
+                quantity: 1,
+                currentDurability: previouslyEquippedObject.currentDurability
+            });
+            const oldItemInfo = ITEM_DATA[previouslyEquippedObject.itemId];
+            addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'} e riposto nell'inventario.`, 'info');
+        } else {
+            const oldItemInfo = ITEM_DATA[previouslyEquippedObject.itemId];
+            addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'}, ma l'inventario è pieno! L'oggetto è andato perso.`, 'warning');
+        }
     }
 
-
-    // 3. Equipaggia il nuovo oggetto impostando il suo ID nello slot del giocatore
-    player[equippedSlotKey] = itemId;
-    // console.log(`equipItem: Equipaggiato '${itemInfo.name}' in slot ${equippedSlotKey}.`); // Log di debug
-
+    // 3. Equipaggia il nuovo oggetto impostando il suo ID e currentDurability nello slot del giocatore
+    player[equippedSlotKey] = {
+        itemId: itemToEquip.itemId,
+        currentDurability: itemToEquip.currentDurability
+    };
 
     // 4. Aggiorna la UI
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("equipItem: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("equipItem: renderStats non disponibile.");
 
-
     // 5. Logga un messaggio di successo
     addMessage(`Hai equipaggiato ${itemInfo.name}.`, 'success', true);
 
-    // 6. Chiude il popup dell'azione oggetto
-    if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("equipItem: closeEventPopup non disponibile.");
+    // 6. (RIMOSSA) La chiusura del popup sarà gestita dalla funzione chiamante
 }
 
 
@@ -770,59 +786,41 @@ function unequipItem(slotKey) {
          return false;
      }
 
-
-    const equippedItemId = player[slotKey];
+    const equippedObject = player[slotKey];
 
     // 1. Verifica se c'è un oggetto equipaggiato in quello slot
-    if (!equippedItemId) {
-        // console.warn(`unequipItem: Nessun oggetto equipaggiato nello slot '${slotKey}'.`); // Log di debug rimosso
-        // addMessage(`Nessun oggetto da rimuovere dallo slot ${slotKey === 'equippedWeapon' ? 'Arma' : 'Armatura'}.`, "info"); // Messaggio loggato solo se si tenta l'azione dalla UI
+    if (!equippedObject) {
         return false;
     }
 
     // Verifica che l'ID dell'oggetto equipaggiato esista nei dati
-    const itemInfo = ITEM_DATA[equippedItemId];
+    const itemInfo = ITEM_DATA[equippedObject.itemId];
     if (!itemInfo) {
-        console.error(`unequipItem: Dati non trovati per l'oggetto equipaggiato '${equippedItemId}' nello slot '${slotKey}'.`);
+        console.error(`unequipItem: Dati non trovati per l'oggetto equipaggiato '${equippedObject.itemId}' nello slot '${slotKey}'.`);
         player[slotKey] = null; // Rimuovi comunque l'ID non valido dallo slot
         if (typeof renderStats === 'function') renderStats();
         addMessage(`Rimosso oggetto sconosciuto dallo slot equipaggiato.`, "warning");
         return false;
     }
 
-    // 2. Aggiungi l'oggetto all'inventario (sempre quantity 1)
-    // addItemToInventory gestisce la non-stackabilità e il limite di slot
-    // Se l'inventario è pieno, l'oggetto non verrà aggiunto e il giocatore dovrà scegliere cosa lasciare.
-    // Per ora, se l'inventario è pieno, l'oggetto rimosso andrà perso!
-    const addedToInventory = addItemToInventory(equippedItemId, 1); // addItemToInventory logga già il messaggio se inventario pieno
+    // 2. Aggiungi l'oggetto all'inventario (sempre quantity 1), preservando la currentDurability
+    if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+        player.inventory.push({
+            itemId: equippedObject.itemId,
+            quantity: 1,
+            currentDurability: equippedObject.currentDurability
+        });
+        addMessage(`Hai rimosso ${itemInfo.name} e riposto nell'inventario.`, 'info', true);
+    } else {
+        addMessage(`Hai rimosso ${itemInfo.name}, ma l'inventario è pieno! L'oggetto è andato perso.`, 'warning', true);
+    }
 
-    // 3. Libera lo slot di equipaggiamento SOLO se l'oggetto è stato aggiunto all'inventario
-    // (o se decidiamo che va perso se l'inventario è pieno, ma la logica attuale di addItemToInventory
-    // non indica successo/fallimento, solo logga un warning)
-    // Modifichiamo addItemToInventory per ritornare true/false o controlliamo la lunghezza dell'inventario.
-    // Alternativa: aggiungere l'oggetto rimosso all'inventario *prima* di rimuoverlo dallo slot,
-    // e gestire il caso inventario pieno lì. O più semplice: l'oggetto va semplicemente nell'inventario.
-    // Se l'inventario è pieno, non viene aggiunto e basta. Lo slot viene comunque liberato.
-
-    player[slotKey] = null; // Libera lo slot equipaggiato
-    // console.log(`unequipItem: Rimosso '${itemInfo.name}' dallo slot '${slotKey}'.`); // Log di debug
+    // 3. Libera lo slot di equipaggiamento
+    player[slotKey] = null;
 
     // 4. Aggiorna la UI
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("unequipItem: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("unequipItem: renderStats non disponibile.");
-
-
-    // 5. Logga un messaggio
-    if (addedToInventory) {
-        addMessage(`Hai rimosso ${itemInfo.name} dallo slot equipaggiato e aggiunto all'inventario.`, 'info', true);
-    } else {
-        // Il messaggio "Inventario pieno" è già loggato da addItemToInventory
-        addMessage(`Hai rimosso ${itemInfo.name} dallo slot equipaggiato. Non c'è spazio nell'inventario, l'oggetto è andato perso!`, 'warning', true);
-    }
-
-
-    // Non chiudiamo il popup qui, questa funzione non è chiamata direttamente da un popup.
-    // La logica che la chiama (es. un'azione futura "Rimuovi equipaggiamento") gestirà la chiusura.
 
     return true; // Oggetto rimosso dallo slot, anche se non aggiunto all'inventario
 }
@@ -878,36 +876,60 @@ function dropItem(itemId, quantity) { // Aggiunto parametro quantity anche se no
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
 function showRepairItemTypePopup(repairKitId, repairAmount) {
-    // console.log(`showRepairItemTypePopup chiamata con kit: ${repairKitId}, amount: ${repairAmount}`);
-    // Trova tutte le armi nell'inventario E quelle equipaggiate che necessitano riparazione
-    const repairableItems = player.inventory
-        .filter(slot => {
-            const item = ITEM_DATA[slot.itemId];
-            return item &&
-                   (item.type === 'weapon' || item.type === 'armor') && // Ripara armi E armature
-                   item.durability !== undefined &&
-                   item.maxDurability !== undefined &&
-                   item.durability < item.maxDurability;
-        })
-        .concat(
-            // Aggiungi l'arma equipaggiata se riparabile
-            player.equippedWeapon ? [{itemId: player.equippedWeapon, quantity: 1}] : [],
-            // Aggiungi l'armatura equipaggiata se riparabile
-            player.equippedArmor ? [{itemId: player.equippedArmor, quantity: 1}] : []
-        )
-        .filter((slot, index, self) => {
-            // Filtra i duplicati nel caso l'oggetto equipaggiato sia anche nell'inventario (non dovrebbe succedere)
-            // o se un oggetto è presente in più slot (se stackable fosse true per armi/armature, cosa che non è)
-            // e rimuovi quelli che non sono danneggiati (secondo filtro)
-             const item = ITEM_DATA[slot.itemId];
-             return item &&
-                    item.durability !== undefined && item.maxDurability !== undefined && item.durability < item.maxDurability &&
-                    index === self.findIndex((s) => s.itemId === slot.itemId); // Rimuove duplicati basati su itemId
-         });
+    // Costruisci la lista delle istanze riparabili
+    const repairableItemsInstances = [];
 
+    // Controlla l'arma equipaggiata
+    if (player.equippedWeapon && player.equippedWeapon.itemId) {
+        const weaponInstance = player.equippedWeapon;
+        const weaponTemplate = ITEM_DATA[weaponInstance.itemId];
+        if (weaponTemplate && typeof weaponInstance.currentDurability === 'number' && typeof weaponTemplate.maxDurability === 'number' && weaponInstance.currentDurability < weaponTemplate.maxDurability) {
+            repairableItemsInstances.push({ 
+                instanceId: { type: 'equipped', slotKey: 'equippedWeapon' }, 
+                itemId: weaponInstance.itemId,
+                name: weaponTemplate.name, 
+                currentDurability: weaponInstance.currentDurability, 
+                maxDurability: weaponTemplate.maxDurability,
+                isEquipped: true
+            });
+        }
+    }
+
+    // Controlla l'armatura equipaggiata
+    if (player.equippedArmor && player.equippedArmor.itemId) {
+        const armorInstance = player.equippedArmor;
+        const armorTemplate = ITEM_DATA[armorInstance.itemId];
+        if (armorTemplate && typeof armorInstance.currentDurability === 'number' && typeof armorTemplate.maxDurability === 'number' && armorInstance.currentDurability < armorTemplate.maxDurability) {
+            repairableItemsInstances.push({ 
+                instanceId: { type: 'equipped', slotKey: 'equippedArmor' }, 
+                itemId: armorInstance.itemId,
+                name: armorTemplate.name, 
+                currentDurability: armorInstance.currentDurability, 
+                maxDurability: armorTemplate.maxDurability,
+                isEquipped: true
+            });
+        }
+    }
+
+    // Controlla l'inventario
+    player.inventory.forEach((slot, index) => {
+        if (slot && slot.itemId && typeof slot.currentDurability === 'number') {
+            const itemTemplate = ITEM_DATA[slot.itemId];
+            if (itemTemplate && typeof itemTemplate.maxDurability === 'number' && slot.currentDurability < itemTemplate.maxDurability) {
+                repairableItemsInstances.push({
+                    instanceId: { type: 'inventory', index: index },
+                    itemId: slot.itemId,
+                    name: itemTemplate.name,
+                    currentDurability: slot.currentDurability,
+                    maxDurability: itemTemplate.maxDurability,
+                    isEquipped: false
+                });
+            }
+        }
+    });
 
     // Se non ci sono armi o armature da riparare, informa il giocatore e chiudi il popup
-    if (repairableItems.length === 0) {
+    if (repairableItemsInstances.length === 0) {
         addMessage("Non hai equipaggiamento che necessita riparazione.", "info");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
@@ -918,16 +940,11 @@ function showRepairItemTypePopup(repairKitId, repairAmount) {
     const popupDescription = `Scegli quale oggetto riparare con il Kit di Riparazione (+${repairAmount} durabilità):`;
 
     // Crea le scelte del popup, una per ogni oggetto riparabile
-    const popupChoices = repairableItems.map(slot => {
-        const item = ITEM_DATA[slot.itemId];
-        const isEquipped = player.equippedWeapon === item.id || player.equippedArmor === item.id;
-        const locationText = isEquipped ? " (Equipaggiato)" : ` (Inventario x${slot.quantity})`;
-
+    const popupChoices = repairableItemsInstances.map(instance => {
+        const locationText = instance.isEquipped ? " (Equipaggiato)" : ` (Inventario)`;
         return {
-            text: `${item.name}${locationText} (${Math.floor(item.durability)}/${item.maxDurability})`,
-            // L'azione chiama applyRepair con l'ID dell'oggetto da riparare
-            action: () => applyRepair(repairKitId, item.id, repairAmount)
-            // Nota: passiamo item.id (l'ID dell'oggetto), non l'indice dello slot nell'inventario
+            text: `${instance.name}${locationText} (${Math.floor(instance.currentDurability)}/${instance.maxDurability})`,
+            action: () => applyRepair(repairKitId, instance.instanceId, repairAmount, instance.itemId)
         };
     });
 
@@ -941,19 +958,15 @@ function showRepairItemTypePopup(repairKitId, repairAmount) {
     });
 
     // Mostra il popup di selezione equipaggiamento
-    // Usiamo showEventPopup, ma con un flag per indicare che è un popup di azione (non un evento complesso)
-    // Questo aiuta handleChoiceContainerClick a capire come gestire il click.
     if (typeof showEventPopup === 'function') {
         const dataForPopup = {
             title: popupTitle,
             description: popupDescription,
             choices: popupChoices,
             isActionPopup: true, // Flag per indicare che è un popup di azione (gestito diversamente da handleChoiceContainerClick)
-            originalActionDetails: { repairKitId: repairKitId, repairAmount: repairAmount, type: 'repair' } // Info per ripristino/logica
+            originalActionDetails: { repairKitId: repairKitId, repairAmount: repairAmount, type: 'repair' }
         };
-        // SALVA questo contesto specifico per il popup azione
         savedActionPopupContext = dataForPopup; 
-        // console.log("DEBUG showRepairItemTypePopup: Dati inviati a showEventPopup E SALVATI in savedActionPopupContext:", JSON.stringify(dataForPopup, null, 2)); 
         showEventPopup(dataForPopup);
     } else {
         console.error("showRepairItemTypePopup: showEventPopup non disponibile.");
@@ -971,88 +984,53 @@ function showRepairItemTypePopup(repairKitId, repairAmount) {
  * @param {string} targetItemId - ID dell'arma o armatura da riparare.
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
-function applyRepair(repairKitId, targetItemId, repairAmount) {
-    // console.log(`DEBUG applyRepair: Inizio. repairKitId='${repairKitId}', targetItemId='${targetItemId}', repairAmount=${repairAmount}`); // NUOVO LOG
-     // console.log(`applyRepair: Tentativo di riparare '${targetItemId}' con kit '${repairKitId}' (+${repairAmount} durabilità)`); // Log di debug
-
-    // Trova i dati dell'oggetto da riparare (potrebbe essere equipaggiato o in inventario)
-    const targetItemInfo = ITEM_DATA[targetItemId];
-
-    // Trova l'oggetto nello slot equipaggiato O il primo slot nell'inventario che lo contiene
-    let targetItemSlot;
-    let isEquipped = false;
-
-    if (player.equippedWeapon === targetItemId) {
-        targetItemSlot = targetItemInfo; // Usiamo l'oggetto dati come riferimento temporaneo
-        isEquipped = true;
-    } else if (player.equippedArmor === targetItemId) {
-        targetItemSlot = targetItemInfo;
-        isEquipped = true;
-    } else {
-        // Cerca nell'inventario
-        const inventorySlot = player.inventory.find(slot => slot.itemId === targetItemId);
-        if (inventorySlot) {
-            targetItemSlot = ITEM_DATA[inventorySlot.itemId]; // Usiamo l'oggetto dati, ma l'indice slot è necessario per rimuovere
-            // Conserviamo l'indice per la possibile rimozione dell'item (anche se repair non rimuove item, solo durabilità)
-            // targetItemSlot.inventoryIndex = player.inventory.indexOf(inventorySlot); // Non usata per ora, ma utile
-        } else {
-             // Questo caso non dovrebbe accadere se showRepairItemTypePopup funziona correttamente
-            console.error(`applyRepair: Oggetto target '${targetItemId}' non trovato equipaggiato o nell'inventario!`);
-            addMessage("Errore interno durante la riparazione.", "danger");
-            if (typeof closeEventPopup === 'function') closeEventPopup();
-            return;
-        }
+function applyRepair(repairKitId, instanceIdentifier, repairAmount, targetBaseItemId) {
+    let targetItemInstance = null;
+    if (instanceIdentifier.type === 'equipped') {
+        targetItemInstance = player[instanceIdentifier.slotKey];
+    } else if (instanceIdentifier.type === 'inventory' && player.inventory[instanceIdentifier.index] && player.inventory[instanceIdentifier.index].itemId === targetBaseItemId) {
+        targetItemInstance = player.inventory[instanceIdentifier.index];
     }
 
+    const itemInfoTemplate = ITEM_DATA[targetBaseItemId];
 
     // Verifiche finali
-    if (!targetItemInfo || (targetItemInfo.type !== 'weapon' && targetItemInfo.type !== 'armor') ||
-        targetItemInfo.durability === undefined || targetItemInfo.maxDurability === undefined) {
-        console.error(`applyRepair: Oggetto target '${targetItemId}' non valido per riparazione.`);
-        addMessage(`Impossibile riparare l'oggetto selezionato (${targetItemInfo?.name || targetItemId}).`, "error");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
-        return;
-    }
-    // Anche se showRepairItemTypePopup filtra, ricontrolliamo che l'arma non sia già al massimo
-    if (targetItemInfo.durability >= targetItemInfo.maxDurability) {
-        addMessage(`${targetItemInfo.name} è già in perfette condizioni.`, "info");
-         // Consumiamo il kit anche se l'arma è già riparata? Decidiamo di NO.
-         // console.log("applyRepair: Target già riparato, non consumo kit."); // Log di debug
+    if (!targetItemInstance || !itemInfoTemplate || (itemInfoTemplate.type !== 'weapon' && itemInfoTemplate.type !== 'armor') ||
+        targetItemInstance.currentDurability === undefined || itemInfoTemplate.maxDurability === undefined) {
+        console.error(`applyRepair: Oggetto target '${targetBaseItemId}' non valido per riparazione.`);
+        addMessage(`Impossibile riparare l'oggetto selezionato (${itemInfoTemplate?.name || targetBaseItemId}).`, "error");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
 
-    // console.log(`DEBUG applyRepair: Sto per consumare il kit. repairKitId='${repairKitId}'`); // NUOVO LOG
+    // Anche se showRepairItemTypePopup filtra, ricontrolliamo che l'arma non sia già al massimo
+    if (targetItemInstance.currentDurability >= itemInfoTemplate.maxDurability) {
+        addMessage(`${itemInfoTemplate.name} è già in perfette condizioni.`, "info");
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+        return;
+    }
+
     // Consuma il kit di riparazione (sempre 1 quantità per uso)
-    // Questa funzione (removeItemFromInventory) è definita qui
     const kitConsumed = removeItemFromInventory(repairKitId, 1);
 
     if (!kitConsumed) {
-         // Questo non dovrebbe succedere se showRepairItemTypePopup è chiamato correttamente,
-         // ma è una safety check.
-         console.error(`applyRepair: Kit di riparazione '${repairKitId}' non trovato nell'inventario!`);
-         addMessage("Errore: Kit di riparazione non trovato durante l'applicazione.", "danger");
-         if (typeof closeEventPopup === 'function') closeEventPopup();
-         return;
+        console.error(`applyRepair: Kit di riparazione '${repairKitId}' non trovato nell'inventario!`);
+        addMessage("Errore: Kit di riparazione non trovato durante l'applicazione.", "danger");
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+        return;
     }
 
-
     // Applica la riparazione all'oggetto target
-    const oldDurability = targetItemInfo.durability;
-    // NOTA: Modifichiamo direttamente l'oggetto in ITEM_DATA. Poiché gli oggetti
-    // nell'inventario/equipaggiamento sono solo riferimenti all'ID, questo funziona.
-    targetItemInfo.durability = Math.min(targetItemInfo.maxDurability, targetItemInfo.durability + repairAmount);
-    const actualRepair = targetItemInfo.durability - oldDurability;
-
+    const oldDurability = targetItemInstance.currentDurability;
+    targetItemInstance.currentDurability = Math.min(itemInfoTemplate.maxDurability, targetItemInstance.currentDurability + repairAmount);
+    const actualRepair = targetItemInstance.currentDurability - oldDurability;
 
     // Aggiorna la UI (stats per equipaggiamento, inventario se era lì)
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("applyRepair: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("applyRepair: renderStats non disponibile.");
 
-
     // Logga un messaggio di successo
-    addMessage(`Hai riparato ${targetItemInfo.name} (+${actualRepair} durabilità).`, "success", true);
-    // console.log(`applyRepair: Riparato '${targetItemId}'. Nuova durabilità: ${targetItemInfo.durability}/${targetItemInfo.maxDurability}.`); // Log di debug
+    addMessage(`Hai riparato ${itemInfoTemplate.name} (+${actualRepair} durabilità).`, "success", true);
 
     // Chiude il popup di selezione equipaggiamento (che era stato aperto da showRepairItemTypePopup)
     if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("applyRepair: closeEventPopup non disponibile.");
@@ -1128,78 +1106,88 @@ function handleInventoryClick(event) {
  * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
 function showItemActionPopup(itemId, source = 'inventory') {
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] CHIAMATA con itemId: ${itemId}, source: ${source}`);
     const item = ITEM_DATA[itemId];
     if (!item) {
         console.error("showItemActionPopup: Item non trovato in ITEM_DATA:", itemId);
         return;
     }
-
-    // RIMOSSO: console.log(`showItemActionPopup: Chiamata per item ${itemId}, source: ${source}`);
-
-    // Verifica che i nuovi elementi DOM per il popup azioni oggetto siano pronti
-    if (!DOM.itemActionOverlay || !DOM.itemActionPopup || !DOM.itemActionTitle ||
-        !DOM.itemActionDescription || !DOM.itemActionStats || !DOM.itemActionChoices || !DOM.itemActionCloseButton) {
-        console.error("showItemActionPopup: Elementi DOM del popup azioni oggetto non trovati o non pronti. Verifica dom_references.js e index.html.");
-        addMessage("Errore UI: Impossibile mostrare le azioni per l'oggetto.", "error");
-        return;
+    // ... (setup popup)
+    let itemInstance = null;
+    if (source === 'equipped') {
+        if (item.type === 'weapon' && player.equippedWeapon && player.equippedWeapon.itemId === itemId) {
+            itemInstance = player.equippedWeapon;
+        } else if (item.type === 'armor' && player.equippedArmor && player.equippedArmor.itemId === itemId) {
+            itemInstance = player.equippedArmor;
+        }
+    } else if (source === 'inventory') {
+        itemInstance = player.inventory.find(slot => slot.itemId === itemId) || null;
     }
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] itemInstance TROVATO:`, JSON.stringify(itemInstance));
+    if (!itemInstance) itemInstance = { itemId };
 
-    currentEventContext = {
-        type: 'ITEM_ACTION',
-        itemId: itemId,
-        isActionPopup: true, 
-        source: source
-    };
-    currentEventChoices = []; // Mantenuto per coerenza se qualche logica esterna lo usa, ma non per popolare questo popup
-
-    // Popola il nuovo popup dedicato
-    DOM.itemActionTitle.textContent = item.nameShort || item.name;
-    DOM.itemActionDescription.textContent = item.description || "Nessuna descrizione.";
-    
-    // Pulisce stats precedenti e usa getItemDetailsHTML per coerenza con il tooltip
     if (typeof getItemDetailsHTML === 'function') {
-        DOM.itemActionStats.innerHTML = getItemDetailsHTML(item);
-        // RIMOSSO console.log di debug
+        DOM.itemActionStats.innerHTML = getItemDetailsHTML(itemInstance);
     } else {
-        // Fallback se getItemDetailsHTML non è disponibile (non dovrebbe succedere)
-        console.warn("showItemActionPopup: getItemDetailsHTML non disponibile. Statistiche popup potrebbero essere incomplete.");
         DOM.itemActionStats.innerHTML = 'Dettagli statistiche non disponibili.';
     }
 
-    DOM.itemActionChoices.innerHTML = ''; // Pulisce bottoni precedenti
+    DOM.itemActionChoices.innerHTML = '';
+    const itemTemplate = item; // Per chiarezza nel log richiesto
     const actions = [];
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] DEBUG INIZIALE: source='${source}', itemTemplate.type='${itemTemplate ? itemTemplate.type : "TEMPLATE NULLO"}'`);
 
     if (item.usable) {
-        // Aggiungiamo una chiave per aiutare con lo styling
         actions.push({ text: "Usa", handler: () => useItem(itemId), styleKey: 'use' });
     }
     if (source === 'inventory') {
-        // CORREZIONE: Controlla item.type invece di item.category
         if (item.type === 'weapon' || item.type === 'armor') {
             actions.push({ text: "Equipaggia", handler: () => equipItem(itemId), styleKey: 'equip' });
         }
         actions.push({ text: "Lascia", handler: () => dropItem(itemId, 1), styleKey: 'drop' });
     } else if (source === 'equipped') {
-        // CORREZIONE: Controlla item.type invece di item.category per coerenza, anche se qui unequipItem prende lo slotKey
+        if (DEBUG_MODE) console.log("[showItemActionPopup] DEBUG EQUIP: Entrato nel blocco source === 'equipped'. Aggiungo tasto Rimuovi.");
         actions.push({ text: "Rimuovi", handler: () => unequipItem(item.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
     }
 
     actions.forEach(action => {
         const button = document.createElement('button');
         button.textContent = action.text;
-        button.classList.add('action-button'); // Classe base per tutti i bottoni azione oggetto
+        button.classList.add('action-button');
         if (action.styleKey) {
-            button.classList.add(`action-${action.styleKey}`); // Classe specifica per tipo azione
+            button.classList.add(`action-${action.styleKey}`);
         }
         button.onclick = () => {
-            action.handler();
-            closeItemActionPopup();
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Bottone AZIONE '${action.text}' CLICCATO per item ${itemId}`);
+            action.handler(); // Esegue l'azione (es. useItem, equipItem, unequipItem, dropItem)
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Chiamo closeItemActionPopup() DOPO azione '${action.text}'`);
+            if (typeof closeItemActionPopup === 'function') {
+                closeItemActionPopup();
+            } else {
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata!");
+            }
         };
         DOM.itemActionChoices.appendChild(button);
     });
+    if (DEBUG_MODE) {
+        const choiceButtonsInDOM = DOM.itemActionChoices.querySelectorAll('button');
+        console.log(`[showItemActionPopup] Listener per Bottoni AZIONE ASSEGNATI: Trovati ${choiceButtonsInDOM.length} bottoni azione nel DOM.`);
+        choiceButtonsInDOM.forEach((btn, index) => {
+            console.log(`    Bottone Azione DOM ${index} ('${btn.textContent.split(' ')[0]}...'): ha un handler onclick? `, !!btn.onclick);
+        });
+    }
 
-    DOM.itemActionCloseButton.onclick = () => closeItemActionPopup();
+    DOM.itemActionCloseButton.onclick = () => {
+        if (DEBUG_MODE) console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO');
+        if (typeof closeItemActionPopup === 'function') {
+            closeItemActionPopup();
+        } else {
+            if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!");
+        }
+    };
+    if (DEBUG_MODE) console.log('[showItemActionPopup] Listener per Bottone CHIUDI ASSEGNATO:', !!DOM.itemActionCloseButton.onclick);
 
+    if (DEBUG_MODE) console.log('[showItemActionPopup] Sto per rendere visibile il popup');
     DOM.itemActionOverlay.classList.add('visible');
     DOM.itemActionPopup.classList.add('visible');
 
@@ -1208,8 +1196,8 @@ function showItemActionPopup(itemId, source = 'inventory') {
     if (typeof disableControls === 'function') disableControls();
 }
 
-// Nuova funzione per chiudere il popup azioni oggetto
 function closeItemActionPopup() {
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] CHIAMATA');
     if (DOM.itemActionOverlay && DOM.itemActionPopup) {
         DOM.itemActionOverlay.classList.remove('visible');
         DOM.itemActionPopup.classList.remove('visible');
@@ -1217,7 +1205,7 @@ function closeItemActionPopup() {
     eventScreenActive = false;
     gamePaused = false;
     if (typeof enableControls === 'function') enableControls();
-    
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] ESEGUITA. eventScreenActive:', eventScreenActive, 'gamePaused:', gamePaused);
     currentEventContext = null; 
 }
 
@@ -1554,40 +1542,42 @@ function applyWearToEquippedItem(slotKey, wearAmount = 1) {
         return;
     }
 
-    const itemId = player[slotKey];
-    if (!itemId) {
+    const equippedObjectInstance = player[slotKey];
+    if (!equippedObjectInstance) {
         // Nessun oggetto equipaggiato in quello slot
         return;
     }
 
-    const itemInfo = ITEM_DATA[itemId];
-    if (!itemInfo || typeof itemInfo.durability !== 'number' || typeof itemInfo.maxDurability !== 'number') {
-        // L'oggetto non ha durabilità o non è definito correttamente
-        // console.warn(`applyWearToEquippedItem: L'oggetto ${itemId} non ha proprietà di durabilità.`);
+    const itemId = equippedObjectInstance.itemId;
+    const itemInfoTemplate = ITEM_DATA[itemId];
+    if (!itemInfoTemplate || typeof itemInfoTemplate.maxDurability !== 'number') {
+        console.warn(`applyWearToEquippedItem: L'oggetto ${itemId} non ha maxDurability definito nel template.`);
         return;
     }
 
-    if (itemInfo.durability <= 0) {
+    if (typeof equippedObjectInstance.currentDurability !== 'number') {
+        console.error(`applyWearToEquippedItem: currentDurability non definita per l'oggetto equipaggiato (${itemId}).`);
+        return;
+    }
+
+    if (equippedObjectInstance.currentDurability <= 0) {
         // L'oggetto è già rotto, non può usurarsi ulteriormente.
         return;
     }
 
-    const oldDurability = itemInfo.durability;
-    itemInfo.durability = Math.max(0, itemInfo.durability - wearAmount);
+    const oldDurability = equippedObjectInstance.currentDurability;
+    equippedObjectInstance.currentDurability = Math.max(0, equippedObjectInstance.currentDurability - wearAmount);
 
-    // console.log(`Usura applicata a ${itemInfo.name}: da ${oldDurability} a ${itemInfo.durability}`); // Log per debug
-
-    if (itemInfo.durability <= 0 && oldDurability > 0) {
-        addMessage(`${itemInfo.name} si è rotto!`, 'danger');
-    } else if (itemInfo.durability < oldDurability && itemInfo.durability < itemInfo.maxDurability * 0.25) {
+    if (equippedObjectInstance.currentDurability <= 0 && oldDurability > 0) {
+        addMessage(`${itemInfoTemplate.name} si è rotto!`, 'danger');
+    } else if (equippedObjectInstance.currentDurability < oldDurability && equippedObjectInstance.currentDurability < itemInfoTemplate.maxDurability * 0.25) {
         // Aggiungi un messaggio se la durabilità scende sotto una certa soglia (es. 25%) ma non si è appena rotto
-        if (oldDurability >= itemInfo.maxDurability * 0.25) { // Solo se prima era sopra la soglia
-             addMessage(`${itemInfo.name} è gravemente danneggiato.`, 'warning');
+        if (oldDurability >= itemInfoTemplate.maxDurability * 0.25) { // Solo se prima era sopra la soglia
+             addMessage(`${itemInfoTemplate.name} è gravemente danneggiato.`, 'warning');
         }
     }
 
     // Aggiorna la UI delle statistiche per riflettere il cambiamento di stato dell'arma/armatura
-    // (es. se renderStats aggiunge "(Rotto)" al nome)
     if (typeof renderStats === 'function') {
         renderStats();
     }
