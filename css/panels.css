@@ -331,3 +331,8 @@
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.night-time-indicator {
+    color: #4A90E2;
+    font-weight: bold;
+}

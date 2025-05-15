@@ -119,6 +119,18 @@ const esitiPericoloAmbientaleColpito = [
     "Il terreno cede sotto di te / l'aria si fa improvvisamente irrespirabile / una scarica imprevista ti colpisce!"
 ];
 
+const esitiFugaPredoniKo = [
+    "I predoni sono troppo veloci o ti accerchiano. Non c'è scampo.",
+    "Inciampi mentre fuggi, e ti raggiungono rapidamente.",
+    "La tua fuga disperata ti porta in un vicolo cieco. Sei in trappola."
+];
+
+const esitiParlaPredoniKo = [
+    "Le tue parole cadono nel vuoto, o peggio, li irritano. Non sembrano interessati a negoziare.",
+    "Ti guardano con disprezzo e ti interrompono bruscamente. La diplomazia non è un'opzione.",
+    "Una risata crudele è la loro unica risposta. Si preparano ad attaccare."
+];
+
 const mountainBlockMessages = [
     "Guardando la parete rocciosa, ti rendi conto che tentare la scalata sarebbe un suicidio.",
     "La montagna sembra fissarti dall'alto. Non hai l'equipaggiamento né l'esperienza per provarci.",
@@ -151,6 +163,14 @@ const descrizioniIncontroPredoni = [
     "Un gruppo di figure ostili emerge dalle ombre, i loro occhi brillano di malizia.",
     "Ti imbatti in un accampamento di predoni. Sembrano sorpresi quanto te, ma la loro reazione è immediata e aggressiva.",
     "Senti un fischio acuto, e in un attimo sei circondato da individui dall'aspetto minaccioso."
+];
+
+const descrizioniOrroreIndicibile = [
+    "Un silenzio innaturale cala improvvisamente. L'aria si fa pesante, gelida, e senti un terrore primordiale attanagliarti lo stomaco.",
+    "Ombre distorte danzano ai margini della tua visione. Senti sussurri appena udibili che sembrano chiamare il tuo nome.",
+    "Una visione fugace e impossibile ti gela il sangue: per un istante, il mondo intorno a te sembra contorcersi in geometrie aliene.",
+    "Un odore dolciastro e nauseabondo riempie l'aria. Senti la tua sanità mentale scivolare via.",
+    "Qualcosa ti osserva. Non lo vedi, ma senti il suo sguardo freddo e alieno sulla tua nuca."
 ];
 
 const loreFragments = [
@@ -221,6 +241,13 @@ const descrizioniTracceOkLore = [
     "Seguendo gli indizi, scopri un vecchio terminale dati parzialmente funzionante. Riesci a recuperare un breve log.",
     "Le impronte terminano vicino a un oggetto inciso. Contiene simboli strani e un pezzo di una storia più grande.",
     "In un angolo nascosto, trovi una registrazione audio danneggiata. Ascolti voci distorte che parlano di tempi andati."
+];
+
+const descrizioniTracceNothing = [
+    "Le tracce si perdono nel nulla, come se chi le ha lasciate fosse svanito nel vento.",
+    "Nonostante i tuoi sforzi, le tracce non portano a nulla di significativo.",
+    "Segui gli indizi per un po', ma si rivelano essere solo segni casuali del vento o di piccoli animali.",
+    "Perdi tempo prezioso seguendo una pista fredda. Non c'è nulla qui."
 ];
 
 // Probabilità base degli eventi per tipo di casella (0 = mai, 1 = sempre).
