@@ -1,8 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.21 Durability Reforged
  * File: js/ui.js
- * Descrizione: Gestisce il rendering e l'aggiornamento dell'interfaccia utente.
- * Dipende da: game_constants.js, game_data.js, dom_references.js, game_utils.js
+ * Descrizione: Gestione dell'interfaccia utente, aggiornamento DOM, popup.
+ * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
  */
 
 // Dipendenze:
@@ -20,6 +21,7 @@
  * Aggiorna la visualizzazione delle statistiche del giocatore nell'interfaccia.
  */
 function renderStats() {
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[renderStats] Player Equip LETTO - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
     // Verifica che il giocatore esista e che i riferimenti DOM siano validi.
     if (!player || !DOM.statHp || !DOM.statMaxHp || !DOM.statVig || !DOM.statPot || !DOM.statAgi || !DOM.statTra || !DOM.statInf || !DOM.statPre || !DOM.statAda || !DOM.statAcq || !DOM.statFood || !DOM.statWater || !DOM.statCondition || !DOM.statWeapon || !DOM.statArmor || !DOM.posX || !DOM.posY || !DOM.tileType || !DOM.statDayTime) {
         console.warn("renderStats: Elementi DOM o dati giocatore non pronti.");
@@ -30,13 +32,28 @@ function renderStats() {
     DOM.statHp.textContent = Math.floor(player.hp); // Arrotonda HP a interi per UI
     DOM.statMaxHp.textContent = player.maxHp;
     DOM.statVig.textContent = player.vigore;
+    if (DOM.statVig.parentElement) DOM.statVig.parentElement.setAttribute('title', 'Vigore');
+    
     DOM.statPot.textContent = player.potenza;
+    if (DOM.statPot.parentElement) DOM.statPot.parentElement.setAttribute('title', 'Potenza');
+    
     DOM.statAgi.textContent = player.agilita;
+    if (DOM.statAgi.parentElement) DOM.statAgi.parentElement.setAttribute('title', 'Agilità');
+    
     DOM.statTra.textContent = player.tracce;
+    if (DOM.statTra.parentElement) DOM.statTra.parentElement.setAttribute('title', 'Tracce');
+    
     DOM.statInf.textContent = player.influenza;
+    if (DOM.statInf.parentElement) DOM.statInf.parentElement.setAttribute('title', 'Influenza');
+    
     DOM.statPre.textContent = player.presagio;
+    if (DOM.statPre.parentElement) DOM.statPre.parentElement.setAttribute('title', 'Presagio');
+    
     DOM.statAda.textContent = player.adattamento;
-    DOM.statAcq.textContent = player.acquisita || 0; // Mostra 0 se non definito
+    if (DOM.statAda.parentElement) DOM.statAda.parentElement.setAttribute('title', 'Adattamento');
+    
+    DOM.statAcq.textContent = player.acquisita || 0;
+    if (DOM.statAcq.parentElement) DOM.statAcq.parentElement.setAttribute('title', 'Acquisita');
 
     // Aggiorna visualizzazione risorse (cibo e acqua)
     DOM.statFood.textContent = Math.floor(player.food); // Arrotonda risorse a interi per UI
@@ -45,9 +62,8 @@ function renderStats() {
     DOM.statFood.classList.toggle('low-resource', player.food <= 1 && player.food > 0);
     DOM.statWater.classList.toggle('low-resource', player.water <= 1 && player.water > 0);
     // Aggiunge classe specifica per risorsa a 0
-     DOM.statFood.classList.toggle('zero-resource', player.food <= 0);
-     DOM.statWater.classList.toggle('zero-resource', player.water <= 0);
-
+    DOM.statFood.classList.toggle('zero-resource', player.food <= 0);
+    DOM.statWater.classList.toggle('zero-resource', player.water <= 0);
 
     // Aggiorna visualizzazione stato condizione
     let statoText = "Normale";
@@ -89,31 +105,51 @@ function renderStats() {
     DOM.statCondition.className = ''; // Pulisce tutte le classi esistenti
     DOM.statCondition.classList.add(statoClass); // Applica solo la classe corretta
 
-
-    // Aggiorna visualizzazione Equipaggiamento con stato munizioni
-    const weaponId = player.equippedWeapon;
-    if (weaponId && ITEM_DATA[weaponId]) {
-        let weaponName = ITEM_DATA[weaponId].name;
-        // Verifica munizioni se la funzione checkAmmoAvailability esiste nel modulo player
-        if (typeof checkAmmoAvailability === 'function') {
-            const ammoStatus = checkAmmoAvailability();
-            weaponName += ammoStatus.message; // Aggiunge tipo munizione e/o stato (Senza X)
+    // --- Arma equipaggiata ---
+    if (player.equippedWeapon && player.equippedWeapon.itemId) {
+        const weaponInstance = player.equippedWeapon;
+        const weaponTemplate = ITEM_DATA[weaponInstance.itemId];
+        if (weaponTemplate) {
+            let weaponName = weaponTemplate.nameShort || weaponTemplate.name;
+            if (
+                typeof weaponInstance.currentDurability === 'number' &&
+                typeof weaponTemplate.maxDurability === 'number'
+            ) {
+                weaponName += ` (${Math.floor(weaponInstance.currentDurability)}/${weaponTemplate.maxDurability})`;
+            }
+            if (typeof checkAmmoAvailability === 'function') {
+                const ammoStatus = checkAmmoAvailability(); // Assicurati che checkAmmoAvailability sia definita e funzionante
+                weaponName += ammoStatus.message;
+            } else {
+                console.warn("checkAmmoAvailability non disponibile per visualizzazione stato arma.");
+            }
+            DOM.statWeapon.textContent = weaponName;
         } else {
-            // Fallback se checkAmmoAvailability non è ancora disponibile
-            console.warn("checkAmmoAvailability non disponibile per visualizzazione stato arma.");
+            DOM.statWeapon.textContent = "Arma Sconosciuta";
         }
-        DOM.statWeapon.textContent = weaponName;
     } else {
-        DOM.statWeapon.textContent = "Nessuna"; // O "Mani Nude"
+        DOM.statWeapon.textContent = "Nessuna";
     }
 
-    const armorId = player.equippedArmor;
-    if (armorId && ITEM_DATA[armorId]) {
-        DOM.statArmor.textContent = ITEM_DATA[armorId].name;
+    // --- Armatura equipaggiata ---
+    if (player.equippedArmor && player.equippedArmor.itemId) {
+        const armorInstance = player.equippedArmor;
+        const armorTemplate = ITEM_DATA[armorInstance.itemId];
+        if (armorTemplate) {
+            let armorName = armorTemplate.nameShort || armorTemplate.name;
+            if (
+                typeof armorInstance.currentDurability === 'number' &&
+                typeof armorTemplate.maxDurability === 'number'
+            ) {
+                armorName += ` (${Math.floor(armorInstance.currentDurability)}/${armorTemplate.maxDurability})`;
+            }
+            DOM.statArmor.textContent = armorName;
+        } else {
+            DOM.statArmor.textContent = "Armatura Sconosciuta";
+        }
     } else {
-        DOM.statArmor.textContent = "Nessuna"; // O "Vestiti"
+        DOM.statArmor.textContent = "Nessuna";
     }
-
 
     // Aggiorna informazioni di gioco (posizione, luogo, ora, giorno)
     DOM.posX.textContent = player.x;
@@ -128,28 +164,58 @@ function renderStats() {
         DOM.tileType.textContent = '--'; // Valore di default se la posizione non è valida
     }
 
-
     // Aggiorna indicatore Giorno/Notte e Ora
     if (isDay) {
-        // Calcola l'orario simulato in base al progresso del giorno
-        // Mappiamo dayMovesCounter (0 a DAY_LENGTH_MOVES-1) su ore 6:00 a 18:xx
         const totalHoursOfDay = 13; // Dalle 6 alle 19
         const movesPerDay = DAY_LENGTH_MOVES;
         const currentHour = Math.floor(6 + (dayMovesCounter / movesPerDay) * totalHoursOfDay);
-        // Simula i minuti per maggiore precisione (ogni passo ~3-4 minuti d'ora simulata)
         const simulatedMinutesPerMove = Math.floor((totalHoursOfDay * 60) / movesPerDay);
-        const currentMinute = Math.floor((dayMovesCounter % movesPerDay) * simulatedMinutesPerMove) % 60; // Minuti nell'ora corrente
+        const currentMinute = Math.floor((dayMovesCounter % movesPerDay) * simulatedMinutesPerMove) % 60;
         const formattedHour = currentHour.toString().padStart(2, '0');
         const formattedMinute = currentMinute.toString().padStart(2, '0');
-
         DOM.statDayTime.textContent = `${formattedHour}:${formattedMinute}`;
     } else {
-        // Per la notte, mostriamo solo "Notte" o potremmo simulare ore notturne
-        // Simula ore notturne (es. 19:00 a 5:59) in base a nightMovesCounter se non si è in rifugio?
-        // Per ora, semplifichiamo e mostriamo solo "Notte"
         DOM.statDayTime.textContent = 'Notte';
-        // Potresti voler aggiungere un indicatore del progresso notturno se necessario.
     }
+
+    // --- (INIZIO BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---
+    const setupEquippedItemInteraction = (element, slotKey) => {
+        if (!element) return;
+        element.onmouseover = null;
+        element.onmouseout = null;
+        element.onclick = null;
+        element.onmouseover = (event) => {
+            const equippedItemInstance = player[slotKey];
+            if (equippedItemInstance && equippedItemInstance.itemId && ITEM_DATA[equippedItemInstance.itemId]) {
+                if (typeof showItemTooltip === 'function') {
+                    showItemTooltip(equippedItemInstance, event);
+                }
+            }
+        };
+        element.onmouseout = () => {
+            if (typeof hideItemTooltip === 'function') {
+                hideItemTooltip();
+            }
+        };
+        element.onclick = () => {
+            const equippedItemInstance = player[slotKey]; // slotKey è 'equippedWeapon' o 'equippedArmor'
+            if (equippedItemInstance && equippedItemInstance.itemId && ITEM_DATA[equippedItemInstance.itemId]) {
+                if (typeof showItemActionPopup === 'function') {
+                    if (DEBUG_MODE) console.log(`[renderStats/setupEquip] CHIAMO showItemActionPopup per SLOTKEY '${slotKey}': itemId='${equippedItemInstance.itemId}', source='equipped'`);
+                    showItemActionPopup(equippedItemInstance.itemId, 'equipped');
+                } else {
+                    if (DEBUG_MODE) console.error("[renderStats/setupEquip] ERRORE: Funzione showItemActionPopup non trovata!");
+                }
+            }
+        };
+    };
+    if (DOM.statWeapon) {
+        setupEquippedItemInteraction(DOM.statWeapon, 'equippedWeapon');
+    }
+    if (DOM.statArmor) {
+        setupEquippedItemInteraction(DOM.statArmor, 'equippedArmor');
+    }
+    // --- (FINE BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---
 }
 
 /**
@@ -243,65 +309,55 @@ function renderInventory() {
     });
 
     // Aggiunge gli elementi dell'inventario alla lista HTML
-    for (const itemSlot of sortedInventory) {
-        // Verifica che l'ID dell'oggetto esista effettivamente nei dati
-        const itemInfo = ITEM_DATA[itemSlot.itemId];
-        if (!itemInfo) {
-            console.warn(`Oggetto con ID ${itemSlot.itemId} nell'inventario non trovato in ITEM_DATA.`);
-            // Aggiunge un elemento placeholder per l'oggetto sconosciuto
-            const listItem = document.createElement("li");
-            listItem.textContent = `Oggetto Sconosciuto (${itemSlot.quantity})`;
-            listItem.classList.add("item-unknown");
-            DOM.inventoryList.appendChild(listItem);
-            continue; // Passa al prossimo elemento nell'inventario
+    sortedInventory.forEach((slot, index) => {
+        const itemData = ITEM_DATA[slot.itemId];
+        if (itemData) {
+            // MODIFICATO: Usa itemData.nameShort se esiste, altrimenti itemData.name
+            const itemName = itemData.nameShort || itemData.name;
+            const itemText = `${itemName} (x${slot.quantity})`;
+            const li = document.createElement("li");
+            li.textContent = itemText;
+            li.dataset.itemId = slot.itemId; // Aggiunge data attribute per click handling
+            li.dataset.itemIndex = index;    // Aggiunge data attribute per indice (opzionale)
+
+            // Aggiunge classe CSS in base al TIPO dell'oggetto per styling
+            if (itemData.type) { // Controlla se itemData.type esiste
+                li.classList.add(`item-type-${itemData.type.toLowerCase()}`); // Usa itemData.type e aggiungi prefisso "item-type-"
+            } else {
+                li.classList.add("item-unknown"); // Fallback se itemData.type non è definito
+            }
+
+            // Aggiunge event listener per mostrare il tooltip (mouseover/pointerenter)
+            // Usiamo pointerenter/pointerleave per supportare meglio i dispositivi touch/penna
+            if (typeof showItemTooltip === 'function' && typeof hideItemTooltip === 'function') {
+                li.addEventListener('pointerenter', (e) => showItemTooltip(slot, e)); // Passa slot (con quantity) e l'evento
+                li.addEventListener('pointerleave', hideItemTooltip);
+                 // Aggiungi listener per touchmove per aggiornare la posizione del tooltip su touch devices
+                 // (Questo può essere gestito meglio nella funzione showItemTooltip stessa)
+            } else {
+                 console.warn("Funzioni showItemTooltip o hideItemTooltip non disponibili.");
+            }
+
+
+            // Aggiunge event listener per il click sull'oggetto (per mostrare le azioni)
+            // Questa funzione (showItemActionPopup) deve essere definita nel modulo player.js
+            // e deve essere accessibile globalmente o tramite un'altra funzione di coordinamento.
+            if (typeof handleInventoryClick === 'function') {
+                // Delega il click handler al container come prima
+                 // NOTE: Il listener handleInventoryClick è aggiunto una volta nel setupInputListeners
+                 // sul container inventoryList, non sui singoli li qui.
+                 // Questo è l'approccio preferito per performance. Quindi non aggiungiamo listeners qui.
+            } else {
+                console.warn("Funzione handleInventoryClick non disponibile. Interazione inventario limitata.");
+                // Aggiungi un listener diretto come fallback per debug se il delegation non funziona
+                 // li.addEventListener('click', () => { console.warn(`handleInventoryClick non disponibile, click su ${slot.itemId}`); /* showItemActionPopup(slot.itemId); */ }); // Commentato showItemActionPopup finché non è certo che funzioni
+            }
+
+
+            // Aggiunge l'elemento lista alla lista dell'inventario nel DOM
+            DOM.inventoryList.appendChild(li);
         }
-
-        const listItem = document.createElement("li");
-
-        // Aggiunge classe CSS in base alla categoria dell'oggetto per styling
-        if (itemInfo.category) {
-            listItem.classList.add(`item-${itemInfo.category.toLowerCase()}`);
-        } else {
-            listItem.classList.add("item-unknown"); // Fallback
-        }
-
-        // Aggiunge un data attribute per l'ID dell'oggetto (utile per gli event listener)
-        listItem.dataset.itemId = itemSlot.itemId;
-
-        // Aggiunge event listener per mostrare il tooltip (mouseover/pointerenter)
-        // Usiamo pointerenter/pointerleave per supportare meglio i dispositivi touch/penna
-        if (typeof showItemTooltip === 'function' && typeof hideItemTooltip === 'function') {
-            listItem.addEventListener('pointerenter', (e) => showItemTooltip(itemSlot, e)); // Passa itemSlot (con quantity) e l'evento
-            listItem.addEventListener('pointerleave', hideItemTooltip);
-             // Aggiungi listener per touchmove per aggiornare la posizione del tooltip su touch devices
-             // (Questo può essere gestito meglio nella funzione showItemTooltip stessa)
-        } else {
-             console.warn("Funzioni showItemTooltip o hideItemTooltip non disponibili.");
-        }
-
-
-        // Aggiunge event listener per il click sull'oggetto (per mostrare le azioni)
-        // Questa funzione (showItemActionPopup) deve essere definita nel modulo player.js
-        // e deve essere accessibile globalmente o tramite un'altra funzione di coordinamento.
-        if (typeof handleInventoryClick === 'function') {
-            // Delega il click handler al container come prima
-             // NOTE: Il listener handleInventoryClick è aggiunto una volta nel setupInputListeners
-             // sul container inventoryList, non sui singoli li qui.
-             // Questo è l'approccio preferito per performance. Quindi non aggiungiamo listeners qui.
-        } else {
-            console.warn("Funzione handleInventoryClick non disponibile. Interazione inventario limitata.");
-            // Aggiungi un listener diretto come fallback per debug se il delegation non funziona
-             // listItem.addEventListener('click', () => { console.warn(`handleInventoryClick non disponibile, click su ${itemSlot.itemId}`); /* showItemActionPopup(itemSlot.itemId); */ }); // Commentato showItemActionPopup finché non è certo che funzioni
-        }
-
-
-        // Costruisce il contenuto HTML dell'elemento lista (Nome Oggetto + Quantità)
-        // Usiamo innerHTML perché potremmo voler includere span per la quantità o altri dettagli grafici
-        listItem.innerHTML = `${itemInfo.name} <span class="item-quantity">(${itemSlot.quantity})</span>`;
-
-        // Aggiunge l'elemento lista alla lista dell'inventario nel DOM
-        DOM.inventoryList.appendChild(listItem);
-    }
+    });
 
     // Aggiorna il numero di slot occupati vs totali (potrebbe essere aggiunto alla UI)
     // const inventoryCount = document.getElementById('inventory-count');
@@ -462,12 +518,13 @@ function renderMap() {
      endY = Math.min(MAP_HEIGHT, endY);
 
 
+    const mapFragment = document.createDocumentFragment();
+
     // Cicla sulle righe della porzione di mappa visibile
     for (let y = startY; y < endY; y++) {
-        // Aggiungi un a capo all'inizio di ogni riga HTML della mappa tranne la prima
-        if (y > startY) {
-            mapHTML += '\n'; // Usa \n per creare nuove righe nel <pre>
-        }
+        // <<< CORRETTO: Crea un fragment PER OGNI RIGA >>>
+        const currentRowFragment = document.createDocumentFragment();
+
         // Cicla sulle colonne della porzione di mappa visibile
         for (let x = startX; x < endX; x++) {
             let tileClass = '';
@@ -510,47 +567,119 @@ function renderMap() {
             }
 
             // Aggiunge lo span per la cella corrente con il simbolo e la classe corretti
-            // Usiamo innerHTML e span per poter applicare stili CSS individualmente a ogni cella.
-            mapHTML += `<span class="${tileClass}">${tileChar}</span>`;
-        }
-    }
+            const span = document.createElement('span');
+            span.className = tileClass;
+            span.textContent = tileChar;
 
-    // Aggiorna l'HTML del display della mappa
-    display.innerHTML = mapHTML;
+            // Aggiunge data attribute per coordinate (utile per tooltip)
+            span.dataset.coordX = x;
+            span.dataset.coordY = y;
+
+            // Aggiungi listener per tooltip mappa (NUOVO)
+            if (typeof showMapTooltip === 'function' && typeof hideMapTooltip === 'function') {
+                // Passa le informazioni necessarie a showMapTooltip
+                span.addEventListener('pointerenter', (e) => showMapTooltip(x, y, tileChar, e));
+                span.addEventListener('pointerleave', hideMapTooltip);
+            }
+
+            // Aggiunge lo span alla stringa HTML
+            // Modifica: invece di costruire mapHTML come stringa, appendiamo i nodi span
+            // mapHTML += `<span class="${tileClass}" data-coord-x="${x}" data-coord-y="${y}">${tileChar}</span>`;
+            currentRowFragment.appendChild(span); // Aggiungi allo span della riga
+        } // End inner loop (x)
+
+        // Append the completed row fragment to the main map fragment
+        mapFragment.appendChild(currentRowFragment);
+
+        // <<< CORREZIONE: Aggiungi il newline DOPO aver aggiunto la riga >>>
+        // Aggiungi un nodo di testo newline per separare le righe nel <pre>
+        // (Non strettamente necessario per l'ultima riga, ma non crea problemi)
+        mapFragment.appendChild(document.createTextNode('\n'));
+
+    } // End outer loop (y)
+
+    // Aggiorna l'HTML del display della mappa usando il fragment
+    display.innerHTML = ''; // Pulisce il contenuto precedente
+    display.appendChild(mapFragment);
 
     // Opzionale: Imposta lo scroll per mantenere il giocatore centrato se l'overflow fosse abilitato.
-    // Ma con overflow: hidden nel CSS, questo non ha effetto e non è necessario.
-    // display.scrollLeft = (player.x * charWidth) - (display.offsetWidth / 2) + (charWidth / 2);
-    // display.scrollTop = (player.y * lineHeight) - (display.offsetHeight / 2) + (lineHeight / 2);
 }
 
-// --- Funzione helper per misurare larghezza carattere (da integrare se necessario, altrimenti usiamo stima in renderMap) ---
-// Potrebbe risiedere qui o in game_utils.js. Per ora, la mettiamo qui come potenziale helper interno a UI.
-// Se non implementata, renderMap userà un valore di fallback.
-/*
-let charWidthCache = {};
-function measureCharacterWidth(font) {
-    if (charWidthCache[font]) {
-        return charWidthCache[font];
+// --- Implementazione Tooltip Mappa (NUOVO) ---
+
+/**
+ * Mostra un tooltip informativo per una cella della mappa.
+ * @param {number} x - Coordinata X della cella.
+ * @param {number} y - Coordinata Y della cella.
+ * @param {string} tileChar - Il simbolo della cella (es. '.', 'F').
+ * @param {Event} event - L'evento pointerenter.
+ */
+function showMapTooltip(x, y, tileChar, event) {
+    // Verifica che gli elementi del tooltip mappa siano pronti
+    if (!DOM.mapTooltip || !DOM.tooltipMapCoords || !DOM.tooltipMapType || !DOM.tooltipMapEventChance) {
+        // console.warn("showMapTooltip: Elementi tooltip mappa non pronti.");
+        hideMapTooltip(); // Assicura che sia nascosto
+        return;
     }
-    try {
-        // Utilizza un canvas temporaneo per misurare il testo
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return 9; // Fallback se canvas non disponibile
-        context.font = font;
-        // Misura la larghezza di un carattere rappresentativo (es. 'M' o '@')
-        const metrics = context.measureText("@");
-        // Usa 'width' o 'actualBoundingBoxRight' se disponibile per maggiore precisione
-        const width = metrics.width || (metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight) || 9; // Fallback a 9px
-        charWidthCache[font] = width;
-        return width;
-    } catch (e) {
-        console.error("Errore misurazione larghezza carattere:", e);
-        return 9; // Fallback generico in caso di errore
+    // Verifica che i dati del tile siano validi
+    if (!TILE_DESC || !TILE_SYMBOLS || !EVENT_CHANCE) {
+        console.error("showMapTooltip: Dati tile (TILE_DESC, TILE_SYMBOLS, EVENT_CHANCE) non disponibili.");
+        hideMapTooltip();
+        return;
     }
+
+    // Trova il nome del tile e la chiave (es. 'PLAINS')
+    const tileTypeName = TILE_DESC[tileChar] || 'Sconosciuto';
+    const tileKey = Object.keys(TILE_SYMBOLS).find(key => TILE_SYMBOLS[key] === tileChar);
+
+    // Trova la probabilità di evento specifico del tile
+    let eventChancePercent = 0;
+    if (tileKey && EVENT_CHANCE[tileKey] !== undefined) {
+        eventChancePercent = Math.round(EVENT_CHANCE[tileKey] * 100);
+    }
+
+    // Popola il tooltip
+    DOM.tooltipMapCoords.textContent = `Coordinate: ${x}, ${y}`;
+    DOM.tooltipMapType.textContent = `Tipo: ${tileTypeName}`;
+    DOM.tooltipMapEventChance.textContent = `Prob. Evento (Locale): ${eventChancePercent}%`;
+
+    // Posizionamento (simile a showItemTooltip)
+    const displayRect = DOM.gameContainer.getBoundingClientRect();
+    const targetRect = event.target.getBoundingClientRect(); // L'elemento span della cella
+
+    let tooltipX = targetRect.right + 10; // A destra della cella
+    let tooltipY = targetRect.top;
+
+    // Adattamenti per non uscire dallo schermo
+    if (tooltipX + DOM.mapTooltip.offsetWidth > displayRect.right) {
+        tooltipX = targetRect.left - DOM.mapTooltip.offsetWidth - 10; // A sinistra
+    }
+    if (tooltipY + DOM.mapTooltip.offsetHeight > displayRect.bottom) {
+        tooltipY = displayRect.bottom - DOM.mapTooltip.offsetHeight - 5;
+    }
+    if (tooltipX < displayRect.left + 5) tooltipX = displayRect.left + 5;
+    if (tooltipY < displayRect.top + 5) tooltipY = displayRect.top + 5;
+
+    DOM.mapTooltip.style.left = `${tooltipX}px`;
+    DOM.mapTooltip.style.top = `${tooltipY}px`;
+    DOM.mapTooltip.style.position = 'fixed';
+    DOM.mapTooltip.style.zIndex = 100;
+
+    // Rende visibile il tooltip
+    DOM.mapTooltip.classList.remove('hidden');
+    DOM.mapTooltip.style.visibility = 'visible';
 }
-*/
+
+/**
+ * Nasconde il tooltip della mappa.
+ */
+function hideMapTooltip() {
+    if (!DOM.mapTooltip) return;
+    DOM.mapTooltip.classList.add('hidden');
+    DOM.mapTooltip.style.visibility = 'hidden';
+}
+
+// --- Fine Implementazione Tooltip Mappa ---
 
 // ----- Implementazione Tooltip Inventario -----
 // Spostiamo qui la logica di visualizzazione del tooltip, che dipende da DOM e Dati/Utils.
@@ -565,7 +694,6 @@ function measureCharacterWidth(font) {
 function showItemTooltip(itemSlot, event) {
     // Verifica che gli elementi del tooltip e i dati dell'oggetto siano disponibili
     if (gamePaused || !DOM.itemTooltip || !DOM.tooltipItemName || !DOM.tooltipItemDesc || !itemSlot || !itemSlot.itemId || !ITEM_DATA[itemSlot.itemId]) {
-        // console.warn("showItemTooltip: Elementi tooltip, dati oggetto o gioco in pausa."); // Log di debug rimosso
         hideItemTooltip(); // Assicura che sia nascosto se i dati non sono validi
         return;
     }
@@ -573,33 +701,17 @@ function showItemTooltip(itemSlot, event) {
     const itemDetails = ITEM_DATA[itemSlot.itemId];
 
     // Popola il contenuto del tooltip
-    DOM.tooltipItemName.textContent = itemDetails.name + (itemSlot.quantity > 1 ? ` (${itemSlot.quantity})` : ''); // Aggiunge quantità se > 1
+    DOM.tooltipItemName.textContent = itemDetails.name + (itemSlot.quantity > 1 ? ` (x${itemSlot.quantity})` : '');
     DOM.tooltipItemDesc.textContent = itemDetails.description || "Nessuna descrizione disponibile.";
 
-     // Aggiunge statistiche specifiche se l'oggetto ha proprietà di arma/armatura
-     // Usa getItemDetailsHTML se è definito (dovrebbe essere in player.js, ma lo usiamo qui per la UI)
-     let statsDetailsHTML = '';
-     if (typeof getItemDetailsHTML === 'function') {
-          statsDetailsHTML = getItemDetailsHTML(itemDetails);
-     } else {
-          console.warn("getItemDetailsHTML non disponibile per dettagli tooltip.");
-          // Fallback testuale per gli effetti usabili se la funzione dettagliata non c'è
-           if (itemDetails.usable && itemDetails.effect && typeof getItemEffectsText === 'function') {
-               statsDetailsHTML = `<div class="item-stats-container"><div class="item-stat">${getItemEffectsText(itemDetails)}</div></div>`;
-           }
-     }
-     // Seleziona l'elemento dove inserire i dettagli delle statistiche (es. una div specifica nel tooltip HTML)
-     const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container'); // Aggiungere questa classe/elemento nel HTML del tooltip
-     if (tooltipStatsContainer) {
-         tooltipStatsContainer.innerHTML = statsDetailsHTML;
-     } else {
-         // Se il contenitore specifico non esiste, potresti aggiungere i dettagli alla descrizione o in un altro modo
-         // Per ora, se getItemDetailsHTML esiste, lo aggiungiamo alla descrizione per semplicità
-          if (statsDetailsHTML && typeof getItemDetailsHTML === 'function') {
-               DOM.tooltipItemDesc.innerHTML = (itemDetails.description || "Nessuna descrizione.") + `<br><br>${statsDetailsHTML}`;
-          }
-     }
-
+    let statsDetailsHTML = '';
+    if (typeof getItemDetailsHTML === 'function') {
+        statsDetailsHTML = getItemDetailsHTML(itemSlot); // Passa l'istanza, non il template!
+    }
+    const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container');
+    if (tooltipStatsContainer) {
+        tooltipStatsContainer.innerHTML = statsDetailsHTML;
+    }
 
     // Posizionamento del tooltip
     const displayRect = DOM.gameContainer.getBoundingClientRect(); // Prendi le dimensioni del contenitore principale (game-container)
@@ -664,7 +776,8 @@ function hideItemTooltip() {
  * Dipende da dom_references.js (moveButtons) e game_constants.js (gamePaused).
  */
 function disableControls() {
-    gamePaused = true; // Imposta pausa a livello di logica di gioco
+    // console.log("disableControls: Controlli disabilitati."); // RIMOSSO LOG
+    gamePaused = true; 
     if (!DOM.moveButtons) {
          console.warn("disableControls: moveButtons non trovato.");
          return;
@@ -683,10 +796,9 @@ function disableControls() {
  * Dipende da dom_references.js (moveButtons) e game_constants.js (gamePaused).
  */
 function enableControls() {
-    // Verifica se il gioco è attivo prima di riabilitare (game_core.js lo imposta)
-    // if (!gameActive) return; // Non riabilitare se il gioco è finito
+    // console.log("enableControls: Controlli abilitati."); // RIMOSSO LOG
 
-    gamePaused = false; // Resetta pausa a livello di logica di gioco
+    gamePaused = false; 
     if (!DOM.moveButtons) {
          console.warn("enableControls: moveButtons non trovato.");
          return;
@@ -747,6 +859,8 @@ function showEventPopup(eventData) {
 
     // Memorizza il contesto dell'evento corrente (per riferimento in handleEventChoice e gestione input)
     currentEventContext = eventData; // Salva l'intero oggetto evento
+    // console.log("DEBUG showEventPopup: currentEventContext impostato:", JSON.stringify(currentEventContext, null, 2)); // NUOVO LOG
+    // console.log("DEBUG showEventPopup: currentEventContext.isActionPopup:", currentEventContext ? currentEventContext.isActionPopup : 'contesto nullo o isActionPopup non def'); // NUOVO LOG
 
     // Gestisce la visualizzazione delle scelte o del bottone "Continua"
     const choices = eventData.choices || [];
@@ -936,7 +1050,19 @@ function closeEventPopup() {
         // Non chiamare enableControls/renderMap/renderStats qui sotto, perché transitionToDay dovrebbe farlo.
     } else {
         // 5. Nel blocco else (tutti gli altri casi):
-        //    * Mantieni la logica originale
+        //    * AGGIUNTO BLOCCO PER IMPOSTARE FLAG dayEventDone
+        if (closingEventContext && closingEventContext.id === 'rest_stop_day_interaction') {
+            // Marca il tile corrente come "evento diurno completato"
+            // Verifica robusta che map, player.y, player.x siano validi
+            if (map && map[player.y] && map[player.y][player.x]) {
+                map[player.y][player.x].dayEventDone = true;
+                // console.log(`>>> Tile (${player.x},${player.y}) marcato come dayEventDone.`); // Log diagnostico
+            } else {
+                 console.error("closeEventPopup: Impossibile marcare il tile, coordinate giocatore o mappa non valide?");
+            }
+        }
+
+        //    * Mantieni la logica originale per riabilitare controlli e aggiornare UI
         if(typeof enableControls === 'function') enableControls(); else console.error("closeEventPopup: enableControls non disponibile.");
         if(typeof renderMap === 'function') renderMap(); else console.error("closeEventPopup: renderMap non disponibile.");
         if(typeof renderStats === 'function') renderStats(); else console.error("closeEventPopup: renderStats non disponibile.");
@@ -1049,92 +1175,89 @@ function buildAndShowComplexEventOutcome(title, description, checkDetails, conse
  * @param {object} itemInfo - L'oggetto dati dell'item da ITEM_DATA.
  * @returns {string} Stringa HTML con le statistiche formattate o vuota.
  */
-function getItemDetailsHTML(itemInfo) {
+function getItemDetailsHTML(itemInstance) {
+    // Log per vedere cosa riceve esattamente la funzione
+    if (DEBUG_MODE) console.log('[getItemDetailsHTML] Istanza ricevuta:', JSON.stringify(itemInstance));
+
+    // CONDIZIONE CORRETTA: Verifica itemInstance E itemInstance.itemId
+    if (!itemInstance || !itemInstance.itemId) { 
+        console.warn("getItemDetailsHTML: itemInstance o itemInstance.itemId non validi. Istanza:", itemInstance);
+        return ''; 
+    }
+    const itemTemplate = ITEM_DATA[itemInstance.itemId]; // Usa itemInstance.itemId
+    if (!itemTemplate) {
+        console.warn(`getItemDetailsHTML: Template non trovato in ITEM_DATA per itemId '${itemInstance.itemId}'.`);
+        return ''; 
+    }
+
     let detailsHTML = '';
 
-    // Verifica che l'oggetto dati esista
-    if (!itemInfo) return '';
-
-    // Dettagli specifici per le armi
-    if (itemInfo.type === 'weapon') {
-        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemInfo.weaponType)}</span></div>`; // Usa la utility per la label
-        detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${itemInfo.damage || '?'}</span></div>`;
-
-        // Aggiungi la visualizzazione della durabilità
-        if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
-            const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
-
-            let durabilityColor = '#00DD00'; // Verde
-            let durabilityStatus = 'Buono'; // Default status
-             if (itemInfo.durability <= 0) {
-                 durabilityColor = '#FF0000'; // Rosso vivo per rotto
-                 durabilityStatus = 'ROTTA';
-             } else if (durabilityPercent <= 25) {
-                 durabilityColor = '#FF4444'; // Rosso
-                 durabilityStatus = 'Critica';
-             } else if (durabilityPercent <= 50) {
-                 durabilityColor = '#FFAA00'; // Arancio
-                 durabilityStatus = 'Danneggiata';
-             } else if (durabilityPercent <= 75) {
-                 durabilityColor = '#FFFF00'; // Giallo
-                 durabilityStatus = 'Usurata';
-             }
-
+    if (itemTemplate.type === 'weapon') {
+        detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemTemplate.weaponType)}</span></div>`;
+        let damageText = '?';
+        if (typeof itemTemplate.damage === 'object' && itemTemplate.damage !== null && itemTemplate.damage.min !== undefined && itemTemplate.damage.max !== undefined) {
+            damageText = `${itemTemplate.damage.min}-${itemTemplate.damage.max}`;
+        } else if (typeof itemTemplate.damage === 'number') {
+            damageText = itemTemplate.damage;
+        }
+        detailsHTML += `<div class="item-stat">Danno Base: <span class="stat-value">${damageText}</span></div>`;
+        
+        // Usa itemInstance.currentDurability e itemTemplate.maxDurability
+        // CONDIZIONE CORRETTA: Verifica anche che itemInstance.currentDurability sia un numero
+        if (typeof itemInstance.currentDurability === 'number' && typeof itemTemplate.maxDurability === 'number') {
+            const durabilityPercent = (itemInstance.currentDurability / itemTemplate.maxDurability) * 100;
+            let durabilityColor = '#00DD00'; 
+            let durabilityStatus = 'Buono';
+            if (itemInstance.currentDurability <= 0) {
+                durabilityColor = '#FF0000'; 
+                durabilityStatus = 'ROTTA';
+            } else if (durabilityPercent <= 25) {
+                durabilityColor = '#FF4444'; 
+                durabilityStatus = 'Critica';
+            } else if (durabilityPercent <= 50) {
+                durabilityColor = '#FFAA00'; 
+                durabilityStatus = 'Danneggiata';
+            } else if (durabilityPercent <= 75) {
+                durabilityColor = '#FFFF00'; 
+                durabilityStatus = 'Usurata';
+            }
             detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`; // Arrotonda durabilità corrente per UI
-             // Aggiungi una barra visiva di durabilità se desiderato (richiede CSS dedicato)
-             // detailsHTML += `<div class="durability-bar"><div class="durability-fill" style="width: ${durabilityPercent}%; background-color: ${durabilityColor};"></div></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInstance.currentDurability)}/${itemTemplate.maxDurability}</span></div>`;
         }
-
-        // Aggiungi altre statistiche rilevanti in base al tipo di arma o altre proprietà
-        if (itemInfo.peso) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemInfo.peso}</span></div>`;
-        if (itemInfo.velocità) detailsHTML += `<div class="item-stat">Velocità: <span class="stat-value">${itemInfo.velocità}</span></div>`;
-        if (itemInfo.raggio) detailsHTML += `<div class="item-stat">Raggio: <span class="stat-value">${itemInfo.raggio}</span></div>`;
-        if (itemInfo.precisione) detailsHTML += `<div class="item-stat">Precisione: <span class="stat-value">${itemInfo.precisione}</span></div>`;
-        if (itemInfo.rumore) detailsHTML += `<div class="item-stat">Rumore: <span class="stat-value">${itemInfo.rumore}</span></div>`;
-        if (itemInfo.ammoType) {
-             // Cerca il nome leggibile del tipo di munizione
-             const ammoName = ITEM_DATA[itemInfo.ammoType]?.name || itemInfo.ammoType;
-             detailsHTML += `<div class="item-stat">Munizioni: <span class="stat-value">${ammoName}</span></div>`;
+        if (itemTemplate.weight) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemTemplate.weight}</span></div>`;
+        if (itemTemplate.ammoType) {
+            const ammoName = ITEM_DATA[itemTemplate.ammoType]?.name || itemTemplate.ammoType;
+            detailsHTML += `<div class="item-stat">Munizioni: <span class="stat-value">${ammoName}</span></div>`;
         }
-         if (itemInfo.recuperabile !== undefined) {
-             detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemInfo.recuperabile ? 'Sì' : 'No'}</span></div>`;
-         }
-
+        if (itemTemplate.velocità) detailsHTML += `<div class="item-stat">Velocità: <span class="stat-value">${itemTemplate.velocità}</span></div>`;
+        if (itemTemplate.raggio) detailsHTML += `<div class="item-stat">Raggio: <span class="stat-value">${itemTemplate.raggio}</span></div>`;
+        if (itemTemplate.precisione) detailsHTML += `<div class="item-stat">Precisione: <span class="stat-value">${itemTemplate.precisione}</span></div>`;
+        if (itemTemplate.rumore) detailsHTML += `<div class="item-stat">Rumore: <span class="stat-value">${itemTemplate.rumore}</span></div>`;
+        if (itemTemplate.recuperabile !== undefined) detailsHTML += `<div class="item-stat">Recuperabile: <span class="stat-value">${itemTemplate.recuperabile ? 'Sì' : 'No'}</span></div>`;
     }
-    // Dettagli specifici per le armature
-    else if (itemInfo.type === 'armor') {
-        detailsHTML += `<div class="item-stat">Protezione: <span class="stat-value">${itemInfo.armorValue || 0}</span></div>`;
-        // Aggiungi durabilità per armature se implementata nei dati
-         if (itemInfo.durability !== undefined && itemInfo.maxDurability !== undefined) {
-              const durabilityPercent = (itemInfo.durability / itemInfo.maxDurability) * 100;
-              let durabilityColor = '#00DD00'; // Verde
-              let durabilityStatus = 'Buono'; // Default status
-               if (itemInfo.durability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
-               else if (durabilityPercent <= 25) { durabilityColor = '#FF4444'; durabilityStatus = 'Critica'; }
-               else if (durabilityPercent <= 50) { durabilityColor = '#FFAA00'; durabilityStatus = 'Danneggiata'; }
-               else if (durabilityPercent <= 75) { durabilityColor = '#FFFF00'; durabilityStatus = 'Usurata'; }
-              detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
-              detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInfo.durability)}/${itemInfo.maxDurability}</span></div>`;
-          }
-    }
-    // Dettagli per altri tipi di oggetti utilizzabili (usando getItemEffectsText da utils)
-     else if (itemInfo.usable && itemInfo.effect && typeof getItemEffectsText === 'function') {
-        const effectText = getItemEffectsText(itemInfo);
-        if (effectText) {
-             detailsHTML += `<div class="item-stat">Effetto: <span class="stat-value">${effectText}</span></div>`;
+    else if (itemTemplate.type === 'armor') {
+        detailsHTML += `<div class="item-stat">Protezione: <span class="stat-value">${itemTemplate.armorValue || 0}</span></div>`;
+        // CONDIZIONE CORRETTA: Verifica anche che itemInstance.currentDurability sia un numero
+        if (typeof itemInstance.currentDurability === 'number' && typeof itemTemplate.maxDurability === 'number') {
+            const durabilityPercent = (itemInstance.currentDurability / itemTemplate.maxDurability) * 100;
+            let durabilityColor = '#00DD00';
+            let durabilityStatus = 'Buono';
+            if (itemInstance.currentDurability <= 0) { durabilityColor = '#FF0000'; durabilityStatus = 'ROTTA'; }
+            else if (durabilityPercent <= 25) { durabilityColor = '#FF4444'; durabilityStatus = 'Critica'; }
+            else if (durabilityPercent <= 50) { durabilityColor = '#FFAA00'; durabilityStatus = 'Danneggiata'; }
+            else if (durabilityPercent <= 75) { durabilityColor = '#FFFF00'; durabilityStatus = 'Usurata'; }
+            detailsHTML += `<div class="item-stat">Stato: <span class="stat-value" style="color: ${durabilityColor};">${durabilityStatus}</span></div>`;
+            detailsHTML += `<div class="item-stat">Durabilità: <span class="stat-value">${Math.floor(itemInstance.currentDurability)}/${itemTemplate.maxDurability}</span></div>`;
         }
-     }
-     // Dettagli per materiali/attrezzi (se hanno proprietà rilevanti da mostrare)
-     else if (itemInfo.type === 'crafting' || itemInfo.type === 'tool') {
-         // Potresti aggiungere dettagli specifici qui se ci fossero (es. "Peso: leggero")
-     }
-
-
-    // Ritorna l'HTML formattato
-    return detailsHTML ? `<div class="item-stats-container">${detailsHTML}</div>` : '';
+        if (itemTemplate.weight) detailsHTML += `<div class="item-stat">Peso: <span class="stat-value">${itemTemplate.weight}</span></div>`;
+    }
+    
+    const effectsText = typeof getItemEffectsText === 'function' ? getItemEffectsText(itemTemplate) : ''; 
+    if (effectsText) {
+        detailsHTML += `<div class="item-stat">${effectsText}</div>`;
+    }
+    return detailsHTML;
 }
-
 // ----- Fine Implementazione Tooltip Inventario -----
 
 
@@ -1142,3 +1265,235 @@ function getItemDetailsHTML(itemInfo) {
 // e le funzioni di logica di gioco principali (initializeGame, movePlayer, endGame,
 // triggerTileEvent, triggerComplexEvent, ecc.) saranno definite in altri moduli.
 // Questo file UI fornisce solo le funzioni per AGGIORNARE LA VISUALIZZAZIONE.                                                                                                                                                                                              
+
+
+// --- NUOVA SEZIONE: Logica Popup Crafting ---
+
+let selectedRecipeKey = null; // Memorizza la ricetta attualmente selezionata nel popup
+
+/**
+ * Mostra il popup di crafting.
+ * Popola la lista delle ricette conosciute dal giocatore.
+ */
+function showCraftingPopup() {
+    // console.log("showCraftingPopup: Apertura popup crafting..."); // RIMOSSO LOG
+    if (!DOM.craftingOverlay || !DOM.craftingPopup || !DOM.craftingRecipeList || !player || !player.knownRecipes) {
+        console.error("showCraftingPopup: Elementi DOM del popup crafting o dati giocatore non pronti.");
+        addMessage("Errore nell'aprire la schermata di crafting.", "error");
+        return;
+    }
+
+    gamePaused = true;
+    eventScreenActive = true; // Usiamo lo stesso flag per coerenza (blocca input mappa)
+    if (typeof disableControls === 'function') disableControls();
+
+    populateCraftingRecipeList(); // RIATTIVATO
+    updateCraftingDetails(null); // RIATTIVATO - Pulisce i dettagli all'inizio
+
+    DOM.craftingOverlay.classList.add('visible');
+    DOM.craftingPopup.classList.add('visible');
+
+    // LOG DI DEBUG RIMOSSI
+    // console.log("CSS - #crafting-overlay opacity:", window.getComputedStyle(DOM.craftingOverlay).opacity);
+    // console.log("CSS - #crafting-overlay visibility:", window.getComputedStyle(DOM.craftingOverlay).visibility);
+    // console.log("CSS - #crafting-overlay z-index:", window.getComputedStyle(DOM.craftingOverlay).zIndex);
+    // console.log("CSS - #crafting-popup display:", window.getComputedStyle(DOM.craftingPopup).display);
+    // if (DOM.craftingCloseButton) {
+    //     console.log("Pulsante Chiudi - offsetParent === null:", DOM.craftingCloseButton.offsetParent === null);
+    // } else {
+    //     console.log("Pulsante Chiudi (DOM.craftingCloseButton) non trovato!");
+    // }
+
+    // Aggiungi listener per chiusura (solo se non già aggiunto in setupInputListeners)
+    if (DOM.craftingCloseButton && !DOM.craftingCloseButton.onclick) {
+        DOM.craftingCloseButton.onclick = () => {
+            // console.log("craftingCloseButton clicked"); // RIMOSSO LOG
+            closeCraftingPopup();
+        };
+    }
+    // Listener per il pulsante "Crea" (solo se non già aggiunto)
+    if (DOM.craftItemButton && !DOM.craftItemButton.onclick) {
+        DOM.craftItemButton.onclick = () => {
+            if (selectedRecipeKey && typeof attemptCraftItem === 'function') {
+                attemptCraftItem(selectedRecipeKey);
+                updateCraftingDetails(selectedRecipeKey); 
+                populateCraftingRecipeList(); 
+            }
+        };
+    }
+}
+
+/**
+ * Nasconde il popup di crafting.
+ */
+function closeCraftingPopup() {
+    // console.log("closeCraftingPopup: Chiusura popup crafting..."); // RIMOSSO LOG
+    if (!DOM.craftingOverlay || !DOM.craftingPopup) {
+        console.warn("closeCraftingPopup: Elementi DOM del popup crafting non pronti.");
+        // Cerca di resettare i flag comunque
+        gamePaused = false;
+        eventScreenActive = false;
+        if (typeof enableControls === 'function') enableControls();
+        return;
+    }
+
+    DOM.craftingOverlay.classList.remove('visible');
+    DOM.craftingPopup.classList.remove('visible');
+    gamePaused = false;
+    eventScreenActive = false;
+    if (typeof enableControls === 'function') enableControls();
+    selectedRecipeKey = null; // Resetta la ricetta selezionata
+}
+
+/**
+ * Popola la lista delle ricette conosciute nel popup di crafting.
+ */
+function populateCraftingRecipeList() {
+    if (!DOM.craftingRecipeList || typeof CRAFTING_RECIPES === 'undefined' || !player) {
+        console.error("populateCraftingRecipeList: Elementi DOM mancanti, CRAFTING_RECIPES non definito o player non trovato.");
+        return;
+    }
+
+    DOM.craftingRecipeList.innerHTML = ''; // Pulisce la lista precedente
+    // Rimosso: console.log('[DEBUG populateCrafting] Ricette conosciute dal giocatore all\'apertura del popup:', JSON.stringify(player.knownRecipes));
+
+    if (!player.knownRecipes || player.knownRecipes.length === 0) {
+        const noRecipesLi = document.createElement('li');
+        noRecipesLi.textContent = "Nessuna ricetta conosciuta.";
+        noRecipesLi.classList.add('no-recipes');
+        DOM.craftingRecipeList.appendChild(noRecipesLi);
+        updateCraftingDetails(null); // Pulisce i dettagli
+        // Rimosso: console.log('[DEBUG populateCrafting] Numero di ricette aggiunte al DOM:', DOM.craftingRecipeList.children.length);
+        return;
+    }
+
+    let firstRecipeKey = null;
+
+    player.knownRecipes.forEach(recipeKey => {
+        const recipe = CRAFTING_RECIPES[recipeKey];
+        // Rimosso: console.log('[DEBUG populateCrafting Dettaglio Lookup] Chiave:', recipeKey, 'Valore da CRAFTING_RECIPES:', recipe);
+        if (recipe) {
+            if (!firstRecipeKey) {
+                firstRecipeKey = recipeKey;
+            }
+            const li = document.createElement('li');
+            const button = document.createElement('button'); // NUOVA LINEA
+            button.textContent = recipe.productName || recipe.productId;
+            button.dataset.recipeKey = recipeKey;
+
+            if (typeof checkIngredients === 'function' && checkIngredients(recipe.ingredients)) {
+                button.classList.add('craftable');
+            } else {
+                button.classList.add('not-craftable');
+            }
+
+            button.onclick = () => {
+                selectedRecipeKey = recipeKey; // Assicura che selectedRecipeKey sia aggiornato
+                updateCraftingDetails(recipeKey);
+                // Rimuovi 'selected' da tutti i bottoni prima di aggiungerlo a quello cliccato
+                Array.from(DOM.craftingRecipeList.querySelectorAll('button')).forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                button.classList.add('selected');
+            };
+            li.appendChild(button); // NUOVA LINEA - aggiunge bottone al li
+            DOM.craftingRecipeList.appendChild(li); // Aggiunge li alla lista ul
+        }
+    });
+
+    // Se è stata aggiunta almeno una ricetta, seleziona e mostra i dettagli della prima
+    if (firstRecipeKey) {
+        updateCraftingDetails(firstRecipeKey);
+        // Evidenzia il primo elemento della lista (opzionale)
+        const firstListButton = DOM.craftingRecipeList.querySelector(`button[data-recipe-key="${firstRecipeKey}"]`);
+        if (firstListButton) {
+            // Rimuovi la classe 'selected' da qualsiasi altro elemento (se presente)
+            DOM.craftingRecipeList.querySelectorAll('button.selected').forEach(el => el.classList.remove('selected'));
+            firstListButton.classList.add('selected'); // Aggiungi la classe 'selected'
+            selectedRecipeKey = firstRecipeKey; // Imposta la ricetta selezionata
+        }
+    } else {
+        // Caso in cui knownRecipes non è vuoto, ma nessuna ricetta valida è stata trovata in CRAFTING_RECIPES
+        const errorLi = document.createElement('li');
+        errorLi.textContent = "Errore: Ricette conosciute non valide.";
+        DOM.craftingRecipeList.appendChild(errorLi);
+        updateCraftingDetails(null); // Pulisce i dettagli
+    }
+    // Rimosso: console.log('[DEBUG populateCrafting] Numero di ricette aggiunte al DOM:', DOM.craftingRecipeList.children.length);
+}
+
+/**
+ * Aggiorna il pannello dei dettagli della ricetta selezionata.
+ * @param {string | null} recipeKey - La chiave della ricetta selezionata, o null per pulire.
+ */
+function updateCraftingDetails(recipeKey) {
+    if (!DOM.craftingRecipeNameTitle || !DOM.craftingRecipeDescription || !DOM.craftingIngredientList || !DOM.craftItemButton || !DOM.craftingRequirements) return; // UTILIZZA DOM.craftingRecipeNameTitle
+
+    if (!recipeKey || !CRAFTING_RECIPES[recipeKey]) {
+        DOM.craftingRecipeNameTitle.textContent = "Seleziona una ricetta dalla lista."; // UTILIZZA DOM.craftingRecipeNameTitle
+        DOM.craftingRecipeDescription.textContent = "";
+        DOM.craftingIngredientList.innerHTML = "";
+        DOM.craftingRequirements.textContent = "";
+        DOM.craftItemButton.textContent = "Crea";
+        DOM.craftItemButton.classList.add('disabled');
+        DOM.craftItemButton.disabled = true;
+        selectedRecipeKey = null;
+        return;
+    }
+
+    const recipe = CRAFTING_RECIPES[recipeKey];
+    const productInfo = ITEM_DATA[recipe.productId];
+
+    DOM.craftingRecipeNameTitle.textContent = recipe.productName || recipe.productId; // UTILIZZA DOM.craftingRecipeNameTitle
+    DOM.craftingRecipeDescription.textContent = productInfo?.description || recipe.description || "Nessuna descrizione per questa ricetta.";
+    
+    DOM.craftingIngredientList.innerHTML = "";
+    let canCraft = true;
+
+    if (recipe.ingredients) {
+        recipe.ingredients.forEach(ing => {
+            const ingredientInfo = ITEM_DATA[ing.itemId];
+            const li = document.createElement('li');
+            const ownedSlot = player.inventory.find(slot => slot.itemId === ing.itemId);
+            const ownedQuantity = ownedSlot ? ownedSlot.quantity : 0;
+            
+            li.textContent = `${ing.quantity}x ${ingredientInfo?.name || ing.itemId}`;
+            
+            if (ownedQuantity >= ing.quantity) {
+                li.classList.add('has-ingredient');
+                li.textContent += ` (Ne hai: ${ownedQuantity})`;
+            } else {
+                li.classList.add('missing-ingredient');
+                li.textContent += ` (Ne hai: ${ownedQuantity} - MANCANTE)`;
+                canCraft = false;
+            }
+            DOM.craftingIngredientList.appendChild(li);
+        });
+    }
+
+    // Gestione requisiti futuri (es. "Serve Fuoco")
+    DOM.craftingRequirements.innerHTML = "";
+    if (recipe.requirements && recipe.requirements.length > 0) {
+        let reqText = "Richiede: ";
+        // Esempio di gestione:
+        // if (recipe.requirements.includes('needs_fire') && !isPlayerNearFire()) { // isPlayerNearFire() da implementare
+        //     reqText += "<span class=\'missing-requirement\'>Fonte di Fuoco</span>";
+        //     canCraft = false;
+        // }
+        DOM.craftingRequirements.innerHTML = reqText;
+    }
+
+
+    if (canCraft) {
+        DOM.craftItemButton.textContent = `Crea ${recipe.productName || recipe.productId}`;
+        DOM.craftItemButton.classList.remove('disabled');
+        DOM.craftItemButton.disabled = false;
+    } else {
+        DOM.craftItemButton.textContent = "Ingredienti Mancanti";
+        DOM.craftItemButton.classList.add('disabled');
+        DOM.craftItemButton.disabled = true;
+    }
+}
+
+// --- FINE Logica Popup Crafting ---
+

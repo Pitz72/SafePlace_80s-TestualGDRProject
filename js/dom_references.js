@@ -1,14 +1,11 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/dom_references.js
- * Descrizione: Contiene tutti i riferimenti agli elementi DOM usati nel gioco.
- * Questi riferimenti verranno popolati quando lo script viene caricato ed eseguito,
- * dopo che il DOM è pronto (es. tramite <script defer> o inclusione a fine body).
+ * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */
 
-// --- RIFERIMENTI AGLI ELEMENTI PRINCIPALI DEL DOM ---
-// Dichiarato come un oggetto vuoto che verrà popolato con i riferimenti DOM
-// quando il documento sarà pronto. Sarà accessibile da altri script.
+// Oggetto globale per i riferimenti DOM
 let DOM = {};
 
 /**
@@ -16,15 +13,27 @@ let DOM = {};
  * Chiamata automaticamente quando il documento è pronto.
  */
 function assignAllDOMReferences() {
-    // console.log("assignAllDOMReferences: Inizio recupero elementi DOM..."); // Log di debug
+    // Schermate principali e contenitori
+    DOM.startScreenContainer = document.getElementById('start-screen-container') || null;
+    DOM.instructionsScreen = document.getElementById('instructions-screen') || null;
+    DOM.storyScreen = document.getElementById('story-screen') || null;
+    DOM.gameContainer = document.getElementById('game-container') || null;
+    DOM.endScreen = document.getElementById('end-screen') || null;
 
-    // Recupera gli elementi principali e i pannelli
-    // Questi ID corrispondono all'index.html
-    DOM.gameContainer = document.getElementById('game-container');
-    DOM.endScreen = document.getElementById('end-screen');
-    DOM.endTitle = document.getElementById('end-title');
-    DOM.endMessage = document.getElementById('end-message');
-    DOM.mapDisplay = document.getElementById('map-display');
+    // Elementi della schermata iniziale
+    DOM.gameTitle = document.getElementById('game-title') || null;
+    DOM.startScreenImage = document.getElementById('start-screen-image');
+    DOM.backToMenuButtons = document.querySelectorAll('.back-to-menu-btn');
+    DOM.gameVersionDisplay = document.getElementById('game-version-display');
+    DOM.startButton = document.getElementById('new-game-button');
+    DOM.instructionsButton = document.getElementById('instructions-button');
+    DOM.storyButton = document.getElementById('story-button');
+    DOM.loadGameButton = document.getElementById('load-game-button');
+
+    // Elementi schermata istruzioni e storia
+    DOM.instructionsContent = document.getElementById('instructions-content') || null;
+    DOM.instructionsLegendList = document.getElementById('instructions-legend-list');
+    DOM.storyContent = document.getElementById('story-content') || null;
 
     // Recupera riferimenti per le statistiche
     DOM.statsList = document.getElementById('stats-list');
@@ -64,29 +73,98 @@ function assignAllDOMReferences() {
     DOM.eventTitle = document.getElementById('event-title');
     DOM.eventContent = document.getElementById('event-content');
     DOM.eventChoicesContainer = document.getElementById('event-choices');
-    // Cerca il pulsante continua all'interno dell'overlay/popup per sicurezza
-    if (DOM.eventOverlay) {
-       DOM.continueButton = DOM.eventOverlay.querySelector('.continue-button');
+    // Cerca il pulsante continua all'interno dell'elemento popup specifico
+    if (DOM.eventPopup) { // Assicurati che DOM.eventPopup esista prima di cercare al suo interno
+       DOM.continueButton = DOM.eventPopup.querySelector('.continue-button');
+    } else {
+       DOM.continueButton = null; // Imposta a null se eventPopup non è trovato
+    }
+
+    // Recupera riferimenti per il popup azioni oggetto (NUOVO)
+    DOM.itemActionOverlay = document.getElementById('item-action-overlay') || null;
+    DOM.itemActionPopup = document.getElementById('item-action-popup') || null;
+    if (DOM.itemActionPopup) { // Verifica l'esistenza del popup prima di cercare al suo interno
+        DOM.itemActionTitle = DOM.itemActionPopup.querySelector('#item-action-title') || null;
+        DOM.itemActionDescription = DOM.itemActionPopup.querySelector('#item-action-description') || null;
+        DOM.itemActionStats = DOM.itemActionPopup.querySelector('#item-action-stats') || null;
+        DOM.itemActionChoices = DOM.itemActionPopup.querySelector('#item-action-choices') || null;
+        DOM.itemActionCloseButton = DOM.itemActionPopup.querySelector('#item-action-close-button') || null;
+    } else {
+        DOM.itemActionTitle = null;
+        DOM.itemActionDescription = null;
+        DOM.itemActionStats = null;
+        DOM.itemActionChoices = null;
+        DOM.itemActionCloseButton = null;
     }
 
     // Recupera riferimento per la legenda
     DOM.legendList = document.getElementById('legend');
 
     // Recupera riferimento per il bottone di riavvio
-    DOM.restartButton = document.getElementById('restart-button');
+    DOM.restartButton = document.getElementById('restart-button') || null;
 
     // Recupera riferimenti per il tooltip degli oggetti
-    DOM.itemTooltip = document.getElementById('item-tooltip');
+    DOM.itemTooltip = document.getElementById('item-tooltip') || null;
     if (DOM.itemTooltip) { // Verifica che il tooltip esista prima di cercare i suoi figli
-        DOM.tooltipItemName = DOM.itemTooltip.querySelector('#tooltip-item-name');
-        DOM.tooltipItemDesc = DOM.itemTooltip.querySelector('#tooltip-item-desc');
+        DOM.tooltipItemName = DOM.itemTooltip.querySelector('#tooltip-item-name'); // ID esatto
+        DOM.tooltipItemDesc = DOM.itemTooltip.querySelector('#tooltip-item-desc'); // ID esatto
+        DOM.tooltipItemStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container'); // Aggiunto per coerenza
+    } else {
+        DOM.tooltipItemName = null;
+        DOM.tooltipItemDesc = null;
+        DOM.tooltipItemStatsContainer = null;
     }
 
     // Recupera il riferimento all'inventario
     DOM.inventoryList = document.getElementById('inventory');
 
-    // console.log("assignAllDOMReferences: Recupero riferimenti DOM completato."); // Log di debug
-    console.log("assignAllDOMReferences: ESECUZIONE COMPLETATA. Oggetto DOM:", DOM); // Log finale diagnostico
+    // Elementi UI di gioco esistenti
+    DOM.mapDisplay = document.getElementById('map-display'); // Assicura che sia questo ID esatto
+    DOM.statsList = document.getElementById('stats-list'); 
+    DOM.messagesList = document.getElementById('messages'); // Verifica se l'ID è 'messages' o 'messagesList'
+    DOM.inventoryList = document.getElementById('inventory');
+    DOM.legendList = document.getElementById('legend');
+
+    // Elementi Schermata Fine Gioco (NUOVI)
+    DOM.endTitle = document.getElementById('end-title') || null;
+    DOM.endMessage = document.getElementById('end-message') || null;
+
+    // Bottone Salvataggio (NUOVO)
+    DOM.saveGameButton = document.getElementById('save-game-button');
+
+    // Riferimenti Tooltip Mappa (NUOVO)
+    DOM.mapTooltip = document.getElementById('map-tooltip') || null;
+    if (DOM.mapTooltip) { // Verifica esistenza prima di cercare al suo interno
+        DOM.tooltipMapCoords = DOM.mapTooltip.querySelector('#tooltip-map-coords') || null;
+        DOM.tooltipMapType = DOM.mapTooltip.querySelector('#tooltip-map-type') || null;
+        DOM.tooltipMapEventChance = DOM.mapTooltip.querySelector('#tooltip-map-event-chance') || null;
+    } else {
+        DOM.tooltipMapCoords = null;
+        DOM.tooltipMapType = null;
+        DOM.tooltipMapEventChance = null;
+    }
+
+    // NUOVO: Riferimenti pulsante e popup Crafting
+    DOM.openCraftingButton = document.getElementById('open-crafting-button') || null;
+    DOM.craftingOverlay = document.getElementById('crafting-overlay') || null;
+    DOM.craftingPopup = document.getElementById('crafting-popup') || null;
+    if (DOM.craftingPopup) {
+        DOM.craftingRecipeList = DOM.craftingPopup.querySelector('#crafting-recipe-list') || null;
+        DOM.craftingRecipeNameTitle = DOM.craftingPopup.querySelector('#crafting-recipe-name-title') || null;
+        DOM.craftingRecipeDescription = DOM.craftingPopup.querySelector('#crafting-recipe-description') || null;
+        DOM.craftingIngredientList = DOM.craftingPopup.querySelector('#crafting-ingredient-list') || null;
+        DOM.craftingRequirements = DOM.craftingPopup.querySelector('#crafting-requirements') || null;
+        DOM.craftItemButton = DOM.craftingPopup.querySelector('#craft-item-button') || null;
+        DOM.craftingCloseButton = DOM.craftingPopup.querySelector('#crafting-close-button') || null;
+    } else {
+        DOM.craftingRecipeList = null;
+        DOM.craftingRecipeNameTitle = null;
+        DOM.craftingRecipeDescription = null;
+        DOM.craftingIngredientList = null;
+        DOM.craftingRequirements = null;
+        DOM.craftItemButton = null;
+        DOM.craftingCloseButton = null;
+    }
 }
 
 // --- ESECUZIONE AUTOMATICA QUANDO IL DOM È PRONTO ---

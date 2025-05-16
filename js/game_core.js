@@ -1,8 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/game_core.js
- * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco (input/azioni), fine partita.
- * Dipende da: game_constants.js, dom_references.js, game_utils.js, ui.js, player.js, map.js, events.js
+ * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco e gestione input.
+ * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
  */
 
 // Dipendenze:
@@ -17,283 +18,214 @@
 
 
 /**
- * Inizializza lo stato del gioco, genera personaggio e mappa, e configura i listener per avviare il gioco interattivo.
- * Chiamata da window.onload.
+ * Helper per mostrare una schermata e nascondere le altre
  */
-function initializeGame() {
-    // --- Reset dello stato globale del gioco ---
-    // Resetta le variabili di stato (definite in game_constants.js) ai loro valori iniziali.
-    // Questo assicura che un nuovo gioco parta da zero.
-    player = {}; // Sostituito dall'inizializzazione in generateCharacter
-    map = []; // Sostituito dalla generazione in generateMap
-    messages = []; // Array vuoto per il log.
-    gameActive = false; // Il gioco non è ancora formalmente attivo finché non è tutto pronto.
-    eventScreenActive = false; // Nessun popup attivo all'inizio.
-    gamePaused = false; // Il gioco non è in pausa all'inizio.
-    currentEventChoices = []; // Nessuna scelta di evento attiva.
-    currentEventContext = null; // Nessun contesto evento attivo.
-    dayMovesCounter = 0; // Contatori passi a zero.
-    nightMovesCounter = 0;
-    isDay = true; // Inizia sempre di giorno.
-    daysSurvived = 0; // Inizia dal Giorno 0.
-    easterEggPixelDebhFound = false; // Flag easter egg a falso.
-    uniqueEventWebRadioFound = false; // Flag evento unico a falso.
-    
-    // --- Verifica Riferimenti DOM ---
-    // Verifichiamo se gli elementi critici sono stati trovati e popolati correttamente nell'oggetto DOM.
-    if (!DOM.gameContainer || !DOM.mapDisplay || !DOM.messagesList || !DOM.inventoryList || !DOM.legendList || !DOM.eventOverlay || !DOM.eventPopup || !DOM.eventTitle || !DOM.eventContent || !DOM.eventChoicesContainer || !DOM.continueButton || !DOM.endScreen || !DOM.restartButton || !DOM.statsList || !DOM.itemTooltip || !DOM.tooltipItemName || !DOM.tooltipItemDesc) {
-         console.error("CRITICO: initializeGame: Elementi UI essenziali non trovati in dom_references.js!");
-         // Mostra un messaggio di errore nell'area di gioco se possibile
-         if(DOM.gameContainer) DOM.gameContainer.innerHTML = "<p style='color:red; padding: 20px;'>ERRORE CRITICO: Elementi UI mancanti. Controlla l'HTML e la console del browser.</p>";
-         // Imposta gameActive a false per sicurezza e ritorna
-         gameActive = false;
-         return; // Interrompe l'inizializzazione
+function showScreen(screenToShow) {
+    const screens = [
+        DOM.startScreenContainer,
+        DOM.instructionsScreen,
+        DOM.storyScreen,
+        DOM.gameContainer,
+        DOM.endScreen
+    ];
+    screens.forEach(screen => {
+        // Assicurati che screen esista prima di tentare di modificarne lo stile
+        if (screen) { 
+            if (screen !== screenToShow) {
+                screen.style.display = 'none';
+            } else {
+                // Non è necessario fare nulla se screen === screenToShow qui, 
+                // perché lo mostreremo dopo il loop.
+            }
+        } else {
+            // Opzionale: logga un avviso se uno degli screen attesi è mancante
+            // console.warn("showScreen: Uno degli elementi screen nell'array 'screens' è null o undefined.");
+        }
+    });
+
+    // Mostra lo screen richiesto, solo se esiste
+    if (screenToShow) {
+        // Tentativo di forzare il browser a calcolare lo stile
+        try {
+            const _ = screenToShow.style.display; // Leggi lo stile attuale
+        } catch (e) {
+            console.error("showScreen: Errore durante la lettura di screenToShow.style.display", e, screenToShow);
+            return; // Esci se non possiamo nemmeno leggere lo stile
+        }
+        screenToShow.style.display = 'flex'; // o 'block' a seconda del tuo CSS
+    } else {
+        console.error("showScreen: screenToShow è null o undefined. Impossibile mostrare la schermata richiesta.");
     }
-
-
-    // --- Generazione Personaggio e Mappa ---
-    try {
-        // Genera il personaggio (statistiche, inventario iniziale).
-        // generateCharacter è definita in player.js. Inizializza l'oggetto player.
-        if (typeof generateCharacter === 'function') {
-            generateCharacter();
-             if (!player || typeof player.vigore !== 'number' || player.x === undefined || player.y === undefined) { // player.x/y inizializzati a -1 in player.js
-                 throw new Error("Oggetto player non valido dopo generateCharacter.");
-             }
-        } else { throw new Error("Funzione generateCharacter non disponibile (player.js non caricato?)."); }
-
-
-        // Genera la mappa del mondo e posiziona Start/End.
-        // generateMap è definita in map.js. Inizializza l'array map e imposta player.x/y.
-        if (typeof generateMap === 'function') {
-            generateMap();
-
-             if (!map || map.length === 0 || map[0]?.length === 0 || typeof player.x !== 'number' || typeof player.y !== 'number' || player.x < 0 || player.y < 0) {
-                 throw new Error("Mappa non valida o posizione giocatore non impostata dopo generateMap.");
-             }
-              if (map[player.y] && map[player.y][player.x]) {
-                   map[player.y][player.x].visited = true;
-              }
-        } else { throw new Error("Funzione generateMap non disponibile (map.js non caricato?)."); }
-
-
-    } catch(e) {
-        console.error("initializeGame: ERRORE CRITICO DURANTE GENERAZIONE:", e);
-        // Mostra errore all'utente in modo più visibile
-        if(DOM.gameContainer) DOM.gameContainer.innerHTML = `<p style='color:red; padding: 20px;'>ERRORE GRAVE INIZIALIZZAZIONE: ${e.message}. Impossibile avviare il gioco. Controlla la console.</p>`;
-        gameActive = false; // Impedisce l'avvio del gioco
-        return; // Ferma l'esecuzione se l'inizializzazione fallisce
-    }
-
-
-    // --- Configurazione UI Iniziale ---
-    // Assicurati che la schermata di gioco sia visibile e quella di fine nascosta.
-    if(DOM.endScreen) DOM.endScreen.style.display = 'none';
-    if(DOM.gameContainer) DOM.gameContainer.style.display = 'flex'; // Mostra il container di gioco (display flex da CSS)
-    // Rimuove eventuali classi di overlay attive da una partita precedente
-     if(DOM.gameContainer) DOM.gameContainer.classList.remove('overlay-active');
-     if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
-
-
-    // Chiama le funzioni di rendering
-    // Effettua il rendering iniziale dell'interfaccia.
-    // render functions sono definite in ui.js
-    try {
-        if (typeof renderLegend === 'function') renderLegend(); else throw new Error("Funzione renderLegend non disponibile (ui.js?).");
-        if (typeof renderStats === 'function') renderStats(); else throw new Error("Funzione renderStats non disponibile (ui.js?)."); // Renderizza statistiche e risorse
-        if (typeof renderInventory === 'function') renderInventory(); else throw new Error("Funzione renderInventory non disponibile (ui.js?)."); // Renderizza l'inventario iniziale
-        if (typeof renderMap === 'function') renderMap(); else throw new Error("Funzione renderMap non disponibile (ui.js?)."); // Renderizza la mappa
-        if (typeof renderMessages === 'function') renderMessages(); else throw new Error("Funzione renderMessages non disponibile (ui.js?)."); // Pulisce il log precedente e renderizza
-
-        // Logga il messaggio iniziale di benvenuto
-         // addMessage è definita in game_utils.js
-        if (typeof addMessage === 'function') {
-             addMessage(`Inizio del viaggio. HP:${Math.floor(player.hp)}/${player.maxHp}, Sazietà:${Math.floor(player.food)}/10, Idratazione:${Math.floor(player.water)}/10. È Giorno.`, 'info', true);
-             // Logga il messaggio di inizio specifico del tile START
-             const startTileSymbol = map[player.y][player.x].type;
-             if (startTileSymbol === TILE_SYMBOLS.START) {
-                 addMessage(`Ti trovi al ${TILE_DESC[startTileSymbol] || 'Punto di Partenza'}. Trova il ${TILE_DESC[TILE_SYMBOLS.END] || 'Rifugio'} per vincere.`, 'info');
-             }
-        } else { console.warn("initializeGame: addMessage non disponibile (game_utils.js?)."); }
-
-    } catch (e) {
-        console.error("initializeGame: ERRORE DURANTE RENDERING INIZIALE:", e);
-        if(DOM.mapDisplay) DOM.mapDisplay.textContent = "Errore nel rendering iniziale!";
-        gameActive = false; // Impedisce di giocare se il rendering fallisce
-        return; // Ferma l'inizializzazione
-    }
-
-
-    // --- Configurazione Input Listener ---
-    // Imposta tutti gli event listener necessari per l'interazione utente.
-    // setupInputListeners è definita qui sotto in game_core.js.
-    try {
-        setupInputListeners();
-    } catch (e) {
-        console.error("initializeGame: ERRORE DURANTE SETUP INPUT LISTENERS:", e);
-        if(DOM.gameContainer) addMessage("Errore nella configurazione dei controlli.", 'danger');
-        gameActive = false; // Impedisce il gioco interattivo
-        return; // Ferma l'inizializzazione
-    }
-
-
-    // --- Avvio Formale del Gioco ---
-    // Se tutto è andato bene fin qui, imposta il gioco come attivo.
-    gameActive = true;
-    gamePaused = false; // Assicura che non sia in pausa all'avvio
-    // Abilita i controlli di movimento.
-    // enableControls è definita in ui.js.
-    if (typeof enableControls === 'function') enableControls(); else console.warn("initializeGame: enableControls non disponibile (ui.js?).");
-
-
-    // Imposta il focus sul documento body per garantire che i tasti vengano catturati.
-     // Questo dovrebbe essere fatto DOPO che l'UI è visibile e i listener sono attivi.
-    try {
-         document.body.focus();
-    } catch (e) {
-         console.warn("initializeGame: Impossibile impostare il focus iniziale sul document.body.", e);
-         // Questo non è critico, ma può causare problemi di input su alcuni browser/dispositivi.
-    }
-
-
 }
 
+function initializeStartScreen() {
+    showScreen(DOM.startScreenContainer);
+    if (DOM.gameVersionDisplay && typeof GAME_VERSION !== 'undefined') {
+        DOM.gameVersionDisplay.textContent = `Versione: ${GAME_VERSION}`;
+    }
+    // Assicurati che il gioco NON sia attivo o in pausa all'inizio
+    gameActive = false;
+    gamePaused = true; // Iniziamo in uno stato "pausato" finché non si inizia la partita
+
+    // Listener per i bottoni "Torna al Menu" dalle schermate Istruzioni/Storia
+    if (DOM.backToMenuButtons) {
+        DOM.backToMenuButtons.forEach(button => {
+            button.onclick = function() {
+                showScreen(DOM.startScreenContainer);
+            };
+        });
+    }
+}
 
 /**
- * Gestisce la pressione dei tasti per il movimento e altre azioni globali del gioco.
- * Chiamato da un event listener keydown aggiunto da setupInputListeners.
- * Dipende da: game_constants.js (gameActive, gamePaused, eventScreenActive, isDay, dayMovesCounter, nightMovesCounter, DAY_LENGTH_MOVES, NIGHT_LENGTH_MOVES, MOVE_FOOD_COST, MOVE_WATER_COST),
- * map.js (movePlayer, transitionToNight, transitionToDay), ui.js (renderStats), events.js (handleEventKeyPress).
- * @param {KeyboardEvent} event - L'oggetto evento della tastiera.
+ * Inizializza lo stato del gioco, genera personaggio e mappa, ecc.
+ * Chiamata quando si clicca "NUOVA PARTITA".
  */
-function handleKeyPress(event) {
-    // Impedisce lo scrolling della pagina con le frecce o WASD, indipendentemente dallo stato del gioco.
-     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(event.key.toLowerCase())) {
-        event.preventDefault();
+function initializeGame() {
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Inizializzazione gioco...");
+    gameActive = true;
+    gamePaused = false;
+    eventScreenActive = false;
+    gameDay = 1;
+    dayMovesCounter = 0;
+    isDay = true;
+    easterEggPixelDebhFound = false;
+    uniqueEventWebRadioFound = false;
+    currentEventChoices = [];
+    currentEventContext = null;
+
+    // Pulisci log messaggi precedente
+    if(DOM.messagesList) DOM.messagesList.innerHTML = '';
+    messages.length = 0;
+
+    // Genera personaggio e mappa
+    if (typeof generateCharacter === 'function') generateCharacter(); else console.error("initializeGame: generateCharacter non trovata!");
+    if (typeof generateMap === 'function') generateMap(); else console.error("initializeGame: generateMap non trovata!");
+
+    // Renderizza stato iniziale
+    if (typeof renderMap === 'function') renderMap(); else console.error("initializeGame: renderMap non trovata!");
+    if (typeof renderStats === 'function') renderStats(); else console.error("initializeGame: renderStats non trovata!");
+    if (typeof renderInventory === 'function') renderInventory(); else console.error("initializeGame: renderInventory non trovata!");
+    if (typeof renderLegend === 'function') renderLegend(); else console.error("initializeGame: renderLegend non trovata!");
+    
+    addMessage(`Giorno ${gameDay}. L'avventura inizia...`, "info");
+
+    // Aggiorna versione visualizzata (anche se non cambia, buona pratica)
+    if (DOM.gameVersion) DOM.gameVersion.textContent = GAME_VERSION;
+
+    // Imposta focus per input tastiera
+    try {
+        // document.body.focus(); // Focus su gameContainer potrebbe essere meglio se gameContainer è l'elemento principale per l'input
+        if(DOM.gameContainer) DOM.gameContainer.focus();
+    } catch (e) {
+        console.warn("initializeGame: Impossibile impostare il focus iniziale.", e);
     }
-
-    // Gestione input SPECIFICO degli EVENTI (numeri per scelte, Esc, Enter) - alta priorità.
-    // Se un popup evento è attivo, passa l'input a handleEventKeyPress in events.js.
-    // eventScreenActive è gestito da showEventPopup/closeEventPopup in ui.js/events.js.
-    // handleEventKeyPress è definita in events.js.
-    if (eventScreenActive) {
-         if (typeof handleEventKeyPress === 'function') {
-            handleEventKeyPress(event); // Passa l'evento originale
-         } else {
-            console.error("handleKeyPress: handleEventKeyPress non disponibile (events.js?).");
-         }
-         return; // Consuma l'input, non elaborarlo ulteriormente qui.
-    }
-
-    // Gestione input GLOBALE (movimento, inventario, ecc.) - solo se il gioco è attivo e NON in pausa (nessun popup attivo).
-    // gameActive e gamePaused sono gestiti in game_constants.js e ui.js/events.js.
-    if (!gameActive || gamePaused) {
-         return; // Ignora l'input di gioco se non è il momento giusto.
-    }
-
-    // Elabora l'input di gioco (movimento, azioni globali).
-    const key = event.key.toLowerCase(); // Converte il tasto in minuscolo per consistenza
-
-    switch (key) {
-        case 'w': // Muovi su
-        case 'arrowup':
-            // movePlayer è definita in map.js
-             if (typeof movePlayer === 'function') movePlayer(0, -1); else console.error("handleKeyPress: movePlayer non disponibile (map.js?).");
-            break;
-        case 's': // Muovi giù
-        case 'arrowdown':
-             if (typeof movePlayer === 'function') movePlayer(0, 1); else console.error("handleKeyPress: movePlayer non disponibile (map.js?).");
-            break;
-        case 'a': // Muovi sinistra
-        case 'arrowleft':
-             if (typeof movePlayer === 'function') movePlayer(-1, 0); else console.error("handleKeyPress: movePlayer non disponibile (map.js?).");
-            break;
-        case 'd': // Muovi destra
-        case 'arrowright':
-             if (typeof movePlayer === 'function') movePlayer(1, 0); else console.error("handleKeyPress: movePlayer non disponibile (map.js?).");
-            break;
-        case ' ': // Tasto Spazio: Attendi/Riposa per 1 unità di tempo
-            // Questo simula un "passo nullo" che fa avanzare il tempo e consuma risorse,
-            // ma non cambia la posizione.
-            // La logica di avanzamento tempo/consumo/effetti passivi è in movePlayer.
-            // Possiamo replicarla qui per un passo nullo, o creare una funzione helper "passTime(amount)".
-            // Per semplicità, replichiamo la logica essenziale di un passo singolo.
-             if (typeof movePlayer === 'function') { // Reutilizza movePlayer ma senza spostamento.
-                  // Potremmo passare dx=0, dy=0 a movePlayer, ma movePlayer controlla e blocca se dx=0, dy=0.
-                  // Dobbiamo eseguire solo la parte di movePlayer che gestisce tempo/risorse/eventi.
-                  // Creiamo una funzione dedicata nel map.js o qui? Creiamo una funzione in map.js "passTime(amount)".
-                  // Per ora, replichiamo la logica minima qui:
-                   // Disable controls e imposta pausa *prima* di simulare il passo
-                  disableControls(); // Imposta gamePaused = true
-
-                   // Consume risorse (base + malattia)
-                  if (typeof consumeResourcesOnMove === 'function') consumeResourcesOnMove();
-                  else console.warn("handleKeyPress: consumeResourcesOnMove non disponibile.");
-
-                   // Applica effetti passivi status
-                   if (typeof applyPassiveStatusEffects === 'function') applyPassiveStatusEffects();
-                   else console.warn("handleKeyPress: applyPassiveStatusEffects non disponibile.");
-
-                   // Controlla se il giocatore è morto
-                   if (player.hp <= 0) {
-                        if (typeof endGame === 'function') endGame(false);
-                        return; // Esci se morto
-                   }
-
-                   // Gestisce contatori giorno/notte e transizioni
-                   if (isDay) {
-                       dayMovesCounter++;
-                       if (dayMovesCounter >= DAY_LENGTH_MOVES) {
-                           if (typeof transitionToNight === 'function') transitionToNight(); else console.warn("handleKeyPress: transitionToNight non disponibile.");
-                       }
-                   } else { // Notte
-                       // I passi di "attesa" di notte non dovrebbero contare per il contatore NIGHT_LENGTH_MOVES
-                       // (che simula il movimento all'aperto forzando l'alba).
-                       // Aspettare in un rifugio non forza l'alba. Aspettare all'aperto fa passare il tempo ma non muove.
-                       // Decidiamo che "Attendere" (Spazio) fa avanzare il tempo sia di giorno che di notte,
-                       // ma non conta per NIGHT_LENGTH_MOVES (che è solo per spostamenti effettivi).
-                       // Quindi nightMovesCounter non incrementa qui.
-
-                       // Se si attende di notte FUORI da un rifugio, forse c'è una piccola chance di incontro notturno?
-                       // Questa logica è già gestita dal sistema eventi casuali in movePlayer, ma un passo nullo non chiama movePlayer.
-                       // Potremmo aggiungere un piccolo check qui.
-                       // Per ora, semplifichiamo: "Attendi" è solo consumo risorse + check status messages.
-                   }
-
-                   // Logga l'azione "Attendi"
-                    if (typeof addMessage === 'function') addMessage("Attendi e riposi brevemente.", 'info');
-
-                   // Aggiorna UI stats (per HP, risorse, ora)
-                   if (typeof renderStats === 'function') renderStats(); else console.warn("handleKeyPress: renderStats non disponibile.");
-
-                   // Controlla e logga messaggi di stato (fame, sete, ecc.)
-                   if (typeof checkAndLogStatusMessages === 'function') checkAndLogStatusMessages();
-                   else console.warn("handleKeyPress: checkAndLogStatusMessages non disponibile.");
-
-                   // Riabilita i controlli e rimuove la pausa *dopo* la simulazione del passo nullo e del logging
-                   enableControls(); // gamePaused = false
-
-             } else {
-                 console.error("handleKeyPress: Funzione movePlayer non disponibile (map.js?), impossibile simulare passo nullo.");
-             }
-
-            break;
-
-        case 'i': // Tasto 'I': Mostra/interagisci con Inventario
-
-            // Per ora, un click sull'inventario apre il popup azione item.
-            // Potremmo implementare un popup inventario dedicato più complesso in futuro.
-            // Per coerenza con il click, re-indirizziamo a un click simulato sul primo item o apriamo un popup generico.
-            // Un popup generico dell'inventario che mostra tutti gli item e permette di cliccarli sarebbe meglio.
-            // Per ora, non c'è un popup inventario dedicato. L'interazione avviene cliccando direttamente sulla lista.
-            // Non facciamo nulla con il tasto 'I' per ora.
-
-            break;
-
-        // Aggiungere altri tasti per azioni globali (es. 'C' per Scheda Personaggio, 'M' per Mappa estesa se implementata)
-    }
+    // console.log("Gioco Iniziato!"); // RIMOSSO
 }
 
+// Rinomina handleKeyPress a handleGlobalKeyPress per evitare confusione
+// e aggiungi controlli per gameActive
+function handleGlobalKeyPress(event) {
+    // Se siamo in una schermata diversa da quella di gioco o end-game, ignora l'input globale.
+    if (DOM.startScreenContainer && DOM.startScreenContainer.style.display === 'flex' ||
+        DOM.instructionsScreen && DOM.instructionsScreen.style.display === 'flex' ||
+        DOM.storyScreen && DOM.storyScreen.style.display === 'flex') {
+        
+        if (event.key === 'Escape') {
+            if (DOM.instructionsScreen && DOM.instructionsScreen.style.display === 'flex' || 
+                DOM.storyScreen && DOM.storyScreen.style.display === 'flex') {
+                showScreen(DOM.startScreenContainer);
+            }
+        }
+        return;
+    }
+    
+    // Impedisce lo scrolling della pagina con le frecce o WASD, se il gioco è attivo.
+    // Questo controllo va fatto prima di gameActive/gamePaused per evitare scroll indesiderati
+    // anche se il gioco è in pausa ma la schermata di gioco è visibile.
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", " "].includes(event.key.toLowerCase())) {
+        // Preveniamo lo scroll solo se il gameContainer è effettivamente visibile
+        // o se è attiva la endScreen (dove lo scroll non serve)
+        if ((DOM.gameContainer && DOM.gameContainer.style.display === 'flex') || 
+            (DOM.endScreen && DOM.endScreen.style.display === 'flex')) {
+            event.preventDefault();
+        }
+    }
+
+    // Se un popup evento è attivo (gestito da eventScreenActive)
+    if (eventScreenActive) {
+         if (typeof handleEventKeyPress === 'function') { // Questa è la handleEventKeyPress di game_core per i numeri/Esc/Enter
+            handleEventKeyPress(event); 
+         } else { 
+            console.error("handleGlobalKeyPress: handleEventKeyPress non disponibile (events.js o game_core.js?).");
+         }
+         return; 
+    }
+
+    // Se il gioco non è attivo o è in pausa (diversa da pausa per evento UI)
+    if (!gameActive || gamePaused) {
+         return; 
+    }
+
+    // Il resto della logica di handleKeyPress (movimento, spazio per attendere)
+    const key = event.key.toLowerCase(); 
+
+    switch (key) {
+        case 'w': 
+        case 'arrowup':
+             if (typeof movePlayer === 'function') movePlayer(0, -1); else console.error("handleGlobalKeyPress: movePlayer non disponibile (map.js?).");
+            break;
+        case 's': 
+        case 'arrowdown':
+             if (typeof movePlayer === 'function') movePlayer(0, 1); else console.error("handleGlobalKeyPress: movePlayer non disponibile (map.js?).");
+            break;
+        case 'a': 
+        case 'arrowleft':
+             if (typeof movePlayer === 'function') movePlayer(-1, 0); else console.error("handleGlobalKeyPress: movePlayer non disponibile (map.js?).");
+            break;
+        case 'd': 
+        case 'arrowright':
+             if (typeof movePlayer === 'function') movePlayer(1, 0); else console.error("handleGlobalKeyPress: movePlayer non disponibile (map.js?).");
+            break;
+        case ' ': 
+            if (typeof disableControls === 'function') disableControls(); 
+            else console.warn("handleGlobalKeyPress (Spazio): disableControls non disponibile.");
+
+            if (typeof consumeResourcesOnMove === 'function') consumeResourcesOnMove();
+            else console.warn("handleGlobalKeyPress (Spazio): consumeResourcesOnMove non disponibile.");
+
+            if (typeof applyPassiveStatusEffects === 'function') applyPassiveStatusEffects();
+            else console.warn("handleGlobalKeyPress (Spazio): applyPassiveStatusEffects non disponibile.");
+
+            if (player && player.hp <= 0) {
+                if (typeof endGame === 'function') endGame(false);
+                return; 
+            }
+
+            if (isDay) {
+                dayMovesCounter++;
+                if (dayMovesCounter >= DAY_LENGTH_MOVES) {
+                    if (typeof transitionToNight === 'function') transitionToNight(); else console.warn("handleGlobalKeyPress (Spazio): transitionToNight non disponibile.");
+                }
+            } else { 
+                // nightMovesCounter non incrementa per "Attendere"
+            }
+
+            if (typeof addMessage === 'function') addMessage("Attendi e riposi brevemente.", 'info');
+            else console.warn("handleGlobalKeyPress (Spazio): addMessage non disponibile.");
+
+            if (typeof renderStats === 'function') renderStats(); else console.warn("handleGlobalKeyPress (Spazio): renderStats non disponibile.");
+
+            if (typeof checkAndLogStatusMessages === 'function') checkAndLogStatusMessages();
+            else console.warn("handleGlobalKeyPress (Spazio): checkAndLogStatusMessages non disponibile.");
+
+            if (typeof enableControls === 'function') enableControls();
+            else console.warn("handleGlobalKeyPress (Spazio): enableControls non disponibile.");
+            break;
+        // case 'i': (Lasciato per riferimento, non implementato)
+        // break;
+    }
+}
 
 /**
  * Gestisce il click su bottoni di scelta nei popup eventi.
@@ -302,78 +234,103 @@ function handleKeyPress(event) {
  * @param {MouseEvent} event - L'evento mouse click.
  */
 function handleChoiceContainerClick(event) {
-    const choiceButton = event.target.closest('button[data-choice-index]');
-    const context = currentEventContext; // Recupera contesto globale
+    let activeContext = currentEventContext; // Usa currentEventContext di default
 
-    // Verifica se il bottone e il contesto sono validi
-    if (choiceButton && context && Array.isArray(context.choices)) {
-        const choiceIndex = parseInt(choiceButton.dataset.choiceIndex, 10);
+    // console.log("DEBUG handleChoiceContainerClick: currentEventContext ALL'INGRESSO:", JSON.stringify(currentEventContext, null, 2));
+    // Assicurati che savedActionPopupContext sia accessibile qui (dovrebbe esserlo se definita in player.js o globalmente)
+    // console.log("DEBUG handleChoiceContainerClick: savedActionPopupContext ALL'INGRESSO:", typeof savedActionPopupContext !== 'undefined' ? JSON.stringify(savedActionPopupContext, null, 2) : 'savedActionPopupContext non definito');
 
-        // Controlla se l'indice è valido per le scelte nel contesto
-        if (choiceIndex >= 0 && choiceIndex < context.choices.length) {
-            if (context.isActionPopup === true) {
-                // È un popup di azione oggetto -> Esegui l'azione definita
-                const actionFunction = context.choices[choiceIndex]?.action;
-                if (typeof actionFunction === 'function') {
-                    actionFunction(); // Esegui direttamente la funzione (es. useItem, dropItem)
-                    // L'azione stessa (es. useItem) dovrebbe chiudere il popup se necessario
-                } else {
-                    console.error("Azione non trovata o non valida per il bottone del popup azione:", choiceIndex, context.choices[choiceIndex]);
-                    if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
-                }
-                // NOTA: Non chiamiamo handleEventChoice per i popup azione
+    // Se currentEventContext è null, ma abbiamo un savedActionPopupContext, usiamo quello!
+    if (!activeContext && typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext && savedActionPopupContext.isActionPopup) {
+        // console.log("DEBUG handleChoiceContainerClick: currentEventContext era null, USO savedActionPopupContext!");
+        activeContext = savedActionPopupContext;
+    }
+
+    // console.log("DEBUG handleChoiceContainerClick: Contesto ATTIVO che verrà usato:", JSON.stringify(activeContext, null, 2));
+    // console.log("DEBUG handleChoiceContainerClick: Inizio. Event target:", event.target);
+    
+    const button = event.target.closest('button');
+    if (!button || !DOM.eventChoicesContainer || !DOM.eventChoicesContainer.contains(button)) return;
+
+    const choiceIndexStr = button.dataset.choiceIndex; 
+
+    if (choiceIndexStr !== undefined) {
+        const choiceIndex = parseInt(choiceIndexStr, 10);
+        
+        let isActionPopupValue = 'Non definito/Contesto Falsy';
+        if (activeContext) { 
+            if (activeContext.hasOwnProperty('isActionPopup')) {
+                isActionPopupValue = activeContext.isActionPopup;
             } else {
-                // È un popup evento standard -> Chiama handleEventChoice con l'indice
-                if (typeof handleEventChoice === 'function') {
-                    handleEventChoice(choiceIndex);
-                } else {
-                    console.error("handleChoiceContainerClick: handleEventChoice non disponibile (events.js?).");
-                     if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
-                }
+                isActionPopupValue = 'isActionPopup non è una proprietà del contesto';
+            }
+        }
+        // console.log("DEBUG handleChoiceContainerClick: choiceIndex:", choiceIndex, "Valore di isActionPopup (da activeContext):", isActionPopupValue);
+
+        if (activeContext && activeContext.isActionPopup === true) { 
+            // console.log("DEBUG handleChoiceContainerClick: Chiamo azione diretta del popup (da activeContext).");
+            if (activeContext.choices && activeContext.choices[choiceIndex] && typeof activeContext.choices[choiceIndex].action === 'function') {
+                activeContext.choices[choiceIndex].action();
+                if (typeof savedActionPopupContext !== 'undefined') savedActionPopupContext = null; // Consumato, quindi pulisci
+            } else {
+                console.error("Azione non trovata o non valida nel popup azione oggetto (da activeContext).");
+                if (typeof closeEventPopup === 'function') closeEventPopup(); 
+                if (typeof savedActionPopupContext !== 'undefined') savedActionPopupContext = null; // Errore, pulisci comunque
             }
         } else {
-             console.error("handleChoiceContainerClick: Indice scelta non valido:", choiceIndex, context.choices);
-             if(typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi in caso di errore
+            // console.log("DEBUG handleChoiceContainerClick: Chiamo handleEventChoice (activeContext non era per popup azione).");
+            if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext) {
+                 // console.log("DEBUG handleChoiceContainerClick: C'era un savedActionPopupContext, lo pulisco prima di chiamare handleEventChoice.");
+                 savedActionPopupContext = null; 
+            }
+            
+            if (typeof handleEventChoice === 'function') {
+                handleEventChoice(choiceIndex); 
+            } else {
+                console.error("handleChoiceContainerClick: Funzione handleEventChoice non trovata (events.js)!");
+                if (typeof closeEventPopup === 'function') closeEventPopup(); 
+            }
         }
-    } else {
-         // Log per bottone non valido o contesto mancante (potrebbe accadere se si clicca velocemente?)
-         // Non loggare se si clicca fuori da un bottone, solo se il contesto manca o non è valido quando un bottone viene trovato
-         if (choiceButton) { // Solo se è stato cliccato un bottone ma il contesto è problematico
-            console.warn("handleChoiceContainerClick: Contesto evento non valido o mancante.", context);
-            // Potrebbe essere utile chiudere il popup se il contesto è perso?
-            // if(typeof closeEventPopup === 'function') closeEventPopup();
-         }
+    } else if (button.classList.contains('continue-button')) {
+        if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext) {
+            // console.log("DEBUG handleChoiceContainerClick: Bottone Continua premuto, pulisco savedActionPopupContext.");
+            savedActionPopupContext = null;
+        }
+        if (typeof closeEventPopup === 'function') {
+            closeEventPopup();
+        } else {
+            console.error("handleChoiceContainerClick: Funzione closeEventPopup non trovata (ui.js)!");
+        }
     }
 }
 
-/**
- * Gestisce la pressione dei tasti numerici durante popup eventi.
- * Permette di selezionare le opzioni con i numeri da 1 a 9.
- * Chiama handleEventChoice con l'indice corrispondente al numero premuto.
- * @param {KeyboardEvent} event - L'evento tastiera.
- */
+// handleEventKeyPress (quella per i popup evento, da game_core.js)
+// Assicurati che non ci sia un conflitto di nomi se events.js ne ha una sua.
+// Se events.js ha la sua, questa potrebbe non essere necessaria o rinominata.
+// Per ora, la lascio come l'avevamo definita, assumendo che sia quella usata.
 function handleEventKeyPress(event) {
-    // Controlla se è stato premuto un tasto numerico da 1 a 9
     const key = event.key;
     const numKey = parseInt(key, 10);
     
-    // Se è un numero da 1 a 9
     if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
-        // Converti il numero premuto in indice di scelta (0-based)
         const choiceIndex = numKey - 1;
-        
-        // Chiama la funzione handleEventChoice (definita in events.js) passando l'indice
-        if (typeof handleEventChoice === 'function') {
-            handleEventChoice(choiceIndex);
+        if (currentEventChoices && choiceIndex < currentEventChoices.length) { // Aggiunto controllo lunghezza array
+            if (typeof handleEventChoice === 'function') {
+                handleEventChoice(choiceIndex);
+            } else {
+                console.error("handleEventKeyPress (core): handleEventChoice non disponibile (events.js?).");
+            }
         } else {
-            console.error("handleEventKeyPress: handleEventChoice non disponibile (events.js?).");
+            // console.warn(`handleEventKeyPress (core): Scelta ${numKey} non valida.`);
         }
     } 
-    // Gestisci anche i tasti Esc o Enter per continuare/chiudere popup
     else if (key === 'Escape' || key === 'Enter') {
-        // Cerca il bottone continua e simulane il click se presente
         if (DOM.continueButton && DOM.continueButton.style.display !== 'none') {
             DOM.continueButton.click();
+        } else {
+            // Se non c'è un bottone "Continua", potremmo voler chiudere popup semplici con Esc.
+            // Questo dipende da come è strutturato closeEventPopup.
+            // Per ora, ci affidiamo al bottone continua.
         }
     }
 }
@@ -381,101 +338,134 @@ function handleEventKeyPress(event) {
 
 /**
  * Imposta tutti gli event listener necessari per l'input utente.
- * Chiamato da initializeGame().
- * Dipende da: dom_references.js (moveButtons, inventoryList, eventChoicesContainer, continueButton, restartButton),
- * game_core.js (handleKeyPress), player.js (handleInventoryClick), events.js (handleChoiceContainerClick).
  */
 function setupInputListeners() {
-    // Rimuovi listener precedenti per sicurezza (se setup viene chiamato più volte, es. riavvio partita)
-    document.removeEventListener('keydown', handleKeyPress); // Listener tastiera principale
-    // Rimuovi i listener sui bottoni di movimento se fossero stati aggiunti (attualmente sono in HTML con onclick)
-    // if (moveButtons) moveButtons.forEach(btn => btn.removeEventListener('click', ...));
+    document.removeEventListener('keydown', handleGlobalKeyPress); 
+    document.addEventListener('keydown', handleGlobalKeyPress);
 
-    // Aggiungi il listener principale per la tastiera al documento intero.
-    // handleKeyPress è definita in game_core.js (sopra).
-    document.addEventListener('keydown', handleKeyPress);
-
-
-    // Listener per i pulsanti di movimento HTML (già definiti con onclick="movePlayer(dx, dy)" nel HTML).
-    // Non è necessario aggiungere altri listener qui per il movimento base.
-
-
-    // Listener per click sull'inventario (event delegation).
-    // Attaccato al container <ul> con ID 'inventory'.
-    // handleInventoryClick è definita in player.js.
     if (DOM.inventoryList) {
-        // Rimuovi listener precedenti per sicurezza
         DOM.inventoryList.removeEventListener('click', handleInventoryClick);
-        // Aggiungi il listener
         if (typeof handleInventoryClick === 'function') {
              DOM.inventoryList.addEventListener('click', handleInventoryClick);
         } else { console.error("setupInputListeners: handleInventoryClick non disponibile (player.js?)."); }
 
-        // Listener per hover/pointer su inventario (per tooltip) - gestito in ui.js dove sono le funzioni tooltip.
-        // Questi listener sono aggiunti alla LISTA <ul>, non ai singoli <li>, per delegation.
-        // showItemTooltip e hideItemTooltip sono definite in ui.js.
+        DOM.inventoryList.removeEventListener('pointerenter', handleInventoryPointerEnter, true); // Usa capturing per pointerenter
+        DOM.inventoryList.removeEventListener('pointerleave', handleInventoryPointerLeave, true); // Usa capturing per pointerleave
         if (typeof showItemTooltip === 'function' && typeof hideItemTooltip === 'function') {
-            // Rimuovi listener precedenti per sicurezza
-            DOM.inventoryList.removeEventListener('pointerenter', handleInventoryPointerEnter);
-            DOM.inventoryList.removeEventListener('pointerleave', handleInventoryPointerLeave);
-            // Aggiungi listener (usiamo helper functions per il delegation)
-            DOM.inventoryList.addEventListener('pointerenter', handleInventoryPointerEnter);
-            DOM.inventoryList.addEventListener('pointerleave', handleInventoryPointerLeave);
+            DOM.inventoryList.addEventListener('pointerenter', handleInventoryPointerEnter, true);
+            DOM.inventoryList.addEventListener('pointerleave', handleInventoryPointerLeave, true);
         } else { console.warn("setupInputListeners: Funzioni tooltip (show/hideItemTooltip) non disponibili (ui.js?)."); }
-
     } else { console.error("setupInputListeners: Elemento #inventory non trovato per listener."); }
 
-
-    // Listener per click sui bottoni di scelta/azione nei popup evento (event delegation).
-    // Attaccato al container <div> con ID 'event-choices'.
-    // handleChoiceContainerClick è definita in events.js.
     if (DOM.eventChoicesContainer) {
-         // Rimuovi listener precedenti per sicurezza
          DOM.eventChoicesContainer.removeEventListener('click', handleChoiceContainerClick);
-         // Aggiungi il listener
          if (typeof handleChoiceContainerClick === 'function') {
               DOM.eventChoicesContainer.addEventListener('click', handleChoiceContainerClick);
-         } else { console.error("setupInputListeners: handleChoiceContainerClick non disponibile (events.js?)."); }
+         } else { console.error("setupInputListeners: handleChoiceContainerClick non disponibile (game_core.js?)."); }
     } else { console.error("setupInputListeners: Elemento #event-choices non trovato per listener."); }
 
-    // Listener per il bottone "Continua" nei popup di esito/info.
-    // Questo bottone ha un listener diretto `onclick` impostato da showEventPopup (ui.js) quando viene mostrato.
-    // Non è necessario aggiungere un delegation listener qui per "Continua".
-
-
-    // Listener per il bottone di riavvio nella schermata di fine gioco.
-    // restartButton è recuperato in dom_references.js.
-    // endGame è definita qui sotto in game_core.js.
     if (DOM.restartButton) {
-        // Rimuovi listener precedenti per sicurezza
         DOM.restartButton.removeEventListener('click', handleRestartClick);
-        // Aggiungi il listener (usiamo helper function per chiarezza)
         DOM.restartButton.addEventListener('click', handleRestartClick);
     } else { console.error("setupInputListeners: Elemento #restart-button non trovato per listener."); }
 
+    window.removeEventListener('resize', handleResize); 
+    window.addEventListener('resize', handleResize); 
 
-    // Listener per resize della finestra (per ridisegnare la mappa e adattare la viewport).
-    // Mappiamo questo listener qui perché è una funzione globale.
-    // La funzione di ridisegno mappa (renderMap) è in ui.js.
-    // Usiamo un debounce per evitare di ridisegnare troppo spesso durante il resize.
-    window.removeEventListener('resize', handleResize); // Rimuovi listener precedente
-    window.addEventListener('resize', handleResize); // Aggiungi listener
+    // Listener per input da tastiera (movimento, azioni rapide)
+    if (DOM.gameContainer) {
+        // Usiamo keydown per catturare anche i tasti freccia/numpad
+        DOM.gameContainer.addEventListener('keydown', handleGlobalKeyPress);
+    } else {
+        console.error("setupInputListeners: gameContainer non trovato nel DOM!");
+    }
 
+    // Listener per click sull'inventario (delegation sul contenitore ul#inventory)
+    if (DOM.inventoryList) {
+        // handleInventoryClick è definita in player.js
+        DOM.inventoryList.addEventListener('click', handleInventoryClick);
+    } else {
+        console.error("setupInputListeners: inventoryList non trovato nel DOM!");
+    }
 
+    // Listener per i pulsanti della schermata iniziale
+    if (DOM.startButton) {
+        DOM.startButton.addEventListener('click', () => {
+            showScreen(DOM.gameContainer);
+            initializeGame();
+        });
+    }
+    if (DOM.instructionsButton) {
+        DOM.instructionsButton.addEventListener('click', () => {
+            // console.log("[Debug] Attempting to show Instructions screen. DOM.instructionsScreen:", DOM.instructionsScreen); // RIMOSSO
+            showScreen(DOM.instructionsScreen)
+        });
+    }
+    if (DOM.storyButton) {
+        DOM.storyButton.addEventListener('click', () => {
+            // console.log("[Debug] Attempting to show Story screen. DOM.storyScreen:", DOM.storyScreen); // RIMOSSO
+            showScreen(DOM.storyScreen)
+        });
+    }
+    // Listener per il NUOVO pulsante Carica Partita
+    if (DOM.loadGameButton) {
+        DOM.loadGameButton.addEventListener('click', () => {
+            if (!loadGame()) { // Tenta di caricare
+                 // Se loadGame ritorna false (errore o nessun salvataggio), rimane sulla schermata iniziale
+                 console.log("Caricamento fallito o nessun salvataggio.");
+            }
+            // Se loadGame() ha successo, si occupa già lui di cambiare schermata e attivare il gioco.
+        });
+
+        // Disabilita il pulsante Carica se non ci sono dati salvati
+        if (!localStorage.getItem(SAVE_KEY)) {
+            DOM.loadGameButton.disabled = true;
+            DOM.loadGameButton.title = "Nessuna partita salvata trovata";
+        }
+    }
+
+    // Listener per i pulsanti "Indietro" nelle schermate Istruzioni/Storia/Fine
+    const backButtons = document.querySelectorAll('.back-to-start-button');
+    backButtons.forEach(button => {
+        button.addEventListener('click', () => showScreen('start-screen-container'));
+    });
+
+    // Listener per il NUOVO pulsante Salva Partita
+    if (DOM.saveGameButton) {
+        DOM.saveGameButton.addEventListener('click', saveGame);
+    } else {
+         console.error("setupInputListeners: saveGameButton non trovato nel DOM!");
+    }
+
+    // NUOVO: Listener per il pulsante "Crafting"
+    if (DOM.openCraftingButton) {
+        DOM.openCraftingButton.addEventListener('click', () => {
+            if (typeof showCraftingPopup === 'function') {
+                showCraftingPopup();
+            } else {
+                console.error("setupInputListeners: Funzione showCraftingPopup non trovata in ui.js");
+                if (typeof addMessage === 'function') addMessage("Errore: Funzione Crafting non disponibile.", "error");
+            }
+        });
+    } else {
+        console.warn("setupInputListeners: Pulsante openCraftingButton non trovato nel DOM.");
+    }
+
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Input listeners impostati.");
 }
 
 // --- Helper functions per i listener (per poterli rimuovere facilmente) ---
 
 function handleRestartClick() {
-     // Chiama la funzione di fine gioco per riavviare.
-     // endGame è definita qui sotto in game_core.js. Passiamo true o false a seconda del contesto,
-     // ma dal bottone riavvia non importa il contesto vittoria/sconfitta, semplicemente riavvia.
-     // La funzione initializeGame gestisce il reset.
-     // Chiamiamo direttamente initializeGame che resetta e riavvia.
-     if (typeof initializeGame === 'function') {
-          initializeGame();
-     } else {
-          console.error("handleRestartClick: initializeGame non disponibile. Impossibile riavviare.");
+     showScreen(DOM.startScreenContainer); // Mostra la schermata iniziale
+     // initializeStartScreen(); // Non chiamare di nuovo, gameActive/Paused sono già gestiti
+     //                           // e i listener dei bottoni menu sono già in setupInputListeners
+     gameActive = false; // Reimposta lo stato per la schermata iniziale
+     gamePaused = true;
+     // Potrebbe essere necessario disabilitare/riabilitare il bottone loadGame qui
+     if (DOM.loadGameButton) {
+        DOM.loadGameButton.disabled = !localStorage.getItem(SAVE_KEY);
+        DOM.loadGameButton.title = localStorage.getItem(SAVE_KEY) ? "" : "Nessuna partita salvata trovata";
      }
 }
 
@@ -536,86 +526,87 @@ function handleInventoryPointerLeave(event) {
  * @param {boolean} isVictory - True se il giocatore ha vinto, false se ha perso.
  */
 function endGame(isVictory) {
-    // Imposta lo stato del gioco come non attivo e in pausa.
-    gameActive = false;
-    gamePaused = true; // Blocca input e interazioni.
-
-    // Disabilita i controlli UI.
-    // disableControls è definita in ui.js.
-    if (typeof disableControls === 'function') disableControls(); else console.warn("endGame: disableControls non disponibile.");
-
-    // Nascondi il container di gioco e mostra la schermata di fine.
-    if(DOM.gameContainer) DOM.gameContainer.style.display = 'none';
-     // Assicura che l'overlay evento non sia attivo (anche se non dovrebbe esserlo)
-     if(DOM.gameContainer) DOM.gameContainer.classList.remove('overlay-active');
-     if(DOM.eventOverlay) DOM.eventOverlay.classList.remove('visible');
-
-    if(DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex o block a seconda del CSS
-
-
-    // Imposta titolo e messaggio appropriati per la schermata di fine.
-    if(DOM.endTitle) {
-        DOM.endTitle.textContent = isVictory ? "Sei Arrivato!" : "Il Viaggio Finisce Qui";
+    // Se un popup evento è attivo, chiudilo prima di procedere con la schermata di fine gioco.
+    if (eventScreenActive && typeof closeEventPopup === 'function') {
+        closeEventPopup(); // Questa funzione dovrebbe resettare eventScreenActive e gamePaused (se necessario)
     }
 
-    if(DOM.endMessage && player) { // Verifica player per mostrare statistiche finali
-        let message = isVictory ?
-            `Dopo ${daysSurvived} giorni di viaggio estenuante, hai finalmente raggiunto la destinazione.
+    // console.log("endGame chiamata! Vittoria:", isVictory, "HP Giocatore:", player ? player.hp : 'player non definito'); // Log di debug
+    gameActive = false; // Imposta lo stato del gioco come non attivo
+    gamePaused = true;
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Flag di stato impostati. gameActive:", gameActive, "gamePaused:", gamePaused);
 
-Non è un paradiso, ma è un luogo sicuro. Forse qui potrai ricostruire qualcosa che assomigli a una vita.
-
-Ce l'hai fatta. Sei sopravvissuto.`
-            :
-            `Sei sopravvissuto per ${daysSurvived} giorni.
-
-Le terre desolate reclamano un'altra vittima.
-
-La fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la meglio.
-Il tuo viaggio finisce qui, nell'oblio.`;
-
-        // Aggiungi statistiche finali alla fine del messaggio
-        message += `\n\n`; // Due a capo per separare
-        message += `--- Statistiche Finali ---`;
-        message += `\nGiorni Sopravvissuti: ${daysSurvived}`;
-        message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
-        message += `\nSazietà: ${Math.floor(player.food)}/10`;
-        message += `\nIdratazione: ${Math.floor(player.water)}/10`;
-        message += `\nOggetti nell'inventario: ${player.inventory.length}`;
-        message += `\n--- Fine Statistiche ---`;
-
-
-        // Imposta il testo nel div endMessage (white-space: pre-wrap nel CSS per \n)
-        DOM.endMessage.textContent = message;
-
-        // Logga il risultato finale nel log di gioco (per vederlo se si riavvia subito)
-        if (typeof addMessage === 'function') {
-             if (isVictory) {
-                  addMessage("Hai raggiunto la Destinazione Incerta! Hai vinto!", "success", true);
-             } else {
-                  // Determina una causa di morte approssimativa per il log (più semplice del messaggio sullo schermo)
-                  let cause = "sconosciuta";
-                  if (player.hp <= 0) cause = "morte";
-                  if (player.food <= 0) cause = "fame";
-                  if (player.water <= 0) cause = "sete";
-                  if (player.isInjured) cause = "ferite";
-                  if (player.isSick) cause = "malattia";
-                  if (player.isPoisoned) cause = "veleno";
-
-                  addMessage(`Sei morto dopo ${daysSurvived} giorni. Causa: ${cause}.`, "danger", true);
-             }
-        } else { console.warn("endGame: addMessage not available."); }
-
-
-    } else if (DOM.endMessage) {
-         // Fallback se player non è definito (inizializzazione fallita?)
-         DOM.endMessage.textContent = isVictory ? "Vittoria (dati non disponibili)" : "Sconfitta (dati non disponibili)";
+    if (!DOM.gameContainer || !DOM.endScreen || !DOM.endTitle || !DOM.endMessage || !DOM.restartButton) {
+        console.error("endGame: Riferimenti DOM essenziali mancanti! Impossibile mostrare schermata finale.");
+        // Forse uscire o mostrare un alert di base?
+        // alert("Errore critico: impossibile terminare il gioco correttamente.");
+        return; // Esce per evitare ulteriori errori
     }
 
+    // Nasconde il contenitore principale del gioco e mostra la schermata di fine
+    if (DOM.gameContainer) DOM.gameContainer.style.display = 'none';
+    if (DOM.endScreen) DOM.endScreen.style.display = 'flex'; // Usa flex per centrare il contenuto
+
+    let dayString = (daysSurvived === 1) ? "giorno" : "giorni";
+
+    if (isVictory) {
+        DOM.endTitle.textContent = "Sei Sopravvissuto!";
+        if(DOM.endMessage && player) {
+            let message = `Dopo ${daysSurvived} ${dayString} di viaggio estenuante, hai finalmente raggiunto la destinazione.\n\nNon è un paradiso, ma è un luogo sicuro. Forse qui potrai ricostruire qualcosa che assomigli a una vita.\n\nCe l'hai fatta. Sei sopravvissuto.`;
+
+            // Aggiungi statistiche finali alla fine del messaggio
+            message += `\n\n`; // Due a capo per separare
+            message += `--- Statistiche Finali ---`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived} ${dayString}`;
+            message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
+            message += `\nSazietà: ${Math.floor(player.food)}/10`;
+            message += `\nIdratazione: ${Math.floor(player.water)}/10`;
+            message += `\nOggetti nell'inventario: ${player.inventory.length}`;
+            message += `\n--- Fine Statistiche ---`;
+
+            DOM.endMessage.textContent = message;
+
+            if (typeof addMessage === 'function') {
+                addMessage("Hai raggiunto la Destinazione Incerta! Hai vinto!", "success", true);
+            } else { console.warn("endGame: addMessage not available."); }
+        } else if (DOM.endMessage) {
+            DOM.endMessage.textContent = "Vittoria (dati non disponibili)";
+        }
+    } else {
+        DOM.endTitle.textContent = "Il Viaggio Finisce Qui";
+        if(DOM.endMessage && player) {
+            let message = `Sei sopravvissuto per ${daysSurvived} ${dayString}.\n\nLe terre desolate reclamano un'altra vittima.\n\nLa fame, la sete, le ferite, la malattia o gli orrori indicibili hanno avuto la meglio.\nIl tuo viaggio finisce qui, nell'oblio.`;
+
+            // Aggiungi statistiche finali alla fine del messaggio
+            message += `\n\n`; // Due a capo per separare
+            message += `--- Statistiche Finali ---`;
+            message += `\nGiorni Sopravvissuti: ${daysSurvived} ${dayString}`;
+            message += `\nHP: ${Math.floor(player.hp)}/${player.maxHp}`;
+            message += `\nSazietà: ${Math.floor(player.food)}/10`;
+            message += `\nIdratazione: ${Math.floor(player.water)}/10`;
+            message += `\nOggetti nell'inventario: ${player.inventory.length}`;
+            message += `\n--- Fine Statistiche ---`;
+
+            DOM.endMessage.textContent = message;
+
+            if (typeof addMessage === 'function') {
+                let cause = "sconosciuta";
+                if (player.hp <= 0) cause = "morte";
+                if (player.food <= 0) cause = "fame";
+                if (player.water <= 0) cause = "sete";
+                if (player.isInjured) cause = "ferite";
+                if (player.isSick) cause = "malattia";
+                if (player.isPoisoned) cause = "veleno";
+
+                addMessage(`Sei morto dopo ${daysSurvived} giorni. Causa: ${cause}.`, "danger", true);
+            } else { console.warn("endGame: addMessage not available."); }
+        } else if (DOM.endMessage) {
+            DOM.endMessage.textContent = "Sconfitta (dati non disponibili)";
+        }
+    }
 
     // Il bottone di riavvio ha un listener attaccato in setupInputListeners che chiama handleRestartClick (definita qui sopra).
     // handleRestartClick chiama initializeGame.
-
-
 }
 
 // --- Avvio del Gioco al Caricamento della Pagina ---
@@ -624,8 +615,11 @@ Il tuo viaggio finisce qui, nell'oblio.`;
 // Assicurati che questo script (game_core.js) sia incluso DOPO dom_references.js e gli altri moduli
 // da cui initializeGame dipende.
 window.onload = function() {
-    // Chiama la funzione principale di inizializzazione del gioco.
-    initializeGame();
+    // L'oggetto DOM dovrebbe essere già popolato da dom_references.js caricato prima
+    // Chiamata a assignAllDOMReferences() è gestita automaticamente da dom_references.js
+    
+    initializeStartScreen(); // Prepara la schermata iniziale
+    setupInputListeners();   // Attacca TUTTI gli event listener necessari, inclusi quelli del menu
 };
 
 
@@ -634,3 +628,127 @@ window.onload = function() {
 // (game_data.js, game_constants.js, game_utils.js, dom_references.js, ui.js, player.js, map.js, events.js, game_core.js)
 
 // --- FINE LOGICA PRINCIPALE ---
+
+// --- FUNZIONI DI SALVATAGGIO E CARICAMENTO ---
+
+const SAVE_KEY = 'theSafePlaceSaveData'; // Chiave per localStorage
+
+/**
+ * Raccoglie lo stato corrente del gioco e lo salva in localStorage.
+ */
+function saveGame() {
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio partita...");
+    try {
+        const saveData = {
+            player: player,
+            map: map,
+            dayMovesCounter: dayMovesCounter,
+            isDay: isDay,
+            gameDay: gameDay,
+            easterEggPixelDebhFound: easterEggPixelDebhFound,
+            uniqueEventWebRadioFound: uniqueEventWebRadioFound,
+            // Aggiungere qui altre variabili globali da salvare se necessario
+            saveTimestamp: new Date().toISOString() // Data/ora salvataggio
+        };
+
+        // Converti in JSON
+        // Nota: JSON.stringify gestisce bene oggetti semplici e array, ma attenzione a oggetti complessi o con riferimenti circolari (non dovremmo averne qui).
+        const saveDataString = JSON.stringify(saveData);
+
+        // Salva in localStorage
+        localStorage.setItem(SAVE_KEY, saveDataString);
+
+        addMessage("Partita salvata con successo!", "success");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio completato.");
+
+    } catch (error) {
+        console.error("Errore durante il salvataggio della partita:", error);
+        addMessage("Errore durante il salvataggio della partita!", "danger");
+    }
+}
+
+/**
+ * Carica lo stato del gioco da localStorage.
+ * @returns {boolean} True se il caricamento ha avuto successo, false altrimenti.
+ */
+function loadGame() {
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento partita...");
+    try {
+        const saveDataString = localStorage.getItem(SAVE_KEY);
+
+        if (!saveDataString) {
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Nessun dato di salvataggio trovato.");
+            addMessage("Nessuna partita salvata trovata.", "warning");
+            return false;
+        }
+
+        // Converti da JSON
+        const loadedData = JSON.parse(saveDataString);
+
+        // Verifica dati base (opzionale ma consigliato)
+        if (!loadedData || !loadedData.player || !loadedData.map) {
+             console.error("Dati di salvataggio corrotti o incompleti.", loadedData);
+             addMessage("Errore: Dati di salvataggio corrotti o non validi.", "danger");
+             localStorage.removeItem(SAVE_KEY); // Rimuovi dati corrotti
+             return false;
+        }
+
+        // --- Ripristina Stato Globale --- 
+        // NOTA IMPORTANTE: Sovrascriviamo le variabili globali direttamente.
+        // Per oggetti complessi come player e map, questo è generalmente ok perché
+        // JSON.parse crea nuovi oggetti/array, rompendo i riferimenti precedenti.
+        player = loadedData.player;
+        map = loadedData.map;
+        dayMovesCounter = loadedData.dayMovesCounter;
+        isDay = loadedData.isDay;
+        gameDay = loadedData.gameDay;
+        easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound;
+        uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
+        // Ripristinare qui altre variabili globali salvate
+
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato del gioco ripristinato:", loadedData);
+
+        // --- Aggiorna Interfaccia --- 
+        // È cruciale chiamare tutte le funzioni di rendering per riflettere lo stato caricato
+        // Usiamo setTimeout per dare tempo al browser di calcolare il layout dopo showScreen
+        setTimeout(() => {
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Rendering UI after load timeout...");
+            if (typeof renderMap === 'function') renderMap(); else console.error("loadGame: renderMap non trovata!");
+            if (typeof renderStats === 'function') renderStats(); else console.error("loadGame: renderStats non trovata!");
+            if (typeof renderInventory === 'function') renderInventory(); else console.error("loadGame: renderInventory non trovata!");
+            if (typeof renderLegend === 'function') renderLegend(); // Aggiunto anche renderLegend
+             // Potrebbe essere necessario un refresh specifico per tooltip o altro stato UI?
+        }, 100); // Ritardo di 100ms (aggiustabile se necessario)
+
+        // --- Transizione Schermata e Attivazione Gioco --- 
+        if (typeof showScreen === 'function') {
+            showScreen(DOM.gameContainer); // CORRETTO: Passa l'oggetto DOM
+        } else {
+            console.error("loadGame: showScreen non trovata!");
+        }
+        gameActive = true; // Attiva il gioco
+        gamePaused = false; // Assicura che non sia in pausa
+        eventScreenActive = false; // Assicura che nessun popup evento sia attivo
+        // Imposta focus per input tastiera
+        try {
+            if(DOM.gameContainer) DOM.gameContainer.focus();
+        } catch (e) {
+            console.warn("loadGame: Impossibile impostare il focus iniziale.", e);
+        }
+
+        addMessage(`Partita caricata (salvata il ${new Date(loadedData.saveTimestamp).toLocaleString()}).`, "success");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento completato.");
+        return true;
+
+    } catch (error) {
+        console.error("Errore durante il caricamento della partita:", error);
+        addMessage("Errore durante il caricamento della partita! Potrebbe essere corrotta.", "danger");
+        // Considera di rimuovere dati corrotti?
+        // localStorage.removeItem(SAVE_KEY);
+        return false;
+    }
+}
+
+
+
+// --- FUNZIONI DI GESTIONE INPUT ---

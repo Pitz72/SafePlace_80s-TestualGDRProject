@@ -1,8 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/map.js
- * Descrizione: Gestisce la generazione della mappa, il movimento del giocatore e il ciclo giorno/notte.
- * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js, player.js
+ * Descrizione: Gestione della mappa di gioco (generazione, movimento, interazioni tile)
+ * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js
  */
 
 // Dipendenze:
@@ -540,8 +541,10 @@ function movePlayer(dx, dy) {
     }
 
      // Controlla se il giocatore è morto per gli effetti passivi O per il movimento notturno.
+     // RIMOSSO: console.log('movePlayer: Checking HP after effects/night move. HP =', player.hp);
      // La funzione endGame è definita in game_core.js
     if (player.hp <= 0) {
+        // RIMOSSO: console.log('movePlayer: Player HP <= 0, calling endGame(false)...');
         if (typeof endGame === 'function') endGame(false);
         return; // Esci subito se il giocatore è morto
     }
@@ -585,6 +588,7 @@ function movePlayer(dx, dy) {
         // Se triggerTileEvent mostra un popup, eventScreenActive diventa true (gestito in ui.js/events.js).
         if (typeof triggerTileEvent === 'function') {
             triggerTileEvent(targetTile.type); // Passa solo il simbolo del tile
+            if (!gameActive) return;
         } else {
             console.warn("movePlayer: triggerTileEvent non disponibile.");
         }
@@ -596,6 +600,7 @@ function movePlayer(dx, dy) {
         // Questo controllo avviene SOLO se eventScreenActive NON è già true.
         if (!eventScreenActive && typeof triggerComplexEvent === 'function') {
              triggerComplexEvent(targetTile.type); // Passa solo il simbolo del tile
+             if (!gameActive) return;
         } else if (!eventScreenActive) {
             console.warn("movePlayer: triggerComplexEvent non disponibile.");
         }
@@ -609,6 +614,7 @@ function movePlayer(dx, dy) {
          if (!eventScreenActive) {
              if (typeof checkAndLogStatusMessages === 'function') {
                  checkAndLogStatusMessages();
+                 if (!gameActive) return;
              } else { console.warn("movePlayer: checkAndLogStatusMessages non disponibile."); }
 
              if (typeof showRandomFlavorText === 'function') {
@@ -740,6 +746,18 @@ function applyPassiveStatusEffects() {
  */
 function transitionToNight() {
     // console.log("transitionToNight: Avvio transizione a notte..."); // Log di debug
+
+    // RIMOSSO: console.log(">>> transitionToNight: Resetto flag dayEventDone...");
+    if (map && map.length > 0) { // Aggiunto controllo mappa
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (map[y]?.[x]?.dayEventDone) { // Se il flag esiste ed è true
+                    map[y][x].dayEventDone = false;
+                }
+            }
+        }
+    }
+
     if (!gameActive) {
          // console.log("transitionToNight: Gioco non attivo, annullo transizione."); // Log di debug
         return; // Non fare nulla se il gioco è finito
@@ -796,7 +814,9 @@ function transitionToNight() {
         }
 
         // Controlla se il giocatore è morto per le penalità notturne
+        // RIMOSSO: console.log('transitionToNight: Checking HP after penalties. HP =', player.hp);
         if (player.hp <= 0) {
+            // RIMOSSO: console.log('transitionToNight: Player HP <= 0, calling endGame(false)...');
              // console.log("transitionToNight: Giocatore morto per penalità notturne."); // Log di debug
              if (typeof endGame === 'function') endGame(false);
              return; // Esci perché il gioco è finito

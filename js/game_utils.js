@@ -1,8 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/game_utils.js
- * Descrizione: Funzioni di utilità generiche utilizzate in tutto il gioco.
- * Dipende da: game_constants.js, game_data.js, dom_references.js
+ * Descrizione: Funzioni di utilità generiche usate in tutto il gioco.
+ * Dipende da: game_constants.js, game_data.js, ui.js (per addMessage)
  */
 
 // Nota: Questo file dipende da variabili e costanti definite in game_constants.js
@@ -110,7 +111,7 @@ function addMessage(text, type = 'normal', important = false) {
         renderMessages();
     } else {
         // Fallback console log se la UI non è pronta (usa testo originale senza <br>)
-        console.log(`[Log:${type.toUpperCase()}] ${text}`); 
+        if (DEBUG_MODE) console.log(`[Log:${type.toUpperCase()}] ${text}`); 
     }
 }
 
@@ -254,29 +255,23 @@ function getTipoArmaLabel(weaponType) {
 }
 
 
-// Funzione placeholder per ottenere una descrizione testuale degli effetti di un oggetto usabile
-// definita qui perché usata nella descrizione oggetto (es. tooltip)
-// Dipende da ITEM_EFFECT_DESCRIPTIONS in game_constants.js e ITEM_DATA in game_data.js
-function getItemEffectsText(itemDetails) {
-    if (!itemDetails || !itemDetails.usable || !itemDetails.effect) return "";
-
-     // Verifica se ITEM_EFFECT_DESCRIPTIONS è definito
-     if (typeof ITEM_EFFECT_DESCRIPTIONS === 'undefined') {
-        console.error("Errore: ITEM_EFFECT_DESCRIPTIONS non definito in game_constants.js!");
-        return "Effetti sconosciuti"; // Ritorna testo generico in caso di errore
-     }
-
-    const effectType = itemDetails.effect.type;
-    const effectDescriptionFn = ITEM_EFFECT_DESCRIPTIONS[effectType];
-
-    if (effectDescriptionFn && typeof effectDescriptionFn === 'function') {
-        // Esegue la funzione di descrizione specifica per il tipo di effetto
-        return effectDescriptionFn(itemDetails.effect);
-    } else {
-        // Descrizione generica o errore se il tipo di effetto non ha una funzione di descrizione mappata
-        console.warn(`Nessuna descrizione definita per il tipo di effetto item: ${effectType}`);
-        return "Effetti sconosciuti";
+/**
+ * Genera una descrizione testuale degli effetti di un oggetto.
+ * @param {Object} itemInfo - L'oggetto completo da ITEM_DATA.
+ * @returns {string} Una stringa HTML con la descrizione degli effetti.
+ */
+function getItemEffectsText(itemInfo) {
+    if (!itemInfo || !Array.isArray(itemInfo.effects) || itemInfo.effects.length === 0) {
+        return "";
     }
+    const effectDescriptions = itemInfo.effects.map(effectObj => {
+        const effectType = effectObj.type;
+        if (ITEM_EFFECT_DESCRIPTIONS[effectType]) {
+            return ITEM_EFFECT_DESCRIPTIONS[effectType](effectObj);
+        }
+        return "";
+    }).filter(desc => desc && desc.trim() !== "");
+    return effectDescriptions.join("<br>");
 }
 
 

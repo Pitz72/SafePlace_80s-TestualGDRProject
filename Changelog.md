@@ -1,4 +1,351 @@
-### IlViaggiatoreGDR v0.7.006 (Panoramica)
+### The Safe Place v0.7.22
+
+Correzione degli Errori Critici negli Eventi
+Scelte Evento Correttamente Gestite:
+
+Abbiamo risolto un problema che impediva al gioco di elaborare correttamente le scelte effettuate durante alcuni eventi.
+
+In precedenza, cliccare su un’opzione in un popup evento poteva causare blocchi o comportamenti anomali.
+
+Ora, la logica che gestisce le decisioni del giocatore (handleEventChoice) è stata ripristinata. Le scelte all’interno degli eventi funzionano come previsto, garantendo un corretto proseguimento della narrazione.
+
+Testi degli Eventi Correttamente Visualizzati:
+
+Alcuni eventi (come quelli legati all’esplorazione di tracce) potevano bloccarsi per la mancanza di testi descrittivi.
+
+Abbiamo aggiunto e corretto queste definizioni (es. descrizioniIncontroPredoni, descrizioniTracceOkLore), assicurando che i testi appaiano correttamente durante gli incontri.
+
+Funzionalità del Rifugio Notturno:
+
+Verificato il corretto funzionamento della logica di loot quando si utilizza un rifugio ('R') per riposare durante la notte.
+
+Ora, il riposo notturno avviene senza errori, e il loot generato è coerente con il contesto dell’evento.
+
+Miglioramento della Stabilità Generale
+Ottimizzazione del Modulo Eventi:
+
+Rimosso un errore di sintassi critico che comprometteva il flusso degli eventi, causando blocchi improvvisi.
+
+Il sistema è ora più stabile e i comportamenti imprevisti sono stati drasticamente ridotti.
+
+Cosa Cambia per i Giocatori:
+L’esperienza di gioco sarà più coerente e fluida.
+Gli eventi, fulcro dell’esplorazione e della narrazione, si attiveranno e si risolveranno correttamente in base alle scelte del giocatore.
+Questo aggiornamento è essenziale per garantire un gameplay stabile, permettendo di proseguire con il testing delle meccaniche e l’aggiunta di nuovi contenuti.
+
+Vi invitiamo a esplorare attentamente il mondo di gioco, interagendo con il maggior numero di eventi possibile, in particolare:
+
+Attivazione degli eventi: Verificate che si attivino sia in luoghi specifici che come eventi casuali.
+
+Scelte nei popup evento: Assicuratevi che ogni opzione produca l’effetto corretto.
+
+Esiti coerenti: Controllate che ricompense, penalità e messaggi siano coerenti con le decisioni prese.
+
+Rifugi ('R'): Testate sia il riposo diurno che notturno per verificare che loot e recupero siano corretti.
+
+Errori in console: Segnalate eventuali messaggi di errore o comportamenti strani durante l’esplorazione.
+
+### The Safe Place v0.7.21
+
+1.  Durabilità Individuale per Ogni Oggetto:
+
+    - Prima: Se trovavate due "Chiavi Inglesi Pesanti", entrambe condividevano magicamente lo stesso livello di usura. Se una si danneggiava, si danneggiava anche l'altra!
+    - Ora: Ogni singola arma e armatura che troverete o creerete avrà la sua durabilità personale e indipendente. Una "Chiave Inglese" usata in combattimento si usurerà, ma un'altra identica trovata nuova di zecca sarà in perfette condizioni. Questo rende la gestione delle risorse e la decisione su quale equipaggiamento usare molto più strategica.
+
+2.  Visualizzazione Chiara della Durabilità:
+
+    - Nell'interfaccia principale, accanto al nome dell'arma e dell'armatura equipaggiate, vedrete ora chiaramente la loro durabilità attuale rispetto a quella massima (es. "Chiave Pesante (25/30)").
+    - Quando passate il mouse sopra un oggetto equipaggiabile nell'inventario (tooltip) o quando cliccate per vederne le azioni (popup), verranno mostrate le informazioni dettagliate sulla sua durabilità specifica, incluso uno stato testuale come "Buono", "Usurata", "Danneggiata", "Critica" o "ROTTA".
+
+3.  Funzionalità Ripristinate e Corrette:
+    - Popup Azioni Oggetto Perfettamente Funzionante: Abbiamo risolto un bug ostinato che a volte impediva l'apertura o la corretta chiusura del popup che appare quando cliccate su un oggetto per usarlo, equipaggiarlo, ecc. Ora dovrebbe funzionare fluidamente, mostrandovi tutte le opzioni disponibili (incluso il tasto "Rimuovi" per gli oggetti equipaggiati) e chiudendosi correttamente dopo ogni azione.
+    - Equipaggiamento Iniziale Visibile: Corretto un problema per cui l'arma e l'armatura con cui iniziate la partita a volte non venivano visualizzate correttamente nell'interfaccia, pur essendo equipaggiate.
+
+### The Safe Place v0.7.20
+
+1.  Risoluzione Errori Critici negli Eventi:
+
+    - Testi degli Eventi Ripristinati: Diversi eventi nel gioco (come quelli legati ai pericoli ambientali, all'incontro con bestie, all'esplorazione di tracce o alla scoperta di frammenti di storia) potevano causare errori o bloccarsi perché mancavano alcuni dei testi descrittivi necessari per i loro esiti. Abbiamo identificato e ripristinato questi testi mancanti, assicurando che gli eventi possano ora concludersi correttamente mostrando il risultato appropriato.
+    - Ricompense Casuali Funzionanti: Un problema tecnico impediva al sistema di assegnare correttamente ricompense casuali (come cibo, acqua o risorse comuni) durante certi eventi. Questa anomalia è stata corretta, quindi ora dovreste ricevere il loot come previsto.
+    - Dilemmi Morali Stabili: Un avviso tecnico relativo alla gestione dei dilemmi morali è stato risolto, anche se i dilemmi stessi sembravano funzionare.
+    - Messaggi di Blocco Montagne: Ripristinati i testi che appaiono quando si tenta di attraversare le montagne.
+
+2.  Funzionalità di Gioco (Nessuna Nuova Aggiunta, Solo Correzioni):
+    - L'attenzione è stata posta sulla stabilità. Non sono state introdotte nuove meccaniche, ma ci siamo assicurati che quelle esistenti funzionino senza generare errori tecnici visibili in console che potevano, in alcuni casi, impattare il flusso di gioco.
+
+Stato Attuale e Prossimi Passi:
+Con queste correzioni, la v0.7.20 dovrebbe offrire un'esperienza di gioco più affidabile. Il focus rimane sul raccogliere feedback dal beta testing esteso della v0.7.19 (ora aggiornata a v0.7.20 con questi fix) per identificare ulteriori aree di miglioramento, problemi di bilanciamento o bug residui.
+
+### The Safe Place v0.7.19
+
+1.  Risoluzione Bug Eventi e Interfaccia:
+
+    - Testo Risultati Evento "Breve Riposo": Corretta la visualizzazione del testo nel popup di risultato per l'azione "Breve Riposo" nei rifugi diurni, che ora mostra la descrizione corretta dell'esito invece di un messaggio generico.
+    - Gestione Penalità "Nulle": Eliminato un messaggio di avviso tecnico che poteva apparire in console quando un evento risultava in nessuna penalità specifica per il giocatore.
+    - Popup di Morte Durante Eventi: È stato ulteriormente testato e confermato che, se il giocatore muore a causa di un danno subito durante un evento, il popup dell'evento si chiude correttamente, permettendo la visualizzazione chiara della schermata di "Game Over".
+    - Ricompensa "Carne Cruda": Testata e confermata la correzione del bug che impediva la corretta assegnazione della carne cruda come ricompensa in alcuni eventi.
+
+2.  Miglioramenti all'Interfaccia Utente (UI):
+
+    - Schermata Iniziale:
+      - Aggiunta la visualizzazione del numero di versione del gioco direttamente nella schermata principale, sotto la firma dell'autore, con un font piccolo e discreto.
+      - Risolti alcuni problemi di layout e stile (font, dimensioni, spaziature) che erano stati introdotti accidentalmente dall'IA nella schermata iniziale, ripristinando l'aspetto grafico desiderato. Il titolo e la firma ora hanno dimensioni più appropriate e la spaziatura tra gli elementi è stata corretta.
+    - Popup di Crafting: Ripristinata la corretta visualizzazione e funzionalità dei bottoni cliccabili per ogni ricetta nella lista "Ricette Conosciute". Ora è di nuovo chiaro quale ricetta è selezionata, grazie al ripristino dello stile per l'elemento attivo.
+
+3.  Gestione Inventario e Ricette:
+
+    - Inventario Iniziale: L'inventario con cui il giocatore inizia la partita è stato bilanciato per i test, assicurando la presenza degli ingredienti per le ricette base di crafting, inclusa l'acqua sporca e il carbone (quest'ultimo poi rimosso dopo i test specifici). Il limite massimo di slot inventario era stato precedentemente aumentato a 9.
+    - Ricetta "Medicina Grezza": La ricetta è stata correttamente definita e resa apprendibile tramite il suo blueprint (blueprint_medicine_crude), come pianificato. Per finalizzare, è stata rimossa dalle ricette conosciute all'inizio del gioco; ora i giocatori dovranno trovare il progetto per imparare a crearla.
+
+4.  Pulizia Generale del Codice:
+    - Rimossi numerosi log di debug temporanei che erano stati inseriti nei file JavaScript durante le fasi di diagnosi dei bug, rendendo la console del browser più pulita durante il gioco.
+
+### The Safe Place v0.7.18
+
+1.  Risoluzione Bug Critici degli Eventi:
+
+    - Eventi di Orrore e Scelte con Effetti Diretti: Abbiamo scovato e corretto un errore tecnico (ReferenceError: applyEffect is not defined) che poteva causare il blocco del gioco durante la conclusione di alcuni eventi, in particolare quelli che applicavano effetti diretti al giocatore (come il "Breve Riposo" nei rifugi diurni). Ora questi eventi dovrebbero risolversi correttamente.
+    - Testi Esito Eventi Orrore: Sono state aggiunte le definizioni mancanti per i testi di successo degli eventi "Orrore Indicibile" (sia per la fuga che per l'affrontare l'orrore), prevenendo errori.
+    - Logica Dilemma "Scorta Sospetta": Una delle scelte in questo dilemma non era strutturata correttamente per il sistema di eventi, causando un errore. Ora è stata sistemata per funzionare come previsto.
+    - Penalità "Nulle": Corretto un messaggio di avviso (invisibile ai giocatori ma presente nei log tecnici) che appariva quando un evento risultava in una "nessuna penalità".
+
+2.  Funzionalità di Gioco Ripristinate e Verificate:
+
+    - Ricompensa Carne Cruda: Risolto un problema per cui, in alcuni eventi (come il successo nell'evento "Banchetto Funebre" nelle pianure), la ricompensa di "Carne Cruda" non veniva assegnata a causa di un errore nell'identificativo dell'oggetto. Ora dovreste ricevere correttamente la carne.
+    - Crafting "Impiastro Curativo Semplice": La ricetta per questo nuovo oggetto medico ora appare correttamente nel menu di crafting. Abbiamo anche risolto un problema con l'inventario iniziale che non forniva tutti gli ingredienti a causa del limite di slot (ora aumentato a 9) e assicurato che la definizione dell'oggetto "Acqua Sporca" (ingrediente chiave) sia corretta. Potete ora creare e usare l'impiastro per recuperare 10 HP.
+
+3.  Miglioramenti Minori e Preparazione Futura:
+    - La definizione dell'oggetto "Acqua Sporca" è stata standardizzata per coerenza.
+    - Il codice è stato ulteriormente ripulito da log di debug non più necessari.
+
+Cosa Significa per Voi:
+L'esperienza di gioco dovrebbe essere notevolmente più stabile. Incontrare eventi, usare oggetti e craftare dovrebbe ora avvenire senza gli errori tecnici che potevano precedentemente interrompere la partita. La possibilità di craftare l'Impiastro Curativo Semplice fornisce una nuova opzione, seppur modesta, per il recupero della salute.
+
+Problemi Noti (Ancora da Risolvere):
+
+- Abbiamo ancora un bug segnalato per cui, se si muore durante un evento (es. "Bestia Pericolosa"), il popup dell'evento potrebbe non chiudersi correttamente, oscurando parzialmente la schermata di "Game Over". Questo sarà una priorità per la prossima versione.
+
+Vi ringraziamo per la vostra pazienza e per i vostri test, che sono fondamentali per scovare questi problemi! Continuate a esplorare e a inviarci i vostri feedback.
+
+### The Safe Place v0.7.17
+
+- Tooltip Oggetti:
+
+  - Rifattorizzata la funzione getItemDetailsHTML in js/ui.js per separare chiaramente la logica di visualizzazione delle statistiche/effetti da quella di nome e descrizione generale (ora gestite da contenitori separati nel DOM).
+  - Rimossa la duplicazione della funzione getItemDetailsHTML che causava comportamenti incoerenti e bug nei tooltip.
+  - Eliminata la logica di fallback che inseriva dettagli delle statistiche nel contenitore sbagliato del tooltip.
+  - Aggiunti e poi rimossi log di debug mirati per tracciare la generazione dell’HTML dei dettagli oggetto.
+
+- Gestione Effetti Oggetti:
+
+  - Aggiornata la funzione getItemEffectsText in js/game_utils.js per accettare l’intero oggetto itemInfo e iterare correttamente su tutti gli effetti, generando una descrizione leggibile e coerente.
+  - Migliorata la struttura e la chiarezza delle descrizioni degli effetti nell’oggetto ITEM_EFFECT_DESCRIPTIONS in js/game_constants.js, con particolare attenzione ai casi di cura HP, sazietà, idratazione e cura di stati negativi.
+  - Aggiunte descrizioni concise per effetti speciali come random_pill_effect, learn_recipe, reveal_map_area, repair_item_type.
+
+- Dati Oggetti:
+
+  - Modificato l’oggetto vitamins in ITEM_DATA per aumentare l’effetto di cura HP da 5 a 8.
+  - Aggiunto un secondo effetto di cura HP a meat_cooked e herbal_tea_crude per riflettere meglio il valore nutrizionale e curativo di questi oggetti.
+
+- Eventi Complessi:
+
+  - Creato l’array dilemmaEvents in js/game_data.js con tre nuovi eventi narrativi/morali (“Scorta Sospetta”, “Richiesta d’Aiuto”, “Macchina Inerte”), ciascuno con scelte multiple, skill check e ricompense/penalità tematiche.
+
+- Pulizia e Manutenzione del Codice:
+
+  - Rimossi blocchi di codice obsoleti, console.log/commentati e TODO non più pertinenti da tutti i principali file JS (ui.js, player.js, events.js, game_core.js, map.js).
+  - Mantenuti solo i commenti JSDoc, le spiegazioni di logiche complesse e le avvertenze importanti.
+
+- Correzioni UI/UX:
+
+  - Assicurata la coerenza tra i dati visualizzati nei tooltip, popup azioni e contenitori principali dell’interfaccia.
+  - Migliorata la gestione delle quantità negli slot inventario e nei tooltip.
+  - Aggiornata la logica di posizionamento dei tooltip per evitare che escano dai bordi dello schermo.
+
+- Gestione Eventi:
+  - Commentate/rimosse chiamate a funzioni non più definite (applyEffect) e log di debug superflui in events.js e ui.js.
+
+### The Safe Place v0.7.16
+
+- Correzioni di Bug Cruciali:
+
+  - Fine Partita Funzionante: Abbiamo risolto un problema importante che impediva al gioco di terminare correttamente quando la vostra salute arrivava a zero. Ora, la schermata di "Game Over" apparirà come previsto, segnando la fine (o un nuovo inizio!) della vostra avventura.
+  - Kit di Riparazione Affidabili: Usare i Kit di Riparazione era diventato problematico a causa di alcuni errori. Abbiamo sistemato il sistema: ora potete selezionare l'oggetto da riparare e il kit verrà consumato correttamente. Niente più messaggi di errore inaspettati durante questa operazione!
+  - Ricette Coerenti: La ricetta per creare l'"Armatura di Stracci Semplice" richiedeva un materiale che non esisteva nel gioco. L'abbiamo corretta, e ora potrete fabbricarla con gli ingredienti giusti.
+  - Errori Misteriosi Risolti: Abbiamo scovato e corretto un errore tecnico un po' sfuggente (chiamato "handleEventChoice") che poteva capitare durante l'esplorazione o quando si interagiva con oggetti specifici, specialmente durante la riparazione. Il gioco dovrebbe essere più stabile ora.
+
+- Miglioramenti all'Interfaccia e all'Esperienza di Gioco:
+
+  - Dettagli Oggetto Chiariti: Quando cliccate su un oggetto, specialmente armi o equipaggiamento, vedrete informazioni più dettagliate e complete, simili a quelle che appaiono quando ci passate sopra con il mouse (il "tooltip").
+  - Visualizzazione Danni Corretta: Alcune armi hanno un danno variabile (ad esempio, da 5 a 10 punti). Prima, questa informazione non veniva mostrata bene, mostrando un incomprensibile "[object Object]". Ora vedrete chiaramente l'intervallo di danno.
+  - Piccoli Ritocchi:
+    - Abbiamo sistemato un piccolo errore relativo all'icona del gioco (quella che vedete nella linguetta del browser).
+    - Corretti alcuni messaggi di avviso che potevano apparire (invisibili ai più, ma fastidiosi per noi!) quando il personaggio si trovava in particolari stati di salute (come "ferito e malato").
+    - Abbiamo fatto pulizia di molti messaggi tecnici (log di debug) che venivano stampati "dietro le quinte" e che non erano utili per i giocatori.
+
+- Supporto ai Test:
+  - Per aiutarci a testare meglio la funzione di riparazione, abbiamo aggiunto temporaneamente un Kit di Riparazione all'inventario con cui iniziate la partita.
+
+Speriamo che queste modifiche rendano "The Safe Place" un'esperienza ancora più coinvolgente e priva di intoppi!
+
+### The Safe Place v0.7.15
+
+1.  Il Nuovo Sistema di Crafting (Creazione Oggetti):
+
+    - Ricette Iniziali: Iniziate una nuova partita. Dovreste già conoscere come creare: Acqua Purificata, Carne Cotta, un Punteruolo Improvvisato e un'Armatura di Stracci Semplice. Provate a realizzarli!
+    - Trovare e Usare i "Progetti": Abbiamo introdotto i "Progetti" (o Blueprints). Cercateli! Un modo per trovarne uno (per la Mazza Grezza) è avere successo nell'evento "Scorta Nascosta" in un'Area di Sosta ('R'). Una volta trovato un progetto, provate a "usarlo" dall'inventario: dovreste imparare la ricetta. Testate se il progetto viene consumato correttamente e se la ricetta appare nella vostra lista di crafting.
+    - Creare i Nuovi Oggetti: Mettetevi alla prova cercando i materiali e creando:
+      - Punteruolo Improvvisato (richiede Metallo Riciclato e Stracci di Stoffa)
+      - Mazza Grezza (richiede Assi di Legno e Stracci di Stoffa)
+      - Armatura di Stracci Semplice (ora richiede solo Stracci di Stoffa, in quantità maggiore)
+    - Interfaccia di Crafting: Esplorate la schermata di crafting (c'è un nuovo pulsante per aprirla!). Verificate che la lista delle ricette sia chiara, che gli ingredienti posseduti/mancanti siano corretti e che il pulsante "Crea" si attivi/disattivi come dovrebbe.
+    - Consumo Materiali: Quando create un oggetto, controllate che i materiali vengano scalati correttamente dal vostro inventario e che l'oggetto prodotto venga aggiunto.
+
+2.  Riparazione con il Kit:
+
+    - Procuratevi un "Kit di Riparazione".
+    - Danneggiate un'arma o un'armatura (usandola in combattimento o in eventi che la usurano).
+    - Provate a usare il Kit di Riparazione: si apre una finestra per scegliere cosa riparare? L'oggetto selezionato recupera durabilità? Il kit viene consumato?
+
+3.  Gestione degli Oggetti Impilabili (Stack):
+
+    - Prestate particolare attenzione a come vengono gestiti gli oggetti che si accumulano (come l'Acqua Purificata Piccola, le munizioni, ecc.). Raccoglietene più unità, verificate che si impilino correttamente nell'inventario e che, quando ne usate uno, la quantità diminuisca correttamente.
+
+4.  Loot dalle "Tracce Strane":
+
+    - Quando vi imbattete nell'evento "Tracce Strane" e riuscite a trovare del loot, prestate attenzione a cosa trovate. È coerente? Vi sembra bilanciato?
+
+5.  Bilanciamento Fame e Sete:
+    - Abbiamo modificato quanto cibo e acqua vengono ripristinati dagli oggetti consumabili. Ora i valori sono più bassi (generalmente da +2 a +6). Come percepite questa modifica? Rende la sopravvivenza troppo difficile, troppo facile o giusta?
+
+### The Safe Place v0.7.14
+
+Questo aggiornamento rappresenta un consolidamento importante del gioco, portandoci verso la versione v0.7.14 (Lavori in Corso). Abbiamo lavorato sodo per rifinire l'esperienza, correggere bug fastidiosi e, soprattutto, per gettare solide fondamenta e implementare le prime fasi del nuovo sistema di Crafting basato su Progetti (Blueprint).
+
+Cosa c'è di Nuovo e Cosa è Stato Sistemato:
+
+1.  Sistema di Crafting - Le Basi Sono State Gettate!
+
+    - Imparare le Ricette: Ora, per creare certi oggetti, dovrete prima trovare dei "Progetti" sparsi nel mondo di gioco. Una volta trovato un progetto (ad esempio, per purificare l'acqua o costruire un'arma di fortuna) e "usato" dal vostro inventario, imparerete permanentemente quella ricetta. Non preoccupatevi, se trovate un progetto per una ricetta che già conoscete, non verrà consumato!
+    - Nuova Interfaccia di Crafting: Abbiamo introdotto un nuovo popup dedicato alla creazione di oggetti. È accessibile tramite un pulsante nell'interfaccia (attualmente nel pannello delle statistiche). Questa schermata vi mostrerà:
+      - Tutte le ricette che avete imparato.
+      - Quando selezionate una ricetta, vedrete il nome del prodotto che creerete e gli ingredienti necessari.
+      - L'interfaccia evidenzierà chiaramente quali ingredienti avete già nel vostro inventario e quali vi mancano.
+      - Potrete quindi creare l'oggetto, se avete tutto il necessario!
+    - Stile Migliorato: Abbiamo ascoltato i feedback e l'aspetto del popup di crafting è stato rivisto: ora ha uno sfondo nero puro, in linea con l'atmosfera cupa del gioco, migliorando la leggibilità e l'immersione. Anche il pulsante di chiusura è stato reso stilisticamente coerente.
+    - Prime Ricette: Abbiamo definito i progetti e le ricette per iniziare, come purificare l'acqua, cuocere la carne, e creare oggetti di fortuna come un Punteruolo, una Mazza Grezza e un'Armatura di Stracci. _Attenzione: alcuni di questi oggetti finali sono ancora in fase di definizione completa, quindi potreste non essere ancora in grado di craftarli tutti._
+
+2.  Correzioni di Bug Importanti:
+
+    - Stabilità degli Eventi: Abbiamo risolto diversi problemi che potevano causare il blocco del gioco durante alcuni eventi, come l'ispezione di "Tracce Strane" o gli incontri con l'"Orrore Indicibile". Ora queste situazioni dovrebbero svolgersi più fluidamente.
+    - Frammenti di Lore: Trovare indizi sul passato del mondo non dovrebbe più causare errori; riceverete correttamente questi frammenti narrativi.
+    - Popup di Crafting Funzionante: Il problema tecnico che impediva al popup di crafting di aprirsi correttamente o che lo faceva bloccare è stato risolto. Ora potete accedere alla schermata di creazione senza intoppi.
+
+3.  Bilanciamento e Oggetti:
+    - Acqua Purificata: Abbiamo corretto la quantità di idratazione fornita dall'Acqua Purificata Piccola, che ora è +2 (un valore più bilanciato).
+    - Equipaggiamento Arco: Se trovate un Arco Improvvisato, ora dovreste vedere correttamente l'opzione per equipaggiarlo dal vostro inventario.
+
+### The Safe Place v0.7.13
+
+La versione 0.7.13 di "The Safe Place" si concentra principalmente sulla correzione di bug emersi durante i test e sul miglioramento dell'interfaccia utente (UI) per renderla più chiara e funzionale.
+
+- Correzioni Bug Critici:
+  - Risolto un errore che impediva l'apertura del popup delle azioni quando si cliccava su un oggetto nell'inventario.
+  - Corretti diversi errori JavaScript (ReferenceError, SyntaxError) che bloccavano il caricamento della mappa o l'esecuzione di alcune funzioni di gioco, in particolare legate all'uso degli oggetti e al rendering dell'interfaccia.
+  - Sistemato un problema con la logica degli eventi nei Rifugi ('R'), assicurando che l'interazione diurna funzioni correttamente.
+- Miglioramenti UI e Funzionalità:
+  - Popup Azioni Oggetto: Lo stile dei pulsanti (Usa, Equipaggia, Lascia...) è stato reso coerente con il resto dell'interfaccia e il testo è stato centrato.
+  - Nomi Oggetti: Implementato un sistema per usare nomi abbreviati (nameShort) per gli oggetti nell'inventario, nel popup azioni e nella visualizzazione dell'equipaggiamento, migliorando la leggibilità su schermi piccoli. La visualizzazione del peso nell'inventario è stata rimossa.
+  - Tooltip Mappa: Aggiunta una nuova funzionalità di tooltip che mostra informazioni sulla cella della mappa (coordinate, tipo di terreno, probabilità evento) al passaggio del mouse, fornendo un aiuto strategico al giocatore.
+  - Pillole Sospette: Reso più esplicito l'effetto (o la sua assenza) quando si usano le Pillole Sospette, aggiungendo un effetto casuale (con esiti positivi, negativi contenuti o nulli) e mostrando un messaggio temporaneo su schermo oltre che nel log.
+  - Rifugio Diurno: Aggiunta un'interazione specifica per i Rifugi ('R') durante il giorno, offrendo azioni come cercare provviste con minor rischio, riposare brevemente o tentare di rinforzare il luogo.
+- Pulizia Codice: Rimossi alcuni messaggi di debug superflui dalla console del browser.
+
+### The Safe Place v0.7.12
+
+Questo log riassume il lavoro svolto per portare "The Safe Place" dalla versione 0.7.09 alla 0.7.12. Dato che il contesto della nostra chat di sviluppo è stato perso, questo documento serve come riferimento unificato dei progressi fatti e dello stato attuale.
+
+In questo periodo di sviluppo, abbiamo introdotto cambiamenti significativi sia nell'aspetto che nel funzionamento del gioco:
+
+1.  Nuova Esperienza Iniziale: Il cambiamento più evidente è l'introduzione di una nuova schermata iniziale con un menu principale. Prima di iniziare la partita, ora puoi consultare una pagina "Storia" per immergerti nell'ambientazione e una pagina "Istruzioni" (sotto forma di lettera del padre di Ultimo) per un ripasso delle meccaniche di sopravvivenza.
+2.  Restyling Grafico: L'interfaccia ha ricevuto una nuova palette di colori, con tonalità di verde riviste, un colore d'accento per i titoli e sfondi più curati, per migliorare l'atmosfera e la leggibilità.
+3.  Correzioni Fondamentali: Abbiamo risolto diversi bug critici che affliggevano le versioni precedenti:
+    - La schermata di Game Over ora appare correttamente quando gli HP scendono a zero, sostituendo la fastidiosa schermata nera.
+    - Sono stati corretti errori che impedivano al gioco di avviarsi o che causavano blocchi improvvisi durante alcune azioni o eventi (come gli eventi "Orrore Indicibile" di notte o il fallimento nella fuga dai Predoni).
+    - È stato risolto un problema per cui i popup degli eventi a volte non si chiudevano dopo aver fatto una scelta, bloccando la progressione del gioco. Ora gli eventi testati si concludono correttamente.
+    - Abbiamo sistemato i colori degli oggetti nell'inventario e risolto un bug che impediva di usare correttamente cibo, acqua e medicine.
+4.  Nuove Meccaniche e Contenuti:
+    - Usura Armi: Le armi equipaggiate ora subiscono un leggero deterioramento quando usate per compiti faticosi, aggiungendo un livello di gestione dell'equipaggiamento.
+    - Nuovi Oggetti: Il mondo è stato popolato con decine di nuovi oggetti, inclusi vari tipi di cibo, bevande, armi da mischia e da fuoco, munizioni, armature e strumenti, aumentando notevolmente la varietà del loot.
+    - Logica Rifugi ('R') Migliorata: Entrare in un Rifugio ('R') ora ha un comportamento specifico e coerente: di notte offre riposo automatico fino all'alba (con un piccolo check per trovare oggetti), mentre di giorno attiva sempre un evento che permette di esplorare (costando tempo) o riposare brevemente. Un rifugio esplorato di giorno non si riattiva fino al giorno successivo.
+    - Eventi Dilemma Morale: Questi eventi ora presentano scenari specifici e dettagliati invece di testi generici, offrendo scelte più significative.
+5.  Bilanciamento Iniziale: Abbiamo fatto alcuni aggiustamenti iniziali, come ridurre il consumo di risorse durante la notte e aumentare leggermente la possibilità di trovare cibo e acqua nei rifugi.
+6.  Problemi Noti (Analisi): Abbiamo identificato alcuni nuovi errori tecnici (legati all'usura delle armi e alla visualizzazione dei popup delle azioni oggetto) che necessitano di correzione. Abbiamo anche confermato la presenza della funzionalità di salvataggio/caricamento, che richiederà test approfonditi.
+
+Stato Attuale (v0.7.12): Il gioco è ora molto più stabile, giocabile e ricco rispetto alla v0.7.09. L'interfaccia è stata migliorata e molti bug critici sono stati eliminati. Rimangono alcuni errori tecnici specifici da risolvere e aree di contenuto/bilanciamento da rifinire (come i testi placeholder e la frequenza degli eventi) prima di poter introdurre meccaniche più complesse come il combattimento dettagliato.
+
+### The Safe Place v0.7.11
+
+- Bilanciamento Risorse & Loot:
+  - Aumentata la quantità di cibo e acqua che si può trovare nei Rifugi Precari (R).
+  - Introdotta maggiore varietà nel loot casuale trovato durante l'esplorazione (più tipi di cibo, risorse, ecc.).
+  - Ridotto il consumo base di cibo e acqua durante la notte (da 2 a 1 unità ciascuno).
+- Espansione Oggetti:
+  - Il mondo di gioco è ora più ricco! Sono stati aggiunti moltissimi nuovi oggetti, tra cui:
+    - Cibo: Patatine stantie, barrette di cioccolato, fagioli in scatola, frutta essiccata, razioni militari (MRE), carne misteriosa cotta, barrette proteiche vecchie.
+    - Bevande: Soda sgasata, succhi di frutta trovati, vecchie bevande energetiche, acqua piovana raccolta, tisane grezze.
+    - Armi: Nuove varietà di armi da mischia (mazza, barra di metallo, machete), armi bianche corte (coltelli da cucina/combattimento, pugnali improvvisati), armi bianche lunghe (mazza da baseball, lancia), armi da lancio (coltelli, pietre), armi da fuoco (pistola improvvisata, revolver, fucile a canne mozze) e archi/balestre (semplici e improvvisati).
+    - Munizioni: Aggiunte munizioni specifiche per le nuove armi (9mm, dardi, revolver, cartucce, frecce grezze).
+    - Armature: Nuovi tipi di protezioni per corpo (giacche imbottite, corpetti di placche), testa (caschi) e accessori (maschera antigas, ginocchiere).
+    - Strumenti: Kit di riparazione, set di grimaldelli grezzo, frammenti di mappa locale.
+- Correzioni Critiche e Funzionalità:
+  - Colori Inventario: Risolto un problema per cui gli oggetti nell'inventario apparivano tutti dello stesso colore (grigio scuro). Ora i colori specifici per tipo di oggetto (cibo, acqua, armi, ecc.) sono stati ripristinati e leggermente schiariti per migliore leggibilità.
+  - Usabilità Oggetti: Risolto un problema che impediva di usare oggetti come cibo, acqua e medicine dall'inventario. Ora le azioni "Mangia", "Bevi", "Usa Medicina" dovrebbero apparire correttamente.
+  - Errori Eventi: Corretti alcuni errori che potevano verificarsi durante specifici eventi, come ottenere carne cruda dalla caccia o affrontare pericoli ambientali, che potevano causare messaggi di errore o comportamenti imprevisti.
+  - Errori Avvio Gioco: Risolti diversi errori interni che potevano impedire al gioco di avviarsi correttamente o causare arresti anomali dopo alcune azioni.
+- Miglioramenti Interfaccia Utente:
+  - Pannello Status: La sezione "CONDIZIONE" (che mostrava se eri Ferito, Malato, ecc.) è stata integrata nel pannello "SOPRAVVIVENZA" per risparmiare spazio. Ora lo status appare subito sotto Fame e Sete.
+  - Inventario:
+    - La dimensione del riquadro dell'inventario è ora fissa per contenere fino a 7 oggetti, indipendentemente da quanti ne hai, evitando così che il layout "salti".
+    - La dimensione del testo per gli oggetti nell'inventario è stata ridotta per migliorare la leggibilità e l'aspetto generale.
+  - Statistiche Equip: La dimensione del testo per visualizzare l'arma e l'armatura equipaggiate nel pannello STATISTICHE è stata ridotta.
+- Pulizia Console: Rimossi alcuni messaggi di debug dalla console del browser che non erano più necessari.
+
+### The Safe Place v0.7.10
+
+- Nuova interfaccia e miglioramenti gameplay
+- Introdotta una nuova interfaccia iniziale con menu principale per avviare una "Nuova Partita".
+- Aggiunte pagine "Storia" e "Istruzioni" nel menu, per introdurre il protagonista Ultimo e fornire consigli di sopravvivenza.
+- Rinnovata la palette colori: tonalità di verde più distintiva, nuovi colori per i titoli e overlay scuro per i popup.
+- Risolto il problema della schermata di fine gioco che non appariva correttamente; ora funziona in caso di vittoria o sconfitta.
+- Implementata l'usura delle armi durante azioni fisiche intense, riducendo la durabilità.
+- Aggiornato il numero di versione ufficiale a v0.7.10 in tutti i file principali.
+
+### The Safe Place v0.7.09
+
+- Fix interazioni inventario e stabilità eventi.
+- Risolto bug critico nell'uso di oggetti dall'inventario (es. Acqua Purificata); ora l'azione avviene correttamente tramite il popup.
+- Migliorato il testo di fallimento nell'evento "Grattacielo" per la scelta "Esplora un palazzo".
+- Stabilizzato il flusso di Game Over: una volta chiamata la funzione endGame, tutte le elaborazioni di gioco si interrompono correttamente.
+- Confermata la corretta conclusione degli eventi problematici ("Rifugio tra gli Alberi", "Fruscio nel Bosco", "Salamandra Velenosa", "Orrore Notturno", "Incontro Ostile").
+- Implementato il costo di 1 passo per "Riposa brevemente" nei rifugi ('R'), con recupero di 1 HP; logica costo tempo ora più flessibile.
+- Risolto ReferenceError nell'evento "Tracce Strane - Ispeziona"; ora si conclude correttamente.
+- Problemi noti: placeholder in dilemmi morali e "Pericolo Ambientale", bilanciamento loot armi, frequenza eventi in alcune aree.
+- Focus futuro: eliminazione placeholder, verifica casi limite per uso oggetti, espansione contenuti.
+
+### The Safe Place v0.7.08
+
+- Fix schermata Game Over, eventi e rifugi
+- Risolto il bug della schermata nera alla morte del giocatore; ora appare correttamente la schermata Game Over e il pulsante "Ricomincia" funziona.
+- Fix ReferenceError nell'evento "Fuga Predoni" durante il fallimento; ora l'esito è gestito correttamente con testi appropriati.
+- Risolto il problema dell'evento "Rifugio ('R')" non attivo durante il giorno; ora si attiva alla prima visita giornaliera.
+- Implementata la logica di persistenza dei rifugi: l'evento non si riattiva nello stesso giorno dopo l'interazione.
+- Corretto il bug dei popup persistenti in vari eventi; alcuni casi specifici necessitano di ulteriori verifiche.
+- Pulizia del codice rimuovendo messaggi di debug; rimangono placeholder in alcuni eventi ("Dilemma Morale", "Pericolo Ambientale").
+- Problemi di bilanciamento: alta frequenza dell'evento "Banchetto Funebre" nelle Pianure, bassa frequenza di eventi in Villaggi/Città/Fiumi.
+- Stabilità migliorata; focus futuro su pulizia placeholder e bilanciamento contenuti.
+
+### The Safe Place v0.7.006 (Panoramica)
 
 In questa sessione di lavoro, ci siamo concentrati sulla stabilizzazione del prototipo di "The Safe Place" e sulla correzione di bug critici emersi durante i test, basandoci sul codice e sulla documentazione esistente (v0.7.01 - v0.7.05). L'obiettivo era preparare una base solida per le future implementazioni.
 
@@ -18,7 +365,7 @@ In questa sessione di lavoro, ci siamo concentrati sulla stabilizzazione del pro
 
 Stato Attuale (v0.7.06): Il gioco è ora più stabile, la logica dei rifugi è stata corretta e resa più coerente con il gameplay desiderato, e un bug importante relativo ai popup evento è stato risolto. Siamo pronti per continuare i test funzionali approfonditi sulle altre meccaniche (inventario, sopravvivenza, tutti i tipi di eventi) prima di passare all'implementazione di nuove funzionalità.
 
-### IlViaggiatoreGDR v0.7.005 (Panoramica)
+### The Safe Place v0.7.005 (Panoramica)
 
 Dopo aver risolto i problemi di visualizzazione della mappa e aver bilanciato la presenza dei vari punti di interesse (Villaggi, Città, ecc.) nella versione v0.7.04, abbiamo iniziato una fase di test e pulizia del codice per prepararci a correggere eventuali bug nel funzionamento del gioco.
 
@@ -34,7 +381,7 @@ Dopo aver risolto i problemi di visualizzazione della mappa e aver bilanciato la
 6.  Bug Transizione Notte (Risolto): Abbiamo identificato e corretto un bug che bloccava il gioco quando passava dal giorno alla notte mentre il giocatore si trovava all'aperto. Ora il gioco dovrebbe continuare correttamente anche di notte.
 7.  Stato Attuale: Il gioco è più stabile rispetto a v0.7.04, con diversi errori critici corretti nel sistema degli eventi e nella transizione giorno/notte. Tuttavia, l'ultimo intervento dell'AI sulla gestione delle scelte dei popup potrebbe necessitare di revisione (come discusso nell'ultimo messaggio). La prossima fase sarà continuare i test funzionali per trovare e correggere i bug rimanenti nelle meccaniche di gioco (sopravvivenza, stati, effetti oggetti, ecc.).
 
-### IlViaggiatoreGDR v0.7.001 (Panoramica)
+### The Safe Place v0.7.001 (Panoramica)
 
 Ecco un'analisi dettagliata del codice del progetto "TheSafePlace" v0.7.01, basata sui file e sulle interazioni avute finora:
 
@@ -167,7 +514,7 @@ Aree di Miglioramento / Funzionalità Mancanti:
 Conclusioni:
 Il progetto "TheSafePlace" è ben strutturato e ha implementato una solida base di meccaniche roguelike/survival. La separazione delle responsabilità è buona e il codice è generalmente leggibile. Le aree principali che richiedono lavoro sono il completamento della logica di combattimento (effetti delle azioni del giocatore) e l'implementazione di sistemi futuri come il crafting e il salvataggio. Un refactoring di handleEventChoice e un potenziamento degli eventi complessi potrebbero migliorare ulteriormente il gioco. Nel complesso, è un buon punto di partenza con fondamenta solide.
 
-### IlViaggiatoreGDR v0.6.079 (Panoramica)
+### The Safe Place v0.6.079 (Panoramica)
 
 Obiettivo: Migliorare l'organizzazione del codice, correggere bug e implementare piccoli miglioramenti al gioco "The Safe Place".
 

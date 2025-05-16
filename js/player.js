@@ -1,8 +1,9 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
+ * Versione: v0.7.22 Event Flow Integrity
  * File: js/player.js
- * Descrizione: Gestione logica del giocatore, statistiche, inventario ed equipaggiamento.
- * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js
+ * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
+ * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
  */
 
 // Dipendenze:
@@ -35,8 +36,7 @@ function generateCharacter() {
         acquisita: 0,                    // Punti abilità guadagnati da spendere (feature futura)
 
         // Risorse e stato di sopravvivenza
-        maxHp: 0, // Calcolato dopo gli attributi base
-        hp: 0, // Inizializza con HP pieni
+        // maxHp e hp verranno calcolati e impostati dopo la definizione degli attributi base
         food: STARTING_FOOD,
         water: STARTING_WATER,
 
@@ -45,24 +45,33 @@ function generateCharacter() {
         y: -1,
 
         // Stati negativi (boolean flags)
-        isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check
+        isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check (RIPRISTINATO A FALSE)
         isSick: false,    // Malato: Subisce danno per movimento/notte, penalità a Vigore/Adattamento check, consumo extra risorse
         isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
+        poisonDuration: 0,      // Turni rimanenti di avvelenamento
+        currentLocationType: null, // Tipo di tile attuale (simbolo)
+        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor", "craft_healing_poultice", "craft_bandages_clean"],       // Array delle ricette conosciute
 
         // Flag stato notturno (non salvato, solo per logica transizione)
         hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
 
-        // Equipaggiamento (memorizza l'itemId dell'oggetto equipaggiato)
-        equippedWeapon: null, // ID dell'arma equipaggiata
-        equippedArmor: null,  // ID dell'armatura equipaggiata
+        // Equipaggiamento (memorizza l'oggetto equipaggiato come {itemId, currentDurability})
+        equippedWeapon: null, // Verrà impostato sotto
+        equippedArmor: null,  // Verrà impostato sotto
 
         // Inventario: array di oggetti { itemId: string, quantity: number }
         inventory: []
     };
 
     // Calcola HP massimi basati sul Vigore (formula base: 10 + Vigore)
-    player.maxHp = 10 + player.vigore;
-    player.hp = player.maxHp; // Inizia con HP pieni
+    player.maxHp = 10 + player.vigore; // Calcolo originale
+    player.hp = player.maxHp; // Inizia con HP pieni (RIPRISTINATO)
+
+    // Impostazioni iniziali per lo stato del giocatore (ferito e con HP ridotti) - RIGHE DI TEST COMMENTATE
+    // player.isInjured = true;
+    // player.hp = Math.floor(player.maxHp / 3);
+
+    // Le righe temporanee per il test degli HP sono state rimosse.
 
     // Aggiunge oggetti iniziali all'inventario (usando la funzione addItemToInventory definita qui sotto)
     addItemToInventory('bandages_dirty', 2);
@@ -70,6 +79,39 @@ function generateCharacter() {
     addItemToInventory('canned_food', 1);
     addItemToInventory('suspicious_pills', 1);
     addItemToInventory('scrap_metal', getRandomInt(1,3)); // Inizia con qualche materiale
+    addItemToInventory('berries', 2);         // Per le Bacche Comuni
+    addItemToInventory('cloth_rags', 1);      // Per gli Stracci di Stoffa
+    addItemToInventory('water_dirty', 1);     // Per l'Acqua Sporca
+    // addItemToInventory('charcoal', 1);        // <<< RIMOSSO CARBONE PER TEST
+    // addItemToInventory('repair_kit', 1); // Assicurati che questa riga rimanga commentata o rimossa
+
+    // Equipaggia un'arma base all'inizio
+    const startingWeaponId = 'pipe_wrench';
+    const startingWeaponData = ITEM_DATA[startingWeaponId];
+    if (startingWeaponData) {
+        player.equippedWeapon = {
+            itemId: startingWeaponId,
+            currentDurability: startingWeaponData.maxDurability
+        };
+    } else {
+        player.equippedWeapon = null;
+        console.warn(`generateCharacter: Arma iniziale '${startingWeaponId}' non trovata in ITEM_DATA.`);
+    }
+
+    // Equipaggia un'armatura base all'inizio
+    const startingArmorId = 'leather_jacket_worn';
+    const startingArmorData = ITEM_DATA[startingArmorId];
+    if (startingArmorData) {
+        player.equippedArmor = {
+            itemId: startingArmorId,
+            currentDurability: startingArmorData.maxDurability
+        };
+    } else {
+        player.equippedArmor = null;
+        console.warn(`generateCharacter: Armatura iniziale '${startingArmorId}' non trovata in ITEM_DATA.`);
+    }
+
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[generateCharacter] Player Equip INIZIALE - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
 
     // Aggiorna la UI delle stats iniziali
     if (typeof renderStats === 'function') {
@@ -109,30 +151,37 @@ function addItemToInventory(itemId, quantity) {
         return;
     }
 
-    // Cerca se l'oggetto è già presente nell'inventario
-    const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
-
-    // Se l'oggetto è stackable (o non ha la proprietà stackable, consideriamo true di default per stackable)
-    // e esiste già nell'inventario:
-    const isStackable = itemInfo.stackable !== false; // stackable: false è esplicito per non stackabili
-
-    if (isStackable && existingItemSlot) {
-        // Se esiste e stackable, aumenta la quantità
-        existingItemSlot.quantity += quantity;
-        // console.log(`Aggiunto ${quantity}x ${itemInfo.name} all'inventario. Quantità totale: ${existingItemSlot.quantity}`); // Log di debug
-    } else {
-        // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
-        if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
-            // Inventario pieno, informa il giocatore e non aggiungere
-            // console.warn(`addItemToInventory: Inventario pieno, non puoi raccogliere ${itemInfo.name}.`); // Log di debug
-            addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Non puoi raccogliere ${itemInfo.name}.`, 'warning');
-            // TODO: Potrebbe essere utile permettere al giocatore di scegliere cosa lasciare cadere
-            return; // Esce dalla funzione senza aggiungere
+    // --- GESTIONE OGGETTI CON DURABILITÀ (maxDurability) ---
+    if (typeof itemInfo.maxDurability === 'number') {
+        // Oggetti con durabilità (armi/armature): aggiungi uno slot per ogni copia
+        let added = 0;
+        for (let i = 0; i < quantity; i++) {
+            if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+                player.inventory.push({ itemId: itemId, quantity: 1, currentDurability: itemInfo.maxDurability });
+                added++;
+            } else {
+                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Solo ${added} su ${quantity} ${itemInfo.name} aggiunti.`, 'warning');
+                break;
+            }
         }
+        // Non serve gestire stackabilità: ogni oggetto con durabilità è slot singolo
+    } else {
+        // --- LOGICA ORIGINALE PER OGGETTI STACKABILI O SENZA DURABILITÀ ---
+        // Cerca se l'oggetto è già presente nell'inventario
+        const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
+        const isStackable = itemInfo.stackable !== false;
 
-        // Aggiungi un nuovo oggetto all'inventario con la quantità specificata
-        player.inventory.push({ itemId: itemId, quantity: quantity });
-        // console.log(`Aggiunto ${itemInfo.name} (x${quantity}) all'inventario in un nuovo slot.`); // Log di debug
+        if (isStackable && existingItemSlot) {
+            // Se esiste e stackable, aumenta la quantità
+            existingItemSlot.quantity += quantity;
+        } else {
+            // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
+            if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
+                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Non puoi raccogliere ${itemInfo.name}.`, 'warning');
+                return;
+            }
+            player.inventory.push({ itemId: itemId, quantity: quantity });
+        }
     }
 
     // Aggiorna la visualizzazione dell'inventario
@@ -171,9 +220,12 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
 
     const itemInfo = ITEM_DATA[itemId]; // Usato solo per il nome nel log
     const itemName = itemInfo ? itemInfo.name : itemId;
+    const currentQuantityInSlot = player.inventory[itemIndex].quantity;
+    // console.log(`DEBUG: removeItemFromInventory - INIZIO. Item: ${itemId}, quantityToRemove: ${quantityToRemove}, currentQuantityInSlot: ${currentQuantityInSlot}`); // NUOVO LOG
 
     // Se quantityToRemove <= 0, rimuovi l'intero stack
-    if (quantityToRemove <= 0 || quantityToRemove >= player.inventory[itemIndex].quantity) {
+    if (quantityToRemove <= 0 || quantityToRemove >= currentQuantityInSlot) {
+        // console.log(`DEBUG: removeItemFromInventory - Condizione VERA (rimozione stack). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         const removedQuantity = player.inventory[itemIndex].quantity;
         player.inventory.splice(itemIndex, 1); // Rimuovi l'elemento dall'array
 
@@ -182,6 +234,7 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
 
     } else {
         // Altrimenti, riduci la quantità
+        // console.log(`DEBUG: removeItemFromInventory - Condizione FALSA (riduzione quantità). quantityToRemove (${quantityToRemove}) confrontato con currentQuantityInSlot (${currentQuantityInSlot}).`); // NUOVO LOG
         player.inventory[itemIndex].quantity -= quantityToRemove;
          // console.log(`Rimosso ${quantityToRemove}x ${itemName} dall'inventario. Rimanenti: ${player.inventory[itemIndex].quantity}.`); // Log di debug
         addMessage(`Hai perso ${itemName} (x${quantityToRemove}).`, 'info');
@@ -219,15 +272,18 @@ function useItem(itemId) {
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
+    const itemSlot = player.inventory[itemIndex]; // Slot originale
+    // console.log(`DEBUG: useItem - INIZIO. Item: ${itemId}, Quantità nello slot: ${itemSlot.quantity}, Idratazione iniziale: ${player.water}`); // NUOVO LOG
+
     if (!itemInfo.usable) {
         addMessage(`${itemInfo.name} non può essere usato direttamente.`, "warning");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
-    if (!itemInfo.effect) {
-        console.warn(`useItem: Oggetto '${itemId}' non ha un effetto definito.`);
+    // MODIFICATO: Controlla itemInfo.effects (plurale) e che non sia un array vuoto
+    if (!itemInfo.effects || itemInfo.effects.length === 0) {
+        console.warn(`useItem: Oggetto '${itemId}' non ha un array 'effects' definito o è vuoto.`);
         addMessage(`${itemInfo.name} non ha effetto quando usato.`, "warning");
-        // Consumiamo comunque l'oggetto se è "usato" anche senza effetto definito? Decidiamo di NO per ora.
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
@@ -237,33 +293,44 @@ function useItem(itemId) {
     let consumeItem = true; // Flag per decidere se consumare l'oggetto dopo l'uso
     let messageType = 'info'; // Tipo messaggio default
 
+    // Estrai il primo oggetto effetto dall'array (la maggior parte degli item ne ha solo uno)
+    // Se un item dovesse avere effetti multipli simultanei, questa logica andrebbe estesa (es. con un ciclo)
+    const currentEffect = itemInfo.effects[0];
 
     // Gestisce i vari tipi di effetti (definiti nell'oggetto effect in ITEM_DATA)
-    switch (itemInfo.effect.type) {
+    // MODIFICATO: Usa currentEffect.type
+    switch (currentEffect.type) {
 
         case 'add_resource': // Aumenta risorse (HP, Cibo, Acqua)
             // amount può essere un numero fisso o un intervallo {min, max}
-            const amountToAdd = (typeof itemInfo.effect.amount === 'object' && itemInfo.effect.amount !== null)
-                ? getRandomInt(itemInfo.effect.amount.min, itemInfo.effect.amount.max)
-                : (itemInfo.effect.amount || 1); // Default a 1 se amount non definito
+            // MODIFICATO: Usa currentEffect.amount
+            const amountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
+                ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
+                : (currentEffect.amount || 1); // Default a 1 se amount non definito
 
-            if (itemInfo.effect.resource_type === 'hp') {
+            // MODIFICATO: Usa currentEffect.resource_type
+            if (currentEffect.resource_type === 'hp') {
                 const oldHp = player.hp;
                 player.hp = Math.min(player.hp + amountToAdd, player.maxHp);
                 const actualHeal = player.hp - oldHp; // Quanto HP è stato effettivamente curato
                 consumptionMessage = `Hai usato ${itemInfo.name}. Recuperi ${actualHeal} HP.`;
                 if (actualHeal > 0) messageType = 'success'; else messageType = 'info';
                 // TODO: Aggiungere effetto visivo di cura?
-            } else if (itemInfo.effect.resource_type === 'food') {
+            // MODIFICATO: Usa currentEffect.resource_type
+            } else if (currentEffect.resource_type === 'food') {
                 player.food = Math.min(player.food + amountToAdd, 10); // Limite Sazietà a 10
                  consumptionMessage = `Hai usato ${itemInfo.name}. Sazietà +${amountToAdd}. Totale: ${Math.floor(player.food)}.`;
                  messageType = 'success';
-            } else if (itemInfo.effect.resource_type === 'water') {
+            // MODIFICATO: Usa currentEffect.resource_type
+            } else if (currentEffect.resource_type === 'water') {
+                const waterPrimaDellEffetto = player.water; // Salva acqua prima
                 player.water = Math.min(player.water + amountToAdd, 10); // Limite Idratazione a 10
                  consumptionMessage = `Hai usato ${itemInfo.name}. Idratazione +${amountToAdd}. Totale: ${Math.floor(player.water)}.`;
+                 // console.log(`DEBUG: useItem - EFFETTO ACQUA. Idratazione Prima: ${waterPrimaDellEffetto}, Amount Aggiunto da Effetto: ${amountToAdd}, Idratazione Dopo: ${player.water}`); // NUOVO LOG
                  messageType = 'success';
             } else {
-                console.warn(`useItem: Tipo risorsa sconosciuto in add_resource per item '${itemId}': ${itemInfo.effect.resource_type}`);
+                // MODIFICATO: Usa currentEffect.resource_type
+                console.warn(`useItem: Tipo risorsa sconosciuto in add_resource per item '${itemId}': ${currentEffect.resource_type}`);
                 consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto sconosciuto)`;
                  messageType = 'warning';
                  consumeItem = false; // Non consumare se l'effetto è sconosciuto
@@ -273,20 +340,24 @@ function useItem(itemId) {
 
         case 'add_resource_poisonable': // Aggiunge risorse con rischio avvelenamento
              // Simile a add_resource, ma con check rischio
-             const pAmountToAdd = (typeof itemInfo.effect.amount === 'object' && itemInfo.effect.amount !== null)
-                 ? getRandomInt(itemInfo.effect.amount.min, itemInfo.effect.amount.max)
-                 : (itemInfo.effect.amount || 1);
+             // MODIFICATO: Usa currentEffect.amount
+             const pAmountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
+                 ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
+                 : (currentEffect.amount || 1);
 
-             if (itemInfo.effect.resource_type === 'food') {
+             // MODIFICATO: Usa currentEffect.resource_type
+             if (currentEffect.resource_type === 'food') {
                  player.food = Math.min(player.food + pAmountToAdd, 10);
                  consumptionMessage = `Hai consumato ${itemInfo.name}. Sazietà +${pAmountToAdd}. Totale: ${Math.floor(player.food)}.`;
                  messageType = 'success';
-             } else if (itemInfo.effect.resource_type === 'water') {
+             // MODIFICATO: Usa currentEffect.resource_type
+             } else if (currentEffect.resource_type === 'water') {
                  player.water = Math.min(player.water + pAmountToAdd, 10);
                  consumptionMessage = `Hai consumato ${itemInfo.name}. Idratazione +${pAmountToAdd}. Totale: ${Math.floor(player.water)}.`;
                  messageType = 'success';
              } else {
-                 console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_poisonable per item '${itemId}': ${itemInfo.effect.resource_type}`);
+                 // MODIFICATO: Usa currentEffect.resource_type
+                 console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_poisonable per item '${itemId}': ${currentEffect.resource_type}`);
                  consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto risorsa sconosciuto)`;
                  messageType = 'warning';
                  consumeItem = false;
@@ -295,9 +366,11 @@ function useItem(itemId) {
              // Check rischio avvelenamento (dipende da game_constants.js per le chance)
              // NOTA: La logica originale usava le probabilità direttamente nell'effetto.
              // Ora le probabilità base sono nelle costanti per centralizzazione.
-             let poisonChance = itemInfo.effect.poison_chance;
-             if (itemId === 'berries') poisonChance = BERRIES_POISON_CHANCE;
-             if (itemId === 'water_dirty') poisonChance = DIRTY_WATER_POISON_CHANCE;
+             // MODIFICATO: Usa currentEffect.poison_chance
+             let poisonChance = currentEffect.poison_chance || 0;
+             // RIMOSSA LA SEGUENTE RIGA: if (itemId === 'berries') poisonChance = BERRIES_POISON_CHANCE;
+             // Questo if per water_dirty andrebbe corretto o rimosso se water_dirty ha la sua poison_chance in ITEM_DATA
+             // if (itemId === 'water_dirty') poisonChance = DIRTY_WATER_POISON_CHANCE;
 
              if (Math.random() < poisonChance) {
                  player.isPoisoned = true;
@@ -309,16 +382,24 @@ function useItem(itemId) {
 
          case 'add_resource_sickness': // Aggiunge risorse con rischio malattia (usato per carne cruda)
               // Simile a add_resource, ma con check rischio malattia
-              const sAmountToAdd = (typeof itemInfo.effect.amount === 'object' && itemInfo.effect.amount !== null)
-                  ? getRandomInt(itemInfo.effect.amount.min, itemInfo.effect.amount.max)
-                  : (itemInfo.effect.amount || 1);
+              // MODIFICATO: Usa currentEffect.amount
+              const sAmountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
+                  ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
+                  : (currentEffect.amount || 1);
 
-              if (itemInfo.effect.resource_type === 'food') {
+              // MODIFICATO: Usa currentEffect.resource_type
+              if (currentEffect.resource_type === 'food') {
                   player.food = Math.min(player.food + sAmountToAdd, 10);
                   consumptionMessage = `Hai consumato ${itemInfo.name}. Sazietà +${sAmountToAdd}. Totale: ${Math.floor(player.food)}.`;
                   messageType = 'success';
+              // MODIFICATO: Usa currentEffect.resource_type
+              } else if (currentEffect.resource_type === 'water') { // Aggiunto caso water che mancava nel type sickness
+                  player.water = Math.min(player.water + sAmountToAdd, 10);
+                  consumptionMessage = `Hai consumato ${itemInfo.name}. Idratazione +${sAmountToAdd}. Totale: ${Math.floor(player.water)}.`;
+                  messageType = 'success';
               } else {
-                  console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_sickness per item '${itemId}': ${itemInfo.effect.resource_type}`);
+                  // MODIFICATO: Usa currentEffect.resource_type
+                  console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_sickness per item '${itemId}': ${currentEffect.resource_type}`);
                   consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto risorsa sconosciuto)`;
                   messageType = 'warning';
                   consumeItem = false;
@@ -327,7 +408,8 @@ function useItem(itemId) {
               // Check rischio malattia (dipende da game_constants.js per la chance)
               // NOTA: La logica originale usava le probabilità direttamente nell'effetto.
               // Ora le probabilità base sono nelle costanti per centralizzazione.
-              let sicknessChance = itemInfo.effect.sickness_chance; // Usa la probabilità definita nell'effetto
+              // MODIFICATO: Usa currentEffect.sickness_chance
+              let sicknessChance = currentEffect.sickness_chance; // Usa la probabilità definita nell'effetto
 
               if (Math.random() < sicknessChance) {
                   player.isSick = true;
@@ -344,101 +426,243 @@ function useItem(itemId) {
             // success_message, failure_message
             // heal_hp_on_success: HP curati in aggiunta se successo (opzionale)
 
-            const statusToCure = itemInfo.effect.status_cured;
-            const cureChance = itemInfo.effect.chance || 1.0; // Default 100% chance
+            // MODIFICATO: Usa currentEffect
+            const statusToCure = currentEffect.status_cured;
+            const cureChance = currentEffect.chance || 1.0; // Default 100% chance
 
             // Verifica se il giocatore ha lo stato da curare
             if (!player[statusToCure]) {
                 // console.log(`useItem: Giocatore non ha lo stato '${statusToCure}' da curare con item '${itemId}'.`); // Log di debug rimosso
-                consumptionMessage = `${itemInfo.name} usato. Non hai bisogno di curare lo stato: ${statusToCure}.`;
+                consumptionMessage = `${itemInfo.name} usato. Non hai bisogno di curare lo stato: ${statusToCure.replace('is', '')}.`;
                 messageType = 'info';
                 consumeItem = false; // Non consumare se lo stato non è presente
             } else {
                  // Tenta la cura
                  if (Math.random() < cureChance) {
                      player[statusToCure] = false; // Cura lo stato
-                     consumptionMessage = itemInfo.effect.success_message || `${itemInfo.name} ha curato lo stato ${statusToCure}.`;
+                     // MODIFICATO: Usa currentEffect
+                     consumptionMessage = currentEffect.success_message || `${itemInfo.name} ha curato lo stato ${statusToCure.replace('is', '')}.`;
                      messageType = 'success';
                      effectApplied = true; // Effetto applicato (cura riuscita)
 
                      // Applica cura HP aggiuntiva se definita
-                     if (itemInfo.effect.heal_hp_on_success) {
+                     // MODIFICATO: Usa currentEffect
+                     if (currentEffect.heal_hp_on_success) {
                         const oldHp = player.hp;
-                        player.hp = Math.min(player.hp + itemInfo.effect.heal_hp_on_success, player.maxHp);
+                        // MODIFICATO: Usa currentEffect
+                        player.hp = Math.min(player.hp + currentEffect.heal_hp_on_success, player.maxHp);
                         const actualHeal = player.hp - oldHp;
                         consumptionMessage += ` Recuperi anche ${actualHeal} HP.`;
                      }
 
-                 } else {
-                     consumptionMessage = itemInfo.effect.failure_message || `${itemInfo.name} non è riuscito a curare lo stato ${statusToCure}.`;
-                     messageType = 'warning';
-                     effectApplied = false; // Effetto non applicato (cura fallita)
+                 } else { // Se la cura fallisce
+                     consumptionMessage = currentEffect.failure_message || `${itemInfo.name} non è riuscito a curare lo stato ${statusToCure.replace('is', '')}.`;
+                     messageType = 'warning';      // AGGIUNTA
+                     effectApplied = false;      // AGGIUNTA (o assicurati sia false se già impostato prima)
                  }
             }
             break;
 
-        case 'repair_weapon': // Avvia il processo di riparazione arma (Kit di riparazione)
+        case 'repair_item_type': // Es. Kit di Riparazione che ripara 'weapon' O 'armor'
             // Questo effetto non consuma l'oggetto immediatamente, ma apre un altro popup.
             // La consumazione avviene in applyRepair() dopo che l'arma è stata scelta e riparata.
             // repair_amount: quantità di durabilità ripristinata
-            const repairAmount = itemInfo.effect.repair_amount || 10; // Default repair amount
+            // item_type_target: array di stringhe ['weapon', 'armor']
+            // charges: numero di usi del kit
+            // MODIFICATO: Usa currentEffect
+            const repairAmount = currentEffect.repair_amount || 10; // Default repair amount
+            const targetTypes = currentEffect.item_type_target || ['weapon', 'armor']; // Default
+            const charges = currentEffect.charges || 1; // Default
 
-            // showRepairWeaponPopup (definita qui sotto) gestirà la logica successiva
-            showRepairWeaponPopup(itemId, repairAmount);
+            // showRepairItemTypePopup (da definire) gestirà la logica successiva
+            showRepairItemTypePopup(itemId, repairAmount, targetTypes, charges);
 
             // Non consumare l'oggetto qui! La consumazione è gestita in applyRepair.
             consumeItem = false;
             effectApplied = true; // L'azione di avviare la riparazione è considerata un "effetto applicato"
 
-            // Non loggiamo un messaggio generico "Item usato" qui, showRepairWeaponPopup gestirà i messaggi.
+            // Non loggiamo un messaggio generico "Item usato" qui, il popup di riparazione gestirà i messaggi.
             consumptionMessage = null; // Sopprimi il messaggio generico "Item usato"
             break;
 
-        case 'show_lore': // Rivelare un frammento di lore (per item lore)
-             if (itemInfo.effect.text_array_ref === 'loreFragments' && Array.isArray(loreFragments)) {
-                 const loreText = getRandomText(loreFragments); // Usa la utility per testo casuale
-                 if (loreText) {
-                     addMessage("Hai letto un frammento di lore:", 'lore', true); // Messaggio principale per lore
-                     addMessage(loreText, 'lore'); // Il frammento effettivo
-                 }
-                 consumptionMessage = `Hai esaminato ${itemInfo.name}.`;
-                 messageType = 'info';
-                 effectApplied = true;
-                 consumeItem = true; // I frammenti di lore sono tipicamente consumati
 
-             } else {
-                 console.warn(`useItem: Tipo lore sconosciuto o array non valido per item '${itemId}'.`);
-                 consumptionMessage = `Hai esaminato ${itemInfo.name}, ma non rivela nulla.`;
-                 messageType = 'warning';
-                 effectApplied = false; // Nessun lore trovato
-                 consumeItem = false; // Non consumare se non rivela lore
-             }
+        case 'reveal_map_area': // Per oggetti come 'map_fragment_local'
+            // MODIFICATO: Usa currentEffect
+            const radius = currentEffect.radius || 3; // Default radius
+            if (typeof revealMapAreaAroundPlayer === 'function') {
+                revealMapAreaAroundPlayer(radius);
+                consumptionMessage = `${itemInfo.name} consultato. Alcune aree della mappa sono state rivelate.`;
+                messageType = 'info'; // O 'lore' se preferisci per le mappe
+                effectApplied = true;
+                consumeItem = true; // Le mappe di solito si consumano
+                if (typeof renderMap === 'function') renderMap(); // Aggiorna la mappa visualizzata
+            } else {
+                console.warn("useItem: Funzione revealMapAreaAroundPlayer non trovata (map_utils.js?).");
+                consumptionMessage = `${itemInfo.name} consultato, ma non succede nulla (funzione mancante).`;
+                messageType = 'warning';
+                consumeItem = false;
+            }
+            break;
+
+        // TODO: Aggiungere altri casi per tipi di effetto diversi (es. buff temporanei, ecc.)
+        case 'random_pill_effect':
+            if (!currentEffect.outcomes || !Array.isArray(currentEffect.outcomes) || currentEffect.outcomes.length === 0) {
+                console.error(`useItem (random_pill_effect): 'outcomes' array mancante o non valido per ${itemId}`);
+                consumptionMessage = "Hai preso le pillole... ma sembrano inerti.";
+                messageType = 'warning';
+                consumeItem = true; // Consuma anche se l'effetto è mal definito
+                effectApplied = false;
+                break;
+            }
+
+            // Usa chooseWeighted per selezionare un risultato basato sui pesi
+            const chosenOutcome = chooseWeighted(currentEffect.outcomes); // Assumi che chooseWeighted accetti { result: ..., weight: ... }
+
+            if (!chosenOutcome || !chosenOutcome.result) {
+                 console.error(`useItem (random_pill_effect): chooseWeighted non ha restituito un risultato valido.`);
+                 consumptionMessage = "Ingoi le pillole. Non senti nulla di strano.";
+                 messageType = 'info';
+                 consumeItem = true;
+                 effectApplied = false;
+                 break;
+            }
+
+            const outcomeResult = chosenOutcome.result;
+            effectApplied = true; // L'effetto (anche se nullo) è stato determinato
+            consumeItem = true;   // Consuma sempre la pillola
+
+            switch (outcomeResult) {
+                case 'good_heal_small':
+                    const healAmount = getRandomInt(3, 7);
+                    const oldHpHeal = player.hp;
+                    player.hp = Math.min(player.maxHp, player.hp + healAmount);
+                    const actualHeal = player.hp - oldHpHeal;
+                    consumptionMessage = `Ingoi le pillole. Ti senti stranamente rinvigorito! (+${actualHeal} HP)`;
+                    messageType = 'success';
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    break;
+                case 'good_boost_temp':
+                    // Per ora solo un messaggio, nessun effetto meccanico di buff temporaneo
+                    consumptionMessage = "Prendi le pillole. Per un momento, ti senti più leggero e scattante!";
+                    messageType = 'success';
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    // TODO: Implementare buff temporanei se necessario
+                    break;
+                case 'good_cure_minor':
+                    if (player.isInjured) {
+                        player.isInjured = false;
+                        consumptionMessage = "Le pillole hanno un sapore strano, ma il dolore della tua ferita sembra alleviarsi.";
+                        messageType = 'success';
+                    } else {
+                        consumptionMessage = "Ingoi le pillole. Non sembrano avere effetto sulle tue condizioni attuali.";
+                        messageType = 'info';
+                        effectApplied = false; // Nessun cambiamento di stato effettivo
+                    }
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    break;
+                case 'bad_damage_small':
+                    const damageAmount = getRandomInt(2, 5);
+                    const oldHpDmg = player.hp;
+                    player.hp = Math.max(0, player.hp - damageAmount);
+                    const actualDamage = oldHpDmg - player.hp;
+                    consumptionMessage = `Prendi le pillole e subito dopo senti una fitta allo stomaco! (-${actualDamage} HP)`;
+                    messageType = 'danger';
+                     if (player.hp <= 0) { // Check morte immediato
+                         consumptionMessage += " ...fatale.";
+                         // endGame sarà chiamato da useItem dopo lo switch
+                     }
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    break;
+                case 'bad_nausea_temp':
+                    // Solo messaggio, nessun effetto meccanico di status temporaneo
+                    consumptionMessage = "Dopo aver preso le pillole, la testa inizia a girare e senti una leggera nausea.";
+                    messageType = 'warning';
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    // TODO: Implementare status temporanei minori se necessario
+                    break;
+                case 'neutral_nothing':
+                default:
+                    consumptionMessage = "Ingoi le pillole sospette... non senti alcun effetto particolare.";
+                    messageType = 'info';
+                    effectApplied = false; // Nessun effetto meccanico
+                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                    break;
+            }
+            break; // Fine case 'random_pill_effect'
+        // ...
+
+        case 'learn_recipe': // NUOVO CASO PER IMPARARE RICETTE
+            if (currentEffect.recipeKey) {
+                if (!player.knownRecipes.includes(currentEffect.recipeKey)) {
+                    player.knownRecipes.push(currentEffect.recipeKey);
+                    const recipeDetails = CRAFTING_RECIPES[currentEffect.recipeKey];
+                    const learnedItemName = recipeDetails ? (recipeDetails.productName || recipeDetails.productId) : currentEffect.recipeKey;
+                    consumptionMessage = `Hai studiato il progetto e imparato a creare: ${learnedItemName}!`;
+                    messageType = 'success';
+                    addMessage(consumptionMessage, messageType, true);
+                    // Il blueprint viene consumato, quindi consumeItem rimane true (default)
+                    effectApplied = true;
+                } else {
+                    consumptionMessage = `Conosci già la ricetta per ${CRAFTING_RECIPES[currentEffect.recipeKey]?.productName || currentEffect.recipeKey}.`;
+                    messageType = 'info';
+                    addMessage(consumptionMessage, messageType);
+                    consumeItem = false; // Non consumare se già conosciuta
+                    effectApplied = false;
+                }
+            } else {
+                console.error(`useItem (learn_recipe): recipeKey mancante nell'effetto per ${itemId}`);
+                consumptionMessage = "Questo progetto sembra incompleto o illeggibile.";
+                messageType = 'warning';
+                consumeItem = true; // Consuma anche se mal definito per non lasciarlo nell'inventario
+                effectApplied = false;
+            }
+            break;
+
+        case 'show_lore':
+            // Assumiamo che loreFragments (da game_data.js) sia accessibile globalmente
+            // e getRandomText (da game_utils.js) sia accessibile globalmente.
+            if (typeof getRandomText === 'function' && typeof loreFragments !== 'undefined' && loreFragments.length > 0) {
+                addMessage(getRandomText(loreFragments), 'lore');
+            } else {
+                addMessage("Hai esaminato il frammento, ma le parole svaniscono prima che tu possa comprenderle... (Errore: Risorse lore non trovate)", 'warning');
+                console.warn("useItem (show_lore): getRandomText o loreFragments non disponibili/vuoti.");
+            }
+            consumptionMessage = 'Hai esaminato il frammento...';
+            messageType = 'lore';
+            effectApplied = true;
+            consumeItem = true;
             break;
 
         default:
-            console.warn(`useItem: Tipo di effetto item sconosciuto per item '${itemId}': ${itemInfo.effect.type}`);
-            consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto sconosciuto)`;
+            // MODIFICATO: Usa currentEffect
+            console.warn(`useItem: Tipo effetto '${currentEffect.type}' non gestito per item '${itemId}'.`);
+            consumptionMessage = `${itemInfo.name} usato, ma l'effetto è sconosciuto.`;
             messageType = 'warning';
-            effectApplied = false; // Non considerare l'effetto applicato
             consumeItem = false; // Non consumare se l'effetto non è gestito
-
+            effectApplied = false;
+            break;
     }
 
     // Consumazione dell'oggetto dopo l'applicazione dell'effetto (se consentito)
     if (consumeItem) {
+        const itemSlotPrimaRimozione = player.inventory.find(s => s.itemId === itemId);
+        // Logga una copia profonda per evitare problemi con riferimenti modificati
+        // console.log(`DEBUG: useItem - Prima di removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotPrimaRimozione ? itemSlotPrimaRimozione.quantity : 'NON TROVATO'}, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : ''}`, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : '');
+
          // Rimuovi 1 quantità dell'oggetto dall'inventario
          removeItemFromInventory(itemId, 1);
          // removeItemFromInventory chiama già renderInventory e addMessage
+
+        const itemSlotDopoRimozione = player.inventory.find(s => s.itemId === itemId);
+        // Logga una copia profonda
+        // console.log(`DEBUG: useItem - Dopo removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotDopoRimozione ? itemSlotDopoRimozione.quantity : 'NON TROVATO (o rimosso)'}, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : ''}`, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : '');
     }
 
 
-    // Log del messaggio di utilizzo (se non soppresso)
+    // Log del messaggio di ESITO (se non soppresso)
+    // MODIFICATO: Logga sempre il consumptionMessage se non è null, indipendentemente da consumeItem
     if (consumptionMessage !== null) {
-         // Se l'oggetto è stato consumato, il messaggio è già stato loggato da removeItemFromInventory.
-         // Altrimenti, logga il messaggio di uso.
-         if (!consumeItem) {
-             addMessage(consumptionMessage, messageType);
-         }
+         addMessage(consumptionMessage, messageType);
     }
 
 
@@ -492,6 +716,9 @@ function equipItem(itemId) {
     // Anche se non stackable, potremmo avere più copie nell'inventario in slot separati.
     // L'equipaggiamento rimuove SEMPRE lo slot selezionato.
 
+    // Recupera l'intero oggetto slot dall'inventario
+    const itemToEquip = player.inventory[itemIndexInInventory];
+
     // Determina lo slot di equipaggiamento corretto ('equippedWeapon' o 'equippedArmor')
     let equippedSlotKey;
     if (itemInfo.type === 'weapon') {
@@ -500,44 +727,42 @@ function equipItem(itemId) {
         equippedSlotKey = 'equippedArmor';
     }
 
-    const previouslyEquippedItemId = player[equippedSlotKey];
+    // Salva l'oggetto attualmente equipaggiato (se esiste)
+    const previouslyEquippedObject = player[equippedSlotKey]; // { itemId, currentDurability } o null
 
     // 1. Rimuovi il NUOVO oggetto dallo slot dell'inventario da cui è stato selezionato
-    // Dato che armi/armature sono stackable: false, rimuoviamo l'intero slot.
-    // Usiamo splice per rimuovere l'elemento all'indice trovato.
     player.inventory.splice(itemIndexInInventory, 1);
-    // console.log(`equipItem: Rimosso '${itemInfo.name}' dall'inventario (indice ${itemIndexInInventory}).`); // Log di debug
 
-
-    // 2. Se c'era un oggetto equipaggiato prima, rimettilo nell'inventario
-    if (previouslyEquippedItemId) {
-        // console.log(`equipItem: C'era un item equipaggiato: '${previouslyEquippedItemId}'.`); // Log di debug
-        // addItemToInventory gestisce l'aggiunta sia per oggetti stackabili che non.
-        // Passiamo quantity 1 perché stiamo riaggiungendo un singolo oggetto precedentemente equipaggiato.
-        addItemToInventory(previouslyEquippedItemId, 1);
-        const oldItemInfo = ITEM_DATA[previouslyEquippedItemId];
-        // Messaggio automatico dall'aggiunta all'inventario
-        addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'}.`, 'info');
-    } else {
-         // console.log(`equipItem: Nessun item equipaggiato prima.`); // Log di debug
+    // 2. Se c'era un oggetto equipaggiato prima, rimettilo nell'inventario preservando la sua currentDurability
+    if (previouslyEquippedObject) {
+        if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+            player.inventory.push({
+                itemId: previouslyEquippedObject.itemId,
+                quantity: 1,
+                currentDurability: previouslyEquippedObject.currentDurability
+            });
+            const oldItemInfo = ITEM_DATA[previouslyEquippedObject.itemId];
+            addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'} e riposto nell'inventario.`, 'info');
+        } else {
+            const oldItemInfo = ITEM_DATA[previouslyEquippedObject.itemId];
+            addMessage(`Hai rimosso ${oldItemInfo?.name || 'oggetto sconosciuto'}, ma l'inventario è pieno! L'oggetto è andato perso.`, 'warning');
+        }
     }
 
-
-    // 3. Equipaggia il nuovo oggetto impostando il suo ID nello slot del giocatore
-    player[equippedSlotKey] = itemId;
-    // console.log(`equipItem: Equipaggiato '${itemInfo.name}' in slot ${equippedSlotKey}.`); // Log di debug
-
+    // 3. Equipaggia il nuovo oggetto impostando il suo ID e currentDurability nello slot del giocatore
+    player[equippedSlotKey] = {
+        itemId: itemToEquip.itemId,
+        currentDurability: itemToEquip.currentDurability
+    };
 
     // 4. Aggiorna la UI
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("equipItem: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("equipItem: renderStats non disponibile.");
 
-
     // 5. Logga un messaggio di successo
     addMessage(`Hai equipaggiato ${itemInfo.name}.`, 'success', true);
 
-    // 6. Chiude il popup dell'azione oggetto
-    if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("equipItem: closeEventPopup non disponibile.");
+    // 6. (RIMOSSA) La chiusura del popup sarà gestita dalla funzione chiamante
 }
 
 
@@ -561,59 +786,41 @@ function unequipItem(slotKey) {
          return false;
      }
 
-
-    const equippedItemId = player[slotKey];
+    const equippedObject = player[slotKey];
 
     // 1. Verifica se c'è un oggetto equipaggiato in quello slot
-    if (!equippedItemId) {
-        // console.warn(`unequipItem: Nessun oggetto equipaggiato nello slot '${slotKey}'.`); // Log di debug rimosso
-        // addMessage(`Nessun oggetto da rimuovere dallo slot ${slotKey === 'equippedWeapon' ? 'Arma' : 'Armatura'}.`, "info"); // Messaggio loggato solo se si tenta l'azione dalla UI
+    if (!equippedObject) {
         return false;
     }
 
     // Verifica che l'ID dell'oggetto equipaggiato esista nei dati
-    const itemInfo = ITEM_DATA[equippedItemId];
+    const itemInfo = ITEM_DATA[equippedObject.itemId];
     if (!itemInfo) {
-        console.error(`unequipItem: Dati non trovati per l'oggetto equipaggiato '${equippedItemId}' nello slot '${slotKey}'.`);
+        console.error(`unequipItem: Dati non trovati per l'oggetto equipaggiato '${equippedObject.itemId}' nello slot '${slotKey}'.`);
         player[slotKey] = null; // Rimuovi comunque l'ID non valido dallo slot
         if (typeof renderStats === 'function') renderStats();
         addMessage(`Rimosso oggetto sconosciuto dallo slot equipaggiato.`, "warning");
         return false;
     }
 
-    // 2. Aggiungi l'oggetto all'inventario (sempre quantity 1)
-    // addItemToInventory gestisce la non-stackabilità e il limite di slot
-    // Se l'inventario è pieno, l'oggetto non verrà aggiunto e il giocatore dovrà scegliere cosa lasciare.
-    // Per ora, se l'inventario è pieno, l'oggetto rimosso andrà perso!
-    const addedToInventory = addItemToInventory(equippedItemId, 1); // addItemToInventory logga già il messaggio se inventario pieno
+    // 2. Aggiungi l'oggetto all'inventario (sempre quantity 1), preservando la currentDurability
+    if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+        player.inventory.push({
+            itemId: equippedObject.itemId,
+            quantity: 1,
+            currentDurability: equippedObject.currentDurability
+        });
+        addMessage(`Hai rimosso ${itemInfo.name} e riposto nell'inventario.`, 'info', true);
+    } else {
+        addMessage(`Hai rimosso ${itemInfo.name}, ma l'inventario è pieno! L'oggetto è andato perso.`, 'warning', true);
+    }
 
-    // 3. Libera lo slot di equipaggiamento SOLO se l'oggetto è stato aggiunto all'inventario
-    // (o se decidiamo che va perso se l'inventario è pieno, ma la logica attuale di addItemToInventory
-    // non indica successo/fallimento, solo logga un warning)
-    // Modifichiamo addItemToInventory per ritornare true/false o controlliamo la lunghezza dell'inventario.
-    // Alternativa: aggiungere l'oggetto rimosso all'inventario *prima* di rimuoverlo dallo slot,
-    // e gestire il caso inventario pieno lì. O più semplice: l'oggetto va semplicemente nell'inventario.
-    // Se l'inventario è pieno, non viene aggiunto e basta. Lo slot viene comunque liberato.
-
-    player[slotKey] = null; // Libera lo slot equipaggiato
-    // console.log(`unequipItem: Rimosso '${itemInfo.name}' dallo slot '${slotKey}'.`); // Log di debug
+    // 3. Libera lo slot di equipaggiamento
+    player[slotKey] = null;
 
     // 4. Aggiorna la UI
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("unequipItem: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("unequipItem: renderStats non disponibile.");
-
-
-    // 5. Logga un messaggio
-    if (addedToInventory) {
-        addMessage(`Hai rimosso ${itemInfo.name} dallo slot equipaggiato e aggiunto all'inventario.`, 'info', true);
-    } else {
-        // Il messaggio "Inventario pieno" è già loggato da addItemToInventory
-        addMessage(`Hai rimosso ${itemInfo.name} dallo slot equipaggiato. Non c'è spazio nell'inventario, l'oggetto è andato perso!`, 'warning', true);
-    }
-
-
-    // Non chiudiamo il popup qui, questa funzione non è chiamata direttamente da un popup.
-    // La logica che la chiama (es. un'azione futura "Rimuovi equipaggiamento") gestirà la chiusura.
 
     return true; // Oggetto rimosso dallo slot, anche se non aggiunto all'inventario
 }
@@ -668,36 +875,61 @@ function dropItem(itemId, quantity) { // Aggiunto parametro quantity anche se no
  * @param {string} repairKitId - ID del kit di riparazione usato.
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
-function showRepairWeaponPopup(repairKitId, repairAmount) {
-    // Trova tutte le armi nell'inventario E quelle equipaggiate che necessitano riparazione
-    const repairableItems = player.inventory
-        .filter(slot => {
-            const item = ITEM_DATA[slot.itemId];
-            return item &&
-                   (item.type === 'weapon' || item.type === 'armor') && // Ripara armi E armature
-                   item.durability !== undefined &&
-                   item.maxDurability !== undefined &&
-                   item.durability < item.maxDurability;
-        })
-        .concat(
-            // Aggiungi l'arma equipaggiata se riparabile
-            player.equippedWeapon ? [{itemId: player.equippedWeapon, quantity: 1}] : [],
-            // Aggiungi l'armatura equipaggiata se riparabile
-            player.equippedArmor ? [{itemId: player.equippedArmor, quantity: 1}] : []
-        )
-        .filter((slot, index, self) => {
-            // Filtra i duplicati nel caso l'oggetto equipaggiato sia anche nell'inventario (non dovrebbe succedere)
-            // o se un oggetto è presente in più slot (se stackable fosse true per armi/armature, cosa che non è)
-            // e rimuovi quelli che non sono danneggiati (secondo filtro)
-             const item = ITEM_DATA[slot.itemId];
-             return item &&
-                    item.durability !== undefined && item.maxDurability !== undefined && item.durability < item.maxDurability &&
-                    index === self.findIndex((s) => s.itemId === slot.itemId); // Rimuove duplicati basati su itemId
-         });
+function showRepairItemTypePopup(repairKitId, repairAmount) {
+    // Costruisci la lista delle istanze riparabili
+    const repairableItemsInstances = [];
 
+    // Controlla l'arma equipaggiata
+    if (player.equippedWeapon && player.equippedWeapon.itemId) {
+        const weaponInstance = player.equippedWeapon;
+        const weaponTemplate = ITEM_DATA[weaponInstance.itemId];
+        if (weaponTemplate && typeof weaponInstance.currentDurability === 'number' && typeof weaponTemplate.maxDurability === 'number' && weaponInstance.currentDurability < weaponTemplate.maxDurability) {
+            repairableItemsInstances.push({ 
+                instanceId: { type: 'equipped', slotKey: 'equippedWeapon' }, 
+                itemId: weaponInstance.itemId,
+                name: weaponTemplate.name, 
+                currentDurability: weaponInstance.currentDurability, 
+                maxDurability: weaponTemplate.maxDurability,
+                isEquipped: true
+            });
+        }
+    }
+
+    // Controlla l'armatura equipaggiata
+    if (player.equippedArmor && player.equippedArmor.itemId) {
+        const armorInstance = player.equippedArmor;
+        const armorTemplate = ITEM_DATA[armorInstance.itemId];
+        if (armorTemplate && typeof armorInstance.currentDurability === 'number' && typeof armorTemplate.maxDurability === 'number' && armorInstance.currentDurability < armorTemplate.maxDurability) {
+            repairableItemsInstances.push({ 
+                instanceId: { type: 'equipped', slotKey: 'equippedArmor' }, 
+                itemId: armorInstance.itemId,
+                name: armorTemplate.name, 
+                currentDurability: armorInstance.currentDurability, 
+                maxDurability: armorTemplate.maxDurability,
+                isEquipped: true
+            });
+        }
+    }
+
+    // Controlla l'inventario
+    player.inventory.forEach((slot, index) => {
+        if (slot && slot.itemId && typeof slot.currentDurability === 'number') {
+            const itemTemplate = ITEM_DATA[slot.itemId];
+            if (itemTemplate && typeof itemTemplate.maxDurability === 'number' && slot.currentDurability < itemTemplate.maxDurability) {
+                repairableItemsInstances.push({
+                    instanceId: { type: 'inventory', index: index },
+                    itemId: slot.itemId,
+                    name: itemTemplate.name,
+                    currentDurability: slot.currentDurability,
+                    maxDurability: itemTemplate.maxDurability,
+                    isEquipped: false
+                });
+            }
+        }
+    });
 
     // Se non ci sono armi o armature da riparare, informa il giocatore e chiudi il popup
-    if (repairableItems.length === 0) {
+    if (repairableItemsInstances.length === 0) {
         addMessage("Non hai equipaggiamento che necessita riparazione.", "info");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
@@ -708,16 +940,11 @@ function showRepairWeaponPopup(repairKitId, repairAmount) {
     const popupDescription = `Scegli quale oggetto riparare con il Kit di Riparazione (+${repairAmount} durabilità):`;
 
     // Crea le scelte del popup, una per ogni oggetto riparabile
-    const popupChoices = repairableItems.map(slot => {
-        const item = ITEM_DATA[slot.itemId];
-        const isEquipped = player.equippedWeapon === item.id || player.equippedArmor === item.id;
-        const locationText = isEquipped ? " (Equipaggiato)" : ` (Inventario x${slot.quantity})`;
-
+    const popupChoices = repairableItemsInstances.map(instance => {
+        const locationText = instance.isEquipped ? " (Equipaggiato)" : ` (Inventario)`;
         return {
-            text: `${item.name}${locationText} (${Math.floor(item.durability)}/${item.maxDurability})`,
-            // L'azione chiama applyRepair con l'ID dell'oggetto da riparare
-            action: () => applyRepair(repairKitId, item.id, repairAmount)
-            // Nota: passiamo item.id (l'ID dell'oggetto), non l'indice dello slot nell'inventario
+            text: `${instance.name}${locationText} (${Math.floor(instance.currentDurability)}/${instance.maxDurability})`,
+            action: () => applyRepair(repairKitId, instance.instanceId, repairAmount, instance.itemId)
         };
     });
 
@@ -731,17 +958,18 @@ function showRepairWeaponPopup(repairKitId, repairAmount) {
     });
 
     // Mostra il popup di selezione equipaggiamento
-    // Usiamo showEventPopup, ma con un flag per indicare che è un popup di azione (non un evento complesso)
-    // Questo aiuta handleChoiceContainerClick a capire come gestire il click.
     if (typeof showEventPopup === 'function') {
-        showEventPopup({
+        const dataForPopup = {
             title: popupTitle,
             description: popupDescription,
             choices: popupChoices,
-            isActionPopup: true // Flag per indicare che è un popup di azione (gestito diversamente da handleChoiceContainerClick)
-        });
+            isActionPopup: true, // Flag per indicare che è un popup di azione (gestito diversamente da handleChoiceContainerClick)
+            originalActionDetails: { repairKitId: repairKitId, repairAmount: repairAmount, type: 'repair' }
+        };
+        savedActionPopupContext = dataForPopup; 
+        showEventPopup(dataForPopup);
     } else {
-        console.error("showRepairWeaponPopup: showEventPopup non disponibile.");
+        console.error("showRepairItemTypePopup: showEventPopup non disponibile.");
         addMessage("Errore nel mostrare le opzioni di riparazione.", "danger");
     }
 }
@@ -756,89 +984,55 @@ function showRepairWeaponPopup(repairKitId, repairAmount) {
  * @param {string} targetItemId - ID dell'arma o armatura da riparare.
  * @param {number} repairAmount - Quantità di durabilità da ripristinare.
  */
-function applyRepair(repairKitId, targetItemId, repairAmount) {
-     // console.log(`applyRepair: Tentativo di riparare '${targetItemId}' con kit '${repairKitId}' (+${repairAmount} durabilità)`); // Log di debug
-
-    // Trova i dati dell'oggetto da riparare (potrebbe essere equipaggiato o in inventario)
-    const targetItemInfo = ITEM_DATA[targetItemId];
-
-    // Trova l'oggetto nello slot equipaggiato O il primo slot nell'inventario che lo contiene
-    let targetItemSlot;
-    let isEquipped = false;
-
-    if (player.equippedWeapon === targetItemId) {
-        targetItemSlot = targetItemInfo; // Usiamo l'oggetto dati come riferimento temporaneo
-        isEquipped = true;
-    } else if (player.equippedArmor === targetItemId) {
-        targetItemSlot = targetItemInfo;
-        isEquipped = true;
-    } else {
-        // Cerca nell'inventario
-        const inventorySlot = player.inventory.find(slot => slot.itemId === targetItemId);
-        if (inventorySlot) {
-            targetItemSlot = ITEM_DATA[inventorySlot.itemId]; // Usiamo l'oggetto dati, ma l'indice slot è necessario per rimuovere
-            // Conserviamo l'indice per la possibile rimozione dell'item (anche se repair non rimuove item, solo durabilità)
-            // targetItemSlot.inventoryIndex = player.inventory.indexOf(inventorySlot); // Non usata per ora, ma utile
-        } else {
-             // Questo caso non dovrebbe accadere se showRepairWeaponPopup funziona correttamente
-            console.error(`applyRepair: Oggetto target '${targetItemId}' non trovato equipaggiato o nell'inventario!`);
-            addMessage("Errore interno durante la riparazione.", "danger");
-            if (typeof closeEventPopup === 'function') closeEventPopup();
-            return;
-        }
+function applyRepair(repairKitId, instanceIdentifier, repairAmount, targetBaseItemId) {
+    let targetItemInstance = null;
+    if (instanceIdentifier.type === 'equipped') {
+        targetItemInstance = player[instanceIdentifier.slotKey];
+    } else if (instanceIdentifier.type === 'inventory' && player.inventory[instanceIdentifier.index] && player.inventory[instanceIdentifier.index].itemId === targetBaseItemId) {
+        targetItemInstance = player.inventory[instanceIdentifier.index];
     }
 
+    const itemInfoTemplate = ITEM_DATA[targetBaseItemId];
 
     // Verifiche finali
-    if (!targetItemInfo || (targetItemInfo.type !== 'weapon' && targetItemInfo.type !== 'armor') ||
-        targetItemInfo.durability === undefined || targetItemInfo.maxDurability === undefined) {
-        console.error(`applyRepair: Oggetto target '${targetItemId}' non valido per riparazione.`);
-        addMessage(`Impossibile riparare l'oggetto selezionato (${targetItemInfo?.name || targetItemId}).`, "error");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
-        return;
-    }
-    // Anche se showRepairWeaponPopup filtra, ricontrolliamo che l'arma non sia già al massimo
-    if (targetItemInfo.durability >= targetItemInfo.maxDurability) {
-        addMessage(`${targetItemInfo.name} è già in perfette condizioni.`, "info");
-         // Consumiamo il kit anche se l'arma è già riparata? Decidiamo di NO.
-         // console.log("applyRepair: Target già riparato, non consumo kit."); // Log di debug
+    if (!targetItemInstance || !itemInfoTemplate || (itemInfoTemplate.type !== 'weapon' && itemInfoTemplate.type !== 'armor') ||
+        targetItemInstance.currentDurability === undefined || itemInfoTemplate.maxDurability === undefined) {
+        console.error(`applyRepair: Oggetto target '${targetBaseItemId}' non valido per riparazione.`);
+        addMessage(`Impossibile riparare l'oggetto selezionato (${itemInfoTemplate?.name || targetBaseItemId}).`, "error");
         if (typeof closeEventPopup === 'function') closeEventPopup();
         return;
     }
 
+    // Anche se showRepairItemTypePopup filtra, ricontrolliamo che l'arma non sia già al massimo
+    if (targetItemInstance.currentDurability >= itemInfoTemplate.maxDurability) {
+        addMessage(`${itemInfoTemplate.name} è già in perfette condizioni.`, "info");
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+        return;
+    }
 
     // Consuma il kit di riparazione (sempre 1 quantità per uso)
-    // Questa funzione (removeItemFromInventory) è definita qui
     const kitConsumed = removeItemFromInventory(repairKitId, 1);
 
     if (!kitConsumed) {
-         // Questo non dovrebbe succedere se showRepairWeaponPopup è chiamato correttamente,
-         // ma è una safety check.
-         console.error(`applyRepair: Kit di riparazione '${repairKitId}' non trovato nell'inventario!`);
-         addMessage("Errore: Kit di riparazione non trovato durante l'applicazione.", "danger");
-         if (typeof closeEventPopup === 'function') closeEventPopup();
-         return;
+        console.error(`applyRepair: Kit di riparazione '${repairKitId}' non trovato nell'inventario!`);
+        addMessage("Errore: Kit di riparazione non trovato durante l'applicazione.", "danger");
+        if (typeof closeEventPopup === 'function') closeEventPopup();
+        return;
     }
 
-
     // Applica la riparazione all'oggetto target
-    const oldDurability = targetItemInfo.durability;
-    // NOTA: Modifichiamo direttamente l'oggetto in ITEM_DATA. Poiché gli oggetti
-    // nell'inventario/equipaggiamento sono solo riferimenti all'ID, questo funziona.
-    targetItemInfo.durability = Math.min(targetItemInfo.maxDurability, targetItemInfo.durability + repairAmount);
-    const actualRepair = targetItemInfo.durability - oldDurability;
-
+    const oldDurability = targetItemInstance.currentDurability;
+    targetItemInstance.currentDurability = Math.min(itemInfoTemplate.maxDurability, targetItemInstance.currentDurability + repairAmount);
+    const actualRepair = targetItemInstance.currentDurability - oldDurability;
 
     // Aggiorna la UI (stats per equipaggiamento, inventario se era lì)
     if (typeof renderInventory === 'function') renderInventory(); else console.warn("applyRepair: renderInventory non disponibile.");
     if (typeof renderStats === 'function') renderStats(); else console.warn("applyRepair: renderStats non disponibile.");
 
-
     // Logga un messaggio di successo
-    addMessage(`Hai riparato ${targetItemInfo.name} (+${actualRepair} durabilità).`, "success", true);
-    // console.log(`applyRepair: Riparato '${targetItemId}'. Nuova durabilità: ${targetItemInfo.durability}/${targetItemInfo.maxDurability}.`); // Log di debug
+    addMessage(`Hai riparato ${itemInfoTemplate.name} (+${actualRepair} durabilità).`, "success", true);
 
-    // Chiude il popup di selezione equipaggiamento (che era stato aperto da showRepairWeaponPopup)
+    // Chiude il popup di selezione equipaggiamento (che era stato aperto da showRepairItemTypePopup)
     if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("applyRepair: closeEventPopup non disponibile.");
 }
 
@@ -907,140 +1101,217 @@ function handleInventoryClick(event) {
  * Mostra un popup con le azioni disponibili per un oggetto dell'inventario.
  * Costruisce l'evento popup e lo passa alla funzione UI per la visualizzazione.
  * Dipende da: game_constants.js (player, ITEM_DATA), ui.js (showEventPopup, closeEventPopup, getItemDetailsHTML).
- * Richiede useItem, equipItem, dropItem, showRepairWeaponPopup (definite qui).
+ * Richiede useItem, equipItem, dropItem, showRepairItemTypePopup (definite qui).
  * @param {string} itemId - L'ID dell'oggetto selezionato.
+ * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
-function showItemActionPopup(itemId) {
-    // console.log(`showItemActionPopup: Creazione popup azioni per item '${itemId}'`); // Log di debug
+function showItemActionPopup(itemId, source = 'inventory') {
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] CHIAMATA con itemId: ${itemId}, source: ${source}`);
+    const item = ITEM_DATA[itemId];
+    if (!item) {
+        console.error("showItemActionPopup: Item non trovato in ITEM_DATA:", itemId);
+        return;
+    }
+    // ... (setup popup)
+    let itemInstance = null;
+    if (source === 'equipped') {
+        if (item.type === 'weapon' && player.equippedWeapon && player.equippedWeapon.itemId === itemId) {
+            itemInstance = player.equippedWeapon;
+        } else if (item.type === 'armor' && player.equippedArmor && player.equippedArmor.itemId === itemId) {
+            itemInstance = player.equippedArmor;
+        }
+    } else if (source === 'inventory') {
+        itemInstance = player.inventory.find(slot => slot.itemId === itemId) || null;
+    }
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] itemInstance TROVATO:`, JSON.stringify(itemInstance));
+    if (!itemInstance) itemInstance = { itemId };
 
-    const itemInfo = ITEM_DATA[itemId];
-    const itemInInventory = player.inventory.find(slot => slot.itemId === itemId);
+    if (typeof getItemDetailsHTML === 'function') {
+        DOM.itemActionStats.innerHTML = getItemDetailsHTML(itemInstance);
+    } else {
+        DOM.itemActionStats.innerHTML = 'Dettagli statistiche non disponibili.';
+    }
 
-    // Verifiche preliminari
-    if (!itemInfo || !itemInInventory) {
-        console.error(`showItemActionPopup: Oggetto '${itemId}' non trovato o non nell'inventario.`);
-        addMessage("Errore nel selezionare l'oggetto.", "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
+    // Svuota il contenitore delle scelte
+    DOM.itemActionChoices.innerHTML = '';
+    const itemTemplate = item; // Per chiarezza nel log richiesto
+    const actions = [];
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] DEBUG INIZIALE: source='${source}', itemTemplate.type='${itemTemplate ? itemTemplate.type : "TEMPLATE NULLO"}'`);
+
+    if (item.usable) {
+        actions.push({ text: "Usa", handler: () => useItem(itemId), styleKey: 'use' });
+    }
+    if (source === 'inventory') {
+        if (item.type === 'weapon' || item.type === 'armor') {
+            actions.push({ text: "Equipaggia", handler: () => equipItem(itemId), styleKey: 'equip' });
+        }
+        actions.push({ text: "Lascia", handler: () => dropItem(itemId, 1), styleKey: 'drop' });
+    } else if (source === 'equipped') {
+        if (DEBUG_MODE) console.log("[showItemActionPopup] DEBUG EQUIP: Entrato nel blocco source === 'equipped'. Aggiungo tasto Rimuovi.");
+        actions.push({ text: "Rimuovi", handler: () => unequipItem(item.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
+    }
+
+    // Crea i bottoni tramite JavaScript e assegna l'onclick richiesto
+    actions.forEach(action => {
+        const button = document.createElement('button');
+        button.textContent = action.text;
+        button.className = `action-button action-${action.styleKey || 'default'}`;
+        button.onclick = () => {
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Bottone AZIONE '${action.text}' CLICCATO per item ${itemId}`);
+            action.handler(); // Esegue l'azione (es. useItem, equipItem, unequipItem, dropItem)
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Chiamo closeItemActionPopup() DOPO azione '${action.text}'`);
+            if (typeof closeItemActionPopup === 'function') { 
+                closeItemActionPopup();
+            } else {
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata!");
+            }
+        };
+        DOM.itemActionChoices.appendChild(button);
+    });
+
+    if (DEBUG_MODE) {
+        console.log("[showItemActionPopup] DEBUG HTML SCELTE AZIONI:", DOM.itemActionChoices.innerHTML);
+        const buttonsInPopup = DOM.itemActionChoices.querySelectorAll('button');
+        console.log(`[showItemActionPopup] DEBUG BOTTONI AZIONE EFFETTIVI NEL DOM: ${buttonsInPopup.length}`);
+        buttonsInPopup.forEach((btn, idx) => console.log(`    Bottone DOM ${idx}: '${btn.textContent}'`));
+    }
+
+    // Handler per il bottone di chiusura
+    if (DOM.itemActionCloseButton) {
+        DOM.itemActionCloseButton.onclick = () => {
+            if (DEBUG_MODE) console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO');
+            if (typeof closeItemActionPopup === 'function') {
+                closeItemActionPopup();
+            } else {
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!");
+            }
+        };
+    }
+
+    if (DEBUG_MODE) console.log('[showItemActionPopup] Sto per rendere visibile il popup');
+    DOM.itemActionOverlay.classList.add('visible');
+    DOM.itemActionPopup.classList.add('visible');
+
+    eventScreenActive = true;
+    gamePaused = true;
+    if (typeof disableControls === 'function') disableControls();
+}
+
+function closeItemActionPopup() {
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] CHIAMATA');
+    if (DOM.itemActionOverlay && DOM.itemActionPopup) {
+        DOM.itemActionOverlay.classList.remove('visible');
+        DOM.itemActionPopup.classList.remove('visible');
+    }
+    eventScreenActive = false;
+    gamePaused = false;
+    if (typeof enableControls === 'function') enableControls();
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] ESEGUITA. eventScreenActive:', eventScreenActive, 'gamePaused:', gamePaused);
+    currentEventContext = null; 
+}
+
+/**
+ * Tenta di riparare un oggetto usando un kit di riparazione.
+ * @param {string} itemId - L'ID dell'oggetto da riparare.
+ * @param {string} source - La provenienza dell'oggetto ('inventory' o 'equipped').
+ * @param {number} index - L'indice dell'oggetto nell'inventario (se source è 'inventory'). Non usato se l'oggetto è equipaggiato.
+ */
+function attemptRepairItem(itemId, source, index) {
+    const repairMaterialId = 'scrap_metal';
+    const repairMaterialCost = 1;
+    const repairAmount = 5; // Punti di durabilità ripristinati
+
+    // Assicuriamoci che itemToRepair sia l'oggetto effettivo da ITEM_DATA e non solo un riferimento dall'inventario
+    // (Anche se in questo flusso itemToRepair è già l'itemInfo, è una buona pratica se la funzione venisse chiamata da altri contesti)
+    const actualItemData = ITEM_DATA[itemId];
+    if (!actualItemData) {
+        console.error(`attemptRepairItem: Impossibile trovare i dati per l'oggetto con ID ${itemId}`);
+        showTemporaryMessage("Errore durante il tentativo di riparazione.");
+        closeItemActionsPopup(); // Chiudi il popup in caso di errore grave
         return;
     }
 
-    const popupTitle = itemInfo.name + (itemInInventory.quantity > 1 ? ` (x${itemInInventory.quantity})` : ''); // Aggiunge quantità nel titolo se > 1
-    const popupDescription = itemInfo.description;
 
-    // Ottieni statistiche dettagliate dell'oggetto per la descrizione estesa nel popup
-    // Questa funzione (getItemDetailsHTML) è definita in ui.js
-    let itemStatsHTML = '';
-     if (typeof getItemDetailsHTML === 'function') {
-         itemStatsHTML = getItemDetailsHTML(itemInfo); // Ottieni l'HTML dei dettagli statistiche
-     } else {
-         console.warn("showItemActionPopup: getItemDetailsHTML non disponibile in ui.js.");
-         // Fallback testuale per gli effetti usabili se la funzione dettagliata non c'è
-          if (itemInfo.usable && itemInfo.effect && typeof getItemEffectsText === 'function') {
-              itemStatsHTML = `<div class="item-stats-container"><div class="item-stat">${getItemEffectsText(itemInfo)}</div></div>`;
-          }
-     }
+    if (player.inventory.find(slot => slot.itemId === repairMaterialId && slot.quantity >= repairMaterialCost)) {
+        // Consuma materiali
+        removeItemFromInventory(repairMaterialId, repairMaterialCost); // removeItemFromInventory aggiorna già l'inventario UI e logga
 
+        // Ripara l'oggetto (modificando direttamente l'oggetto in ITEM_DATA)
+        const oldDurability = actualItemData.durability;
+        actualItemData.durability = Math.min(actualItemData.maxDurability, actualItemData.durability + repairAmount);
+        
+        addMessage(`Hai riparato ${actualItemData.name} da ${Math.floor(oldDurability)}/${actualItemData.maxDurability} a ${actualItemData.durability}/${actualItemData.maxDurability} usando ${repairMaterialCost} ${ITEM_DATA[repairMaterialId].name}.`, 'success');
 
-    // Combina descrizione base e statistiche/effetti dettagliati per il contenuto del popup
-    const fullDescription = popupDescription + itemStatsHTML; // Aggiunge i dettagli HTML
-
-    const popupChoices = [];
-
-    // Aggiunge il pulsante "Usa" se l'oggetto è utilizzabile
-    // Non mettiamo "Usa" per armi/armature/munizioni/crafting/lore che hanno azioni specifiche (Equipaggia, Ripara, ecc.)
-     if (itemInfo.usable && !['weapon', 'armor', 'ammo', 'crafting', 'lore'].includes(itemInfo.type)) {
-        popupChoices.push({
-            text: `Usa ${itemInfo.name}`, // Testo del pulsante
-            // L'azione chiama la funzione useItem definita in questo modulo player.js
-            action: () => useItem(itemId)
-        });
-    }
-
-    // Aggiunge "Equipaggia" o "Rimuovi" per armi e armature
-    if (itemInfo.type === 'weapon' || itemInfo.type === 'armor') {
-        const equippedSlotKey = itemInfo.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor';
-        const isEquipped = player[equippedSlotKey] === itemId;
-
-        if (isEquipped) {
-             // Se già equipaggiato, offri Rimuovi
-            popupChoices.push({
-                text: `Rimuovi ${itemInfo.name}`,
-                // L'azione chiama la funzione unequipItem definita in questo modulo player.js
-                action: () => unequipItem(equippedSlotKey)
-            });
-        } else {
-             // Se non equipaggiato, offri Equipaggia
-            popupChoices.push({
-                text: `Equipaggia ${itemInfo.name}`,
-                 // L'azione chiama la funzione equipItem definita in questo modulo player.js
-                action: () => equipItem(itemId)
-            });
+        // Aggiorna UI specifica dell'oggetto
+        if (source === 'inventory') {
+            // USA LA FUNZIONE UI CORRETTA
+            if (typeof renderInventory === 'function') renderInventory(); else console.warn("attemptRepairItem: renderInventory non disponibile");
+        } else if (source === 'equipped') {
+            // USA LA FUNZIONE UI CORRETTA (renderStats aggiorna anche l'equip)
+            if (typeof renderStats === 'function') renderStats(); else console.warn("attemptRepairItem: renderStats non disponibile");
         }
-    }
+        
+        // Aggiorna comunque le stats generali (anche se già fatto sopra per 'equipped')
+        // Questo era updatePlayerStatsUI() -> diventa renderStats()
+        if (typeof renderStats === 'function') renderStats(); else console.warn("attemptRepairItem: renderStats non disponibile per aggiornamento generale.");
 
-    // Aggiunge l'opzione per riparare armi/armature danneggiate (se si hanno i materiali)
-    // NOTA: La logica di verifica materiali e applicazione è in applyRepair/showRepairWeaponPopup
-    // Qui aggiungiamo l'opzione "Ripara" che aprirà un nuovo popup di selezione arma se è un repair_kit
-    // O che applicherà la riparazione direttamente se l'oggetto selezionato *è* l'arma/armatura danneggiata.
-     if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-        // Questo oggetto È un kit di riparazione. L'azione deve avviare il processo di selezione arma.
-         const repairAmount = itemInfo.effect.repair_amount || 10;
-         popupChoices.push({
-             text: `Usare per Riparare...`, // Testo che indica che aprirà un'ulteriore scelta
-             // L'azione chiama showRepairWeaponPopup (definita qui) che aprirà il popup successivo
-             action: () => showRepairWeaponPopup(itemId, repairAmount)
-         });
-     }
-     // Puoi aggiungere un'azione "Ripara" sull'arma danneggiata stessa in un futuro,
-     // ma per ora la riparazione parte dal kit.
+        // Chiudi il popup delle azioni, dato che l'azione è stata completata
+        // USA LA FUNZIONE UI CORRETTA
+        if (typeof closeEventPopup === 'function') closeEventPopup(); else console.warn("attemptRepairItem: closeEventPopup non disponibile");
+        
+        // Il tooltip si aggiornerà automaticamente al prossimo hover se l'oggetto è ancora visibile
+        // e la sua visualizzazione dipende dai dati aggiornati in ITEM_DATA.
 
-    // Aggiunge l'opzione per lasciare cadere l'oggetto
-    // Non permettere di lasciare oggetti equipaggiati tramite questo popup (usa Rimuovi prima)
-    // Non permettere di lasciare oggetti unici se necessario
-     if (player.equippedWeapon !== itemId && player.equippedArmor !== itemId && !itemInfo.isUnique) { // isUnique non è ancora usato, ma per futuro
-         popupChoices.push({
-             text: `Lascia a terra ${itemInfo.name}`,
-             cssClass: 'danger-action', // Classe per evidenziare azione potenzialmente negativa
-             // L'azione chiama la funzione dropItem definita in questo modulo player.js
-             action: () => dropItem(itemId, itemInInventory.quantity) // Passiamo la quantità attuale
-         });
-     }
-
-
-    // Aggiunge il pulsante "Chiudi" in ogni caso
-    popupChoices.push({
-        text: "Chiudi",
-         // L'azione chiama la funzione closeEventPopup (definita in ui.js)
-        action: () => {
-             // console.log("showItemActionPopup: Popup azione chiuso."); // Log di debug rimosso
-             if (typeof closeEventPopup === 'function') closeEventPopup();
-        }
-    });
-
-    // Crea e mostra il popup.
-    // Questa funzione (showEventPopup) è definita nel modulo ui.js
-    if (typeof showEventPopup === 'function') {
-        showEventPopup({
-            title: popupTitle,
-            description: fullDescription,
-            choices: popupChoices,
-            // Passiamo l'itemId e un flag per indicare che è un popup di azione (non un evento casuale)
-            // Questo aiuta handleChoiceContainerClick in events.js a capire come gestire il click.
-            isActionPopup: true, // Flag per indicare tipo di popup
-            itemId: itemId // Passa l'ID dell'item per riferimento futuro se necessario (non strettamente usato ora)
-        });
     } else {
-        console.error("showItemActionPopup: showEventPopup non disponibile in ui.js!");
-        addMessage(`Errore nel mostrare le azioni per ${itemInfo.name}.`, "danger");
+        addMessage(`Non hai abbastanza ${ITEM_DATA[repairMaterialId].name} per riparare ${actualItemData.name}.`, 'warning');
+        showTemporaryMessage(`Materiali insufficienti: ${ITEM_DATA[repairMaterialId].name} (ne servono ${repairMaterialCost}).`);
+        // Non chiudiamo il popup in caso di fallimento per materiali, così l'utente vede le altre opzioni.
     }
 }
+
+
+// Funzione di utilità per mostrare messaggi temporanei
+function showTemporaryMessage(message, duration = 3000) {
+    const messagePopup = document.getElementById('temporary-message-popup') || createTemporaryMessagePopup();
+    messagePopup.textContent = message;
+    messagePopup.style.display = 'block';
+    // Clear any existing timeout to prevent multiple popups or premature closing
+    if (messagePopup.timeoutId) {
+        clearTimeout(messagePopup.timeoutId);
+    }
+    messagePopup.timeoutId = setTimeout(() => {
+        messagePopup.style.display = 'none';
+    }, duration);
+}
+
+function createTemporaryMessagePopup() {
+    const popup = document.createElement('div');
+    popup.id = 'temporary-message-popup';
+    // Stile base, da migliorare in CSS
+    popup.style.position = 'fixed';
+    popup.style.bottom = '20px';
+    popup.style.left = '50%';
+    popup.style.transform = 'translateX(-50%)';
+    popup.style.padding = '10px 20px';
+    popup.style.backgroundColor = 'var(--bg-color)'; // Usa variabili CSS
+    popup.style.color = 'var(--fg-color)';       // Usa variabili CSS
+    popup.style.border = '1px solid var(--border-color)'; // Usa variabili CSS
+    popup.style.borderRadius = '5px';
+    popup.style.zIndex = '1002'; // Sopra il popup azioni, sotto eventuali popup di evento modali
+    popup.style.display = 'none';
+    popup.style.textAlign = 'center';
+    popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    document.body.appendChild(popup);
+    return popup;
+}
+
 
 // --- Implementazione check ammo availability ---
 // Dipende da: game_constants.js (player, ITEM_DATA). Usata da ui.js (renderStats).
 /**
  * Controlla se il giocatore ha munizioni disponibili per l'arma equipaggiata.
  * Dipende da game_constants.js (player, ITEM_DATA).
- * @returns {{hasAmmo: boolean, message: string}} Un oggetto che indica la disponibilità e un messaggio di stato.
+ * @returns {{hasAmmo: boolean, message: string}} Un oggetto che indica la disponibilita e un messaggio di stato.
  */
 function checkAmmoAvailability() {
     // Verifica che il giocatore e l'arma equipaggiata esistano
@@ -1082,7 +1353,7 @@ function checkAmmoAvailability() {
  * Consuma una munizione per l'arma equipaggiata.
  * Chiamato dalla logica di combattimento negli eventi (events.js).
  * Dipende da: game_constants.js (player, ITEM_DATA, RECOVER_ARROW_BOLT_CHANCE), game_utils.js (addMessage, getRandomInt), ui.js (renderInventory).
- * @returns {{consumed: boolean, recovered: boolean}} Oggetto che indica se una munizione è stata consumata e se una è stata recuperata.
+ * @returns {{consumed: boolean, recovered: boolean}} Oggetto che indica se una munizione e stata consumata e se una e stata recuperata.
  */
 function consumeAmmo() {
      // Verifica che il giocatore e l'arma equipaggiata esistano e richiedano munizioni
@@ -1125,24 +1396,37 @@ function consumeAmmo() {
 
     let recovered = false;
     // Possibilità di recupero per munizioni recuperabili (frecce/dardi)
-    const ammoItemInfo = ITEM_DATA[player.inventory[ammoSlotIndex]?.itemId || (ammoType === 'dardi' ? 'bolt' : (ammoType === 'frecce' ? 'arrow' : null))]; // Cerca info munizione consumata
+    // Tentativo di accedere a ammoItemInfo in modo sicuro
+    const consumedAmmoSlot = player.inventory[ammoSlotIndex]; // Potrebbe essere undefined se lo slot è stato appena rimosso
+    let consumedAmmoItemId = null;
+    if (consumedAmmoSlot) {
+        consumedAmmoItemId = consumedAmmoSlot.itemId;
+    } else {
+        // Se lo slot è stato rimosso, cerchiamo l'ID del tipo di munizione direttamente
+        // Questo è un fallback e potrebbe non essere sempre accurato se ci sono più tipi di munizioni con lo stesso ammoType ma ID diversi.
+        // Per frecce e dardi, assumiamo un ID standard.
+        if (ammoType === 'dardi') consumedAmmoItemId = 'bolt';
+        else if (ammoType === 'frecce') consumedAmmoItemId = 'arrow';
+        // Altri tipi di munizioni recuperabili andrebbero aggiunti qui
+    }
+    const ammoItemInfo = consumedAmmoItemId ? ITEM_DATA[consumedAmmoItemId] : null;
+
     if (ammoItemInfo && ammoItemInfo.recuperabile && Math.random() < RECOVER_ARROW_BOLT_CHANCE) { // Usa costante per chance
         // Hai recuperato la munizione. Aggiungila all'inventario.
-        addItemToInventory(ammoItemInfo.id, 1); // Aggiunge 1 munizione (addItemToInventory logga già)
+        addItemToInventory(ammoItemInfo.id, 1); // Aggiunge 1 munizione (addItemToInventory logga gia)
         recovered = true;
+        addMessage(`Hai recuperato 1 ${ammoItemInfo.name}.`, 'success'); // Messaggio di recupero
         // console.log(`Recuperata 1 munizione di tipo ${ammoType}.`); // Log di debug
     }
 
     return { consumed: true, recovered: recovered };
 }
 
-// --- Implementazione riparazione armi/armature ---
-// Queste funzioni implementano la logica di riparazione.
-// Dipende da: game_constants.js (player, ITEM_DATA, costanti materiali), game_utils.js (addMessage, getRandomInt), ui.js (renderStats, renderInventory, closeEventPopup).
-// Richiede removeItemFromInventory (definita qui).
-
+// --- Implementazione riparazione armi/armature (Funzioni di supporto) ---
 /**
  * Controlla se il giocatore ha abbastanza materiali per riparare un oggetto.
+ * Questa versione è semplificata per la nuova logica di attemptRepairItem e non viene più usata direttamente nel flusso di riparazione tramite popup,
+ * ma potrebbe essere utile per future meccaniche di crafting o riparazione avanzate.
  * Dipende da game_constants.js (player, ITEM_DATA).
  * @param {string} targetItemId - L'ID dell'oggetto da riparare.
  * @param {boolean} isCompletelyBroken - True se l'oggetto è completamente rotto (durabilità <= 0).
@@ -1155,23 +1439,16 @@ function checkRepairMaterials(targetItemId, isCompletelyBroken = false) {
     }
 
     // Calcola materiali necessari in base allo stato dell'oggetto
-    let scrapNeeded = 0;
+    let scrapNeeded = 1; // Costo base di 1 rottame per la riparazione semplice attuale
     let mechanicalPartsNeeded = 0;
 
-    // Quantità base per riparare un punto di durabilità (es. 1 rottame ogni 5 durabilità)
-    // E costo extra se è completamente rotto
-    const durabilityToRepair = targetItemInfo.maxDurability - targetItemInfo.durability;
-
-    if (durabilityToRepair > 0) {
-        scrapNeeded = Math.ceil(durabilityToRepair / 5); // 1 rottame ogni 5 punti durabilità mancanti
-        if (isCompletelyBroken) {
-             // Se completamente rotto, costa anche parti meccaniche e più rottami
-             mechanicalPartsNeeded = Math.ceil(targetItemInfo.maxDurability / 10); // Es. 1 parte ogni 10 punti max durabilità
-             // Aumenta anche il costo di rottami se è completamente rotto (es. 1 rottame ogni 3 punti max durabilità)
-             scrapNeeded = Math.max(scrapNeeded, Math.ceil(targetItemInfo.maxDurability / 3));
-        }
-    }
-
+    // Logica più complessa per costi variabili potrebbe essere inserita qui se necessario
+    // Esempio: se l'oggetto è molto danneggiato o rotto, aumenta il costo o richiedi parti meccaniche
+    // const durabilityToRepair = targetItemInfo.maxDurability - targetItemInfo.durability;
+    // if (isCompletelyBroken) {
+    //     mechanicalPartsNeeded = Math.ceil(targetItemInfo.maxDurability / 10); 
+    //     scrapNeeded = Math.max(scrapNeeded, Math.ceil(targetItemInfo.maxDurability / 3));
+    // }
 
     // Controlla se il giocatore ha abbastanza materiali nell'inventario
     const scrapSlot = player.inventory.find(slot => slot.itemId === 'scrap_metal');
@@ -1185,93 +1462,12 @@ function checkRepairMaterials(targetItemId, isCompletelyBroken = false) {
         hasEnoughParts = mechanicalPartsSlot && mechanicalPartsSlot.quantity >= mechanicalPartsNeeded;
     }
 
-    // Ritorna il risultato
     return {
         hasMaterials: hasEnoughScrap && hasEnoughParts,
         scrapNeeded: scrapNeeded,
         mechanicalPartsNeeded: mechanicalPartsNeeded
     };
 }
-
-// NOTA: La funzione `repairWeapon` nel codice originale (game_logic.js) sembrava duplicare `applyRepair`.
-// La versione `applyRepair` è quella chiamata dal popup e gestisce il consumo del kit.
-// La logica per verificare i materiali prima di mostrare l'opzione nel popup `showItemActionPopup`
-// dovrebbe chiamare `checkRepairMaterials`. La logica per *applicare* la riparazione (consumare materiali e kit, curare durabilità)
-// è in `applyRepair`. `showRepairWeaponPopup` è un helper per la UI di selezione.
-// Quindi, non ridefiniremo una funzione `repairWeapon` separata qui.
-
-// Modifica showItemActionPopup per usare checkRepairMaterials (già fatto nell'ultima versione, ma ricontrolliamo)
-/*
-function showItemActionPopup(itemId) {
-    // ... (inizio funzione) ...
-    // Aggiunge "Ripara" per armi/armature danneggiate (se si hanno i materiali)
-    if ((itemInfo.type === 'weapon' || itemInfo.type === 'armor') && itemInfo.durability !== undefined && itemInfo.durability < itemInfo.maxDurability) {
-
-        // Verifica materiali necessari (usa checkRepairMaterials)
-        const isCompletelyBroken = itemInfo.durability <= 0;
-        const repairCheck = checkRepairMaterials(itemId, isCompletelyBroken);
-
-        let repairText = `Ripara`; // Testo base
-        let canRepair = repairCheck.hasMaterials; // Flag se la riparazione è possibile O se è un kit
-
-        // Se l'oggetto selezionato È il kit di riparazione
-        if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-             repairText = `Usare per Riparare...`;
-             canRepair = true; // Puoi sempre tentare di usare il kit per aprire la selezione
-
-        } else { // L'oggetto selezionato È l'arma/armatura danneggiata
-             // Mostra i materiali necessari nel testo
-             repairText = `Ripara (${repairCheck.scrapNeeded} Rottami`;
-             if (repairCheck.mechanicalPartsNeeded > 0) {
-                 repairText += `, ${repairCheck.mechanicalPartsNeeded} Parti`;
-             }
-             repairText += `)`;
-        }
-
-
-        // Mostra l'opzione Ripara solo se È un kit, OPPURE se È l'oggetto danneggiato E si hanno i materiali
-        if ((itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') || canRepair) {
-             popupChoices.push({
-                 text: repairText,
-                 // L'azione dipende se è un kit o l'oggetto da riparare
-                 action: () => {
-                     if (itemInfo.type === 'crafting' && itemInfo.effect?.type === 'repair_weapon') {
-                          // Se è il kit, avvia il popup di selezione oggetto
-                          showRepairWeaponPopup(itemId, itemInfo.effect.repair_amount || 10);
-                     } else if (canRepair) {
-                          // Se è l'oggetto danneggiato e si hanno i materiali, applica la riparazione direttamente
-                          // Consuma il kit (necessita di trovarlo nell'inventario) e applica la riparazione
-                          // Questo scenario non è gestito direttamente in applyRepair, che consuma SOLO il kit.
-                          // Serve una funzione intermedia "RepairThisItemWithKit" che trova il kit, lo consuma, e chiama applyRepair.
-                          // Per ora, ci basiamo sulla logica attuale che la riparazione parte SEMPRE dall'uso del KIT.
-                          console.warn("showItemActionPopup: Azione Ripara diretta su oggetto danneggiato non implementata. Usa il Kit di Riparazione dall'inventario.");
-                          addMessage(`Per riparare ${itemInfo.name}, usa un Kit di Riparazione dal tuo inventario.`, "warning");
-                          if (typeof closeEventPopup === 'function') closeEventPopup(); // Chiudi il popup corrente
-                     } else {
-                          // Non dovrebbe arrivare qui se canRepair è false e non è un kit, ma per sicurezza
-                          addMessage(`Non hai i materiali necessari per riparare ${itemInfo.name}.`, "warning");
-                          if (typeof closeEventPopup === 'function') closeEventPopup();
-                     }
-                 },
-                 disabled: (itemInfo.type !== 'crafting' || itemInfo.effect?.type !== 'repair_weapon') && !canRepair // Disabilita se non è un kit E non si hanno i materiali
-             });
-        }
-    }
-    // ... (resto della funzione) ...
-}
-*/
-
-
-// --- Implementazione check ammo availability ---
-// Dipende da: game_constants.js (player, ITEM_DATA). Usata da ui.js (renderStats).
-// (Già definita sopra, ma ri-menzionata per completezza)
-
-
-// --- Implementazione consume ammo ---
-// Dipende da: game_constants.js (player, ITEM_DATA, RECOVER_ARROW_BOLT_CHANCE), game_utils.js (addMessage, getRandomInt), ui.js (renderInventory).
-// Usata dalla logica di combattimento (events.js).
-// (Già definita sopra, ma ri-menzionata per completezza)
-
 
 // --- Implementazione check & log status messages ---
 // Dipende da: game_constants.js (player, STATO_MESSAGGI, ...altre costanti stato), game_utils.js (getRandomText, addMessage), ui.js (renderStats).
@@ -1303,7 +1499,7 @@ function checkAndLogStatusMessages() {
     }
     // Check Malato (solo se non ferito)
     else if (player.isSick && Math.random() < checkChance) {
-        addMessage(getRandomText(STATO_MESSAGGI.MALATO), 'warning');
+        addMessage(getRandomText(STATO_MESSAGGI.INFETTO), 'warning'); // CORRETTO da MALATO a INFETTO
     }
     // Check Ferito (solo se non malato)
     else if (player.isInjured && Math.random() < checkChance) {
@@ -1335,5 +1531,147 @@ function checkAndLogStatusMessages() {
 // NOTA: Le funzioni che cambiano lo stato globale (`player`, `messages`, ecc.) devono
 // assicurarsi di chiamare le funzioni di rendering (`renderStats`, `renderInventory`,
 // `renderMessages`) definite in `ui.js` per aggiornare l'interfaccia dopo la modifica.
+
+/**
+ * Applica usura a un oggetto equipaggiato (arma o armatura).
+ * @param {'equippedWeapon' | 'equippedArmor'} slotKey - La chiave dello slot dell'oggetto equipaggiato.
+ * @param {number} [wearAmount=1] - La quantità di durabilità da ridurre.
+ */
+function applyWearToEquippedItem(slotKey, wearAmount = 1) {
+    if (!player || (slotKey !== 'equippedWeapon' && slotKey !== 'equippedArmor')) {
+        console.error(`applyWearToEquippedItem: slotKey non valido o player non definito.`);
+        return;
+    }
+
+    const equippedObjectInstance = player[slotKey];
+    if (!equippedObjectInstance) {
+        // Nessun oggetto equipaggiato in quello slot
+        return;
+    }
+
+    const itemId = equippedObjectInstance.itemId;
+    const itemInfoTemplate = ITEM_DATA[itemId];
+    if (!itemInfoTemplate || typeof itemInfoTemplate.maxDurability !== 'number') {
+        console.warn(`applyWearToEquippedItem: L'oggetto ${itemId} non ha maxDurability definito nel template.`);
+        return;
+    }
+
+    if (typeof equippedObjectInstance.currentDurability !== 'number') {
+        console.error(`applyWearToEquippedItem: currentDurability non definita per l'oggetto equipaggiato (${itemId}).`);
+        return;
+    }
+
+    if (equippedObjectInstance.currentDurability <= 0) {
+        // L'oggetto è già rotto, non può usurarsi ulteriormente.
+        return;
+    }
+
+    const oldDurability = equippedObjectInstance.currentDurability;
+    equippedObjectInstance.currentDurability = Math.max(0, equippedObjectInstance.currentDurability - wearAmount);
+
+    if (equippedObjectInstance.currentDurability <= 0 && oldDurability > 0) {
+        addMessage(`${itemInfoTemplate.name} si è rotto!`, 'danger');
+    } else if (equippedObjectInstance.currentDurability < oldDurability && equippedObjectInstance.currentDurability < itemInfoTemplate.maxDurability * 0.25) {
+        // Aggiungi un messaggio se la durabilità scende sotto una certa soglia (es. 25%) ma non si è appena rotto
+        if (oldDurability >= itemInfoTemplate.maxDurability * 0.25) { // Solo se prima era sopra la soglia
+             addMessage(`${itemInfoTemplate.name} è gravemente danneggiato.`, 'warning');
+        }
+    }
+
+    // Aggiorna la UI delle statistiche per riflettere il cambiamento di stato dell'arma/armatura
+    if (typeof renderStats === 'function') {
+        renderStats();
+    }
+    // Non è necessario chiamare updateInventoryDisplay o updateEquippedDisplay qui perché
+    // la visualizzazione della durabilità avviene tramite tooltip/popup che leggono direttamente da ITEM_DATA,
+    // e renderStats si occupa di aggiornare il nome visualizzato dell'oggetto equipaggiato se necessario.
+}
+
+/**
+ * Verifica se il giocatore possiede gli ingredienti necessari per una ricetta.
+ * @param {Array<object>} ingredients - Array di oggetti ingrediente dalla ricetta (es. [{ itemId: 'id', quantity: 1 }]).
+ * @returns {boolean} True se tutti gli ingredienti sono presenti in quantità sufficiente, false altrimenti.
+ */
+function checkIngredients(ingredients) {
+    if (!Array.isArray(ingredients)) return false;
+    if (!player || !Array.isArray(player.inventory)) return false; // Verifica inventario
+
+    for (const ingredient of ingredients) {
+        const itemInInventory = player.inventory.find(slot => slot.itemId === ingredient.itemId);
+        if (!itemInInventory || itemInInventory.quantity < ingredient.quantity) {
+            // console.log(`checkIngredients: Manca ingrediente ${ingredient.itemId} (richiesti ${ingredient.quantity}, trovati ${itemInInventory ? itemInInventory.quantity : 0})`); // Log di debug
+            return false; // Ingrediente mancante o non sufficiente
+        }
+    }
+    return true; // Tutti gli ingredienti sono presenti
+}
+
+/**
+ * Tenta di eseguire una ricetta di crafting.
+ * @param {string} recipeKey - La chiave della ricetta in CRAFTING_RECIPES (es. 'purify_water').
+ */
+function attemptCraftItem(recipeKey) {
+    // console.log(`attemptCraftItem: Tentativo di craftare recipe '${recipeKey}'`); // Log di debug
+    if (typeof CRAFTING_RECIPES === 'undefined' || !CRAFTING_RECIPES[recipeKey]) {
+        console.error(`attemptCraftItem: Ricetta '${recipeKey}' non trovata in CRAFTING_RECIPES.`);
+        addMessage("Errore: Ricetta di crafting sconosciuta.", "danger");
+        return;
+    }
+
+    const recipe = CRAFTING_RECIPES[recipeKey];
+
+    // --- NUOVO CONTROLLO: VERIFICA SE LA RICETTA È CONOSCIUTA ---
+    if (!player.knownRecipes.includes(recipeKey)) {
+        console.warn(`attemptCraftItem: Il giocatore non conosce la ricetta: ${recipeKey}`);
+        addMessage("Non sai ancora come creare questo oggetto. Trova il progetto!", "warning");
+        return;
+    }
+    // --- FINE NUOVO CONTROLLO ---
+
+    // Verifica se il giocatore ha gli ingredienti necessari
+    let hasAllIngredients = true;
+
+    // 1. Verifica Requisiti (per ora non ci sono, ma predisponiamo)
+    // if (recipe.requirements) {
+    //     for (const req of recipe.requirements) {
+    //         if (req === 'needs_fire' && !isNearFireSource()) { // isNearFireSource() da implementare
+    //             addMessage("Hai bisogno di una fonte di fuoco per creare questo oggetto.", "warning");
+    //             return;
+    //         }
+    //         // Aggiungere altri check requisiti qui
+    //     }
+    // }
+
+    // 2. Verifica Ingredienti
+    if (!checkIngredients(recipe.ingredients)) {
+        addMessage("Mancano gli ingredienti necessari!", "warning");
+        return;
+    }
+
+    // 3. Consuma Ingredienti
+    for (const ingredient of recipe.ingredients) {
+        if (!removeItemFromInventory(ingredient.itemId, ingredient.quantity)) {
+            // Questo non dovrebbe accadere se checkIngredients ha funzionato, ma è una sicurezza
+            console.error(`attemptCraftItem: Fallimento nel rimuovere l'ingrediente ${ingredient.itemId} x${ingredient.quantity}.`);
+            addMessage("Errore nel consumare gli ingredienti.", "danger");
+            // TODO: Logica di rollback? O assumiamo che non accada?
+            return;
+        }
+    }
+
+    // 4. Aggiungi Prodotto
+    addItemToInventory(recipe.productId, recipe.productQuantity);
+
+    // 5. Mostra Messaggio di Successo
+    if (recipe.successMessage) {
+        addMessage(recipe.successMessage, "success", true);
+    }
+
+    // Aggiorna UI (già fatto da removeItem e addItem, ma per sicurezza)
+    if (typeof renderInventory === 'function') renderInventory();
+    if (typeof renderStats === 'function') renderStats(); // Anche le stats per sicurezza
+
+    // La chiusura del popup avviene nell'handler del bottone in showItemActionPopup
+}
 
 // --- FINE LOGICA GIOCATORE ---

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSafePlace v0.7.05 - Roguelike Postapocalittico</title>
-    <meta name="description" content="TheSafePlace - Un roguelike postapocalittico basato su testo e griglia.">
+    <title>The Safe Place - v0.7.19</title>
+    <meta name="description" content="TheSafePlace v0.7.19 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☣️</text></svg>">
+    <link rel="icon" href="image/thesafeplace_immagine.jpg" type="image/jpeg">
     
     <!-- Inclusione dei file CSS - Assicurati che questi percorsi e nomi file siano corretti nella cartella 'css/' -->
     <link rel="stylesheet" href="css/base.css">
@@ -17,14 +17,14 @@
     <link rel="stylesheet" href="css/events.css">
     <link rel="stylesheet" href="css/tooltip.css">
     <link rel="stylesheet" href="css/utilities.css">
-    <link rel="stylesheet" href="css/responsive.css"> 
+    <link rel="stylesheet" href="css/responsive.css">
     
     <!-- Puoi aggiungere qui altri link per font o icone se necessario -->
 </head>
 <body>
     <!-- --- Struttura UI del Gioco - Container principale visibile durante il gioco --- -->
     <!-- Assicurati che gli ID corrispondano a quelli recuperati in dom_references.js -->
-    <main id="game-container">
+    <main id="game-container" style="display: none;">
         <aside id="left-panel">
             <!-- Pannello Sopravvivenza (Risorse) -->
             <section id="survival-panel" class="panel">
@@ -32,14 +32,9 @@
                 <ul>
                     <li>Sazietà: <span id="stat-food">--</span></li>
                     <li>Idratazione: <span id="stat-water">--</span></li>
+                    <li>Status: <span id="stat-condition" class="status-normal">Normale</span></li>
                     <!-- Potresti aggiungere qui altre stats di survival future -->
                 </ul>
-            </section>
-            <!-- Pannello Condizione (Stato) -->
-            <section id="condition" class="panel">
-                 <h2>CONDIZIONE</h2>
-                 <!-- La classe per lo stato (es. status-normal, status-warning) sarà gestita da JS -->
-                 <p><span id="stat-condition" class="status-normal">Normale</span></p>
             </section>
             <!-- Pannello Inventario -->
             <section id="inventory-panel" class="panel">
@@ -83,13 +78,14 @@
                 <div class="control-grid">
                     <!-- I bottoni di movimento chiamano movePlayer direttamente tramite onclick -->
                     <!-- Assicurati che movePlayer sia definita nello scope globale o accessibile -->
-                    <button id="btn-up" onclick="movePlayer(0, -1)">Su (W)</button>
-                    <button id="btn-left" onclick="movePlayer(-1, 0)">Sinistra (A)</button>
-                    <button id="btn-down" onclick="movePlayer(0, 1)">Giù (S)</button>
-                    <button id="btn-right" onclick="movePlayer(1, 0)">Destra (D)</button>
+                    <button id="btn-up" onclick="movePlayer(0, -1)" class="action-button">Su (W)</button>
+                    <button id="btn-left" onclick="movePlayer(-1, 0)" class="action-button">Sinistra (A)</button>
+                    <button id="btn-down" onclick="movePlayer(0, 1)" class="action-button">Giù (S)</button>
+                    <button id="btn-right" onclick="movePlayer(1, 0)" class="action-button">Destra (D)</button>
                     <!-- Aggiungi qui altri bottoni di controllo globale se necessario -->
                     <!-- Il tasto Spazio per "Attendi" è gestito in handleKeyPress, non serve un bottone dedicato per ora -->
                 </div>
+                <button id="save-game-button" class="action-button">Salva Partita</button>
              </div>
         </section>
 
@@ -106,20 +102,22 @@
              <!-- Pannello Statistiche Personaggio -->
              <section id="stats" class="panel">
                  <h2>STATISTICHE</h2>
-                 <ul id="stats-list">
-                     <li>HP: <span id="stat-hp">--</span> / <span id="stat-maxhp">--</span></li>
-                     <li class="separator">---</li>
-                     <li>Vigore: <span id="stat-vig">--</span></li>
-                     <li>Potenza: <span id="stat-pot">--</span></li>
-                     <li>Agilità: <span id="stat-agi">--</span></li>
-                     <li>Tracce: <span id="stat-tra">--</span></li>
-                     <li>Influenza: <span id="stat-inf">--</span></li>
-                     <li>Presagio: <span id="stat-pre">--</span></li>
-                     <li>Adattamento: <span id="stat-ada">--</span></li>
-                     <li>Acquisita: <span id="stat-acq">--</span></li>
-                     <li class="separator">---</li>
-                     <li>Arma: <span id="stat-weapon">--</span></li>
-                     <li>Armatura: <span id="stat-armor">--</span></li>
+                 <ul id="stats-list" class="two-column-stats">
+                     <!-- Colonna 1 -->
+                     <li>HP: <span id="stat-hp">--</span>/<span id="stat-maxhp">--</span></li>
+                     <li>VIG: <span id="stat-vig">--</span></li>
+                     <li>POT: <span id="stat-pot">--</span></li>
+                     <li>AGI: <span id="stat-agi">--</span></li>
+                     <li>ACQ: <span id="stat-acq">--</span></li> <!-- Acquisita -->
+                     <!-- Colonna 2 -->
+                     <li>TRA: <span id="stat-tra">--</span></li> <!-- Tracce -->
+                     <li>INF: <span id="stat-inf">--</span></li> <!-- Influenza -->
+                     <li>PRE: <span id="stat-pre">--</span></li> <!-- Presagio -->
+                     <li>ADA: <span id="stat-ada">--</span></li> <!-- Adattamento -->
+                     <li class="separator full-width-separator">---</li> <!-- Separatore a larghezza piena -->
+                     <li class="full-width-stat">Arma: <span id="stat-weapon">--</span></li>
+                     <li class="full-width-stat">Armatura: <span id="stat-armor">--</span></li>
+                     <li class="full-width-stat"><button id="open-crafting-button" class="ui-button action-button">Crafting</button></li> 
                  </ul>
              </section>
              <!-- Pannello Legenda Mappa -->
@@ -152,33 +150,141 @@
         </div>
     </div>
 
-    <!-- --- Schermata di Fine Gioco --- -->
-    <!-- Questo div copre tutto lo schermo alla fine del gioco -->
-    <div id="end-screen" class="overlay">
-        <h1 id="end-title">Fine del Viaggio</h1>
-        <!-- Il messaggio finale (vittoria/sconfitta + stats) sarà impostato da JS -->
-        <!-- Usa white-space: pre-wrap nel CSS per rispettare i newline -->
-        <p id="end-message">Sei morto...</p>
-        <!-- Bottone Riavvia -->
-        <!-- Questo bottone avrà un event listener aggiunto da JS -->
-        <button id="restart-button">Ricomincia</button>
+    <!-- --- Overlay per Azioni Oggetto (NUOVO) --- -->
+    <div id="item-action-overlay" class="overlay">
+        <div id="item-action-popup" class="popup">
+            <h2 id="item-action-title">Nome Oggetto</h2>
+            <div id="item-action-details">
+                <p id="item-action-description">Descrizione oggetto...</p>
+                <div id="item-action-stats">
+                    <!-- Le statistiche specifiche dell'oggetto (es. Danno, Armatura, Durabilità) verranno popolate qui da JS -->
+                </div>
+            </div>
+            <div id="item-action-choices" class="button-choices">
+                <!-- I bottoni delle azioni (Usa, Equipaggia, Lascia, ecc.) verranno aggiunti qui da JS -->
+            </div>
+            <button id="item-action-close-button">Chiudi</button>
+        </div>
     </div>
 
+    <!-- --- Overlay per il Crafting --- -->
+    <div id="crafting-overlay" class="overlay">
+        <div id="crafting-popup" class="popup">
+            <h2>CREA OGGETTO</h2>
+            <div id="crafting-main-content">
+                <div id="crafting-recipe-list-panel">
+                    <h3>Ricette Conosciute</h3>
+                    <ul id="crafting-recipe-list">
+                        <!-- Le ricette verranno popolate da JS -->
+                        <li>Ricetta Placeholder 1</li>
+                        <li>Ricetta Placeholder 2</li>
+                    </ul>
+                </div>
+                <div id="crafting-details-panel">
+                    <h3 id="crafting-recipe-name-title">Seleziona Ricetta</h3>
+                    <p id="crafting-recipe-description">Descrizione dettagliata della ricetta selezionata...</p>
+                    <h4>Ingredienti Richiesti:</h4>
+                    <ul id="crafting-ingredient-list">
+                        <!-- Lista ingredienti (con stato has/missing) popolata da JS -->
+                        <li>Ingrediente A (Ne hai X)</li>
+                        <li>Ingrediente B (Ti manca!)</li>
+                    </ul>
+                    <div id="crafting-requirements">
+                        <!-- Es: Richiede banco da lavoro (se implementato) -->
+                        <p>Requisiti speciali: Nessuno</p>
+                    </div>
+                    <button id="craft-item-button" class="action-button" disabled>Crea Oggetto</button>
+                </div>
+            </div>
+            <button id="crafting-close-button" class="close-button">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- --- Schermata di Fine Gioco (NUOVA) -->
+    <div id="end-screen" class="game-screen" style="display: none;">
+        <h2 id="end-title">Titolo Fine Gioco</h2>
+        <p id="end-message" class="story-text">
+            Messaggio di fine gioco...
+        </p>
+        <div class="menu-buttons">
+            <button id="restart-button" class="menu-button">Torna al Menu</button>
+        </div>
+    </div>
+
+    <div id="start-screen-container" class="screen-container">
+        <div class="start-screen-content">
+            <img src="image/thesafeplace_immagine.jpg" alt="The Safe Place Logo" id="start-screen-image">
+            <h1 id="game-title">The Safe Place</h1>
+            <p class="game-signature">un gioco di Simone Pizzi</p>
+            <p id="game-version-display" class="game-version-text"></p>
+            <div class="button-container">
+                <button id="new-game-button">Nuova Partita</button>
+                <button id="load-game-button">Carica Partita</button>
+                <button id="story-button">Storia</button>
+                <button id="instructions-button">Istruzioni</button>
+            </div>
+            <div class="start-screen-footer">
+                <p>Questo GDR Testuale in stile retrocomputazionale è una sperimentazione di cooperazione diretta tra umano designer non programmatore e i modelli LLM tramite Cursor.</p>
+                <p>Il progetto è un (C) di Runtime Radio.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="instructions-screen" class="screen-container" style="display: none;">
+        <h2>Istruzioni del Gioco</h2>
+        <div id="instructions-content">
+            <p><strong>Figlio Mio, Ultimo...</strong></p>
+            <p>Se stai leggendo queste parole, significa che non sono tornato in tempo, e le scorte che ti ho lasciato stanno per finire. Il mio cuore è pesante, ma non c'è tempo per il dolore adesso. Devi essere forte, come ti ho insegnato. Il mondo là fuori è un lupo affamato, ma tu hai gli strumenti per non diventare la sua preda.</p>
+            <p>Ricorda le basi, sempre. La <strong>mappa</strong> è la tua guida; la <strong>E</strong> segna la speranza, il "Safe Place". Raggiungila. I <strong>tasti direzionali (o W, A, S, D)</strong> saranno le tue gambe. Ogni passo ha un costo: <strong>cibo</strong> e <strong>acqua</strong> sono vita. Non lasciarli mai scarseggiare, o la debolezza e il logorio degli <strong>HP</strong> ti consumeranno. Vigila sulla tua <strong>Condizione</strong> – ferite, malanni, veleni – sono nemici silenziosi.</p>
+            <p>Il tempo è un fiume crudele, il <strong>giorno</strong> un breve respiro prima del gelo e dei pericoli della <strong>notte</strong>. Prima che il sole muoia, cerca un <strong>Rifugio ('R')</strong>. Lì troverai riposo fino all'alba e, con un po' di fortuna, qualcosa di utile. Esplorali di giorno, ma ricorda che ogni azione costa tempo. Villaggi ('V') e Città ('C') sono rovine piene di echi e pericoli, non fidarti ciecamente del loro apparente riparo notturno.</p>
+            <p>Il tuo <strong>Inventario</strong> è piccolo, riempilo con ciò che è essenziale. Clicca su un oggetto per capire come usarlo, equipaggiarlo o, se necessario, lasciarlo andare.</p>
+            <p>La strada ti metterà di fronte a <strong>Eventi</strong> e scelte difficili. Fidati del tuo <strong>Presagio</strong>, delle tue <strong>Abilità</strong>, ma soprattutto del tuo giudizio. Non tutte le lotte vanno combattute; a volte, la saggezza sta nel sapere quando fuggire.</p>
+            <p>Ti ho insegnato tutto ciò che potevo. Ora sei solo, è vero, ma non sei impreparato. La mia missione mi chiama lontano, e non so se queste parole saranno il mio ultimo abbraccio o solo un arrivederci. Ma tu, Ultimo, tu devi sopravvivere.</p>
+            <p>Trova il Safe Place.</p>
+            <p>Con tutto l'amore che un padre può dare,<br>Papà.</p>
+            
+            <h3>Legenda Mappa:</h3>
+            <ul id="instructions-legend-list">
+                <!-- Contenuto statico o popolato da JS -->
+            </ul>
+        </div>
+        <button class="back-to-menu-btn">Torna al Menu</button>
+    </div>
+
+    <div id="story-screen" class="screen-container" style="display: none;">
+        <h2>Introduzione alla Storia</h2>
+        <div id="story-content">
+            <p><strong>L'Eco del Silenzio</strong></p>
+            <p>Il mondo che Ultimo conosceva era fatto di sussurri e acciaio freddo, di lezioni impartite da un padre con occhi stanchi ma mani salde. Diciassette anni vissuti all'ombra di una catastrofe che aveva inghiottito il passato, lasciando solo echi distorti: la "Guerra Inespressa", il "Grande Silenzio". Della madre, Ultimo conservava solo un calore sbiadito nel petto, un nome quasi dimenticato. Il "prima" era una favola raccontata a bassa voce, un sogno di cieli azzurri e città luminose, così diverso dai grigiori malati e dalle rovine scheletriche che ora graffiavano l'orizzonte dell'Europa Centrale.</p>
+            <p>Suo padre gli aveva insegnato a leggere i segni del vento carico di polveri tossiche, a distinguere il fruscio di una bestia mutata da quello innocuo delle lamiere contorte, a trovare acqua dove sembrava esserci solo aridità. Ogni giorno era una lezione di sopravvivenza, ogni notte un monito sulla fragilità della vita.</p>
+            <p>Poi, anche il padre era partito. Una missione avvolta nel mistero, un addio affrettato con la promessa di un ritorno che tardava troppo. Le scorte lasciate con cura si assottigliavano, e con esse la speranza. Rimaneva solo un messaggio frammentario, l'ultima eco della voce paterna: "...trova il Safe Place, Ultimo. È la nostra unica possibilità..."</p>
+            <p>Ora, il silenzio è il suo unico compagno. Davanti a lui, un viaggio disperato attraverso un continente irriconoscibile, armato solo degli insegnamenti paterni e di una mappa verso un luogo che potrebbe essere leggenda, trappola, o forse, davvero, salvezza. Il peso della solitudine è grande, ma la volontà di onorare la memoria del padre, e la primordiale necessità di vivere, lo spingono a muovere il primo passo in quel mondo ostile. Il Safe Place attende, da qualche parte oltre la desolazione.</p>
+        </div>
+        <button class="back-to-menu-btn">Torna al Menu</button>
+    </div>
 
     <!-- --- Inclusione dei file JavaScript ristrutturati --- -->
     <!-- Assicurati che i file JS siano nella sottocartella 'js/' -->
     <!-- L'ordine di inclusione è FONDAMENTALE per garantire che le dipendenze siano soddisfatte -->
-    <script src="js/game_data.js"></script>         <!-- 1. Dati statici (nessuna dipendenza) -->
-    <script src="js/game_constants.js"></script>   <!-- 2. Stato e costanti (dipende da game_data per TILE_SYMBOLS, ecc.) -->
-    <script src="js/game_utils.js"></script>       <!-- 3. Funzioni utility (dipende da game_constants per variabili/costanti globali) -->
-    <script src="js/dom_references.js"></script>   <!-- 4. Dichiarazioni variabili DOM e assegnazione automatica -->
-    <script src="js/ui.js"></script>               <!-- 5. Rendering UI (dipende da game_constants, game_data, game_utils, dom_references) -->
-    <script src="js/player.js"></script>           <!-- 6. Logica Player (dipende da game_constants, game_data, game_utils, ui) -->
-    <script src="js/map.js"></script>              <!-- 7. Logica Mappa (dipende da game_constants, game_data, game_utils, ui, events, player) -->
-    <script src="js/events.js"></script>           <!-- 8. Logica Eventi (dipende da TUTTI gli altri moduli) -->
-    <script src="js/game_core.js"></script>        <!-- 9. Logica Principale (contiene window.onload) -->
+    <script src="js/game_constants.js"></script>   <!-- 1. Stato e costanti (nessuna dipendenza diretta critica da game_data se non TILE_SYMBOLS, ma game_data usa le costanti qui) -->
+    <script src="js/game_data.js"></script>         <!-- 2. Dati statici (usa costanti da game_constants.js) -->
+    <script src="js/game_utils.js"></script>       <!-- 3. Funzioni utility (dipende da game_constants) -->
+    <script src="js/dom_references.js"></script>   <!-- 4. Riferimenti DOM -->
+    <script src="js/ui.js"></script>               <!-- 5. UI (dipende da costanti, dati, utils, dom) -->
+    <script src="js/player.js"></script>           <!-- 6. Player (dipende da costanti, dati, utils, ui) -->
+    <script src="js/events.js"></script>           <!-- 7. Eventi (dipende da quasi tutto) -->
+    <script src="js/map.js"></script>              <!-- 8. Mappa (dipende da costanti, dati, utils, ui, events, player) -->
+    <script src="js/game_core.js"></script>        <!-- 9. Core (usa tutto, avvia il gioco) -->
 
     <!-- Fine inclusione script -->
+
+    <!-- Tooltip per la Mappa (NUOVO) -->
+    <div id="map-tooltip" class="tooltip hidden">
+        <div id="tooltip-map-coords">Coordinate: X, Y</div>
+        <div id="tooltip-map-type">Tipo: Nome Luogo</div>
+        <div id="tooltip-map-event-chance">Prob. Evento (Locale): Percentuale%</div>
+        <!-- Potremmo aggiungere altri dettagli in futuro, come 'Visitato: Sì/No' -->
+    </div>
 
 </body>
 </html>
