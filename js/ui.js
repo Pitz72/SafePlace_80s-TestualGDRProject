@@ -174,9 +174,7 @@ function renderStats() {
         const formattedHour = currentHour.toString().padStart(2, '0');
         const formattedMinute = currentMinute.toString().padStart(2, '0');
         DOM.statDayTime.textContent = `${formattedHour}:${formattedMinute}`;
-        DOM.statDayTime.classList.remove('night-time-indicator');
     } else {
-        DOM.statDayTime.classList.add('night-time-indicator');
         DOM.statDayTime.textContent = 'Notte';
     }
 
@@ -842,9 +840,6 @@ function showEventPopup(eventData) {
         closeEventPopup(); // Chiama la funzione di chiusura
         return;
     }
-    if (typeof hideItemTooltip === 'function') {
-        hideItemTooltip(); // Nasconde il tooltip dell'inventario se era attivo
-    }
 
     // Disabilita i controlli di movimento sulla UI e imposta la pausa logica
     disableControls(); // Imposta gamePaused = true
@@ -1182,7 +1177,7 @@ function buildAndShowComplexEventOutcome(title, description, checkDetails, conse
  */
 function getItemDetailsHTML(itemInstance) {
     // Log per vedere cosa riceve esattamente la funzione
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[getItemDetailsHTML] Istanza ricevuta:', JSON.stringify(itemInstance));
+    if (DEBUG_MODE) console.log('[getItemDetailsHTML] Istanza ricevuta:', JSON.stringify(itemInstance));
 
     // CONDIZIONE CORRETTA: Verifica itemInstance E itemInstance.itemId
     if (!itemInstance || !itemInstance.itemId) { 

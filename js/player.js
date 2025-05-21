@@ -111,6 +111,8 @@ function generateCharacter() {
         console.warn(`generateCharacter: Armatura iniziale '${startingArmorId}' non trovata in ITEM_DATA.`);
     }
 
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[generateCharacter] Player Equip INIZIALE - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
+
     // Aggiorna la UI delle stats iniziali
     if (typeof renderStats === 'function') {
          renderStats();
@@ -831,13 +833,11 @@ function unequipItem(slotKey) {
  * @param {number} quantity - La quantità presente nell'inventario (attualmente non usata, rimuove l'intero stack).
  */
 function dropItem(itemId, quantity) { // Aggiunto parametro quantity anche se non usato per ora
-    if (DEBUG_MODE) /* console.log(`[dropItem] CHIAMATA con itemId: '${itemId}', quantity: ${quantity}. Inventario attuale:`, JSON.parse(JSON.stringify(player.inventory))); */
+     // console.log(`dropItem: Tentativo di lasciare item '${itemId}' (x${quantity})`); // Log di debug
 
     const itemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
-    if (DEBUG_MODE) /* console.log(`[dropItem] itemIndex trovato: ${itemIndex}`); */
 
     if (itemIndex === -1) {
-        if (DEBUG_MODE) /* console.log(`[dropItem] FALLIMENTO RICERCA: itemId '${itemId}' non trovato in player.inventory. L'inventario contiene:`, player.inventory.map(s => s.itemId)); */
         console.error(`dropItem: Oggetto '${itemId}' non trovato nell'inventario.`);
         addMessage(`Errore: Non puoi lasciare un oggetto che non hai.`, "error");
         if (typeof closeEventPopup === 'function') closeEventPopup();
@@ -1106,134 +1106,99 @@ function handleInventoryClick(event) {
  * @param {string} [source='inventory'] - La provenienza dell'oggetto ('inventory' o 'equipped').
  */
 function showItemActionPopup(itemId, source = 'inventory') {
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[showItemActionPopup] CHIAMATA con itemId: ${itemId}, source: ${source}`); */
-    
-    const itemTemplate = ITEM_DATA[itemId];
-    if (!itemTemplate) {
-        console.error("showItemActionPopup: Template non trovato in ITEM_DATA:", itemId);
-        if (typeof closeItemActionPopup === 'function') closeItemActionPopup();
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] CHIAMATA con itemId: ${itemId}, source: ${source}`);
+    const item = ITEM_DATA[itemId];
+    if (!item) {
+        console.error("showItemActionPopup: Item non trovato in ITEM_DATA:", itemId);
         return;
     }
-
+    // ... (setup popup)
     let itemInstance = null;
     if (source === 'equipped') {
-        if (itemTemplate.type === 'weapon' && player.equippedWeapon && player.equippedWeapon.itemId === itemId) {
+        if (item.type === 'weapon' && player.equippedWeapon && player.equippedWeapon.itemId === itemId) {
             itemInstance = player.equippedWeapon;
-        } else if (itemTemplate.type === 'armor' && player.equippedArmor && player.equippedArmor.itemId === itemId) {
+        } else if (item.type === 'armor' && player.equippedArmor && player.equippedArmor.itemId === itemId) {
             itemInstance = player.equippedArmor;
         }
     } else if (source === 'inventory') {
-        itemInstance = player.inventory.find(slot => slot.itemId === itemId);
+        itemInstance = player.inventory.find(slot => slot.itemId === itemId) || null;
     }
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] itemInstance TROVATO:`, JSON.stringify(itemInstance));
+    if (!itemInstance) itemInstance = { itemId };
 
-    if (!itemInstance) {
-         console.warn(`[showItemActionPopup] Istanza non trovata per ${itemId} (source: ${source}). Creo istanza minimale con solo itemId.`);
-         itemInstance = { itemId: itemId }; // Fallback per getItemDetailsHTML
-    }
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[showItemActionPopup] itemInstance TROVATO/Creato:`, JSON.stringify(itemInstance)); */
-    
-    // Verifica che i nuovi elementi DOM per il popup azioni oggetto siano pronti
-    if (!DOM.itemActionOverlay || !DOM.itemActionPopup || !DOM.itemActionTitle ||
-        !DOM.itemActionDescription || !DOM.itemActionStats || !DOM.itemActionChoices || !DOM.itemActionCloseButton) {
-        console.error("showItemActionPopup: Elementi DOM del popup azioni oggetto non trovati. Verifica dom_references.js e index.html.");
-        addMessage("Errore UI: Impossibile mostrare le azioni per l'oggetto.", "error");
-        return;
-    }
-
-    // Nascondi il tooltip dell'inventario se era attivo
-    if (typeof hideItemTooltip === 'function') { 
-        hideItemTooltip();
-    }
-
-    currentEventContext = { // Anche se non è un evento di mappa, usiamo lo stesso sistema per gestire la pausa
-        type: 'ITEM_ACTION',
-        itemId: itemId,
-        isActionPopup: true, 
-        source: source // Salviamo la source per un eventuale uso futuro
-    };
-    // currentEventChoices non è usato per questo popup specifico, le azioni sono generate al momento
-
-    // Popola il popup
-    DOM.itemActionTitle.textContent = itemTemplate.nameShort || itemTemplate.name;
-    DOM.itemActionDescription.textContent = itemTemplate.description || "Nessuna descrizione.";
-    
     if (typeof getItemDetailsHTML === 'function') {
-        DOM.itemActionStats.innerHTML = getItemDetailsHTML(itemInstance); // Passa l'istanza!
+        DOM.itemActionStats.innerHTML = getItemDetailsHTML(itemInstance);
     } else {
-        console.warn("[showItemActionPopup] Funzione getItemDetailsHTML non disponibile (ui.js).");
         DOM.itemActionStats.innerHTML = 'Dettagli statistiche non disponibili.';
     }
 
-    DOM.itemActionChoices.innerHTML = ''; // Pulisce bottoni precedenti
+    // Svuota il contenitore delle scelte
+    DOM.itemActionChoices.innerHTML = '';
+    const itemTemplate = item; // Per chiarezza nel log richiesto
     const actions = [];
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[showItemActionPopup] DEBUG INIZIALE per azioni: source='${source}', itemTemplate.type='${itemTemplate.type}', itemTemplate.usable='${itemTemplate.usable}'`); */
+    if (DEBUG_MODE) console.log(`[showItemActionPopup] DEBUG INIZIALE: source='${source}', itemTemplate.type='${itemTemplate ? itemTemplate.type : "TEMPLATE NULLO"}'`);
 
-    if (itemTemplate.usable) {
+    if (item.usable) {
         actions.push({ text: "Usa", handler: () => useItem(itemId), styleKey: 'use' });
     }
     if (source === 'inventory') {
-        if (itemTemplate.type === 'weapon' || itemTemplate.type === 'armor') {
+        if (item.type === 'weapon' || item.type === 'armor') {
             actions.push({ text: "Equipaggia", handler: () => equipItem(itemId), styleKey: 'equip' });
         }
         actions.push({ text: "Lascia", handler: () => dropItem(itemId, 1), styleKey: 'drop' });
     } else if (source === 'equipped') {
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log("[showItemActionPopup] DEBUG EQUIP: Entrato nel blocco source === 'equipped'. Aggiungo tasto Rimuovi."); */
-        actions.push({ text: "Rimuovi", handler: () => unequipItem(itemTemplate.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
+        if (DEBUG_MODE) console.log("[showItemActionPopup] DEBUG EQUIP: Entrato nel blocco source === 'equipped'. Aggiungo tasto Rimuovi.");
+        actions.push({ text: "Rimuovi", handler: () => unequipItem(item.type === 'weapon' ? 'equippedWeapon' : 'equippedArmor'), styleKey: 'unequip' });
     }
 
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log('[showItemActionPopup] Contenuto array "actions" PRIMA del forEach:', JSON.parse(JSON.stringify(actions))); */
-
+    // Crea i bottoni tramite JavaScript e assegna l'onclick richiesto
     actions.forEach(action => {
         const button = document.createElement('button');
         button.textContent = action.text;
-        button.className = `action-button action-${action.styleKey || 'default'}`; // Assicura classe base e specifica
+        button.className = `action-button action-${action.styleKey || 'default'}`;
         button.onclick = () => {
-            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[showItemActionPopup] Bottone AZIONE '${action.text}' CLICCATO per item ${itemId}`); */
-            action.handler(); 
-            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[showItemActionPopup] Chiamo closeItemActionPopup() DOPO azione '${action.text}'`); */
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Bottone AZIONE '${action.text}' CLICCATO per item ${itemId}`);
+            action.handler(); // Esegue l'azione (es. useItem, equipItem, unequipItem, dropItem)
+            if (DEBUG_MODE) console.log(`[showItemActionPopup] Chiamo closeItemActionPopup() DOPO azione '${action.text}'`);
             if (typeof closeItemActionPopup === 'function') { 
                 closeItemActionPopup();
             } else {
-                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata!"); */
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata!");
             }
         };
         DOM.itemActionChoices.appendChild(button);
     });
 
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
-        /*
+    if (DEBUG_MODE) {
         console.log("[showItemActionPopup] DEBUG HTML SCELTE AZIONI:", DOM.itemActionChoices.innerHTML);
         const buttonsInPopup = DOM.itemActionChoices.querySelectorAll('button');
         console.log(`[showItemActionPopup] DEBUG BOTTONI AZIONE EFFETTIVI NEL DOM: ${buttonsInPopup.length}`);
-        buttonsInPopup.forEach((btn, idx) => console.log(`    Bottone DOM ${idx}: '${btn.textContent}' (onclick presente: ${!!btn.onclick})`));
-        */
+        buttonsInPopup.forEach((btn, idx) => console.log(`    Bottone DOM ${idx}: '${btn.textContent}'`));
     }
 
+    // Handler per il bottone di chiusura
     if (DOM.itemActionCloseButton) {
         DOM.itemActionCloseButton.onclick = () => {
-            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO'); */
+            if (DEBUG_MODE) console.log('[showItemActionPopup] Bottone CHIUDI CLICCATO');
             if (typeof closeItemActionPopup === 'function') {
                 closeItemActionPopup();
             } else {
-                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!"); */
+                if (DEBUG_MODE) console.error("[showItemActionPopup] ERRORE: Funzione closeItemActionPopup non trovata al click su Chiudi!");
             }
         };
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log('[showItemActionPopup] Listener per Bottone CHIUDI ASSEGNATO:', !!DOM.itemActionCloseButton.onclick); */
-    } else {
-        console.error("[showItemActionPopup] ERRORE: DOM.itemActionCloseButton non trovato!");
     }
 
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log('[showItemActionPopup] Sto per rendere visibile il popup'); */
+    if (DEBUG_MODE) console.log('[showItemActionPopup] Sto per rendere visibile il popup');
     DOM.itemActionOverlay.classList.add('visible');
     DOM.itemActionPopup.classList.add('visible');
 
     eventScreenActive = true;
     gamePaused = true;
-    if (typeof disableControls === 'function') disableControls(); else console.error("[showItemActionPopup] ERRORE: disableControls non trovata!");
+    if (typeof disableControls === 'function') disableControls();
 }
 
 function closeItemActionPopup() {
-    //if (DEBUG_MODE) console.log('[closeItemActionPopup] CHIAMATA');
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] CHIAMATA');
     if (DOM.itemActionOverlay && DOM.itemActionPopup) {
         DOM.itemActionOverlay.classList.remove('visible');
         DOM.itemActionPopup.classList.remove('visible');
@@ -1241,7 +1206,7 @@ function closeItemActionPopup() {
     eventScreenActive = false;
     gamePaused = false;
     if (typeof enableControls === 'function') enableControls();
-    //if (DEBUG_MODE) console.log('[closeItemActionPopup] ESEGUITA. eventScreenActive:', eventScreenActive, 'gamePaused:', gamePaused);
+    if (DEBUG_MODE) console.log('[closeItemActionPopup] ESEGUITA. eventScreenActive:', eventScreenActive, 'gamePaused:', gamePaused);
     currentEventContext = null; 
 }
 

@@ -441,10 +441,7 @@ function describeWeaponDamage(equippedWeaponId, currentTileSymbol) {
 function applyChoiceReward(rewardData) {
     // ... (INSERISCI QUI IL CORPO COMPLETO di applyChoiceReward dalla v0.7.17) ...
 }
-
-function handleRandomRewardType(rewardType, quantity) {
-    // ... resto della funzione ...
-}
+// Fine applyChoiceReward
 
 function applyPenalty(penaltyObject) {
     // ... (INSERISCI QUI IL CORPO COMPLETO di applyPenalty dalla v0.7.17) ...
@@ -455,7 +452,7 @@ function applyPenalty(penaltyObject) {
 
 // --- FUNZIONE PRINCIPALE PER GESTIRE LA SCELTA DELL'EVENTO ---
 function handleEventChoice(choiceIndex) {
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log(`[handleEventChoice] CHIAMATA con choiceIndex: ${choiceIndex}`); */
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log(`[handleEventChoice] CHIAMATA con choiceIndex: ${choiceIndex}`);
     if (!currentEventContext || !Array.isArray(currentEventChoices) || choiceIndex < 0 || choiceIndex >= currentEventChoices.length) {
         console.error(`[handleEventChoice] ERRORE: Dati evento/scelta non validi. Indice: ${choiceIndex}, Scelte:`, JSON.stringify(currentEventChoices), "Contesto:", JSON.stringify(currentEventContext));
         addMessage("Errore nell'elaborazione della scelta dell'evento.", "danger");
@@ -470,19 +467,17 @@ function handleEventChoice(choiceIndex) {
         return; 
     }
     
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) /* console.log('[handleEventChoice] Scelta selezionata:', JSON.stringify(choice)); */
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[handleEventChoice] Scelta selezionata:', JSON.stringify(choice));
 
-    const currentTileSymbol = map[player.y]?.[player.x]?.type;
     const specificDilemmaData = currentEventContext?.context?.specificDilemma;
     const eventType = currentEventContext.type;
     const isSearchAction = choice.isSearchAction || false;
     const actionKey = choice.actionKey;
     const customTimeCost = choice.timeCost;
 
+    const currentTileSymbol = map[player.y]?.[player.x]?.type;
     if (!currentTileSymbol) {
         console.error("[handleEventChoice] ERRORE: Impossibile ottenere currentTileSymbol!");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
-        return;
     }
 
     if (isSearchAction) {

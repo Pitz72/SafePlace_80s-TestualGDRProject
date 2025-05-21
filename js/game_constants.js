@@ -138,19 +138,6 @@ const SHELTER_INSPECT_LOOT_WEIGHTS = {
     'pistol_makeshift': 2, 'leather_jacket_worn': 1
 }; // Pesi per random_common_resource migliorato su Rifugi
 
-const PREDATOR_LOOT_WEIGHTS = {
-    'scrap_metal': 50,
-    'bandages_dirty': 40,
-    'cloth_rags': 35,
-    'canned_food': 20,
-    'water_dirty': 15,
-    'ammo_generic': 12,
-    'suspicious_pills': 8,
-    'shiv_improvised': 6,
-    'wooden_club': 4,
-    'pipe_wrench': 2 // Molto raro
-};
-
 // Probabilità di contrarre malattia da carne cruda
 const RAW_MEAT_SICKNESS_CHANCE = 0.25;
 
