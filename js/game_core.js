@@ -390,9 +390,16 @@ function setupInputListeners() {
 
     // Listener per i pulsanti della schermata iniziale
     if (DOM.startButton) {
-        DOM.startButton.addEventListener('click', () => {
-            showScreen(DOM.gameContainer);
-            initializeGame();
+        DOM.startButton.addEventListener('click', async () => {
+            // Se il character manager è disponibile, mostra selezione personaggio
+            if (typeof CharacterManager !== 'undefined') {
+                await CharacterManager.initialize();
+                CharacterManager.showCharacterSelection();
+            } else {
+                // Fallback al comportamento originale
+                showScreen(DOM.gameContainer);
+                initializeGame();
+            }
         });
     }
     if (DOM.instructionsButton) {
@@ -409,12 +416,16 @@ function setupInputListeners() {
     }
     // Listener per il NUOVO pulsante Carica Partita
     if (DOM.loadGameButton) {
-        DOM.loadGameButton.addEventListener('click', () => {
-            if (!loadGame()) { // Tenta di caricare
-                 // Se loadGame ritorna false (errore o nessun salvataggio), rimane sulla schermata iniziale
-                 console.log("Caricamento fallito o nessun salvataggio.");
+        DOM.loadGameButton.addEventListener('click', async () => {
+            try {
+                const success = await loadGame(); // Tenta di caricare
+                if (!success) {
+                    console.log("Caricamento fallito o nessun salvataggio.");
+                }
+                // Se loadGame() ha successo, si occupa già lui di cambiare schermata e attivare il gioco.
+            } catch (error) {
+                console.error("Errore durante il caricamento:", error);
             }
-            // Se loadGame() ha successo, si occupa già lui di cambiare schermata e attivare il gioco.
         });
 
         // Disabilita il pulsante Carica se non ci sono dati salvati
@@ -432,7 +443,13 @@ function setupInputListeners() {
 
     // Listener per il NUOVO pulsante Salva Partita
     if (DOM.saveGameButton) {
-        DOM.saveGameButton.addEventListener('click', saveGame);
+        DOM.saveGameButton.addEventListener('click', async () => {
+            try {
+                await saveGame();
+            } catch (error) {
+                console.error("Errore durante il salvataggio:", error);
+            }
+        });
     } else {
          console.error("setupInputListeners: saveGameButton non trovato nel DOM!");
     }
@@ -614,9 +631,14 @@ function endGame(isVictory) {
 // Assicurati che dom_references.js sia caricato prima di questo.
 // Assicurati che questo script (game_core.js) sia incluso DOPO dom_references.js e gli altri moduli
 // da cui initializeGame dipende.
-window.onload = function() {
+window.onload = async function() {
     // L'oggetto DOM dovrebbe essere già popolato da dom_references.js caricato prima
     // Chiamata a assignAllDOMReferences() è gestita automaticamente da dom_references.js
+    
+    // Inizializza il sistema dual-mode
+    if (typeof initializeDualMode === 'function') {
+        await initializeDualMode();
+    }
     
     initializeStartScreen(); // Prepara la schermata iniziale
     setupInputListeners();   // Attacca TUTTI gli event listener necessari, inclusi quelli del menu
@@ -634,11 +656,22 @@ window.onload = function() {
 const SAVE_KEY = 'theSafePlaceSaveData'; // Chiave per localStorage
 
 /**
- * Raccoglie lo stato corrente del gioco e lo salva in localStorage.
+ * Raccoglie lo stato corrente del gioco e lo salva usando il sistema dual-mode.
  */
-function saveGame() {
+async function saveGame() {
     if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio partita...");
+    
     try {
+        // Se il sistema dual-mode è disponibile, usalo
+        if (typeof DualModeGame !== 'undefined' && DualModeGame.saveGame) {
+            const success = await DualModeGame.saveGame();
+            if (success) {
+                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio dual-mode completato.");
+                return;
+            }
+        }
+        
+        // Fallback al sistema localStorage originale
         const saveData = {
             player: player,
             map: map,
@@ -647,19 +680,14 @@ function saveGame() {
             gameDay: gameDay,
             easterEggPixelDebhFound: easterEggPixelDebhFound,
             uniqueEventWebRadioFound: uniqueEventWebRadioFound,
-            // Aggiungere qui altre variabili globali da salvare se necessario
-            saveTimestamp: new Date().toISOString() // Data/ora salvataggio
+            saveTimestamp: new Date().toISOString()
         };
 
-        // Converti in JSON
-        // Nota: JSON.stringify gestisce bene oggetti semplici e array, ma attenzione a oggetti complessi o con riferimenti circolari (non dovremmo averne qui).
         const saveDataString = JSON.stringify(saveData);
-
-        // Salva in localStorage
         localStorage.setItem(SAVE_KEY, saveDataString);
 
         addMessage("Partita salvata con successo!", "success");
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio completato.");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio localStorage completato.");
 
     } catch (error) {
         console.error("Errore durante il salvataggio della partita:", error);
@@ -668,12 +696,23 @@ function saveGame() {
 }
 
 /**
- * Carica lo stato del gioco da localStorage.
+ * Carica lo stato del gioco usando il sistema dual-mode.
  * @returns {boolean} True se il caricamento ha avuto successo, false altrimenti.
  */
-function loadGame() {
+async function loadGame() {
     if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento partita...");
+    
     try {
+        // Se il sistema dual-mode è disponibile, usalo
+        if (typeof DualModeGame !== 'undefined' && DualModeGame.loadGame) {
+            const success = await DualModeGame.loadGame();
+            if (success) {
+                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento dual-mode completato.");
+                return true;
+            }
+        }
+        
+        // Fallback al sistema localStorage originale
         const saveDataString = localStorage.getItem(SAVE_KEY);
 
         if (!saveDataString) {
@@ -682,21 +721,16 @@ function loadGame() {
             return false;
         }
 
-        // Converti da JSON
         const loadedData = JSON.parse(saveDataString);
 
-        // Verifica dati base (opzionale ma consigliato)
         if (!loadedData || !loadedData.player || !loadedData.map) {
              console.error("Dati di salvataggio corrotti o incompleti.", loadedData);
              addMessage("Errore: Dati di salvataggio corrotti o non validi.", "danger");
-             localStorage.removeItem(SAVE_KEY); // Rimuovi dati corrotti
+             localStorage.removeItem(SAVE_KEY);
              return false;
         }
 
-        // --- Ripristina Stato Globale --- 
-        // NOTA IMPORTANTE: Sovrascriviamo le variabili globali direttamente.
-        // Per oggetti complessi come player e map, questo è generalmente ok perché
-        // JSON.parse crea nuovi oggetti/array, rompendo i riferimenti precedenti.
+        // Ripristina stato globale
         player = loadedData.player;
         map = loadedData.map;
         dayMovesCounter = loadedData.dayMovesCounter;
@@ -704,32 +738,28 @@ function loadGame() {
         gameDay = loadedData.gameDay;
         easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound;
         uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
-        // Ripristinare qui altre variabili globali salvate
 
         if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato del gioco ripristinato:", loadedData);
 
-        // --- Aggiorna Interfaccia --- 
-        // È cruciale chiamare tutte le funzioni di rendering per riflettere lo stato caricato
-        // Usiamo setTimeout per dare tempo al browser di calcolare il layout dopo showScreen
+        // Aggiorna interfaccia
         setTimeout(() => {
             if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Rendering UI after load timeout...");
             if (typeof renderMap === 'function') renderMap(); else console.error("loadGame: renderMap non trovata!");
             if (typeof renderStats === 'function') renderStats(); else console.error("loadGame: renderStats non trovata!");
             if (typeof renderInventory === 'function') renderInventory(); else console.error("loadGame: renderInventory non trovata!");
-            if (typeof renderLegend === 'function') renderLegend(); // Aggiunto anche renderLegend
-             // Potrebbe essere necessario un refresh specifico per tooltip o altro stato UI?
-        }, 100); // Ritardo di 100ms (aggiustabile se necessario)
+            if (typeof renderLegend === 'function') renderLegend();
+        }, 100);
 
-        // --- Transizione Schermata e Attivazione Gioco --- 
+        // Transizione schermata e attivazione gioco
         if (typeof showScreen === 'function') {
-            showScreen(DOM.gameContainer); // CORRETTO: Passa l'oggetto DOM
+            showScreen(DOM.gameContainer);
         } else {
             console.error("loadGame: showScreen non trovata!");
         }
-        gameActive = true; // Attiva il gioco
-        gamePaused = false; // Assicura che non sia in pausa
-        eventScreenActive = false; // Assicura che nessun popup evento sia attivo
-        // Imposta focus per input tastiera
+        gameActive = true;
+        gamePaused = false;
+        eventScreenActive = false;
+        
         try {
             if(DOM.gameContainer) DOM.gameContainer.focus();
         } catch (e) {
@@ -737,14 +767,12 @@ function loadGame() {
         }
 
         addMessage(`Partita caricata (salvata il ${new Date(loadedData.saveTimestamp).toLocaleString()}).`, "success");
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento completato.");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento localStorage completato.");
         return true;
 
     } catch (error) {
         console.error("Errore durante il caricamento della partita:", error);
         addMessage("Errore durante il caricamento della partita! Potrebbe essere corrotta.", "danger");
-        // Considera di rimuovere dati corrotti?
-        // localStorage.removeItem(SAVE_KEY);
         return false;
     }
 }
