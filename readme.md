@@ -10,7 +10,7 @@
 
 The Safe Place è un gioco via browser, interamente sviluppato tramite AI, utilizzando HTML, CSS e JavaScript. 🎮🌐
 
-👉 _Gioca alla versione più recente_: **[Gioca Ora](https://pitz72.github.io/SafePlace_80s-TestualGDRProject/)**
+👉 _Gioca alla versione più recente_: **<del>[Gioca Ora]</del>** (Ristrutturazione del progetto in corso)
 
 👉 **Unisciti al canale Telegram ufficiale** per rimanere aggiornato e partecipare alla community: [SafePlaceWIP](https://t.me/SafePlaceWIP)
 
