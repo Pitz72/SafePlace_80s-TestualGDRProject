@@ -58,10 +58,22 @@ Il progetto utilizza un'architettura modulare e una struttura solida, sfruttando
 
 ## Roadmap 🚧
 
-- 📝 Consolidare la struttura del codice
-- ⚔️ Implementare il sistema di combattimento avanzato
-- 🌐 Espandere la lore e le scelte narrative
-- 🛠️ Ottimizzare l'interfaccia e migliorare la responsività
+**FASE ATTUALE: Consolidamento e Preparazione**
+
+### Prossimi Passi Strategici:
+- 🔄 **Migrazione Backend**: Transizione da architettura client-side a PHP + MySQL
+- 🛡️ **Sicurezza**: Implementazione autenticazione server-side e anti-cheat
+- 📊 **Persistenza Dati**: Sistema salvataggio affidabile e backup automatici
+- 🌐 **API REST**: Creazione endpoint per comunicazione client-server
+- ⚡ **Performance**: Ottimizzazione carico computazionale e scalabilità
+
+### Documentazione Tecnica:
+📋 **Roadmap Completa**: `doc_e_log/ROADMAP_SVILUPPO.md`  
+📝 **Log Sviluppo**: `doc_e_log/LOG_SVILUPPO_CONSOLIDATO.md`  
+📚 **Changelog**: `doc_e_log/Changelog.md`
+
+**Durata Stimata Migrazione**: 11-15 settimane  
+**Obiettivo**: Architettura robusta, sicura e scalabile
 
 ## Contributi e Supporto
 

@@ -22,8 +22,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // Carica le classi del progetto
 require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../api/GameController.php';
 
 use SafePlace\Database;
+use SafePlace\Api\GameController;
 
 // Gestione errori globali
 set_error_handler(function($severity, $message, $file, $line) {
@@ -63,8 +65,10 @@ try {
             'endpoints' => [
                 'GET /api/test' => 'Test connessione database',
                 'GET /api/status' => 'Stato del server',
-                'POST /api/game/save' => 'Salva partita (futuro)',
-                'GET /api/game/load' => 'Carica partita (futuro)'
+                'POST /api/game/save' => 'Salva partita',
+                'GET /api/game/load/{character_id}' => 'Carica partita',
+                'GET /api/characters' => 'Lista personaggi',
+                'POST /api/characters' => 'Crea personaggio'
             ]
         ]);
         exit();
@@ -83,6 +87,10 @@ try {
             
         case 'game':
             handleGameEndpoint($pathParts, $requestMethod);
+            break;
+            
+        case 'characters':
+            handleCharactersEndpoint($pathParts, $requestMethod);
             break;
             
         default:
@@ -124,20 +132,23 @@ function handleTestEndpoint(): void
  */
 function handleStatusEndpoint(): void
 {
+    // sys_getloadavg() non è disponibile su Windows
+    $loadavg = function_exists('sys_getloadavg') ? sys_getloadavg() : [0, 0, 0];
+    
     echo json_encode([
         'status' => 'success',
         'server' => [
             'php_version' => PHP_VERSION,
             'memory_usage' => memory_get_usage(true),
             'memory_peak' => memory_get_peak_usage(true),
-            'uptime' => sys_getloadavg()
+            'uptime' => $loadavg
         ],
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
 
 /**
- * Endpoint gioco (futuro)
+ * Endpoint gioco
  */
 function handleGameEndpoint(array $pathParts, string $method): void
 {
@@ -146,25 +157,48 @@ function handleGameEndpoint(array $pathParts, string $method): void
     }
     
     $action = $pathParts[1];
+    $gameController = new GameController();
     
     switch ($action) {
         case 'save':
-            echo json_encode([
-                'status' => 'info',
-                'message' => 'Endpoint save-game in sviluppo',
-                'timestamp' => date('Y-m-d H:i:s')
-            ]);
+            $result = $gameController->saveGame();
+            echo json_encode($result);
             break;
             
         case 'load':
-            echo json_encode([
-                'status' => 'info',
-                'message' => 'Endpoint load-game in sviluppo',
-                'timestamp' => date('Y-m-d H:i:s')
-            ]);
+            if (count($pathParts) < 3) {
+                throw new Exception('character_id richiesto per load', 400);
+            }
+            $characterId = $pathParts[2];
+            $result = $gameController->loadGame($characterId);
+            echo json_encode($result);
             break;
             
         default:
             throw new Exception('Azione gioco non valida: ' . $action, 400);
+    }
+}
+
+/**
+ * Endpoint personaggi
+ */
+function handleCharactersEndpoint(array $pathParts, string $method): void
+{
+    $gameController = new GameController();
+    
+    switch ($method) {
+        case 'GET':
+            $userId = isset($pathParts[1]) ? $pathParts[1] : null;
+            $result = $gameController->getCharacters($userId);
+            echo json_encode($result);
+            break;
+            
+        case 'POST':
+            $result = $gameController->createCharacter();
+            echo json_encode($result);
+            break;
+            
+        default:
+            throw new Exception('Metodo non supportato per characters: ' . $method, 405);
     }
 } 

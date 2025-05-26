@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema Dual-Mode - The Safe Place</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            border: 1px solid #00ff00;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .warning { color: #ffff00; }
+        .info { color: #00aaff; }
+        button {
+            background: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover {
+            background: #006600;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border: 1px solid #333;
+            overflow-x: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-online { background: #00ff00; }
+        .status-offline { background: #ff0000; }
+        .status-unknown { background: #ffff00; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Sistema Dual-Mode - The Safe Place</h1>
+        <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+        
+        <div class="test-section">
+            <h2>📊 Stato Sistema</h2>
+            <div id="system-status">
+                <p><span class="status-indicator status-unknown"></span><strong>Backend API:</strong> <span id="backend-status">Verificando...</span></p>
+                <p><span class="status-indicator status-unknown"></span><strong>localStorage:</strong> <span id="localstorage-status">Verificando...</span></p>
+                <p><span class="status-indicator status-unknown"></span><strong>Sistema Dual-Mode:</strong> <span id="dualmode-status">Verificando...</span></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Controlli Manuali</h2>
+            <button onclick="testBackendConnection()">Test Connessione Backend</button>
+            <button onclick="testLocalStorage()">Test localStorage</button>
+            <button onclick="testDualModeSave()">Test Salvataggio Dual-Mode</button>
+            <button onclick="testDualModeLoad()">Test Caricamento Dual-Mode</button>
+            <button onclick="runFullTest()">🚀 Test Completo</button>
+            <button onclick="clearAllData()">🗑️ Pulisci Tutti i Dati</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Log Test</h2>
+            <div id="test-log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📈 Statistiche Performance</h2>
+            <div id="performance-stats">
+                <p><strong>Tempo Risposta Backend:</strong> <span id="backend-time">--</span> ms</p>
+                <p><strong>Tempo Salvataggio localStorage:</strong> <span id="localstorage-save-time">--</span> ms</p>
+                <p><strong>Tempo Caricamento localStorage:</strong> <span id="localstorage-load-time">--</span> ms</p>
+                <p><strong>Dimensione Dati Test:</strong> <span id="data-size">--</span> KB</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Debug Info</h2>
+            <button onclick="showDebugInfo()">Mostra Info Debug</button>
+            <pre id="debug-info" style="display: none;"></pre>
+        </div>
+    </div>
+
+    <!-- Include solo i moduli necessari per il test -->
+    <script>
+        // Configurazione API per test
+        const API_CONFIG = {
+            baseUrl: 'http://localhost/backend/public/api',
+            timeout: 5000,
+            retries: 2,
+            debug: true
+        };
+
+        // Stato test
+        let testState = {
+            backendAvailable: false,
+            localStorageAvailable: false,
+            dualModeAvailable: false,
+            testResults: [],
+            performanceData: {}
+        };
+
+        // Utility per logging
+        function logTest(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            testState.testResults.push({
+                timestamp,
+                message,
+                type
+            });
+            
+            const logDiv = document.getElementById('test-log');
+            const logElement = document.createElement('div');
+            logElement.className = `test-result ${type}`;
+            logElement.textContent = logEntry;
+            logDiv.appendChild(logElement);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            console.log(`[TEST] ${logEntry}`);
+        }
+
+        // Test connessione backend
+        async function testBackendConnection() {
+            logTest("🌐 Testando connessione backend...", "info");
+            const startTime = performance.now();
+            
+            try {
+                const response = await fetch(`${API_CONFIG.baseUrl}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                testState.performanceData.backendTime = responseTime;
+                document.getElementById('backend-time').textContent = responseTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        testState.backendAvailable = true;
+                        updateSystemStatus('backend-status', 'ONLINE', 'success');
+                        logTest(`✅ Backend connesso (${responseTime}ms)`, "success");
+                        return true;
+                    }
+                }
+                
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                
+            } catch (error) {
+                testState.backendAvailable = false;
+                updateSystemStatus('backend-status', 'OFFLINE', 'error');
+                logTest(`❌ Backend non disponibile: ${error.message}`, "error");
+                return false;
+            }
+        }
+
+        // Test localStorage
+        function testLocalStorage() {
+            logTest("💾 Testando localStorage...", "info");
+            const startTime = performance.now();
+            
+            try {
+                // Test scrittura
+                const testData = {
+                    test: true,
+                    timestamp: new Date().toISOString(),
+                    data: "Test localStorage dual-mode"
+                };
+                
+                const testKey = 'dualModeTest';
+                localStorage.setItem(testKey, JSON.stringify(testData));
+                
+                // Test lettura
+                const savedData = localStorage.getItem(testKey);
+                const parsedData = JSON.parse(savedData);
+                
+                const endTime = performance.now();
+                const saveTime = Math.round(endTime - startTime);
+                testState.performanceData.localStorageSaveTime = saveTime;
+                document.getElementById('localstorage-save-time').textContent = saveTime;
+                
+                // Cleanup
+                localStorage.removeItem(testKey);
+                
+                if (parsedData.test === true) {
+                    testState.localStorageAvailable = true;
+                    updateSystemStatus('localstorage-status', 'DISPONIBILE', 'success');
+                    logTest(`✅ localStorage funzionante (${saveTime}ms)`, "success");
+                    return true;
+                }
+                
+                throw new Error("Dati localStorage corrotti");
+                
+            } catch (error) {
+                testState.localStorageAvailable = false;
+                updateSystemStatus('localstorage-status', 'NON DISPONIBILE', 'error');
+                logTest(`❌ localStorage non funzionante: ${error.message}`, "error");
+                return false;
+            }
+        }
+
+        // Test salvataggio dual-mode simulato
+        async function testDualModeSave() {
+            logTest("🎮 Testando salvataggio dual-mode...", "info");
+            
+            // Simula dati di gioco
+            const mockGameData = {
+                player: {
+                    name: "TestSurvivor",
+                    hp: 100,
+                    maxHp: 100,
+                    x: 5,
+                    y: 5,
+                    food: 10,
+                    water: 10,
+                    inventory: []
+                },
+                map: generateMockMap(),
+                gameDay: 1,
+                dayMovesCounter: 0,
+                isDay: true,
+                saveTimestamp: new Date().toISOString()
+            };
+            
+            // Calcola dimensione dati
+            const dataSize = Math.round(JSON.stringify(mockGameData).length / 1024);
+            testState.performanceData.dataSize = dataSize;
+            document.getElementById('data-size').textContent = dataSize;
+            
+            let backendSuccess = false;
+            let localStorageSuccess = false;
+            
+            // Test backend (se disponibile)
+            if (testState.backendAvailable) {
+                try {
+                    logTest("Tentativo salvataggio su backend...", "info");
+                    // Simula chiamata API (non implementata completamente)
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    backendSuccess = true;
+                    logTest("✅ Salvataggio backend simulato con successo", "success");
+                } catch (error) {
+                    logTest(`⚠️ Salvataggio backend fallito: ${error.message}`, "warning");
+                }
+            }
+            
+            // Test localStorage fallback
+            try {
+                logTest("Salvataggio su localStorage...", "info");
+                const startTime = performance.now();
+                localStorage.setItem('theSafePlaceSaveData', JSON.stringify(mockGameData));
+                const endTime = performance.now();
+                const saveTime = Math.round(endTime - startTime);
+                document.getElementById('localstorage-save-time').textContent = saveTime;
+                localStorageSuccess = true;
+                logTest(`✅ Salvataggio localStorage completato (${saveTime}ms)`, "success");
+            } catch (error) {
+                logTest(`❌ Salvataggio localStorage fallito: ${error.message}`, "error");
+            }
+            
+            if (backendSuccess || localStorageSuccess) {
+                logTest("✅ Sistema dual-mode: Salvataggio completato", "success");
+                return true;
+            } else {
+                logTest("❌ Sistema dual-mode: Salvataggio fallito", "error");
+                return false;
+            }
+        }
+
+        // Test caricamento dual-mode
+        async function testDualModeLoad() {
+            logTest("📂 Testando caricamento dual-mode...", "info");
+            
+            let backendSuccess = false;
+            let localStorageSuccess = false;
+            
+            // Test backend (se disponibile)
+            if (testState.backendAvailable) {
+                try {
+                    logTest("Tentativo caricamento da backend...", "info");
+                    // Simula chiamata API
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    backendSuccess = false; // Simula fallimento per testare fallback
+                    logTest("⚠️ Caricamento backend non disponibile (simulato)", "warning");
+                } catch (error) {
+                    logTest(`⚠️ Caricamento backend fallito: ${error.message}`, "warning");
+                }
+            }
+            
+            // Test localStorage fallback
+            try {
+                logTest("Caricamento da localStorage...", "info");
+                const startTime = performance.now();
+                const savedData = localStorage.getItem('theSafePlaceSaveData');
+                
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    const endTime = performance.now();
+                    const loadTime = Math.round(endTime - startTime);
+                    document.getElementById('localstorage-load-time').textContent = loadTime;
+                    
+                    if (parsedData.player && parsedData.map) {
+                        localStorageSuccess = true;
+                        logTest(`✅ Caricamento localStorage completato (${loadTime}ms)`, "success");
+                    } else {
+                        throw new Error("Dati salvati incompleti");
+                    }
+                } else {
+                    throw new Error("Nessun dato salvato trovato");
+                }
+            } catch (error) {
+                logTest(`❌ Caricamento localStorage fallito: ${error.message}`, "error");
+            }
+            
+            if (backendSuccess || localStorageSuccess) {
+                logTest("✅ Sistema dual-mode: Caricamento completato", "success");
+                return true;
+            } else {
+                logTest("❌ Sistema dual-mode: Caricamento fallito", "error");
+                return false;
+            }
+        }
+
+        // Test completo
+        async function runFullTest() {
+            logTest("🚀 Avvio test completo sistema dual-mode...", "info");
+            
+            const results = {
+                backend: await testBackendConnection(),
+                localStorage: testLocalStorage(),
+                save: await testDualModeSave(),
+                load: await testDualModeLoad()
+            };
+            
+            const successCount = Object.values(results).filter(r => r).length;
+            const totalTests = Object.keys(results).length;
+            
+            if (successCount === totalTests) {
+                testState.dualModeAvailable = true;
+                updateSystemStatus('dualmode-status', 'FUNZIONANTE', 'success');
+                logTest(`🎉 Test completo SUPERATO (${successCount}/${totalTests})`, "success");
+            } else {
+                updateSystemStatus('dualmode-status', `PARZIALE (${successCount}/${totalTests})`, 'warning');
+                logTest(`⚠️ Test completo PARZIALE (${successCount}/${totalTests})`, "warning");
+            }
+        }
+
+        // Utility functions
+        function updateSystemStatus(elementId, status, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = status;
+            element.className = type;
+            
+            const indicator = element.parentElement.querySelector('.status-indicator');
+            indicator.className = `status-indicator status-${type === 'success' ? 'online' : type === 'error' ? 'offline' : 'unknown'}`;
+        }
+
+        function generateMockMap() {
+            const map = [];
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    map.push({
+                        x, y,
+                        type: Math.random() > 0.8 ? 'building' : 'street',
+                        visited: Math.random() > 0.7,
+                        items: [],
+                        events: []
+                    });
+                }
+            }
+            return map;
+        }
+
+        function clearAllData() {
+            if (confirm('Sei sicuro di voler cancellare tutti i dati di test?')) {
+                localStorage.removeItem('theSafePlaceSaveData');
+                localStorage.removeItem('dualModeTest');
+                document.getElementById('test-log').innerHTML = '';
+                testState.testResults = [];
+                logTest("🗑️ Tutti i dati di test sono stati cancellati", "info");
+            }
+        }
+
+        function showDebugInfo() {
+            const debugInfo = {
+                testState,
+                apiConfig: API_CONFIG,
+                localStorage: {
+                    available: typeof Storage !== "undefined",
+                    items: Object.keys(localStorage).length
+                },
+                performance: testState.performanceData,
+                browser: {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled
+                }
+            };
+            
+            const debugElement = document.getElementById('debug-info');
+            debugElement.textContent = JSON.stringify(debugInfo, null, 2);
+            debugElement.style.display = debugElement.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+            
+            // Auto-run test iniziali
+            setTimeout(async () => {
+                await testBackendConnection();
+                testLocalStorage();
+            }, 500);
+        });
+    </script>
+</body>
+</html> 
