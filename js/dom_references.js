@@ -129,8 +129,15 @@ function assignAllDOMReferences() {
     DOM.endTitle = document.getElementById('end-title') || null;
     DOM.endMessage = document.getElementById('end-message') || null;
 
-    // Bottone Salvataggio (NUOVO)
-    DOM.saveGameButton = document.getElementById('save-game-button');
+    // Elementi interfaccia retro
+    DOM.saveLocalOption = document.getElementById('save-local-option');
+    DOM.saveDownloadOption = document.getElementById('save-download-option');
+    DOM.saveUploadOption = document.getElementById('save-upload-option');
+    DOM.craftingOption = document.querySelector('.crafting-option');
+    
+    // Elementi movimento retro
+    DOM.movementKeys = document.querySelectorAll('.movement-key');
+    DOM.saveOptions = document.querySelectorAll('.save-option');
 
     // Riferimenti Tooltip Mappa (NUOVO)
     DOM.mapTooltip = document.getElementById('map-tooltip') || null;

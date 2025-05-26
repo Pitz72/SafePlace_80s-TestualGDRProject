@@ -111,6 +111,9 @@ const CharacterManager = {
     showCharacterSelection() {
         if (!characterManagerState.isBackendMode) {
             // In modalità localStorage, avvia direttamente il gioco
+            if (typeof showScreen === 'function' && typeof DOM !== 'undefined') {
+                showScreen(DOM.gameContainer);
+            }
             if (typeof initializeGame === 'function') {
                 initializeGame();
             }

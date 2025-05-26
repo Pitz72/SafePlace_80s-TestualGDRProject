@@ -300,6 +300,104 @@ const EVENT_DATA = {
                  { text: "Esplorare i resti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Mentre ti arrampichi sulla struttura del vecchio scivolo, noti un piccolo vano segreto. Dentro, una scatoletta di cibo e una bottiglia d'acqua, insieme a un piccolo oggetto utile.", successReward: { items: [{ itemId: 'canned_food', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "La struttura metallica cede sotto il tuo peso, facendoti cadere. Non c'era nulla di utile, solo fantasmi di risate perdute.", isSearchAction: true, actionKey: "explore_playground_remains" },
                  { text: "Riflettere in silenzio", outcome: "Ti siedi sull'altalena, lasciando che i ricordi affiorino. Questa pausa ti ridà energia mentale, anche se il tempo è prezioso." }
              ]
+        },
+        // NUOVI EVENTI PIANURE
+        {
+            id: "plains_lonely_flower",
+            title: "Fiore Solitario",
+            description: "In mezzo all'aridità, un singolo, tenace fiore di un colore innaturalmente vivido lotta per la sopravvivenza. È un piccolo, strano segno di vita in questo nulla.",
+            choices: [
+                { text: "Osservare da vicino (Presagio)", skillCheck: { stat: 'presagio', difficulty: 10 }, successText: "Il fiore emana una strana energia. Toccandolo delicatamente, senti una sensazione di pace e trovi delle bacche nascoste alla base.", successReward: { items: [{ itemId: 'berries', quantity: 2 }, { itemId: 'vitamins', quantity: 1 }] }, failureText: "È solo un fiore. Bello, ma inutile per la sopravvivenza.", actionKey: "observe_flower_closely" },
+                { text: "Raccogliere il fiore", outcome: "Raccogli il fiore colorato. Forse non ha utilità pratica, ma la sua bellezza ti ricorda che c'è ancora speranza nel mondo.", successReward: { itemId: 'cloth_rags', quantity: 1 } },
+                { text: "Lasciare il fiore", outcome: "Decidi di lasciare che il fiore continui la sua lotta solitaria. Prosegui, portando con te l'immagine di quella piccola vittoria della vita." }
+            ]
+        },
+        {
+            id: "plains_rusty_sign",
+            title: "Cartello Arrugginito",
+            description: "Un vecchio cartello stradale, piegato e corroso dalla ruggine, emerge a malapena dal terreno. Le scritte sono quasi illeggibili, ma forse indica qualcosa di importante... o di pericoloso.",
+            choices: [
+                { text: "Decifrare le scritte (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Pulendo la ruggine, riesci a leggere: 'Rifugio 15 km E'. Trovi anche del metallo utilizzabile dal cartello.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "La ruggine ha corroso troppo il metallo. Le scritte sono illeggibili.", isSearchAction: true, actionKey: "decipher_sign" },
+                { text: "Controllare la base (Tracce)", skillCheck: { stat: 'tracce', difficulty: 9 }, successText: "Scavando attorno alla base del cartello, trovi una piccola cache nascosta da qualche viaggiatore.", successReward: { items: [{ itemId: 'water_bottle', quantity: 1 }, { itemId: 'ration_pack', quantity: 1 }] }, failureText: "Solo terra e radici secche. Nulla di interessante.", isSearchAction: true, actionKey: "check_sign_base" },
+                { text: "Ignorare il cartello", outcome: "Decidi che non vale la pena perdere tempo con un vecchio cartello arrugginito. Prosegui per la tua strada." }
+            ]
+        },
+        {
+            id: "plains_dust_devil",
+            title: "Diavolo di Polvere",
+            description: "Un piccolo ma intenso turbine di polvere e detriti si forma improvvisamente davanti a te, danzando sulla pianura.",
+            choices: [
+                { text: "Attraversare rapidamente (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Corri attraverso il turbine con agilità. La polvere ti sferza, ma nel centro trovi oggetti sollevati dal vento.", successReward: { items: [{ itemId: 'cloth_rags', quantity: 1 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "Il turbine ti travolge, riempiendoti occhi e polmoni di polvere. Tossisci e ti allontani, disorientato.", actionKey: "cross_dust_devil" },
+                { text: "Fare un largo giro", outcome: "Decidi di aggirare il turbine, perdendo un po' di tempo ma evitando il rischio. La prudenza è spesso la scelta migliore." },
+                { text: "Aspettare che si dissolva", outcome: "Ti fermi e osservi il turbine danzare. Dopo qualche minuto si dissolve naturalmente, lasciando solo polvere nell'aria." }
+            ]
+        },
+        {
+            id: "plains_mirage",
+            title: "Miraggio Ingannevole",
+            description: "In lontananza, sotto il sole cocente, vedi quella che sembra un'oasi: acqua scintillante e vegetazione lussureggiante. Potrebbe essere reale, o un crudele scherzo della tua mente affaticata.",
+            choices: [
+                { text: "Avvicinarsi con cautela (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Il tuo istinto ti dice che è un miraggio, ma investigando la zona trovi una piccola sorgente nascosta e qualche risorsa.", successReward: { items: [{ itemId: 'water_purified', quantity: 1 }, { itemId: 'berries', quantity: 1 }] }, failureText: "Era solo un miraggio. Ti ritrovi in mezzo al nulla, più assetato e deluso di prima.", isSearchAction: true, actionKey: "approach_mirage" },
+                { text: "Ignorare la visione", outcome: "Scuoti la testa e continui per la tua strada. I miraggi sono crudeli inganni del deserto, meglio non farsi tentare." }
+            ]
+        },
+        {
+            id: "plains_fallen_scavenger",
+            title: "Saccheggiatore Caduto",
+            description: "Trovi il corpo di un altro sventurato, evidentemente un saccheggiatore, morto da poco. Il suo zaino è semiaperto.",
+            choices: [
+                { text: "Frugare nello zaino (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Con rispetto per il morto, esamini lo zaino. Trovi provviste utili e un'arma.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_weapon_item', quantity: 1 }] }, failureText: "Lo zaino è vuoto o il contenuto è rovinato. Il povero diavolo non aveva molto.", isSearchAction: true, actionKey: "search_scavenger_pack" },
+                { text: "Controllare i dintorni (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Esamini la scena. Segni di lotta, ma anche indizi su cosa abbia ucciso il saccheggiatore. Trovi delle munizioni sparse.", successReward: { items: [{ type: 'random_ammo_item', quantity: 1 }, { itemId: 'bandages_dirty', quantity: 1 }] }, failureText: "Non riesci a capire cosa sia successo. Meglio non indugiare troppo.", isSearchAction: true, actionKey: "investigate_death_scene" },
+                { text: "Lasciare stare", outcome: "Decidi di rispettare il morto e non disturbare i suoi resti. Sussurri una preghiera e prosegui." }
+            ]
+        },
+        {
+            id: "plains_burned_patch",
+            title: "Chiazza Bruciata",
+            description: "Un'ampia zona di terreno è annerita e vetrificata, come se qualcosa di estremamente caldo fosse esploso o caduto qui. Al centro, qualcosa luccica debolmente.",
+            choices: [
+                { text: "Avvicinarsi al centro (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Resistendo al calore residuo, raggiungi il centro. Trovi frammenti metallici fusi e componenti tecnologici.", successReward: { items: [{ itemId: 'mechanical_parts', quantity: 2 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "Il calore è ancora troppo intenso. Ti allontani con le mani bruciacchiate.", actionKey: "approach_burn_center" },
+                { text: "Esaminare i margini (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai margini della zona bruciata trovi oggetti scagliati via dall'esplosione.", successReward: { items: [{ itemId: 'cloth_rags', quantity: 2 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Solo cenere e detriti carbonizzati. Nulla di utile.", isSearchAction: true, actionKey: "examine_burn_edges" },
+                { text: "Evitare l'area", outcome: "Decidi che l'area è troppo pericolosa. Qualunque cosa sia successa qui, è meglio non rischiare." }
+            ]
+        },
+        {
+            id: "plains_whispers_wind",
+            title: "Sussurri nel Vento",
+            description: "Il vento sembra trasportare voci distorte e frammenti di melodie dimenticate. Stai impazzendo o c'è qualcos'altro là fuori?",
+            choices: [
+                { text: "Concentrarsi sui suoni (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Ascoltando attentamente, distingui parole in una lingua antica. Ti guidano verso un piccolo tesoro nascosto.", successReward: { items: [{ itemId: 'vitamins', quantity: 1 }, { itemId: 'lore_fragment_item', quantity: 1 }] }, failureText: "I sussurri si trasformano in un ronzio inquietante. Ti allontani, sentendoti a disagio.", actionKey: "listen_to_whispers" },
+                { text: "Ignorare i suoni", outcome: "Decidi che è solo il vento che gioca brutti scherzi. Ti tappi le orecchie e acceleri il passo." }
+            ]
+        },
+        {
+            id: "plains_old_well",
+            title: "Vecchio Pozzo Secco",
+            description: "Ti imbatti in un vecchio pozzo di pietra, chiaramente in disuso da decenni. La carrucola è arrugginita e non c'è traccia di una corda.",
+            choices: [
+                { text: "Guardare all'interno (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Sporgendoti con cautela, vedi qualcosa lucciccare sul fondo. Con improvvisazione, riesci a recuperarlo.", successReward: { items: [{ itemId: 'water_bottle', quantity: 1 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "Il pozzo è troppo profondo e buio. Non riesci a vedere nulla di utile.", actionKey: "look_into_well" },
+                { text: "Cercare una corda (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Improvvisi una corda con stracci e rami. Riesci a esplorare il pozzo e trovare un piccolo tesoro.", successReward: { items: [{ itemId: 'water_purified', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 1 }] }, failureText: "Non riesci a creare nulla di abbastanza resistente per esplorare il pozzo.", isSearchAction: true, actionKey: "improvise_rope" },
+                { text: "Lasciare perdere", outcome: "Decidi che il pozzo è troppo rischioso. Meglio non rischiare di cadere dentro." }
+            ]
+        },
+        {
+            id: "plains_scrap_pile",
+            title: "Cumulo di Rottami",
+            description: "Un ammasso contorto di metallo arrugginito, plastica fusa e altri detriti irriconoscibili. Potrebbe nascondere qualcosa di utile o solo taglienti sorprese.",
+            choices: [
+                { text: "Frugare con attenzione (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Con pazienza e attenzione, riesci a estrarre materiali utili senza ferirti.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 3 }, { itemId: 'mechanical_parts', quantity: 1 }] }, failureText: "Ti tagli con un pezzo di metallo affilato. I rottami sono troppo pericolosi da maneggiare.", actionKey: "carefully_search_scrap" },
+                { text: "Evitare il cumulo", outcome: "Decidi che non vale la pena rischiare di ferirsi con i rottami taglienti. Prosegui oltre." }
+            ]
+        },
+        {
+            id: "plains_traveler_tracks",
+            title: "Tracce di un Viandante Solitario",
+            description: "Noti delle impronte chiare e recenti che attraversano la pianura. Appartengono a una singola persona, che sembrava muoversi con uno scopo.",
+            choices: [
+                { text: "Seguire le tracce (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Le tracce ti conducono a una piccola cache nascosta dal viandante. Forse un deposito di emergenza.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'bandages_clean', quantity: 1 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Le tracce si perdono su terreno roccioso. Non riesci a seguirle oltre.", isSearchAction: true, actionKey: "follow_traveler_tracks" },
+                { text: "Andare nella direzione opposta", outcome: "Decidi di evitare di incontrare il viandante. Vai nella direzione opposta, preferendo la solitudine." },
+                { text: "Ignorare le tracce", outcome: "Le tracce non ti interessano. Continui per il tuo cammino senza deviazioni." }
+            ]
         }
     ],
     FOREST: [
@@ -335,7 +433,108 @@ const EVENT_DATA = {
             description: "Una casa sull'albero malconcia, costruita prima del Crollo, si nasconde tra i rami nodosi. Scale improvvisate di corda danneggiate pendono fino a terra. Potrebbe essere stata il nascondiglio di qualcuno della tua età.",
             choices: [
                 { text: "Arrampicarsi (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Ti arrampichi con cautela. Dentro trovi un diario, delle vitamine e un arco improvvisato lasciato da un altro giovane sopravvissuto.", successReward: { items: [{ itemId: 'vitamins', quantity: 1 }, { itemId: 'improvised_bow', quantity: 1}, {itemId: 'map_fragment_local', quantity: 1}] }, failureText: "La corda marcia si spezza sotto il tuo peso. Cadi malamente, sbattendo contro un ramo. Un rifugio fuori portata, per ora.", isSearchAction: true, actionKey: "climb_treehouse" },
-                { text: "Ispezionare la base (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai piedi dell'albero trovi un piccolo contenitore impermeabile. Dentro, bende pulite e un po' di cibo.", successReward: { items: [{ itemId: 'bandages_clean', quantity: 1 }, { type: 'random_food_item', quantity: 1 }] }, failureText: "Non trovi nulla di utile alla base. Forse ogni cosa di valore è stata già presa, o si trova ancora lassù, irraggiungibile.", isSearchAction: true, actionKey: "inspect_treehouse_base" }
+                                 { text: "Ispezionare la base (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai piedi dell'albero trovi un piccolo contenitore impermeabile. Dentro, bende pulite e un po' di cibo.", successReward: { items: [{ itemId: 'bandages_clean', quantity: 1 }, { type: 'random_food_item', quantity: 1 }] }, failureText: "Non trovi nulla di utile alla base. Forse ogni cosa di valore è stata già presa, o si trova ancora lassù, irraggiungibile.", isSearchAction: true, actionKey: "inspect_treehouse_base" }
+            ]
+         },
+         // NUOVI EVENTI FORESTA
+         {
+            id: "forest_sacrificial_tree",
+            title: "Albero Sacrificale",
+            description: "Un albero antico e imponente si erge al centro di una piccola radura. Attorno al suo tronco sono legati strani feticci fatti di ossa, stracci e metallo arrugginito. Emana un'aura inquietante.",
+            choices: [
+                { text: "Esaminare i feticci (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "I feticci nascondono piccoli oggetti di valore, forse offerte. Trovi medicine e materiali utili.", successReward: { items: [{ itemId: 'medicine_crude', quantity: 1 }, { itemId: 'cloth_rags', quantity: 2 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "I feticci emanano un'energia malvagia. Ti allontani rapidamente, sentendoti osservato.", actionKey: "examine_fetishes" },
+                { text: "Danneggiare l'albero (Potenza)", skillCheck: { stat: 'potenza', difficulty: 14 }, successText: "Con forza, strappi alcuni feticci e danneggi la corteccia. Trovi oggetti nascosti nelle cavità.", successReward: { items: [{ itemId: 'vitamins', quantity: 1 }, { type: 'random_weapon_item', quantity: 1 }] }, failureText: "L'albero sembra resistere ai tuoi sforzi. I feticci si muovono da soli nel vento.", actionKey: "damage_tree", usesWeapon: true },
+                { text: "Lasciare la radura", outcome: "Decidi che questo luogo è troppo inquietante. Ti allontani rapidamente, sentendo gli occhi invisibili seguirti." }
+            ]
+         },
+         {
+            id: "forest_distant_songs",
+            title: "Eco di Canti Lontani",
+            description: "Tra il fruscio delle foglie, ti sembra di udire l'eco sommesso di un canto o una melodia malinconica provenire dalle profondità della foresta.",
+            choices: [
+                { text: "Seguire il suono (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Il canto ti guida verso una piccola grotta nascosta. All'interno trovi i resti di un accampamento e provviste.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'bandages_clean', quantity: 1 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Il suono si allontana sempre di più, portandoti in circolo. Ti ritrovi dove hai iniziato.", isSearchAction: true, actionKey: "follow_song" },
+                { text: "Ignorare il canto", outcome: "Decidi che è meglio non farsi attirare da suoni misteriosi nella foresta. Continui per il sentiero principale." },
+                { text: "Gridare per rispondere", outcome: "Gridi verso la fonte del canto. Il suono si interrompe bruscamente, lasciando solo un silenzio inquietante." }
+            ]
+         },
+         {
+            id: "forest_hunter_trap",
+            title: "Trappola del Cacciatore Dimenticata",
+            description: "Scorgi una vecchia trappola per animali, forse un grosso tagliola o un laccio, parzialmente nascosta dalle foglie. Sembra ancora armata.",
+            choices: [
+                { text: "Disarmare la trappola (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Con attenzione, riesci a disarmare la trappola e recuperare il metallo e i meccanismi.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { itemId: 'mechanical_parts', quantity: 1 }, { itemId: 'rope', quantity: 1 }] }, failureText: "La trappola scatta mentre cerchi di disarmarla. Per fortuna non ti ferisce, ma è inutilizzabile.", actionKey: "disarm_trap" },
+                { text: "Usare come esca (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Attiri un piccolo animale nella trappola. Carne fresca per cena.", successReward: { items: [{ itemId: 'meat_raw', quantity: 1 }, { itemId: 'cloth_rags', quantity: 1 }] }, failureText: "Nessun animale si avvicina alla trappola. Forse sanno che è pericolosa.", isSearchAction: true, actionKey: "use_trap_bait" },
+                { text: "Segnalare e aggirare", outcome: "Segni la trappola con un ramo per evitarla e la aggiri con cautela. Meglio non rischiare." }
+            ]
+         },
+         {
+            id: "forest_symbiotic_plant",
+            title: "Simbionte Vegetale",
+            description: "Un cadavere di animale è completamente avvolto da una strana muffa o fungo luminescente che pulsa debolmente. La pianta sembra aver consumato e integrato la creatura.",
+            choices: [
+                { text: "Prelevare un campione (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Con cautela, prelevi parte del fungo. Potrebbe essere utile per medicine o come fonte di luce.", successReward: { items: [{ itemId: 'medicine_crude', quantity: 2 }, { itemId: 'vitamins', quantity: 1 }] }, failureText: "Il fungo rilascia spore tossiche quando lo tocchi. Ti allontani tossendo.", actionKey: "sample_symbiont" },
+                { text: "Distruggere con il fuoco (Potenza)", skillCheck: { stat: 'potenza', difficulty: 10 }, successText: "Bruci la simbiosi. Tra le ceneri trovi ossa e oggetti dell'animale originale.", successReward: { items: [{ itemId: 'charcoal', quantity: 2 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "Il fuoco si spegne rapidamente. Il fungo sembra resistente alle fiamme.", actionKey: "burn_symbiont", usesWeapon: true },
+                { text: "Osservare da lontano", outcome: "Decidi che è troppo pericoloso avvicinarsi. Osservi il fenomeno da distanza di sicurezza e prosegui." }
+            ]
+         },
+         {
+            id: "forest_hidden_path",
+            title: "Sentiero Nascosto",
+            description: "Noti un sentiero appena percettibile che si inoltra nel fitto della boscaglia, quasi invisibile a un occhio inesperto. Chissà dove conduce.",
+            choices: [
+                { text: "Seguire il sentiero (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Il sentiero ti conduce a una radura segreta con un piccolo rifugio abbandonato pieno di provviste.", successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_weapon_item', quantity: 1 }] }, failureText: "Il sentiero si perde nel fitto del bosco. Ti ritrovi più confuso di prima.", isSearchAction: true, actionKey: "follow_hidden_path" },
+                { text: "Segnare sulla mappa", outcome: "Segni la posizione del sentiero sulla tua mappa per esplorarlo in futuro. Potrebbe essere utile.", successReward: { itemId: 'map_fragment_local', quantity: 1 } },
+                { text: "Ignorare il sentiero", outcome: "Decidi di rimanere sui sentieri conosciuti. I percorsi nascosti possono nascondere pericoli." }
+            ]
+         },
+         {
+            id: "forest_whispering_tree",
+            title: "L'Albero dei Sussurri",
+            description: "Un albero cavo e contorto sembra emettere strani sussurri quando il vento ci passa attraverso. Alcuni dicono che questi alberi custodiscano segreti o attirino spiriti.",
+            choices: [
+                { text: "Ascoltare i sussurri (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "I sussurri ti rivelano la posizione di un tesoro nascosto nelle radici dell'albero.", successReward: { items: [{ itemId: 'vitamins', quantity: 1 }, { itemId: 'lore_fragment_item', quantity: 1 }, { type: 'random_rare_resource', quantity: 1 }] }, failureText: "I sussurri diventano un ronzio assordante. Ti allontani con un forte mal di testa.", actionKey: "listen_whispers" },
+                { text: "Lasciare un'offerta", outcome: "Lasci un piccolo oggetto alla base dell'albero come offerta. I sussurri sembrano placarsi.", successReward: { itemId: 'cloth_rags', quantity: 1 } },
+                { text: "Ignorare l'albero", outcome: "Decidi di non avere nulla a che fare con alberi che sussurrano. Prosegui rapidamente." }
+            ]
+         },
+         {
+            id: "forest_camouflaged_predator",
+            title: "Predatore Mimetizzato",
+            description: "Hai la netta sensazione di essere osservato. Tra il fogliame, qualcosa si muove, perfettamente mimetizzato con l'ambiente.",
+            choices: [
+                { text: "Attacco preventivo (Potenza)", skillCheck: { stat: 'potenza', difficulty: 14 }, successText: "Il tuo attacco colpisce nel segno. La creatura ferita fugge, lasciando cadere qualcosa.", successReward: { items: [{ itemId: 'meat_raw', quantity: 1 }, { itemId: 'cloth_rags', quantity: 1 }] }, failureText: "Il tuo attacco colpisce solo rami e foglie. Qualunque cosa fosse, è fuggita.", actionKey: "preemptive_attack", usesWeapon: true },
+                { text: "Allontanarsi silenziosamente (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Ti allontani senza essere notato. Nella fuga, trovi un piccolo nascondiglio con provviste.", successReward: { items: [{ itemId: 'bandages_dirty', quantity: 1 }, { type: 'random_food_item', quantity: 1 }] }, failureText: "Pesti un ramo secco. Qualunque cosa ti stesse osservando ora sa dove sei.", actionKey: "sneak_away" },
+                { text: "Rimanere immobile", outcome: "Ti congeli sul posto, sperando di non essere visto. Dopo lunghi minuti, la sensazione di essere osservato svanisce." }
+            ]
+         },
+         {
+            id: "forest_contaminated_spring",
+            title: "Fonte Contaminata",
+            description: "Trovi una piccola sorgente d'acqua cristallina, un vero miraggio. Tuttavia, le piante intorno ad essa sono stranamente ingiallite e malate.",
+            choices: [
+                { text: "Raccogliere l'acqua (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Raccogli l'acqua con cautela. Sembra pulita, ma meglio purificarla prima di berla.", successReward: { items: [{ itemId: 'water_dirty', quantity: 2 }] }, failureText: "L'acqua ha un odore strano. Meglio non rischiare.", actionKey: "collect_contaminated_water" },
+                { text: "Investigare la contaminazione (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Scopri che la contaminazione proviene da minerali radioattivi. Trovi alcuni cristalli utili.", successReward: { items: [{ itemId: 'mechanical_parts', quantity: 1 }, { type: 'random_rare_resource', quantity: 1 }] }, failureText: "Non riesci a capire la causa della contaminazione. Meglio allontanarsi.", isSearchAction: true, actionKey: "investigate_contamination" },
+                { text: "Evitare la fonte", outcome: "Decidi che l'acqua contaminata non vale il rischio. Continui la ricerca di una fonte più sicura." }
+            ]
+         },
+         {
+            id: "forest_silent_grove",
+            title: "Il Bosco Silenzioso",
+            description: "Entri in una parte della foresta dove ogni suono sembra attutito. Non ci sono canti di uccelli, né il ronzio di insetti. Solo un silenzio innaturale e pesante.",
+            choices: [
+                { text: "Procedere con cautela (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "La tua cautela è premiata. Trovi segni di un vecchio accampamento e alcune provviste nascoste.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'bandages_clean', quantity: 1 }] }, failureText: "Il silenzio ti mette a disagio. Non trovi nulla e ti allontani rapidamente.", isSearchAction: true, actionKey: "proceed_cautiously" },
+                { text: "Fare rumore", outcome: "Gridi e fai rumore per rompere il silenzio. L'eco della tua voce suona strano e distorto." },
+                { text: "Tornare indietro", outcome: "Il silenzio innaturale ti spaventa. Torni sui tuoi passi verso una parte più normale della foresta." }
+            ]
+         },
+         {
+            id: "forest_exposed_roots",
+            title: "Radici Esposte",
+            description: "Un grosso albero è caduto, esponendo un intricato sistema di radici. Tra di esse, potresti trovare qualcosa di interessante o rimanere intrappolato.",
+            choices: [
+                { text: "Frugare tra le radici (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 10 }, successText: "Tra le radici intricate trovi oggetti sepolti da tempo e materiali utili.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 1 }, { itemId: 'cloth_rags', quantity: 2 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Ti incastri tra le radici e devi lottare per liberarti. Nessun tesoro, solo graffi.", actionKey: "search_roots" },
+                { text: "Usare come riparo", outcome: "Le radici esposte formano un riparo naturale. Ti riposi brevemente al sicuro." },
+                { text: "Evitare la zona", outcome: "Le radici sembrano instabili. Meglio non rischiare di rimanere intrappolato." }
             ]
          }
     ],
@@ -356,6 +555,107 @@ const EVENT_DATA = {
             choices: [
                 { text: "Fermarsi a riposare (Vigore)", skillCheck: { stat: 'vigore', difficulty: 10 }, successText: "Ti permetti un raro momento di pace. Lavi via la polvere del viaggio e raccogli i pensieri. Questo breve ristoro rinvigorisce il corpo e lo spirito. Ti senti pronto a continuare.", successReward: { items: [{ itemId: 'water_purified_small', quantity: 1 }, {type: 'random_food_item', quantity: 1}]}, failureText: "Cercando di rilassarti, la stanchezza ti travolge. Ti addormenti brevemente e ti svegli disorientato, sentendoti più affaticato di prima. Hai perso tempo prezioso.", isSearchAction: true, actionKey: "rest_by_river" },
                 { text: "Guardare oltre la superficie (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Scrutando più attentamente l'acqua, noti un bagliore metallico sul fondale poco profondo. Immergendo cautamente un braccio, recuperi un oggetto utile e un frammento di mappa.", successReward: { items: [{ itemId: 'mechanical_parts', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Mentre fissi l'acqua, la tua mente vaga. Visioni inquietanti di città sommerse e segreti sepolti ti turbano. Ti allontani dalla riva, sentendoti a disagio.", isSearchAction: true, actionKey: "look_beyond_surface" }
+            ]
+         },
+         // NUOVI EVENTI FIUME
+         {
+            id: "river_stranded_wreck",
+            title: "Relitto Incagliato",
+            description: "Lo scheletro arrugginito di una piccola imbarcazione o di un veicolo anfibio è incagliato sulla riva o su un banco di sabbia al centro del fiume torbido.",
+            choices: [
+                { text: "Raggiungere il relitto (Agilità)", skillCheck: { stat: 'agilita', difficulty: 12 }, successText: "Riesci a raggiungere il relitto guadando o saltando. All'interno trovi provviste e materiali utili.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'scrap_metal', quantity: 2 }, { itemId: 'rope', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "La corrente è più forte del previsto. Rischi di essere trascinato via e devi tornare a riva.", actionKey: "reach_wreck" },
+                { text: "Usare come postazione (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Dal relitto hai una buona visuale del fiume. Noti oggetti trasportati dalla corrente e li recuperi.", successReward: { items: [{ itemId: 'wood_planks', quantity: 2 }, { itemId: 'cloth_rags', quantity: 1 }] }, failureText: "Il relitto è troppo instabile per essere usato come postazione di osservazione.", actionKey: "use_as_post" },
+                { text: "Ignorare il relitto", outcome: "Decidi che raggiungere il relitto è troppo rischioso. Prosegui lungo la riva." }
+            ]
+         },
+         {
+            id: "river_mutated_fish",
+            title: "Pesci Mutati",
+            description: "Vedi dei pesci dalle forme strane e dai colori innaturali nuotare vicino alla superficie. Alcuni sono grossi, altri hanno troppi occhi o pinne deformi.",
+            choices: [
+                { text: "Tentare di pescare (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Riesci a catturare alcuni pesci mutati. Sembrano commestibili, anche se dall'aspetto strano.", successReward: { items: [{ itemId: 'meat_raw', quantity: 2 }, { itemId: 'fish_mutated', quantity: 1 }] }, failureText: "I pesci sono troppo veloci o aggressivi. Uno di loro cerca persino di mordere la tua improvvisata lenza.", actionKey: "attempt_fishing" },
+                { text: "Osservare il comportamento (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Osservando i pesci, capisci che sono relativamente innocui e noti dove si radunano oggetti sul fondale.", successReward: { items: [{ itemId: 'mechanical_parts', quantity: 1 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "I pesci si comportano in modo troppo erratico per essere compresi. Meglio non avvicinarsi.", actionKey: "observe_fish" },
+                { text: "Evitare l'acqua", outcome: "Decidi che pesci mutati significano acqua pericolosa. Ti allontani dalla riva e continui a monte." }
+            ]
+         },
+         {
+            id: "river_floating_debris",
+            title: "Oggetti Trasportati dalla Corrente",
+            description: "La corrente del fiume trasporta lentamente detriti di ogni tipo: plastica, legno, a volte contenitori sigillati o frammenti di qualcosa di più grande.",
+            choices: [
+                { text: "Afferrare gli oggetti (Agilità)", skillCheck: { stat: 'agilita', difficulty: 11 }, successText: "Con agilità, riesci ad afferrare alcuni oggetti utili trasportati dalla corrente.", successReward: { items: [{ itemId: 'plastic_containers', quantity: 2 }, { itemId: 'wood_planks', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Gli oggetti scivolano via dalle tue mani o sono troppo lontani dalla riva per essere raggiunti.", actionKey: "grab_debris" },
+                { text: "Costruire una trappola (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Improvvisi una piccola diga o rete per intrappolare i detriti. Raccogli una buona quantità di materiali.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { itemId: 'cloth_rags', quantity: 2 }, { itemId: 'rope', quantity: 1 }] }, failureText: "La tua trappola improvvisata viene spazzata via dalla corrente. Hai perso tempo e materiali.", isSearchAction: true, actionKey: "build_debris_trap" },
+                { text: "Osservare e aspettare", outcome: "Ti siedi sulla riva e osservi la corrente, sperando che porti qualcosa di veramente utile." }
+            ]
+         },
+         {
+            id: "river_collapsed_bridge",
+            title: "Il Ponte Crollato",
+            description: "I resti di un ponte crollato attraversano il fiume. Alcune sezioni sono sommerse, altre emergono come isole di cemento e acciaio contorto.",
+            choices: [
+                { text: "Attraversare sui resti (Agilità)", skillCheck: { stat: 'agilita', difficulty: 14 }, successText: "Con equilibrio e coraggio, riesci ad attraversare il fiume saltando sui resti del ponte.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 1 }] }, failureText: "Un pezzo di cemento cede sotto il tuo peso. Cadi in acqua e devi nuotare disperatamente verso la riva.", actionKey: "cross_bridge_remains" },
+                { text: "Cercare materiali (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Tra le macerie del ponte trovi materiali da costruzione e oggetti metallici utili.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 3 }, { itemId: 'concrete_chunks', quantity: 2 }] }, failureText: "Le macerie sono troppo pesanti o instabili per essere recuperate in sicurezza.", isSearchAction: true, actionKey: "search_bridge_materials" },
+                { text: "Usare come riparo", outcome: "Le sezioni emergenti del ponte offrono un riparo temporaneo dal vento e dalla pioggia." }
+            ]
+         },
+         {
+            id: "river_water_whispers",
+            title: "Sussurri dall'Acqua",
+            description: "Avvicinandoti alla riva, ti sembra di sentire dei sussurri o dei lamenti provenire dalla superficie dell'acqua torbida, come se qualcuno fosse intrappolato sotto.",
+            choices: [
+                { text: "Chiamare per rispondere (Influenza)", skillCheck: { stat: 'influenza', difficulty: 12 }, successText: "Chiami verso l'acqua. I sussurri si intensificano e ti guidano verso un oggetto sommerso vicino alla riva.", successReward: { items: [{ itemId: 'water_bottle', quantity: 1 }, { itemId: 'lore_fragment_item', quantity: 1 }] }, failureText: "I sussurri si trasformano in urla inquietanti. Ti allontani rapidamente, turbato.", actionKey: "call_to_whispers" },
+                { text: "Cercare la fonte (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Il tuo istinto ti guida verso la vera fonte dei suoni: un vecchio registratore impermeabile ancora funzionante.", successReward: { items: [{ itemId: 'electronic_device', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 1 }] }, failureText: "I sussurri sembrano provenire da ovunque e da nessun luogo. Ti allontani confuso.", isSearchAction: true, actionKey: "search_whisper_source" },
+                { text: "Allontanarsi rapidamente", outcome: "Decidi che i sussurri dall'acqua sono un cattivo presagio. Ti allontani velocemente dalla riva." }
+            ]
+         },
+         {
+            id: "river_dangerous_rapids",
+            title: "Rapide Pericolose",
+            description: "Il fiume si restringe e la corrente accelera, formando piccole rapide rumorose e piene di rocce affioranti. Attraversare qui sarebbe molto rischioso.",
+            choices: [
+                { text: "Cercare un guado (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Seguendo la riva, trovi un punto più calmo dove attraversare in sicurezza.", successReward: { items: [{ itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Non riesci a trovare un punto sicuro per attraversare. Le rapide si estendono troppo a lungo.", isSearchAction: true, actionKey: "find_ford" },
+                { text: "Costruire una zattera (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 15 }, successText: "Con grande abilità, costruisci una zattera robusta che riesce a superare le rapide.", successReward: { items: [{ itemId: 'wood_planks', quantity: 1 }, { itemId: 'rope', quantity: 1 }] }, failureText: "La tua zattera improvvisata si disintegra nelle rapide. Per fortuna riesci a nuotare verso la riva.", actionKey: "build_raft" },
+                { text: "Tentare l'attraversamento", outcome: "Decidi di rischiare l'attraversamento diretto. È pericoloso, ma a volte l'audacia paga." }
+            ]
+         },
+         {
+            id: "river_collapsed_bank",
+            title: "Argine Franato",
+            description: "Un tratto dell'argine del fiume è franato, creando una parete di fango instabile e rivelando strati di terra e detriti sepolti.",
+            choices: [
+                { text: "Esaminare la frana (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Nella parete franata trovi oggetti sepolti da tempo e minerali esposti.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { type: 'random_rare_resource', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 1 }] }, failureText: "La parete è troppo instabile. Mentre la esamini, altri pezzi di terra cadono.", actionKey: "examine_landslide" },
+                { text: "Scalare la frana (Agilità)", skillCheck: { stat: 'agilita', difficulty: 13 }, successText: "Riesci a scalare la frana e raggiungere un punto elevato con una buona vista della zona.", successReward: { items: [{ itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Il terreno cede sotto i tuoi piedi. Scivoli giù nella frana, coperto di fango.", actionKey: "climb_landslide" },
+                { text: "Evitare la zona", outcome: "Decidi che la frana è troppo pericolosa. Aggiri la zona instabile con un percorso più lungo." }
+            ]
+         },
+         {
+            id: "river_amphibian_nests",
+            title: "Nidi sulle Rive",
+            description: "Lungo le rive fangose, noti numerosi nidi o tane di creature anfibie o semi-acquatiche. Alcuni sembrano occupati.",
+            choices: [
+                { text: "Cercare uova (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Con cautela, riesci a prendere alcune uova dai nidi abbandonati. Proteine fresche.", successReward: { items: [{ itemId: 'eggs_fresh', quantity: 2 }, { itemId: 'meat_raw', quantity: 1 }] }, failureText: "Le creature madri tornano ai nidi. Devi scappare rapidamente per evitare i loro attacchi.", actionKey: "search_eggs" },
+                { text: "Osservare le creature (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Osservando le creature, capisci i loro schemi comportamentali e trovi un nascondiglio sicuro.", successReward: { items: [{ itemId: 'cloth_rags', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Le creature si accorgono della tua presenza e diventano aggressive. Meglio allontanarsi.", actionKey: "observe_creatures" },
+                { text: "Evitare i nidi", outcome: "Decidi di non disturbare le creature nei loro nidi. Aggiri la zona con rispetto per la fauna locale." }
+            ]
+         },
+         {
+            id: "river_inaccessible_island",
+            title: "L'Isolotto Inaccessibile",
+            description: "Al centro del fiume, un piccolo isolotto verdeggiante sembra un'oasi di pace. Raggiungerlo, però, richiederebbe di attraversare la corrente forte e l'acqua sospetta.",
+            choices: [
+                { text: "Costruire un ponte (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 14 }, successText: "Con ingegno, costruisci un ponte improvvisato per raggiungere l'isola. Trovi un piccolo tesoro nascosto.", successReward: { items: [{ itemId: 'ration_pack', quantity: 1 }, { itemId: 'water_purified', quantity: 1 }, { type: 'random_rare_resource', quantity: 1 }] }, failureText: "Il tuo ponte improvvisato crolla a metà costruzione. I materiali vengono trascinati via dalla corrente.", actionKey: "build_bridge" },
+                { text: "Nuotare attraverso (Vigore)", skillCheck: { stat: 'vigore', difficulty: 15 }, successText: "Con forza e determinazione, riesci a nuotare fino all'isola e tornare indietro.", successReward: { items: [{ itemId: 'berries', quantity: 2 }, { itemId: 'medicine_crude', quantity: 1 }] }, failureText: "La corrente è troppo forte. Vieni trascinato a valle e devi lottare per raggiungere la riva.", actionKey: "swim_across" },
+                { text: "Ammirare da lontano", outcome: "Decidi che l'isola è troppo bella e pericolosa per essere raggiunta. La ammiri da lontano e prosegui." }
+            ]
+         },
+         {
+            id: "river_message_bottle",
+            title: "Il Messaggio nella Bottiglia",
+            description: "Incagliata tra i detriti sulla riva, noti una vecchia bottiglia sigillata. All'interno sembra esserci un pezzo di carta arrotolato.",
+            choices: [
+                { text: "Aprire la bottiglia (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 10 }, successText: "Riesci ad aprire la bottiglia senza romperla. Il messaggio contiene informazioni preziose e coordinate.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 1 }, { itemId: 'map_fragment_local', quantity: 1 }, { itemId: 'water_bottle', quantity: 1 }] }, failureText: "La bottiglia si rompe mentre cerchi di aprirla. Il messaggio si bagna e diventa illeggibile.", actionKey: "open_bottle" },
+                { text: "Rimettere in acqua", outcome: "Decidi di lasciare che il messaggio continui il suo viaggio. Lo rilanci nel fiume, sperando raggiunga qualcun altro." },
+                { text: "Conservare sigillata", outcome: "Tieni la bottiglia sigillata come un misterioso artefatto. Forse un giorno scoprirai cosa contiene.", successReward: { itemId: 'mystery_bottle', quantity: 1 } }
             ]
          }
     ],
@@ -386,6 +686,107 @@ const EVENT_DATA = {
                  { text: "Cercare nella biblioteca (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Tra scaffali crollati e libri ammuffiti, trovi un manuale di primo soccorso e un frammento di mappa locale.", successReward: { items: [{ itemId: 'first_aid_kit', quantity: 1 }, {itemId: 'map_fragment_local', quantity: 1}] }, failureText: "La biblioteca è un disastro di carta marcita e polvere. Qualsiasi cosa utile è stata danneggiata dall'umidità o saccheggiata tempo fa.", isSearchAction: true, actionKey: "search_school_library" },
                  { text: "Ispezionare l'aula di scienze (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Nel laboratorio devastato, il tuo intuito ti guida verso un armadietto. Dentro, un antitodo e delle pillole dall'aspetto sospetto.", successReward: { items: [{ itemId: 'antidote', quantity: 1 }, { itemId: 'suspicious_pills', quantity: 1 }] }, failureText: "Il laboratorio è un pericolo: vetri rotti, sostanze chimiche versate e odori acri. Meglio non rischiare di toccare nulla.", isSearchAction: true, actionKey: "inspect_science_lab", usesWeapon: true }
              ]
+        },
+        // NUOVI EVENTI VILLAGGIO
+        {
+            id: "village_forgotten_altar",
+            title: "Altare Dimenticato",
+            description: "In una delle baracche meno diroccate, trovi un piccolo altare improvvisato con oggetti strani e simboli scarabocchiati. Sembra un tentativo di placare qualche divinità sconosciuta.",
+            choices: [
+                { text: "Lasciare un'offerta", outcome: "Lasci un piccolo oggetto come offerta. Forse non servirà a nulla, ma rispetti le credenze di chi era qui prima.", successReward: { itemId: 'vitamins', quantity: 1 } },
+                { text: "Profanare l'altare (Potenza)", skillCheck: { stat: 'potenza', difficulty: 11 }, successText: "Distruggi l'altare e prendi gli oggetti. Trovi candele, monete e piccoli tesori.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { itemId: 'cloth_rags', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Mentre distruggi l'altare, qualcosa crolla sopra di te. Meglio lasciare stare.", actionKey: "desecrate_altar" },
+                { text: "Studiare i simboli (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "I simboli ti rivelano la posizione di una cache nascosta nel villaggio.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 1 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "I simboli sono troppo confusi o danneggiati per essere compresi.", isSearchAction: true, actionKey: "study_symbols" }
+            ]
+        },
+        {
+            id: "village_lonely_toy",
+            title: "Giocattolo Solitario",
+            description: "Un giocattolo rotto e sporco – una bambola senza un occhio, un soldatino di piombo – giace abbandonato in mezzo alla polvere di una soglia. Un triste promemoria dei bambini che un tempo vivevano qui.",
+            choices: [
+                { text: "Raccogliere il giocattolo", outcome: "Raccogli il giocattolo con delicatezza. Forse non ha valore pratico, ma conserva la memoria di tempi migliori.", successReward: { itemId: 'cloth_rags', quantity: 1 } },
+                { text: "Seppellire il giocattolo", outcome: "Scavi una piccola buca e seppellisci il giocattolo con rispetto. Un piccolo gesto di umanità in un mondo crudele." },
+                { text: "Lasciarlo dov'è", outcome: "Decidi di lasciare il giocattolo dove si trova. Forse qualcun altro lo troverà e ricorderà." }
+            ]
+        },
+        {
+            id: "village_empty_square",
+            title: "Il Silenzio della Piazza",
+            description: "Raggiungi quella che un tempo doveva essere la piazza del villaggio. Ora è vuota, con solo il vento che solleva foglie secche. Un silenzio carico di attesa grava sul luogo.",
+            choices: [
+                { text: "Attraversare rapidamente", outcome: "Attraversi la piazza il più velocemente possibile, sentendoti esposto e vulnerabile." },
+                { text: "Cercare tra i detriti (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Ai margini della piazza trovi oggetti dimenticati e materiali utili.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 1 }, { itemId: 'cloth_rags', quantity: 2 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Solo polvere e foglie secche. Nulla di valore è rimasto.", isSearchAction: true, actionKey: "search_square_debris" },
+                { text: "Aspettare nascosto", outcome: "Ti nascondi e osservi la piazza per qualche minuto. Nulla si muove, ma la sensazione di essere osservato persiste." }
+            ]
+        },
+        {
+            id: "village_last_message",
+            title: "L'Ultimo Messaggio",
+            description: "Su un muro sbrecciato, qualcuno ha scritto un breve messaggio con del carbone o vernice sbiadita: un nome, un avvertimento, una preghiera.",
+            choices: [
+                { text: "Decifrare il messaggio (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 11 }, successText: "Riesci a leggere: 'Cache sotto il pozzo - Maria'. Trovi anche del carbone utilizzabile.", successReward: { items: [{ itemId: 'charcoal', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Il messaggio è troppo sbiadito per essere letto chiaramente.", actionKey: "decipher_message" },
+                { text: "Aggiungere il proprio messaggio", outcome: "Scrivi il tuo nome accanto al messaggio. Forse qualcun altro lo leggerà un giorno.", successReward: { itemId: 'charcoal', quantity: 1 } },
+                { text: "Ignorare il graffito", outcome: "Decidi di non perdere tempo con vecchi messaggi. Prosegui la tua esplorazione." }
+            ]
+        },
+        {
+            id: "village_rancid_smell",
+            title: "Odore di Cibo Rancido",
+            description: "Un debole odore di cibo andato a male proviene da una delle abitazioni. Potrebbe esserci qualcosa di commestibile rimasto, o solo parassiti.",
+            choices: [
+                { text: "Investigare la fonte (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Tra il cibo marcio trovi alcune conserve ancora sigillate e commestibili.", successReward: { items: [{ itemId: 'canned_food', quantity: 1 }, { itemId: 'ration_pack', quantity: 1 }] }, failureText: "L'odore è nauseante e tutto il cibo è andato a male. Esci tossendo.", isSearchAction: true, actionKey: "investigate_smell" },
+                { text: "Evitare la baracca", outcome: "Decidi che l'odore è troppo sospetto. Meglio non rischiare malattie o parassiti." },
+                { text: "Attirare creature fuori", outcome: "Fai rumore per attirare eventuali parassiti all'esterno, poi controlli se la via è libera." }
+            ]
+        },
+        {
+            id: "village_rusty_tools",
+            title: "Strumenti Agricoli Rugginiti",
+            description: "Appoggiati a un muro crollato, trovi vecchi attrezzi agricoli: una zappa, una falce, un forcone, tutti consumati dalla ruggine.",
+            choices: [
+                { text: "Riparare uno strumento (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Con pazienza, riesci a riparare uno degli attrezzi rendendolo utilizzabile come arma improvvisata.", successReward: { items: [{ itemId: 'farming_tool_repaired', quantity: 1 }, { itemId: 'scrap_metal', quantity: 1 }] }, failureText: "Gli attrezzi sono troppo corrosi per essere riparati. Si sbriciolano al tuo tocco.", actionKey: "repair_tool" },
+                { text: "Recuperare il metallo", outcome: "Raccogli i pezzi di metallo meno corrosi. Potrebbero essere utili per altre riparazioni.", successReward: { itemId: 'scrap_metal', quantity: 2 } },
+                { text: "Lasciarli lì", outcome: "Gli attrezzi sono troppo rovinati per essere utili. Li lasci dove sono." }
+            ]
+        },
+        {
+            id: "village_well",
+            title: "Il Pozzo del Villaggio",
+            description: "Al centro del villaggio si trova un pozzo di pietra. Sembra profondo, e non sai se l'acqua sul fondo sia potabile o se ci sia ancora acqua.",
+            choices: [
+                { text: "Calare un secchio (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Improvvisi un secchio con una corda. L'acqua è torbida ma potabile dopo purificazione.", successReward: { items: [{ itemId: 'water_dirty', quantity: 3 }, { itemId: 'rope', quantity: 1 }] }, failureText: "Non riesci a improvvisare un sistema per attingere acqua. Il pozzo rimane inaccessibile.", actionKey: "improvise_bucket" },
+                { text: "Lanciare un sasso", outcome: "Lanci un sasso nel pozzo. Senti un tonfo sordo dopo qualche secondo. C'è acqua, ma è profonda." },
+                { text: "Cercare contaminazione (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "Il tuo istinto ti dice che l'acqua è relativamente sicura. Trovi anche una vecchia corda nascosta.", successReward: { items: [{ itemId: 'rope', quantity: 1 }, { itemId: 'water_purified', quantity: 1 }] }, failureText: "Non riesci a determinare se l'acqua è sicura. Meglio essere cauti.", actionKey: "check_contamination" }
+            ]
+        },
+        {
+            id: "village_hanging_clothes",
+            title: "Vestiti Stesi",
+            description: "Sorprendentemente, su un filo teso tra due pali, ci sono dei vestiti logori stesi ad asciugare. Qualcuno è stato qui di recente, o li ha dimenticati.",
+            choices: [
+                { text: "Prendere i vestiti", outcome: "Prendi i vestiti dal filo. Sono logori ma potrebbero essere utili per riparazioni o come stracci.", successReward: { itemId: 'cloth_rags', quantity: 3 } },
+                { text: "Nascondersi e osservare", outcome: "Ti nascondi e aspetti per vedere se qualcuno torna. Dopo un'ora, nessuno si presenta." },
+                { text: "Lasciare un segno", outcome: "Lasci un piccolo oggetto per far capire che sei passato, sperando in un contatto pacifico.", successReward: { itemId: 'map_fragment_local', quantity: 1 } }
+            ]
+        },
+        {
+            id: "village_scarecrow",
+            title: "Il Guardiano Silenzioso",
+            description: "Uno spaventapasseri sbrindellato se ne sta ancora in piedi in quello che un tempo era un orto. I suoi occhi di bottone sembrano seguirti.",
+            choices: [
+                { text: "Ispezionare lo spaventapasseri (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Nascosti nei vestiti dello spaventapasseri trovi piccoli oggetti e materiali utili.", successReward: { items: [{ itemId: 'cloth_rags', quantity: 2 }, { itemId: 'scrap_metal', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Lo spaventapasseri è solo paglia e stracci vecchi. Nulla di utile.", actionKey: "inspect_scarecrow" },
+                { text: "Usare come riferimento", outcome: "Segni la posizione dello spaventapasseri sulla tua mappa come punto di riferimento.", successReward: { itemId: 'map_fragment_local', quantity: 1 } },
+                { text: "Abbatterlo", outcome: "Abbatti lo spaventapasseri. I suoi materiali potrebbero essere utili.", successReward: { itemId: 'wood_planks', quantity: 1 } }
+            ]
+        },
+        {
+            id: "village_echo_laughter",
+            title: "Eco di Risate",
+            description: "Per un fugace istante, ti sembra di sentire l'eco di risate infantili provenire da una delle case vuote. Un brivido ti corre lungo la schiena.",
+            choices: [
+                { text: "Investigare la casa (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Seguendo l'eco, trovi una stanza nascosta con giocattoli e un piccolo tesoro.", successReward: { items: [{ itemId: 'vitamins', quantity: 1 }, { itemId: 'cloth_rags', quantity: 2 }, { type: 'random_rare_resource', quantity: 1 }] }, failureText: "La casa è vuota e silenziosa. Forse era solo la tua immaginazione.", isSearchAction: true, actionKey: "investigate_laughter" },
+                { text: "Gridare per rispondere", outcome: "Gridi verso la casa. Solo il tuo eco risponde, creando un effetto inquietante." },
+                { text: "Allontanarsi rapidamente", outcome: "Decidi che alcune cose è meglio lasciarle in pace. Ti allontani rapidamente dal villaggio." }
+            ]
         }
     ],
     CITY: [
@@ -439,6 +840,112 @@ const EVENT_DATA = {
                  { text: "Tentare un contatto (Influenza)", skillCheck: { stat: 'influenza', difficulty: 13 }, successText: "Dopo un teso confronto iniziale, riesci a guadagnarti la fiducia del gruppo. Ti offrono una balestra semplice e qualche dardo.", successReward: { items: [{ itemId: 'crossbow_simple', quantity: 1 }, { itemId: 'ammo_bolt', quantity: 3 }]}, failureText: "Un fischio acuto risuona tra gli edifici. Sagome si muovono come ombre. 'Questo non è territorio tuo,' grida una voce giovane. Indietreggi lentamente, sentendoti osservato.", actionKey: "contact_teen_gang" },
                  { text: "Studiare i loro nascondigli (Tracce)", skillCheck: { stat: 'tracce', difficulty: 14 }, successText: "Evitando di farti notare, scopri uno dei loro depositi. Prendi cibo, acqua e qualche risorsa.", successReward: { items: [{ type: 'random_food_item', quantity: 2 }, { type: 'random_water_item', quantity: 1 }, { type: 'random_common_resource', quantity: 1 }, {itemId: 'ammo_generic', quantity: 5}] }, failureText: "Un suono metallico scatta vicino al tuo piede. Una trappola rudimentale ma efficace. Un avvertimento. Allontanati rapidamente, sentendoti fortunato.", isSearchAction: true, actionKey: "study_gang_hideouts" }
              ]
+        },
+        // ⚠️ EVENTI PROTETTI v0.8.3 - NON MODIFICARE ⚠️
+        // I seguenti 45 eventi sono PROTETTI da modifiche future
+        // Documentazione completa: doc_e_log/EVENTI_PROTETTI_v0.8.3.md
+        // 🔒 INIZIO SEZIONE PROTETTA 🔒
+        
+        // NUOVI EVENTI CITTÀ
+        {
+            id: "city_devastated_library",
+            title: "Biblioteca Devastata",
+            description: "Entri in quella che un tempo era una biblioteca pubblica. Scaffali rovesciati, libri ammuffiti e pagine strappate coprono il pavimento. Forse qualche conoscenza è sopravvissuta.",
+            choices: [
+                { text: "Cercare libri utili (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Tra i libri rovinati trovi manuali di sopravvivenza e mappe della zona ancora leggibili.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }, { itemId: 'first_aid_kit', quantity: 1 }] }, failureText: "I libri sono troppo danneggiati dall'umidità e dal tempo. Solo carta marcita.", isSearchAction: true, actionKey: "search_books" },
+                { text: "Usare come combustibile", outcome: "Raccogli libri secchi per accendere fuochi. La conoscenza brucia, ma il calore è vita.", successReward: { itemId: 'charcoal', quantity: 3 } },
+                { text: "Cercare un rifugio", outcome: "Trovi un angolo tranquillo tra gli scaffali per riposare. Il silenzio della biblioteca è quasi pacifico." }
+            ]
+        },
+        {
+            id: "city_abandoned_subway",
+            title: "La Stazione della Metropolitana Abbandonata",
+            description: "Le scale mobili arrugginite conducono verso il basso, nell'oscurità di una stazione della metropolitana. L'aria è viziata e si sentono strani rumori provenire dalle gallerie.",
+            choices: [
+                { text: "Esplorare i tunnel (Presagio)", skillCheck: { stat: 'presagio', difficulty: 14 }, successText: "Il tuo istinto ti guida attraverso i tunnel sicuri. Trovi un deposito di emergenza intatto.", successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 2 }, { type: 'random_weapon_item', quantity: 1 }, { itemId: 'first_aid_kit', quantity: 1 }] }, failureText: "I tunnel sono un labirinto pericoloso. Ti perdi e devi tornare indietro rapidamente.", isSearchAction: true, actionKey: "explore_tunnels" },
+                { text: "Saccheggiare l'ingresso (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Nelle biglietterie e nei negozi dell'atrio trovi oggetti dimenticati e materiali utili.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 2 }, { itemId: 'mechanical_parts', quantity: 1 }, { type: 'random_common_resource', quantity: 2 }] }, failureText: "L'atrio è stato già saccheggiato a fondo. Solo detriti inutili.", isSearchAction: true, actionKey: "loot_entrance" },
+                { text: "Sigillare l'ingresso", outcome: "Usi detriti per bloccare l'accesso ai tunnel. Qualunque cosa ci sia laggiù, è meglio che rimanga sepolta." }
+            ]
+        },
+        {
+            id: "city_unstable_skyscraper",
+            title: "Grattacielo Pericolante",
+            description: "Un grattacielo con enormi squarci nella facciata incombe minacciosamente. Sembra possa crollare da un momento all'altro, ma i piani alti potrebbero contenere risorse intatte.",
+            choices: [
+                { text: "Salire ai piani alti (Agilità)", skillCheck: { stat: 'agilita', difficulty: 15 }, successText: "Con agilità e fortuna, raggiungi i piani superiori. Trovi uffici intatti con provviste e equipaggiamento.", successReward: { items: [{ itemId: 'ration_pack', quantity: 2 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_weapon_item', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 2 }] }, failureText: "Una sezione del pavimento cede sotto i tuoi piedi. Scappi a malapena dal crollo parziale.", actionKey: "climb_skyscraper" },
+                { text: "Esplorare il piano terra (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Nell'atrio e nei negozi del piano terra trovi materiali e oggetti abbandonati.", successReward: { items: [{ itemId: 'scrap_metal', quantity: 3 }, { itemId: 'cloth_rags', quantity: 2 }, { type: 'random_common_resource', quantity: 1 }] }, failureText: "Il piano terra è instabile e pericoloso. Meglio non rischiare.", isSearchAction: true, actionKey: "explore_ground_floor" },
+                { text: "Girare al largo", outcome: "Decidi che il grattacielo è troppo pericoloso. Ti allontani rapidamente dalla zona di possibile crollo." }
+            ]
+        },
+        {
+            id: "city_ghost_market",
+            title: "Il Mercato Nero Fantasma",
+            description: "Ti imbatti in una serie di bancarelle improvvisate e ormai deserte, nascoste in un vicolo. Sembra un vecchio mercato nero. Qualcosa di valore potrebbe essere stato dimenticato.",
+            choices: [
+                { text: "Frugare nelle bancarelle (Tracce)", skillCheck: { stat: 'tracce', difficulty: 12 }, successText: "Tra le bancarelle abbandonate trovi merce nascosta e oggetti di valore.", successReward: { items: [{ type: 'random_weapon_item', quantity: 1 }, { type: 'random_ammo_item', quantity: 1 }, { itemId: 'medicine_crude', quantity: 2 }, { type: 'random_rare_resource', quantity: 1 }] }, failureText: "Le bancarelle sono state svuotate completamente. Solo polvere e ragnatele.", isSearchAction: true, actionKey: "search_stalls" },
+                { text: "Investigare i gestori (Presagio)", skillCheck: { stat: 'presagio', difficulty: 13 }, successText: "Trovi indizi sui mercanti e la posizione di una cache segreta.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 1 }, { itemId: 'map_fragment_local', quantity: 1 }, { type: 'random_blueprint', quantity: 1 }] }, failureText: "Non riesci a capire chi gestiva il mercato o dove potrebbero aver nascosto la merce.", isSearchAction: true, actionKey: "investigate_merchants" },
+                { text: "Usare come nascondiglio", outcome: "Il vicolo nascosto potrebbe essere un buon rifugio temporaneo. Ti riposi tra le bancarelle vuote." }
+            ]
+        },
+        {
+            id: "city_military_vehicle",
+            title: "Veicolo Militare Abbandonato",
+            description: "Un veicolo militare corazzato, forse un carro armato o un trasporto truppe, è bloccato in mezzo alla strada, crivellato di colpi.",
+            choices: [
+                { text: "Entrare nel veicolo (Potenza)", skillCheck: { stat: 'potenza', difficulty: 13 }, successText: "Forzi l'ingresso del veicolo blindato. All'interno trovi armi militari e equipaggiamento tattico.", successReward: { items: [{ type: 'random_weapon_item', quantity: 1 }, { type: 'random_ammo_item', quantity: 2 }, { itemId: 'body_armor_military', quantity: 1 }] }, failureText: "Il veicolo è sigillato troppo bene. Non riesci a entrare senza attrezzi specializzati.", actionKey: "force_vehicle_entry" },
+                { text: "Usare come copertura", outcome: "Il veicolo blindato offre un'eccellente copertura. Ti riposi al sicuro dietro la sua corazza." },
+                { text: "Recuperare parti metalliche", outcome: "Stacchi pezzi di blindatura e componenti metallici dal veicolo danneggiato.", successReward: { itemId: 'scrap_metal', quantity: 4 } }
+            ]
+        },
+        {
+            id: "city_silent_hospital",
+            title: "L'Ospedale Silenzioso",
+            description: "Le porte di un grande ospedale cittadino sono divelte. Dentro, il silenzio è rotto solo dal gocciolio dell'acqua e dal vento che sibila tra i corridoi bui.",
+            choices: [
+                { text: "Cercare nella farmacia (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 13 }, successText: "Nella farmacia dell'ospedale trovi medicine preziose e forniture mediche.", successReward: { items: [{ itemId: 'antidote', quantity: 2 }, { itemId: 'vitamins', quantity: 2 }, { itemId: 'first_aid_kit', quantity: 1 }, { itemId: 'medicine_crude', quantity: 3 }] }, failureText: "La farmacia è stata saccheggiata o le medicine sono scadute e inutilizzabili.", isSearchAction: true, actionKey: "search_pharmacy" },
+                { text: "Esplorare le cucine (Tracce)", skillCheck: { stat: 'tracce', difficulty: 11 }, successText: "Nelle cucine e nei distributori trovi cibo in scatola e acqua ancora potabile.", successReward: { items: [{ itemId: 'canned_food', quantity: 2 }, { itemId: 'water_bottle', quantity: 2 }, { itemId: 'ration_pack', quantity: 1 }] }, failureText: "Le cucine sono vuote e i distributori sono stati svuotati.", isSearchAction: true, actionKey: "explore_kitchens" },
+                { text: "Evitare l'ospedale", outcome: "Decidi che gli ospedali abbandonati sono troppo pericolosi. Malattie, gas tossici, o peggio potrebbero annidarsi dentro." }
+            ]
+        },
+        {
+            id: "city_propaganda_posters",
+            title: "Manifesti di Propaganda Strappati",
+            description: "Sui muri scrostati, resti di vecchi manifesti di propaganda promettono un futuro radioso che non è mai arrivato, o minacciano nemici ormai dimenticati.",
+            choices: [
+                { text: "Studiare i manifesti (Presagio)", skillCheck: { stat: 'presagio', difficulty: 11 }, successText: "I manifesti rivelano informazioni sul passato e indizi su depositi governativi nascosti.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "I manifesti sono troppo danneggiati per essere compresi. Solo propaganda senza senso.", actionKey: "study_posters" },
+                { text: "Strapparli via", outcome: "Strappi via i manifesti in un gesto di sfida contro il passato. Un piccolo atto di ribellione." },
+                { text: "Usare come combustibile", outcome: "La carta dei manifesti può essere utile per accendere fuochi.", successReward: { itemId: 'charcoal', quantity: 2 } }
+            ]
+        },
+        {
+            id: "city_overgrown_park",
+            title: "Il Parco Cittadino Invaso dalla Natura",
+            description: "Un tempo un parco curato, ora è una giungla selvaggia dove la natura si è ripresa i suoi spazi tra statue incrinate e panchine arrugginite.",
+            choices: [
+                { text: "Cercare piante medicinali (Adattamento)", skillCheck: { stat: 'adattamento', difficulty: 12 }, successText: "Tra la vegetazione selvaggia trovi piante con proprietà curative e bacche commestibili.", successReward: { items: [{ itemId: 'medicine_crude', quantity: 2 }, { itemId: 'berries', quantity: 3 }, { itemId: 'vitamins', quantity: 1 }] }, failureText: "Non riesci a distinguere le piante utili da quelle velenose. Meglio non rischiare.", actionKey: "search_medicinal_plants" },
+                { text: "Cacciare piccola selvaggina (Tracce)", skillCheck: { stat: 'tracce', difficulty: 13 }, successText: "Riesci a catturare piccoli animali che si sono adattati all'ambiente urbano.", successReward: { items: [{ itemId: 'meat_raw', quantity: 2 }, { itemId: 'cloth_rags', quantity: 1 }] }, failureText: "Gli animali sono troppo veloci o diffidenti. Non riesci a catturare nulla.", isSearchAction: true, actionKey: "hunt_small_game" },
+                { text: "Trovare un rifugio", outcome: "Tra la vegetazione fitta trovi un luogo appartato e sicuro per riposare." }
+            ]
+        },
+        {
+            id: "city_sewer_sounds",
+            title: "Suoni dalla Fognatura",
+            description: "Da un tombino aperto o una grata rotta provengono suoni inquietanti: raschiare, grugniti, o forse voci distorte.",
+            choices: [
+                { text: "Investigare i suoni (Presagio)", skillCheck: { stat: 'presagio', difficulty: 14 }, successText: "Il tuo istinto ti guida verso una scoperta inquietante ma redditizia nelle fogne.", successReward: { items: [{ type: 'random_rare_resource', quantity: 1 }, { itemId: 'mechanical_parts', quantity: 2 }, { type: 'random_weapon_item', quantity: 1 }] }, failureText: "I suoni diventano più minacciosi. Ti allontani rapidamente, sentendoti osservato dal basso.", actionKey: "investigate_sewer_sounds" },
+                { text: "Sigillare l'apertura", outcome: "Usi detriti pesanti per sigillare il tombino. Qualunque cosa ci sia sotto, è meglio che rimanga lì." },
+                { text: "Allontanarsi rapidamente", outcome: "Decidi che alcuni misteri è meglio lasciarli irrisolti. Ti allontani velocemente dalla zona." }
+            ]
+        },
+        {
+            id: "city_intact_apartment",
+            title: "L'Appartamento Intatto",
+            description: "Incredibilmente, trovi un appartamento in un palazzo diroccato che sembra quasi intatto, come se i suoi occupanti fossero appena usciti. Polvere ovunque, ma mobili e oggetti personali sono al loro posto.",
+            choices: [
+                { text: "Saccheggiare con cura (Tracce)", skillCheck: { stat: 'tracce', difficulty: 10 }, successText: "Esplori l'appartamento con rispetto, trovando provviste, vestiti e oggetti utili.", successReward: { items: [{ itemId: 'canned_food', quantity: 2 }, { itemId: 'water_bottle', quantity: 1 }, { type: 'random_clothing_item', quantity: 2 }, { itemId: 'first_aid_kit', quantity: 1 }] }, failureText: "L'appartamento sembra intatto ma è stato già svuotato di tutto il necessario.", isSearchAction: true, actionKey: "carefully_loot_apartment" },
+                { text: "Cercare un diario (Presagio)", skillCheck: { stat: 'presagio', difficulty: 12 }, successText: "Trovi un diario che rivela informazioni preziose sui giorni finali e nascondigli segreti.", successReward: { items: [{ itemId: 'lore_fragment_item', quantity: 2 }, { itemId: 'map_fragment_local', quantity: 1 }] }, failureText: "Non trovi tracce scritte della vita degli ex-occupanti. Il loro destino rimane un mistero.", isSearchAction: true, actionKey: "search_diary" },
+                { text: "Usare come rifugio", outcome: "L'appartamento intatto offre un rifugio sicuro e confortevole per la notte. Un lusso raro in questi tempi." }
+            ]
         }
     ],
      REST_STOP: [
@@ -585,6 +1092,107 @@ const ITEM_DATA = {
         stackable: true
     },
 
+    // --- NUOVE RISORSE AGGIUNTE ---
+    'raw_hide': {
+        id: 'raw_hide',
+        name: 'Pelle Animale Grezza',
+        description: "Recuperata da una carcassa. Necessita di essere conciata per diventare cuoio utilizzabile.",
+        type: 'resource',
+        weight: 1.2,
+        value: 8,
+        stackable: true
+    },
+    'burnt_electronics': {
+        id: 'burnt_electronics',
+        name: 'Componenti Elettronici Bruciacchiati',
+        description: "Chip, resistenze e cavi recuperati da apparecchiature distrutte. Alcuni potrebbero essere ancora funzionanti per riparazioni semplici.",
+        type: 'resource',
+        weight: 0.2,
+        value: 12,
+        stackable: true
+    },
+    'thick_glass_shards': {
+        id: 'thick_glass_shards',
+        name: 'Frammenti di Vetro Spesso',
+        description: "Utili per creare lame improvvisate o punte di freccia, se lavorati con cura.",
+        type: 'resource',
+        weight: 0.3,
+        value: 5,
+        stackable: true
+    },
+    'sticky_plant_resin': {
+        id: 'sticky_plant_resin',
+        name: 'Resina Vegetale Appiccicosa',
+        description: "Secreta da alcuni alberi mutati. Può essere usata come adesivo o impermeabilizzante grezzo.",
+        type: 'resource',
+        weight: 0.1,
+        value: 6,
+        stackable: true
+    },
+    'small_sharp_bones': {
+        id: 'small_sharp_bones',
+        name: 'Ossa Piccole e Affilate',
+        description: "Di roditori o uccelli. Possono essere usate come aghi, punte o piccoli utensili.",
+        type: 'resource',
+        weight: 0.05,
+        value: 3,
+        stackable: true
+    },
+    'dead_battery': {
+        id: 'dead_battery',
+        name: 'Batteria Esausta (Recuperabile?)',
+        description: "Una vecchia batteria. Forse contiene ancora qualche acido o metallo utile, o potrebbe essere ricaricata con mezzi estremi.",
+        type: 'resource',
+        weight: 0.8,
+        value: 10,
+        stackable: true
+    },
+    'woven_plant_fibers': {
+        id: 'woven_plant_fibers',
+        name: 'Fibre Vegetali Intrecciate',
+        description: "Liane o cortecce robuste, utili per creare corde o legacci.",
+        type: 'resource',
+        weight: 0.2,
+        value: 4,
+        stackable: true
+    },
+    'crude_gunpowder': {
+        id: 'crude_gunpowder',
+        name: 'Polvere da Sparo Grezza (Instabile)',
+        description: "Un miscuglio di carbone, zolfo e salnitro trovato in un contenitore. Molto pericolosa da maneggiare.",
+        type: 'resource',
+        weight: 0.1,
+        value: 25,
+        stackable: true
+    },
+    'torn_insulation': {
+        id: 'torn_insulation',
+        name: 'Isolante Termico Strappato',
+        description: "Pezzi di materiale isolante da vecchi edifici o veicoli. Utile per migliorare abiti o rifugi contro il freddo.",
+        type: 'resource',
+        weight: 0.3,
+        value: 7,
+        stackable: true
+    },
+    'raw_metal_ore': {
+        id: 'raw_metal_ore',
+        name: 'Minerale Metallifero Grezzo',
+        description: "Una pietra con venature metalliche. Richiede fusione per estrarre il metallo.",
+        type: 'resource',
+        weight: 2.0,
+        value: 15,
+        stackable: true
+    },
+    'short_braided_rope': {
+        id: 'short_braided_rope',
+        name: 'Corda Intrecciata (Corta)',
+        description: "Pochi metri di corda robusta, utile per vari scopi.",
+        type: 'resource',
+        weight: 0.2,
+        value: 5,
+        stackable: true
+    },
+
     // --- CIBO ---
     'canned_food': {
         id: 'canned_food',
@@ -723,6 +1331,117 @@ const ITEM_DATA = {
         effects: [{ type: 'add_resource', resource_type: 'food', amount: 5 }]
     },
 
+    // --- NUOVI CIBI AGGIUNTI ---
+    'military_energy_bar_old': {
+        id: 'military_energy_bar_old',
+        name: 'Barretta Energetica Militare (Vecchia)',
+        description: "Sigillata ermeticamente, probabilmente scaduta da anni, ma ancora sorprendentemente calorica. Potrebbe dare un piccolo boost temporaneo o mal di stomaco.",
+        type: 'food',
+        usable: true,
+        weight: 0.3,
+        value: 12,
+        effects: [
+            { type: 'add_resource', resource_type: 'food', amount: 6 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 3, sickness_chance: 0.25 }
+        ]
+    },
+    'dried_larvae': {
+        id: 'dried_larvae',
+        name: 'Larve Essiccate',
+        description: "Croccanti e ricche di proteine. Un cibo da sopravvivenza comune per chi sa dove cercare. Disgustose ma nutrienti.",
+        type: 'food',
+        usable: true,
+        weight: 0.1,
+        value: 8,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 5 }]
+    },
+    'bitter_root_toasted': {
+        id: 'bitter_root_toasted',
+        name: 'Radice Amara Tostata',
+        description: "Una radice fibrosa che, una volta tostata, diventa commestibile e leggermente nutriente. Sapore terribile.",
+        type: 'food',
+        usable: true,
+        weight: 0.2,
+        value: 4,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 3 }]
+    },
+    'contaminated_wild_honey': {
+        id: 'contaminated_wild_honey',
+        name: 'Miele Selvatico Contaminato',
+        description: "Trovato in un alveare abbandonato. Dolce, ma con una strana luminescenza. Potrebbe avere effetti imprevisti.",
+        type: 'food',
+        usable: true,
+        weight: 0.2,
+        value: 15,
+        effects: [
+            { type: 'add_resource', resource_type: 'food', amount: 4 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 5, sickness_chance: 0.30 }
+        ]
+    },
+    'mystery_meat_can': {
+        id: 'mystery_meat_can',
+        name: 'Scatoletta di "Carne Misteriosa"',
+        description: "Etichetta illeggibile. L'odore è... indefinibile. Mangiarla è un atto di fede o disperazione.",
+        type: 'food',
+        usable: true,
+        weight: 0.4,
+        value: 6,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 4, sickness_chance: 0.40 }]
+    },
+    'moldy_bread_recovered': {
+        id: 'moldy_bread_recovered',
+        name: 'Pane Muffo (Parzialmente Recuperato)',
+        description: "Alcune parti sono ancora commestibili se si raschia via la muffa con attenzione. Non il massimo, ma meglio di niente.",
+        type: 'food',
+        usable: true,
+        weight: 0.3,
+        value: 3,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 2, sickness_chance: 0.15 }]
+    },
+    'giant_reptile_eggs': {
+        id: 'giant_reptile_eggs',
+        name: 'Uova di Rettile/Insetto Gigante',
+        description: "Grosse e coriacee. Se cotte, possono essere una buona fonte di proteine. Crude, sono un rischio.",
+        type: 'food',
+        usable: true,
+        weight: 0.8,
+        value: 10,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 6, sickness_chance: 0.35 }]
+    },
+    'pale_cave_mushroom': {
+        id: 'pale_cave_mushroom',
+        name: 'Fungo Pallido della Caverna',
+        description: "Trovato in luoghi umidi e bui. Alcuni sono commestibili, altri letali. Questo sembra... neutro?",
+        type: 'food',
+        usable: true,
+        weight: 0.1,
+        value: 5,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 3, sickness_chance: 0.20 }]
+    },
+    'prewar_dry_biscuits': {
+        id: 'prewar_dry_biscuits',
+        name: 'Biscotti Secchi dell\'Anteguerra',
+        description: "Incredibilmente conservati in una scatola di latta. Duri come sassi, ma un vago sapore di normalità.",
+        type: 'food',
+        usable: true,
+        weight: 0.4,
+        value: 14,
+        effects: [
+            { type: 'add_resource', resource_type: 'food', amount: 5 },
+            { type: 'add_resource', resource_type: 'hp', amount: 1 }
+        ]
+    },
+    'melted_animal_fat': {
+        id: 'melted_animal_fat',
+        name: 'Grasso Animale Fuso',
+        description: "Recuperato da una carcassa e fuso. Può essere mangiato per calorie o usato per altri scopi (es. impermeabilizzare, combustibile).",
+        type: 'food',
+        usable: true,
+        weight: 0.3,
+        value: 7,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 4 }]
+    },
+
     // --- ACQUA E BEVANDE ---
     'water_bottle': {
         id: 'water_bottle',
@@ -810,6 +1529,126 @@ const ITEM_DATA = {
         ]
     },
 
+    // --- NUOVE BEVANDE AGGIUNTE ---
+    'condensed_water_tarps': {
+        id: 'condensed_water_tarps',
+        name: 'Condensa Raccolta da Teli',
+        description: "Acqua distillata goccia a goccia. Poca, ma pura.",
+        type: 'water',
+        usable: true,
+        weight: 0.2,
+        value: 12,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
+    },
+    'mutated_cactus_juice': {
+        id: 'mutated_cactus_juice',
+        name: 'Succo di Cactus Mutato',
+        description: "Denso e leggermente acido. Dissetante, ma potrebbe avere lievi effetti allucinogeni.",
+        type: 'water',
+        usable: true,
+        weight: 0.3,
+        value: 8,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 4 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 2, sickness_chance: 0.20 }
+        ]
+    },
+    'root_broth_hot': {
+        id: 'root_broth_hot',
+        name: 'Brodo Caldo di Radici',
+        description: "Acqua bollita con radici non identificate. Tiepido e un po' terroso, ma idratante.",
+        type: 'water',
+        usable: true,
+        weight: 0.4,
+        value: 6,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 3 },
+            { type: 'add_resource', resource_type: 'hp', amount: 1 }
+        ]
+    },
+    'fermented_berry_wine': {
+        id: 'fermented_berry_wine',
+        name: '"Vino" di Bacche Fermentate',
+        description: "Una bevanda alcolica grezza e probabilmente molto forte, fatta fermentare in un contenitore di fortuna. Disseta poco, ma può dare coraggio (o mal di testa).",
+        type: 'water',
+        usable: true,
+        weight: 0.5,
+        value: 10,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 2 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 3, sickness_chance: 0.25 }
+        ]
+    },
+    'improvised_water_filter': {
+        id: 'improvised_water_filter',
+        name: 'Filtro d\'Acqua Improvvisato (Monouso)',
+        description: "Un tubo riempito di stracci, sabbia e carbone. Può purificare una piccola quantità d'acqua sporca una sola volta.",
+        type: 'water',
+        usable: true,
+        weight: 0.6,
+        value: 15,
+        effects: [{ type: 'convert_item', from_item: 'water_dirty', to_item: 'water_purified_small', conversion_ratio: 1 }]
+    },
+    'contaminated_melted_snow': {
+        id: 'contaminated_melted_snow',
+        name: 'Neve Sciolta (Contaminata)',
+        description: "Se trovata in zone fredde. Va bollita per sicurezza, potrebbe contenere particolato radioattivo.",
+        type: 'water',
+        usable: true,
+        weight: 0.8,
+        value: 4,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 3, sickness_chance: 0.30 }]
+    },
+    'diy_electrolyte_drink': {
+        id: 'diy_electrolyte_drink',
+        name: 'Bevanda Elettrolitica Fai-da-Te',
+        description: "Acqua, un pizzico di sale (se trovato) e succo di bacche. Aiuta contro la disidratazione.",
+        type: 'water',
+        usable: true,
+        weight: 0.3,
+        value: 9,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 4 },
+            { type: 'add_resource', resource_type: 'hp', amount: 2 }
+        ]
+    },
+    'radioactive_ice_melted': {
+        id: 'radioactive_ice_melted',
+        name: 'Ghiacciolo Radioattivo (Sciolto)',
+        description: "Trovato in un vecchio freezer. L'acqua sciolta ha un vago bagliore. Disseta, ma a quale prezzo?",
+        type: 'water',
+        usable: true,
+        weight: 0.4,
+        value: 3,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 3 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 8, sickness_chance: 0.50 }
+        ]
+    },
+    'filtered_animal_blood': {
+        id: 'filtered_animal_blood',
+        name: 'Sangue Animale (Filtrato)',
+        description: "Disperato. Può idratare, ma c'è un alto rischio di malattie se non trattato.",
+        type: 'water',
+        usable: true,
+        weight: 0.5,
+        value: 2,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 2, sickness_chance: 0.60 }]
+    },
+    'pine_needle_tea': {
+        id: 'pine_needle_tea',
+        name: 'Tè di Aghi di Pino',
+        description: "Un infuso amarognolo, ricco di alcune vitamine. Un antico rimedio.",
+        type: 'water',
+        usable: true,
+        weight: 0.2,
+        value: 7,
+        effects: [
+            { type: 'add_resource', resource_type: 'water', amount: 2 },
+            { type: 'add_resource', resource_type: 'hp', amount: 2 }
+        ]
+    },
+
     // --- MEDICINE ---
     'bandages_dirty': {
         id: 'bandages_dirty',
@@ -865,6 +1704,164 @@ const ITEM_DATA = {
         value: 25, 
         stackable: false, 
         effects: [{ type: 'learn_recipe', recipeKey: 'craft_medicine_crude' }]
+    },
+
+    // --- NUOVI BLUEPRINT AGGIUNTI ---
+    'blueprint_disinfectant_paste': {
+        id: 'blueprint_disinfectant_paste',
+        name: 'Progetto: Pasta Disinfettante',
+        nameShort: 'Prog: Disinfett.',
+        description: 'Istruzioni per creare una pasta disinfettante grezza usando cenere, grasso e resina vegetale.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 20,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_disinfectant_paste' }]
+    },
+    'blueprint_makeshift_splint': {
+        id: 'blueprint_makeshift_splint',
+        name: 'Progetto: Stecca Improvvisata',
+        nameShort: 'Prog: Stecca',
+        description: 'Come immobilizzare arti feriti usando bastoncini di legno e stracci.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_makeshift_splint' }]
+    },
+    'blueprint_honey_bandage': {
+        id: 'blueprint_honey_bandage',
+        name: 'Progetto: Benda al Miele',
+        nameShort: 'Prog: Benda Miele',
+        description: 'Tecnica per imbevere bende con miele per accelerare la guarigione.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 18,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_honey_bandage' }]
+    },
+    'blueprint_fishing_rod': {
+        id: 'blueprint_fishing_rod',
+        name: 'Progetto: Canna da Pesca',
+        nameShort: 'Prog: Canna Pesca',
+        description: 'Istruzioni per costruire una canna da pesca improvvisata con materiali di recupero.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 12,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_fishing_rod' }]
+    },
+    'blueprint_animal_trap': {
+        id: 'blueprint_animal_trap',
+        name: 'Progetto: Trappola Animali',
+        nameShort: 'Prog: Trappola',
+        description: 'Come costruire una trappola semplice per catturare piccoli animali.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 18,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_animal_trap' }]
+    },
+    'blueprint_fire_starter': {
+        id: 'blueprint_fire_starter',
+        name: 'Progetto: Acciarino',
+        nameShort: 'Prog: Acciarino',
+        description: 'Tecniche primitive per creare strumenti per accendere fuochi.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_fire_starter' }]
+    },
+    'blueprint_signal_mirror': {
+        id: 'blueprint_signal_mirror',
+        name: 'Progetto: Specchio Segnalazione',
+        nameShort: 'Prog: Specchio',
+        description: 'Come levigare e montare frammenti di vetro per segnalazioni a distanza.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 10,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_signal_mirror' }]
+    },
+    'blueprint_climbing_rope': {
+        id: 'blueprint_climbing_rope',
+        name: 'Progetto: Corda Arrampicata',
+        nameShort: 'Prog: Corda',
+        description: 'Tecniche per intrecciare fibre vegetali e creare corde resistenti.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 14,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_climbing_rope' }]
+    },
+    'blueprint_sewing_kit': {
+        id: 'blueprint_sewing_kit',
+        name: 'Progetto: Kit Cucito',
+        nameShort: 'Prog: Cucito',
+        description: 'Come creare aghi da ossa affilate e filo da fibre vegetali.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 12,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_sewing_kit' }]
+    },
+    'blueprint_water_filter': {
+        id: 'blueprint_water_filter',
+        name: 'Progetto: Filtro Acqua',
+        nameShort: 'Prog: Filtro',
+        description: 'Sistema di filtrazione improvvisato usando contenitori, carbone e stracci.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 15,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_water_filter' }]
+    },
+    'blueprint_electrolyte_drink': {
+        id: 'blueprint_electrolyte_drink',
+        name: 'Progetto: Bevanda Elettrolitica',
+        nameShort: 'Prog: Elettroliti',
+        description: 'Ricetta per una bevanda idratante fai-da-te con acqua e bacche.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 9,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_electrolyte_drink' }]
+    },
+    'blueprint_pine_needle_tea': {
+        id: 'blueprint_pine_needle_tea',
+        name: 'Progetto: Tè Aghi di Pino',
+        nameShort: 'Prog: Tè Pino',
+        description: 'Antico rimedio: come preparare un infuso ricco di vitamine con aghi di pino.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 7,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_pine_needle_tea' }]
+    },
+    'blueprint_tourniquet': {
+        id: 'blueprint_tourniquet',
+        name: 'Progetto: Laccio Emostatico',
+        nameShort: 'Prog: Laccio',
+        description: 'Tecniche di primo soccorso per creare un laccio emostatico d\'emergenza.',
+        type: 'blueprint',
+        usable: true,
+        weight: 0.05,
+        value: 20,
+        stackable: false,
+        effects: [{ type: 'learn_recipe', recipeKey: 'craft_tourniquet' }]
     },
     'medicine_crude': {
         id: 'medicine_crude',
@@ -935,6 +1932,120 @@ const ITEM_DATA = {
         value: 12,
         stackable: true,
         effects: [{ type: 'add_resource', resource_type: 'hp', amount: 10 }]
+    },
+
+    // --- NUOVE MEDICINE AGGIUNTE ---
+    'crude_disinfectant_paste': {
+        id: 'crude_disinfectant_paste',
+        name: 'Pasta Disinfettante Grezza',
+        description: "Un miscuglio di cenere di legno, grasso e linfa vegetale. Applicata sulle ferite, può aiutare a prevenire infezioni minori.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 8,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.4, heal_hp_on_success: 6 }]
+    },
+    'chewed_willow_leaves': {
+        id: 'chewed_willow_leaves',
+        name: 'Foglie di Salice Masticate',
+        description: "Antico rimedio per il dolore e la febbre lieve.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.05,
+        value: 5,
+        effects: [
+            { type: 'add_resource', resource_type: 'hp', amount: 3 },
+            { type: 'cure_status', status_cured: 'isSick', chance: 0.3, heal_hp_on_success: 2 }
+        ]
+    },
+    'charcoal_powder_medical': {
+        id: 'charcoal_powder_medical',
+        name: 'Polvere di Carbone (Uso Medico)',
+        description: "Carbone finemente polverizzato. Può assorbire alcune tossine se ingerito, ma il sapore è orribile.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 6,
+        effects: [{ type: 'cure_status', status_cured: 'isPoisoned', chance: 0.4, heal_hp_on_success: 3 }]
+    },
+    'fermented_plant_extract': {
+        id: 'fermented_plant_extract',
+        name: 'Estratto di Piante Fermentate',
+        description: "Un liquido scuro e denso ottenuto dalla fermentazione di erbe. Potrebbe avere proprietà antibiotiche... o essere tossico.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 12,
+        effects: [
+            { type: 'cure_status', status_cured: 'isSick', chance: 0.6, heal_hp_on_success: 8 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 4, sickness_chance: 0.25 }
+        ]
+    },
+    'makeshift_splint': {
+        id: 'makeshift_splint',
+        name: 'Stecca Improvvisata',
+        description: "Bastoncini di legno e stracci legati insieme. Utile per immobilizzare arti feriti.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.4,
+        value: 10,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.5, heal_hp_on_success: 8 }]
+    },
+    'alcohol_disinfectant': {
+        id: 'alcohol_disinfectant',
+        name: 'Alcol Disinfettante (Improvvisato)',
+        description: "Liquore ad alta gradazione o alcol industriale diluito. Brucia, ma disinfetta.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.3,
+        value: 15,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.7, heal_hp_on_success: 5 }]
+    },
+    'herbal_tea_medicinal': {
+        id: 'herbal_tea_medicinal',
+        name: 'Tisana Medicinale',
+        description: "Un infuso di erbe selezionate per le loro proprietà curative. Calmante e leggermente curativo.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 9,
+        effects: [
+            { type: 'add_resource', resource_type: 'hp', amount: 5 },
+            { type: 'cure_status', status_cured: 'isSick', chance: 0.4, heal_hp_on_success: 3 }
+        ]
+    },
+    'honey_bandage': {
+        id: 'honey_bandage',
+        name: 'Benda al Miele',
+        description: "Benda imbevuta di miele. Le proprietà antibatteriche del miele possono accelerare la guarigione.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.2,
+        value: 18,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.8, heal_hp_on_success: 12 }]
+    },
+    'mushroom_extract_questionable': {
+        id: 'mushroom_extract_questionable',
+        name: 'Estratto di Funghi (Dubbioso)',
+        description: "Un liquido estratto da funghi non identificati. Potrebbe avere proprietà curative... o allucinogene.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 8,
+        effects: [
+            { type: 'add_resource', resource_type: 'hp', amount: 6 },
+            { type: 'add_resource_sickness', resource_type: 'hp', amount: 8, sickness_chance: 0.35 }
+        ]
+    },
+    'emergency_tourniquet': {
+        id: 'emergency_tourniquet',
+        name: 'Laccio Emostatico d\'Emergenza',
+        description: "Una striscia di tessuto resistente per fermare emorragie gravi. Uso singolo, ma può salvare la vita.",
+        type: 'medicine',
+        usable: true,
+        weight: 0.1,
+        value: 20,
+        effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.9, heal_hp_on_success: 15 }]
     },
 
     // --- ARMI ---
@@ -1469,6 +2580,117 @@ const ITEM_DATA = {
         stackable: true,
         effects: [{ type: 'show_lore' }]
     },
+
+    // --- NUOVI STRUMENTI AGGIUNTI ---
+    'improvised_fishing_rod': {
+        id: 'improvised_fishing_rod',
+        name: 'Canna da Pesca Improvvisata',
+        description: "Un bastone, un filo e un amo di fortuna. Potrebbe funzionare per pescare in acque calme.",
+        type: 'tool',
+        usable: true,
+        weight: 0.8,
+        value: 12,
+        charges: 5,
+        effects: [{ type: 'fishing_attempt', success_chance: 0.3, fish_types: ['small_fish', 'contaminated_fish'] }]
+    },
+    'animal_trap_simple': {
+        id: 'animal_trap_simple',
+        name: 'Trappola per Animali Semplice',
+        description: "Una trappola rudimentale fatta con fili metallici e legno. Può catturare piccoli animali se piazzata correttamente.",
+        type: 'tool',
+        usable: true,
+        weight: 1.2,
+        value: 18,
+        charges: 3,
+        effects: [{ type: 'set_trap', trap_type: 'small_animal', success_chance: 0.4 }]
+    },
+    'fire_starter_flint': {
+        id: 'fire_starter_flint',
+        name: 'Acciarino e Pietra Focaia',
+        description: "Strumenti primitivi ma affidabili per accendere fuochi. Essenziali per la sopravvivenza.",
+        type: 'tool',
+        usable: true,
+        weight: 0.2,
+        value: 15,
+        charges: 10,
+        effects: [{ type: 'start_fire', success_chance: 0.8 }]
+    },
+    'water_collection_tarp': {
+        id: 'water_collection_tarp',
+        name: 'Telo per Raccolta Acqua',
+        description: "Un telo impermeabile che può essere usato per raccogliere acqua piovana o rugiada.",
+        type: 'tool',
+        usable: true,
+        weight: 0.6,
+        value: 10,
+        charges: 8,
+        effects: [{ type: 'collect_water', water_type: 'rainwater_collected', amount_range: [1, 3] }]
+    },
+    'crude_compass': {
+        id: 'crude_compass',
+        name: 'Bussola Grezza',
+        description: "Un ago magnetizzato che galleggia in una ciotola d'acqua. Orientamento di base, ma meglio di niente.",
+        type: 'tool',
+        usable: true,
+        weight: 0.3,
+        value: 20,
+        effects: [{ type: 'navigation_aid', accuracy_bonus: 0.2 }]
+    },
+    'signal_mirror': {
+        id: 'signal_mirror',
+        name: 'Specchio di Segnalazione',
+        description: "Un piccolo specchio che può riflettere la luce solare per segnalazioni a lunga distanza.",
+        type: 'tool',
+        usable: true,
+        weight: 0.2,
+        value: 8,
+        charges: 15,
+        effects: [{ type: 'signal_attempt', range: 'long', success_chance: 0.6 }]
+    },
+    'rope_climbing_short': {
+        id: 'rope_climbing_short',
+        name: 'Corda da Arrampicata (Corta)',
+        description: "Alcuni metri di corda resistente. Utile per superare piccoli dislivelli o legare oggetti.",
+        type: 'tool',
+        usable: true,
+        weight: 1.0,
+        value: 14,
+        charges: 6,
+        effects: [{ type: 'climbing_aid', height_bonus: 3 }]
+    },
+    'basic_sewing_kit': {
+        id: 'basic_sewing_kit',
+        name: 'Kit da Cucito Basilare',
+        description: "Ago, filo e qualche bottone. Può riparare vestiti strappati o creare semplici modifiche.",
+        type: 'tool',
+        usable: true,
+        weight: 0.1,
+        value: 12,
+        charges: 8,
+        effects: [{ type: 'repair_item_type', item_type_target: ['armor'], repair_amount: 8, charges: 1 }]
+    },
+    'metal_detector_broken': {
+        id: 'metal_detector_broken',
+        name: 'Metal Detector Rotto (Parzialmente Funzionante)',
+        description: "Un vecchio metal detector che funziona a intermittenza. Potrebbe ancora trovare oggetti metallici sepolti.",
+        type: 'tool',
+        usable: true,
+        weight: 2.5,
+        value: 35,
+        charges: 4,
+        effects: [{ type: 'metal_detection', success_chance: 0.4, find_types: ['scrap_metal', 'mechanical_parts', 'coins'] }]
+    },
+    'portable_radio_damaged': {
+        id: 'portable_radio_damaged',
+        name: 'Radio Portatile Danneggiata',
+        description: "Una vecchia radio che capta solo interferenze e occasionali frammenti di trasmissioni. Potrebbe rivelare informazioni utili.",
+        type: 'tool',
+        usable: true,
+        weight: 1.5,
+        value: 25,
+        charges: 6,
+        effects: [{ type: 'radio_scan', success_chance: 0.3, info_types: ['weather', 'danger_warning', 'survivor_signal'] }]
+    },
     'craft_bandages_clean': {
         id: 'craft_bandages_clean',
         name: 'Bende Pulite',
@@ -1629,6 +2851,156 @@ const CRAFTING_RECIPES = {
         ],
         description: "Prepara una medicina grezza con erbe (bacche), carbone e acqua.",
         successMessage: "Hai preparato una Medicina Grezza."
+    },
+
+    // --- NUOVE RICETTE AGGIUNTE ---
+    'craft_disinfectant_paste': {
+        productName: "Pasta Disinfettante Grezza",
+        productId: 'crude_disinfectant_paste',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'charcoal', quantity: 1 },
+            { itemId: 'melted_animal_fat', quantity: 1 },
+            { itemId: 'sticky_plant_resin', quantity: 1 }
+        ],
+        description: "Mescola cenere di carbone, grasso animale e linfa vegetale per creare una pasta disinfettante.",
+        successMessage: "Hai creato una Pasta Disinfettante Grezza."
+    },
+    'craft_makeshift_splint': {
+        productName: "Stecca Improvvisata",
+        productId: 'makeshift_splint',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'wood_planks', quantity: 1 },
+            { itemId: 'cloth_rags', quantity: 2 }
+        ],
+        description: "Lega bastoncini di legno con stracci per immobilizzare arti feriti.",
+        successMessage: "Hai creato una Stecca Improvvisata."
+    },
+    'craft_honey_bandage': {
+        productName: "Benda al Miele",
+        productId: 'honey_bandage',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'bandages_clean', quantity: 1 },
+            { itemId: 'contaminated_wild_honey', quantity: 1 }
+        ],
+        description: "Imbevi bende pulite con miele per accelerare la guarigione.",
+        successMessage: "Hai creato una Benda al Miele."
+    },
+    'craft_fishing_rod': {
+        productName: "Canna da Pesca Improvvisata",
+        productId: 'improvised_fishing_rod',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'wood_planks', quantity: 1 },
+            { itemId: 'woven_plant_fibers', quantity: 1 },
+            { itemId: 'small_sharp_bones', quantity: 1 }
+        ],
+        description: "Combina un bastone, fibre vegetali e un osso affilato per pescare.",
+        successMessage: "Hai creato una Canna da Pesca Improvvisata."
+    },
+    'craft_animal_trap': {
+        productName: "Trappola per Animali Semplice",
+        productId: 'animal_trap_simple',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'scrap_metal', quantity: 2 },
+            { itemId: 'wood_planks', quantity: 1 },
+            { itemId: 'short_braided_rope', quantity: 1 }
+        ],
+        description: "Costruisci una trappola rudimentale per catturare piccoli animali.",
+        successMessage: "Hai creato una Trappola per Animali Semplice."
+    },
+    'craft_fire_starter': {
+        productName: "Acciarino e Pietra Focaia",
+        productId: 'fire_starter_flint',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'scrap_metal', quantity: 1 },
+            { itemId: 'thick_glass_shards', quantity: 1 }
+        ],
+        description: "Crea strumenti primitivi ma affidabili per accendere fuochi.",
+        successMessage: "Hai creato un Acciarino e Pietra Focaia."
+    },
+    'craft_signal_mirror': {
+        productName: "Specchio di Segnalazione",
+        productId: 'signal_mirror',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'thick_glass_shards', quantity: 2 },
+            { itemId: 'scrap_metal', quantity: 1 }
+        ],
+        description: "Leviga frammenti di vetro e montali su metallo per segnalazioni.",
+        successMessage: "Hai creato uno Specchio di Segnalazione."
+    },
+    'craft_climbing_rope': {
+        productName: "Corda da Arrampicata (Corta)",
+        productId: 'rope_climbing_short',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'woven_plant_fibers', quantity: 3 },
+            { itemId: 'cloth_rags', quantity: 2 }
+        ],
+        description: "Intreccia fibre vegetali e stracci per creare una corda resistente.",
+        successMessage: "Hai creato una Corda da Arrampicata."
+    },
+    'craft_sewing_kit': {
+        productName: "Kit da Cucito Basilare",
+        productId: 'basic_sewing_kit',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'small_sharp_bones', quantity: 2 },
+            { itemId: 'woven_plant_fibers', quantity: 1 },
+            { itemId: 'scrap_metal', quantity: 1 }
+        ],
+        description: "Crea aghi da ossa affilate e filo da fibre vegetali.",
+        successMessage: "Hai creato un Kit da Cucito Basilare."
+    },
+    'craft_water_filter': {
+        productName: "Filtro d'Acqua Improvvisato (Monouso)",
+        productId: 'improvised_water_filter',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'plastic_containers', quantity: 1 },
+            { itemId: 'charcoal', quantity: 2 },
+            { itemId: 'cloth_rags', quantity: 2 }
+        ],
+        description: "Riempi un contenitore con strati di stracci, sabbia e carbone.",
+        successMessage: "Hai creato un Filtro d'Acqua Improvvisato."
+    },
+    'craft_electrolyte_drink': {
+        productName: "Bevanda Elettrolitica Fai-da-Te",
+        productId: 'diy_electrolyte_drink',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'water_purified_small', quantity: 1 },
+            { itemId: 'berries', quantity: 1 }
+        ],
+        description: "Mescola acqua purificata con succo di bacche per una bevanda idratante.",
+        successMessage: "Hai creato una Bevanda Elettrolitica Fai-da-Te."
+    },
+    'craft_pine_needle_tea': {
+        productName: "Tè di Aghi di Pino",
+        productId: 'pine_needle_tea',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'water_purified_small', quantity: 1 },
+            { itemId: 'woven_plant_fibers', quantity: 1 }
+        ],
+        description: "Fai bollire aghi di pino in acqua per un infuso ricco di vitamine.",
+        successMessage: "Hai preparato un Tè di Aghi di Pino."
+    },
+    'craft_tourniquet': {
+        productName: "Laccio Emostatico d'Emergenza",
+        productId: 'emergency_tourniquet',
+        productQuantity: 1,
+        ingredients: [
+            { itemId: 'cloth_rags', quantity: 3 },
+            { itemId: 'wood_planks', quantity: 1 }
+        ],
+        description: "Crea una striscia di tessuto resistente per fermare emorragie gravi.",
+        successMessage: "Hai creato un Laccio Emostatico d'Emergenza."
     }
     // Aggiungere qui altre ricette base in futuro, se necessario
 };
@@ -1733,3 +3105,10 @@ const esitiEvitaAnimaleKo = [
     "Pensi di averlo distanziato, ma sbuca da un'altra direzione, più aggressivo di prima.",
     "La bestia non si lascia ingannare e ti carica con ferocia."
 ];
+
+// 🔒 FINE SEZIONE PROTETTA v0.8.3 🔒
+// ⚠️ I 45 eventi aggiunti sopra sono PROTETTI da modifiche future ⚠️
+// Documentazione completa: doc_e_log/EVENTI_PROTETTI_v0.8.3.md
+// Data protezione: Dicembre 2024
+// Crescita database: +140% eventi specifici (32→77)
+// 🔒 NON MODIFICARE GLI EVENTI PROTETTI 🔒

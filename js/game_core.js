@@ -167,6 +167,46 @@ function handleGlobalKeyPress(event) {
          return; 
     }
 
+    // Gestione tasti funzione per salvataggio
+    if (event.key === 'F5') {
+        event.preventDefault();
+        if (DOM.saveLocalOption) {
+            DOM.saveLocalOption.classList.add('retro-activated');
+            setTimeout(() => DOM.saveLocalOption.classList.remove('retro-activated'), 300);
+        }
+        saveGame().catch(error => console.error("Errore F5:", error));
+        return;
+    }
+    if (event.key === 'F6') {
+        event.preventDefault();
+        if (DOM.saveDownloadOption) {
+            DOM.saveDownloadOption.classList.add('retro-activated');
+            setTimeout(() => DOM.saveDownloadOption.classList.remove('retro-activated'), 300);
+        }
+        downloadSaveFile();
+        return;
+    }
+    if (event.key === 'F7') {
+        event.preventDefault();
+        if (DOM.saveUploadOption) {
+            DOM.saveUploadOption.classList.add('retro-activated');
+            setTimeout(() => DOM.saveUploadOption.classList.remove('retro-activated'), 300);
+        }
+        loadSaveFile();
+        return;
+    }
+    if (event.key.toLowerCase() === 'c') {
+        event.preventDefault();
+        if (DOM.craftingOption) {
+            DOM.craftingOption.classList.add('retro-activated');
+            setTimeout(() => DOM.craftingOption.classList.remove('retro-activated'), 300);
+        }
+        if (typeof showCraftingPopup === 'function') {
+            showCraftingPopup();
+        }
+        return;
+    }
+
     // Il resto della logica di handleKeyPress (movimento, spazio per attendere)
     const key = event.key.toLowerCase(); 
 
@@ -441,22 +481,79 @@ function setupInputListeners() {
         button.addEventListener('click', () => showScreen('start-screen-container'));
     });
 
-    // Listener per il NUOVO pulsante Salva Partita
-    if (DOM.saveGameButton) {
-        DOM.saveGameButton.addEventListener('click', async () => {
+    // Listener per l'interfaccia retro - movimento
+    if (DOM.movementKeys) {
+        DOM.movementKeys.forEach(key => {
+            key.addEventListener('click', () => {
+                const direction = key.dataset.direction;
+                key.classList.add('pressed');
+                setTimeout(() => key.classList.remove('pressed'), 150);
+                
+                switch(direction) {
+                    case 'up':
+                        if (typeof movePlayer === 'function') movePlayer(0, -1);
+                        break;
+                    case 'down':
+                        if (typeof movePlayer === 'function') movePlayer(0, 1);
+                        break;
+                    case 'left':
+                        if (typeof movePlayer === 'function') movePlayer(-1, 0);
+                        break;
+                    case 'right':
+                        if (typeof movePlayer === 'function') movePlayer(1, 0);
+                        break;
+                    case 'wait':
+                        // Simula pressione spazio
+                        const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
+                        handleGlobalKeyPress(spaceEvent);
+                        break;
+                }
+            });
+        });
+    }
+
+    // Listener per l'interfaccia retro - salvataggio
+    if (DOM.saveLocalOption) {
+        DOM.saveLocalOption.addEventListener('click', async () => {
+            DOM.saveLocalOption.classList.add('pressed');
+            setTimeout(() => DOM.saveLocalOption.classList.remove('pressed'), 150);
             try {
                 await saveGame();
             } catch (error) {
                 console.error("Errore durante il salvataggio:", error);
             }
         });
-    } else {
-         console.error("setupInputListeners: saveGameButton non trovato nel DOM!");
     }
 
-    // NUOVO: Listener per il pulsante "Crafting"
-    if (DOM.openCraftingButton) {
-        DOM.openCraftingButton.addEventListener('click', () => {
+    if (DOM.saveDownloadOption) {
+        DOM.saveDownloadOption.addEventListener('click', () => {
+            DOM.saveDownloadOption.classList.add('pressed');
+            setTimeout(() => DOM.saveDownloadOption.classList.remove('pressed'), 150);
+            try {
+                downloadSaveFile();
+            } catch (error) {
+                console.error("Errore durante il download:", error);
+            }
+        });
+    }
+
+    if (DOM.saveUploadOption) {
+        DOM.saveUploadOption.addEventListener('click', () => {
+            DOM.saveUploadOption.classList.add('pressed');
+            setTimeout(() => DOM.saveUploadOption.classList.remove('pressed'), 150);
+            try {
+                loadSaveFile();
+            } catch (error) {
+                console.error("Errore durante il caricamento da file:", error);
+            }
+        });
+    }
+
+    // Listener per crafting retro
+    if (DOM.craftingOption) {
+        DOM.craftingOption.addEventListener('click', () => {
+            DOM.craftingOption.classList.add('pressed');
+            setTimeout(() => DOM.craftingOption.classList.remove('pressed'), 150);
             if (typeof showCraftingPopup === 'function') {
                 showCraftingPopup();
             } else {
@@ -464,8 +561,6 @@ function setupInputListeners() {
                 if (typeof addMessage === 'function') addMessage("Errore: Funzione Crafting non disponibile.", "error");
             }
         });
-    } else {
-        console.warn("setupInputListeners: Pulsante openCraftingButton non trovato nel DOM.");
     }
 
     if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Input listeners impostati.");
@@ -653,7 +748,137 @@ window.onload = async function() {
 
 // --- FUNZIONI DI SALVATAGGIO E CARICAMENTO ---
 
-const SAVE_KEY = 'theSafePlaceSaveData'; // Chiave per localStorage
+const SAVE_KEY = 'theSafePlaceSaveData';
+
+/**
+ * Scarica il salvataggio come file JSON
+ */
+function downloadSaveFile() {
+    try {
+        const saveData = {
+            player: player,
+            map: map,
+            dayMovesCounter: dayMovesCounter,
+            isDay: isDay,
+            gameDay: gameDay,
+            easterEggPixelDebhFound: easterEggPixelDebhFound,
+            uniqueEventWebRadioFound: uniqueEventWebRadioFound,
+            saveTimestamp: new Date().toISOString(),
+            gameVersion: GAME_VERSION || "v0.8.0"
+        };
+
+        const saveDataString = JSON.stringify(saveData, null, 2);
+        const blob = new Blob([saveDataString], { type: 'application/json' });
+        
+        // Crea nome file con timestamp
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const filename = `TheSafePlace_Save_${timestamp}.json`;
+        
+        // Crea link di download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        addMessage(`Salvataggio scaricato: ${filename}`, "success");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Download salvataggio completato.");
+        
+    } catch (error) {
+        console.error("Errore durante il download del salvataggio:", error);
+        addMessage("Errore durante il download del salvataggio!", "danger");
+    }
+}
+
+/**
+ * Carica un file di salvataggio
+ */
+function loadSaveFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.style.display = 'none';
+    
+    input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const loadedData = JSON.parse(e.target.result);
+                
+                // Validazione dati
+                if (!loadedData || !loadedData.player || !loadedData.map) {
+                    addMessage("File di salvataggio non valido o corrotto!", "danger");
+                    return;
+                }
+                
+                // Verifica compatibilità versione (opzionale)
+                if (loadedData.gameVersion && loadedData.gameVersion !== GAME_VERSION) {
+                    addMessage(`Attenzione: Salvataggio da versione ${loadedData.gameVersion}, attuale: ${GAME_VERSION}`, "warning");
+                }
+                
+                // Ripristina stato globale
+                player = loadedData.player;
+                map = loadedData.map;
+                dayMovesCounter = loadedData.dayMovesCounter;
+                isDay = loadedData.isDay;
+                gameDay = loadedData.gameDay;
+                easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound;
+                uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
+                
+                // Backup in localStorage
+                localStorage.setItem(SAVE_KEY, JSON.stringify(loadedData));
+                
+                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato del gioco ripristinato da file:", loadedData);
+                
+                // Aggiorna interfaccia
+                setTimeout(() => {
+                    if (typeof renderMap === 'function') renderMap();
+                    if (typeof renderStats === 'function') renderStats();
+                    if (typeof renderInventory === 'function') renderInventory();
+                    if (typeof renderLegend === 'function') renderLegend();
+                }, 100);
+                
+                // Transizione schermata e attivazione gioco
+                if (typeof showScreen === 'function') {
+                    showScreen(DOM.gameContainer);
+                }
+                gameActive = true;
+                gamePaused = false;
+                eventScreenActive = false;
+                
+                try {
+                    if(DOM.gameContainer) DOM.gameContainer.focus();
+                } catch (e) {
+                    console.warn("loadSaveFile: Impossibile impostare il focus iniziale.", e);
+                }
+                
+                const saveDate = loadedData.saveTimestamp ? 
+                    new Date(loadedData.saveTimestamp).toLocaleString() : 
+                    "data sconosciuta";
+                
+                addMessage(`Partita caricata da file (salvata il ${saveDate})`, "success");
+                
+            } catch (error) {
+                console.error("Errore durante il caricamento del file:", error);
+                addMessage("Errore durante il caricamento del file! Formato non valido.", "danger");
+            }
+        };
+        
+        reader.readAsText(file);
+        document.body.removeChild(input);
+    };
+    
+    document.body.appendChild(input);
+    input.click();
+}
 
 /**
  * Raccoglie lo stato corrente del gioco e lo salva usando il sistema dual-mode.

@@ -83,9 +83,24 @@
     margin: 0; /* Rimuove il margine per i bottoni in griglia */
 }
 
-/* Assicurati che il pulsante Salva Partita e il pulsante Crafting (se non in griglia) abbiano un margine adeguato 
-   e centrati se sono diretti figli di #controls o #stats-panel ul li */
-#controls > .action-button:not(.control-grid .action-button),
+/* Stili per il contenitore dei controlli di salvataggio/caricamento */
+.save-load-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 15px auto;
+    max-width: 300px;
+}
+
+.save-load-controls .action-button {
+    margin: 0; /* Rimuove margini individuali */
+    font-size: 0.9em; /* Leggermente più piccolo per adattarsi */
+    padding: 8px 12px; /* Padding ridotto */
+    min-width: auto; /* Rimuove larghezza minima */
+}
+
+/* Assicurati che il pulsante Crafting (se non in griglia) abbia un margine adeguato 
+   e centrato se è diretto figlio di #stats-panel ul li */
 #stats-panel ul li > .action-button {
     display: block; /* Per centrare con margin auto */
     margin: 15px auto;

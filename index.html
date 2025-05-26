@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Safe Place - v0.7.19</title>
+    <title>The Safe Place - v0.8.1 Retro Interface</title>
     <meta name="description" content="TheSafePlace v0.7.19 - Un roguelike postapocalittico basato su testo e griglia.">
     <meta name="keywords" content="roguelike, postapocalyptic, game, text-based, grid-based, javascript">
     <link rel="icon" href="image/thesafeplace_immagine.jpg" type="image/jpeg">
@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/tooltip.css">
     <link rel="stylesheet" href="css/utilities.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/retro_interface.css">
     
     <!-- Puoi aggiungere qui altri link per font o icone se necessario -->
 </head>
@@ -73,19 +74,38 @@
             
             <!-- Area Controlli (sotto la mappa) -->
             <div id="controls" class="panel panel-map-controls">
-                <h2>AZIONI</h2>
-                <!-- Griglia per i bottoni di movimento -->
-                <div class="control-grid">
-                    <!-- I bottoni di movimento chiamano movePlayer direttamente tramite onclick -->
-                    <!-- Assicurati che movePlayer sia definita nello scope globale o accessibile -->
-                    <button id="btn-up" onclick="movePlayer(0, -1)" class="action-button">Su (W)</button>
-                    <button id="btn-left" onclick="movePlayer(-1, 0)" class="action-button">Sinistra (A)</button>
-                    <button id="btn-down" onclick="movePlayer(0, 1)" class="action-button">Giù (S)</button>
-                    <button id="btn-right" onclick="movePlayer(1, 0)" class="action-button">Destra (D)</button>
-                    <!-- Aggiungi qui altri bottoni di controllo globale se necessario -->
-                    <!-- Il tasto Spazio per "Attendi" è gestito in handleKeyPress, non serve un bottone dedicato per ora -->
-                </div>
-                <button id="save-game-button" class="action-button">Salva Partita</button>
+                <h2>CONTROLLI</h2>
+                <!-- Movimento (Solo Testo) -->
+                <ul id="movement-controls">
+                    <li class="movement-row">
+                        <span class="grid-space">   </span>
+                        <span class="movement-key" data-direction="up">[W]</span>
+                        <span class="grid-space">   </span>
+                    </li>
+                    <li class="movement-row">
+                        <span class="movement-key" data-direction="left">[A]</span>
+                        <span class="movement-key" data-direction="wait">[SPC]</span>
+                        <span class="movement-key" data-direction="right">[D]</span>
+                    </li>
+                    <li class="movement-row">
+                        <span class="grid-space">   </span>
+                        <span class="movement-key" data-direction="down">[S]</span>
+                        <span class="grid-space">   </span>
+                    </li>
+                </ul>
+                
+                <!-- Sistema Salvataggio (Solo Testo) -->
+                <ul id="save-controls">
+                    <li class="save-option" id="save-local-option">
+                        <span class="option-key">[F5]</span> Salva Locale
+                    </li>
+                    <li class="save-option" id="save-download-option">
+                        <span class="option-key">[F6]</span> Scarica File
+                    </li>
+                    <li class="save-option" id="save-upload-option">
+                        <span class="option-key">[F7]</span> Carica File
+                    </li>
+                </ul>
              </div>
         </section>
 
@@ -117,7 +137,10 @@
                      <li class="separator full-width-separator">---</li> <!-- Separatore a larghezza piena -->
                      <li class="full-width-stat">Arma: <span id="stat-weapon">--</span></li>
                      <li class="full-width-stat">Armatura: <span id="stat-armor">--</span></li>
-                     <li class="full-width-stat"><button id="open-crafting-button" class="ui-button action-button">Crafting</button></li> 
+                     <li class="full-width-stat crafting-option">
+                         <span class="craft-key">C</span>
+                         <span class="craft-desc">Crafting</span>
+                     </li> 
                  </ul>
              </section>
              <!-- Pannello Legenda Mappa -->

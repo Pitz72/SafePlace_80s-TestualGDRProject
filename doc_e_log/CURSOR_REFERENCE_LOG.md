@@ -12,8 +12,8 @@
 ### **Nome Progetto**: The Safe Place
 ### **Tipo**: GDR Testuale Post-Apocalittico
 ### **Stile**: Anni '80 Home Computer (Commodore 64, ZX Spectrum)
-### **Versione Attuale**: v0.7.22 Event Flow Integrity
-### **Architettura**: Migrazione da Client-Side a Full-Stack
+### **Versione Attuale**: v0.8.4 Espansione Massiva Database
+### **Architettura**: Full-Stack con Interfaccia Retro Autentica
 
 ### **Descrizione Gameplay**
 - Roguelike single-player con elementi survival
@@ -28,19 +28,26 @@
 
 ## 🏗️ ARCHITETTURA TECNICA ATTUALE
 
-### **Frontend (Esistente)**
+### **Frontend (Interfaccia Retro v0.8.1)**
 ```
 Tecnologie: HTML5, CSS3, JavaScript ES6+
 File Principali:
-- index.html - Entry point
-- css/style.css - Stili principali
-- js/game_core.js - Core engine
+- index.html - Entry point con interfaccia retro
+- css/retro_interface.css - Stili interfaccia anni '80 (NUOVO)
+- css/base.css, layout.css, panels.css - Stili base
+- js/game_core.js - Core engine + gestione interfaccia retro
+- js/dom_references.js - Riferimenti DOM aggiornati
 - js/player.js - Gestione giocatore
-- js/map.js - Sistema mappa
 - js/events.js - Sistema eventi
 - js/ui.js - Interfaccia utente
-- js/inventory.js - Gestione inventario
 - js/game_constants.js - Costanti gioco
+
+INTERFACCIA RETRO:
+- Rimossi tutti i pulsanti moderni
+- Griglie testuali W/A/S/D per movimento
+- Sistema salvataggio F5/F6/F7
+- Crafting integrato con tasto C
+- Effetti verdi fosforescenti anni '80
 ```
 
 ### **Backend (Nuovo - MVP Completato)**
@@ -54,6 +61,134 @@ backend/
 ├── sql/create_database.sql - Schema DB
 ├── composer.json - Dipendenze
 └── test_simple.php - Script test
+```
+
+---
+
+## 📦 ESPANSIONE DATABASE v0.8.4 - CONTENUTI AGGIUNTI
+
+### **🚀 AGGIORNAMENTO CRITICO**: 77 Nuovi Elementi Database
+**⚠️ IMPORTANTE**: Questa sezione documenta l'espansione più grande mai implementata
+
+### **📊 STATISTICHE ESPANSIONE**
+```
+OGGETTI AGGIUNTI: 51 nuovi (+75% crescita database)
+├── RISORSE (11): raw_animal_hide, burnt_electronics, thick_glass_shards...
+├── CIBO (10): old_military_energy_bar, dried_larvae, bitter_toasted_root...
+├── BEVANDE (10): tarp_collected_condensation, mutated_cactus_juice...
+├── MEDICINE (10): crude_disinfectant_paste, chewed_willow_leaves...
+└── STRUMENTI (10): improvised_fishing_rod, animal_trap_simple...
+
+RICETTE AGGIUNTE: 13 nuove (+162% crescita)
+├── Medicina (4): craft_disinfectant_paste, craft_makeshift_splint...
+├── Strumenti (6): craft_fishing_rod, craft_animal_trap...
+└── Bevande (3): craft_water_filter, craft_electrolyte_drink...
+
+BLUEPRINT AGGIUNTI: 13 nuovi (+650% crescita)
+├── Ogni ricetta ha il suo blueprint dedicato
+├── ID formato: blueprint_[nome_ricetta]
+└── Valori bilanciati: 7-25 punti valore
+```
+
+### **🔒 PROTEZIONE ANTI-CANCELLAZIONE**
+```
+POSIZIONAMENTO STRATEGICO DOCUMENTATO:
+├── js/game_data.js linee specifiche per ogni categoria
+├── Sezioni: RISORSE BASE, CIBO, ACQUA E BEVANDE, MEDICINE, STRUMENTI
+├── Ricette: CRAFTING_RECIPES dopo craft_medicine_crude
+└── Blueprint: Sezione blueprint dopo blueprint_medicine_crude
+
+ID OGGETTI PROTETTI (NON MODIFICARE):
+├── raw_animal_hide, burnt_electronics, thick_glass_shards
+├── old_military_energy_bar, dried_larvae, bitter_toasted_root
+├── tarp_collected_condensation, mutated_cactus_juice
+├── crude_disinfectant_paste, chewed_willow_leaves
+└── improvised_fishing_rod, animal_trap_simple
+```
+
+### **🎮 MECCANICHE INNOVATIVE IMPLEMENTATE**
+```
+BILANCIAMENTO RISCHIO/BENEFICIO:
+├── Oggetti con 30-50% chance effetti collaterali
+├── Benefici significativi ma costi realistici
+├── Progressione naturale difficoltà/ricompense
+└── Scelte strategiche meaningful
+
+SISTEMI AVANZATI:
+├── Effetti casuali: add_resource_sickness, convert_item
+├── Strumenti limitati: charges 3-5 usi
+├── Meccaniche specializzate: fishing_attempt, set_trap
+└── Conversioni: filtri monouso, trasformazioni oggetti
+```
+
+### **📁 DOCUMENTAZIONE BACKUP CREATA**
+- **doc_e_log/NUOVI_OGGETTI_AGGIUNTI_v0.8.4.md**: 199 righe documentazione completa
+- **Backup Completo**: Tutti ID, nomi, descrizioni, meccaniche
+- **Reference Architetturale**: Struttura preservata per future espansioni
+
+---
+
+## 🎮 INTERFACCIA RETRO AUTENTICA ANNI '80 (v0.8.1)
+
+### **Filosofia Design Realistica**
+- **SOLO TESTO PURO**: Zero elementi grafici moderni, solo caratteri ASCII
+- **Autenticità Retrocomputazionale**: Come un vero computer anni '80
+- **Layout Testuale**: Righe e colonne usando `<ul><li>` come tutto il sistema
+- **Responsività Autentica**: Funziona universalmente senza problemi UI
+
+### **Visualizzazione Controlli**
+```
+MOVIMENTO (Solo Testo):
+   [W]
+[A][SPC][D]
+   [S]
+
+SALVATAGGIO (Solo Testo):
+[F5] Salva Locale
+[F6] Scarica File  
+[F7] Carica File
+
+CRAFTING (Integrato):
+[C] Crafting (nelle statistiche)
+
+CARATTERISTICHE:
+- Font: Courier New (monospace autentico)
+- Colori: Verde fosforescente (#00FF00) coordinato
+- Effetti: Solo text-shadow e cambio colore
+- Zero Grafici: Nessun bordo, sfondo o elemento visuale
+```
+
+### **Struttura HTML Testuale**
+```html
+<!-- Movimento (Solo Testo) -->
+<ul id="movement-controls">
+    <li class="movement-row">
+        <span class="grid-space">   </span>
+        <span class="movement-key" data-direction="up">[W]</span>
+        <span class="grid-space">   </span>
+    </li>
+    <!-- ... altre righe ... -->
+</ul>
+
+<!-- Salvataggio (Solo Testo) -->
+<ul id="save-controls">
+    <li class="save-option">
+        <span class="option-key">[F5]</span> Salva Locale
+    </li>
+    <!-- ... altre opzioni ... -->
+</ul>
+```
+
+### **CSS Retro Autentico**
+```css
+css/retro_interface.css:
+- #movement-controls: Lista movimento testuale
+- .movement-key: Elementi testo cliccabili
+- #save-controls: Lista salvataggio testuale  
+- .save-option: Opzioni F5/F6/F7 testuali
+- .crafting-option: Crafting integrato
+- Effetti: Solo text-shadow e color change
+- Responsive: Font-size scaling per dispositivi
 ```
 
 ---
@@ -455,3 +590,307 @@ position JSON  -- {"x": 5, "y": 5}
 *Riferimento creato: 26 Maggio 2025*  
 *Prossimo aggiornamento: Inizio Fase 2A*  
 *Versione: 1.0* 
+
+---
+
+## 📊 ANALISI CONTENUTI ATTUALI (v0.8.1)
+*Aggiornato: 26 Maggio 2025*
+
+### INVENTARIO COMPLETO CONTENUTI
+
+#### 🎭 **EVENTI PER TIPOLOGIA**
+```
+EVENTI SPECIFICI DEL TILE (EVENT_DATA):
+├── PLAINS (5): Ossa, Rifugio Abbandonato, Caccia, Tracce Antiche, Risorsa Minore
+├── FOREST (5): Albero Cavo, Radura Nascosta, Caccia, Tracce Antiche, Risorsa Minore  
+├── RIVER (5): Ponte Crollato, Riva Fangosa, Caccia, Tracce Antiche, Risorsa Minore
+├── VILLAGE (5): Mercante, Casa Abbandonata, Banda Giovanile, Tracce Antiche, Risorsa Minore
+├── CITY (6): Ombre Grattacieli, Banda Giovanile, Tracce Antiche, Risorsa Minore + 2 Easter Eggs
+└── REST_STOP (4): Interazione Diurna, Rifugio Improvvisato, Scorta Nascosta, Risorsa Minore
+
+EVENTI COMPLESSI GENERICI (triggerComplexEvent):
+├── PREDATOR: Incontri ostili (3 scelte: Fuggi/Combatti/Parla)
+├── ANIMAL: Bestie pericolose (2 scelte: Evita/Attacca)
+├── TRACKS: Tracce strane (3 scelte: Segui/Ispeziona/Ignora)
+├── ENVIRONMENTAL: Pericoli ambientali (1 scelta: Evita)
+├── HORROR: Orrore indicibile (2 scelte: Fuggi/Affronta)
+└── DILEMMA: Dilemmi morali (3 eventi definiti)
+
+EASTER EGGS:
+├── PixelDebh: Placca metallica misteriosa (0.3% probabilità)
+└── WebRadio: Radio funzionante (0.3% probabilità)
+
+TOTALE ATTUALE: 32 eventi specifici + 6 tipologie complesse + 2 easter eggs
+```
+
+#### 🎒 **OGGETTI PER CATEGORIA**
+```
+INVENTARIO COMPLETO (68 oggetti):
+
+RISORSE BASE (7):
+├── Metallo Riciclato, Parti Meccaniche, Carbone
+├── Assi di Legno, Stracci di Stoffa
+└── Corda Robusta, Plastica Dura
+
+CIBO E ACQUA (12):
+├── Cibo in Scatola, Razioni K, Bacche Comuni
+├── Carne Cruda/Cotta, Cioccolato, Soda
+└── Acqua Sporca/Purificata, Bottiglia d'Acqua
+
+MEDICINE (8):
+├── Bende Sporche/Pulite, Pillole Sospette
+├── Antidoto, Medicina Grezza, Vitamine
+└── Impiastro Curativo
+
+ARMI (18):
+├── Mischia (4): Chiave Inglese, Clava, Barra Metallo, Machete
+├── Bianca Corta (3): Coltello Combattimento, Coltello Cucina, Punteruolo
+├── Bianca Lunga (2): Mazza Baseball, Lancia Tubo
+├── Lancio (2): Coltello da Lancio, Pietra Affilata
+├── Fuoco (3): Pistola Improvvisata, Revolver, Fucile Canne Mozze
+└── Balestra/Arco (2): Balestra Semplice, Arco Improvvisato
+
+MUNIZIONI (6):
+├── 9mm, Dardi Balestra, Generiche
+└── Revolver, Cartucce Fucile, Frecce Grezze
+
+ARMATURE (8):
+├── Corpo (4): Giacca Pelle, Armatura Stracci, Giacca Imbottita, Corpetto Placche
+├── Testa (2): Casco Cantiere, Casco Moto
+└── Accessori (2): Maschera Antigas, Ginocchiere
+
+STRUMENTI E BLUEPRINT (9):
+├── Kit Riparazione, Grimaldelli, Frammento Mappa
+└── 6 Blueprint per ricette crafting
+```
+
+#### 🔧 **RICETTE CRAFTING**
+```
+SISTEMA CRAFTING ATTUALE (8 ricette):
+
+RICETTE BASE:
+├── Acqua Purificata: Acqua Sporca + Carbone
+├── Carne Cotta: Carne Cruda
+├── Punteruolo: Metallo + Stracci
+├── Mazza Grezza: Assi Legno + Stracci
+├── Armatura Stracci: 5x Stracci
+├── Impiastro Curativo: Bacche + Stracci + Acqua Sporca
+├── Bende Pulite: 2x Bende Sporche + Acqua Purificata
+└── Medicina Grezza: Bacche + Carbone + Acqua Sporca
+
+SISTEMA BLUEPRINT:
+├── Progetti insegnano ricette quando usati
+├── Trovabili negli eventi come ricompense
+└── Consumati quando appresi
+```
+
+#### ⚔️ **SISTEMA COMBATTIMENTO**
+```
+STATO ATTUALE: ASSENTE
+
+Attualmente abbiamo solo:
+├── Skill checks con D20 + modificatore statistica
+├── Descrizioni narrative del danno inflitto  
+├── Consumo munizioni automatico
+├── Usura armi per durabilità
+└── Nessun vero sistema a turni
+
+NECESSARIO IMPLEMENTARE:
+├── Iniziativa e ordine turni
+├── Azioni per turno (Attacca/Difendi/Usa/Fuggi)
+├── Tiri attacco vs Classe Armatura
+├── Sistema danni con modificatori
+└── Condizioni di stato in combattimento
+```
+
+### ROADMAP ESPANSIONE MASSIVA
+
+#### 🎯 **TARGET FINALI**
+```
+CONTENUTI OBIETTIVO:
+
+EVENTI: 95 totali (+65 nuovi)
+├── 65 eventi specifici per tile (vs 30 attuali)
+├── 6 tipologie eventi complessi (invariato)
+└── 7 easter eggs (vs 2 attuali)
+
+OGGETTI: 158 totali (+90 nuovi)
+├── +20 Armi: Spade, asce, fucili, esplosivi
+├── +15 Armature: Tute, elmetti, scudi
+├── +10 Risorse: Elettronica, chimici, combustibili
+├── +15 Cibo/Medicine: Stimolanti, veleni, cure
+├── +10 Strumenti: Hacking, veicoli, comunicazioni
+└── +20 Blueprint: Ricette avanzate
+
+RICETTE: 48 totali (+40 nuove)
+├── +15 Ricette Armi: Dalla lancia al fucile
+├── +10 Ricette Armature: Da stracci a tute
+├── +8 Ricette Medicine: Stimolanti, antidoti
+└── +7 Ricette Strumenti: Elettronica, trappole
+
+SISTEMI GAMEPLAY:
+├── Sistema D&D completo livelli 1-10
+├── Combattimento a turni tattico
+├── Storia principale 10 eventi chiave
+└── Bilanciamento professionale
+```
+
+#### 📅 **FASI SVILUPPO**
+```
+TIMELINE ESPANSA (13-20 settimane):
+
+FASE 2: Consolidamento (1-2 sett)
+├── Rimozione sistema dual-mode
+├── Pulizia codice backend
+└── Ottimizzazione UI
+
+FASE 3: Espansione Contenuti (3-4 sett)
+├── +65 eventi per tutte le tipologie
+├── +90 oggetti nuove categorie
+└── +40 ricette crafting avanzate
+
+FASE 4: Sistema D&D (2-3 sett)
+├── Livelli 1-10 con esperienza
+├── Statistiche D&D adattate
+├── Bestiary 20+ creature
+└── Crescita personaggio
+
+FASE 5: Combattimento Turni (2-3 sett)
+├── Iniziativa e azioni per turno
+├── Interfaccia combattimento ASCII
+├── Meccaniche tattiche avanzate
+└── Combattimenti multipli
+
+FASE 6: Storia Principale (2-3 sett)
+├── 10 eventi narrativi chiave
+├── Integrazione mappa procedurale
+├── Multiple endings
+└── Lore integrato
+
+FASE 7: Bilanciamento (2-3 sett)
+├── Testing intensivo
+├── Curve esperienza
+├── Performance optimization
+└── Polish finale
+```
+
+## 🔒 **AGGIORNAMENTO CRITICO v0.8.3 - EVENTI PROTETTI**
+
+### ⚠️ **ESPANSIONE EVENTI COMPLETATA**
+**Data:** Dicembre 2024  
+**Versione:** v0.8.3  
+**Crescita:** +45 eventi (+112% totale)  
+
+#### 🔒 **EVENTI PROTETTI DA MODIFICHE FUTURE:**
+```
+PLAINS (10 totali): +5 NUOVI PROTETTI
+├── plains_flower_solitary: Fiore Solitario 🔒
+├── plains_rusty_sign: Cartello Arrugginito 🔒  
+├── plains_dust_devil: Diavolo di Polvere 🔒
+├── plains_deceptive_mirage: Miraggio Ingannevole 🔒
+└── plains_fallen_scavenger: Saccheggiatore Caduto 🔒
+
+FOREST (15 totali): +10 NUOVI PROTETTI
+├── forest_sacrificial_tree: Albero Sacrificale 🔒
+├── forest_distant_songs: Eco di Canti Lontani 🔒
+├── forest_hunter_trap: Trappola del Cacciatore 🔒
+├── forest_symbiotic_plant: Simbionte Vegetale 🔒
+├── forest_hidden_path: Sentiero Nascosto 🔒
+├── forest_whispering_tree: Albero dei Sussurri 🔒
+├── forest_camouflaged_predator: Predatore Mimetizzato 🔒
+├── forest_contaminated_spring: Fonte Contaminata 🔒
+├── forest_silent_grove: Bosco Silenzioso 🔒
+└── forest_exposed_roots: Radici Esposte 🔒
+
+RIVER (15 totali): +10 NUOVI PROTETTI
+├── river_stranded_wreck: Relitto Incagliato 🔒
+├── river_mutated_fish: Pesci Mutati 🔒
+├── river_floating_debris: Oggetti dalla Corrente 🔒
+├── river_collapsed_bridge: Ponte Crollato 🔒
+├── river_water_whispers: Sussurri dall'Acqua 🔒
+├── river_dangerous_rapids: Rapide Pericolose 🔒
+├── river_collapsed_bank: Argine Franato 🔒
+├── river_amphibian_nests: Nidi sulle Rive 🔒
+├── river_inaccessible_island: Isolotto Inaccessibile 🔒
+└── river_message_bottle: Messaggio nella Bottiglia 🔒
+
+VILLAGE (15 totali): +10 NUOVI PROTETTI
+├── village_forgotten_altar: Altare Dimenticato 🔒
+├── village_lonely_toy: Giocattolo Solitario 🔒
+├── village_empty_square: Silenzio della Piazza 🔒
+├── village_last_message: Ultimo Messaggio 🔒
+├── village_rancid_smell: Odore di Cibo Rancido 🔒
+├── village_rusty_tools: Strumenti Agricoli 🔒
+├── village_well_new: Pozzo del Villaggio 🔒
+├── village_hanging_clothes: Vestiti Stesi 🔒
+├── village_scarecrow: Guardiano Silenzioso 🔒
+└── village_echo_laughter: Eco di Risate 🔒
+
+CITY (16 totali): +10 NUOVI PROTETTI
+├── city_devastated_library: Biblioteca Devastata 🔒
+├── city_abandoned_subway: Stazione Metro 🔒
+├── city_unstable_skyscraper: Grattacielo Pericolante 🔒
+├── city_ghost_market: Mercato Nero Fantasma 🔒
+├── city_military_vehicle: Veicolo Militare 🔒
+├── city_silent_hospital: Ospedale Silenzioso 🔒
+├── city_propaganda_posters: Manifesti Propaganda 🔒
+├── city_overgrown_park: Parco Invaso 🔒
+├── city_sewer_sounds: Suoni dalla Fognatura 🔒
+└── city_intact_apartment: Appartamento Intatto 🔒
+```
+
+⚠️ **ATTENZIONE CRITICA**: Questi 45 eventi sono ora **INTOCCABILI** per future revisioni
+
+### ANALISI TECNICA IMPLEMENTAZIONE
+
+#### 🛠️ **ARCHITETTURA MODULARE**
+```
+STRUTTURA CODICE ESPANSA:
+
+CORE SYSTEMS:
+├── game_core.js: Loop principale, salvataggi
+├── game_constants.js: Costanti e configurazioni
+├── game_data.js: Contenuti (eventi, oggetti, ricette)
+└── game_utils.js: Utility e skill checks
+
+GAMEPLAY MODULES:
+├── player.js: Statistiche, inventario, crescita
+├── combat.js: Sistema combattimento a turni [NUOVO]
+├── events.js: Gestione eventi e scelte
+├── crafting.js: Sistema crafting espanso
+└── story.js: Eventi storia principale [NUOVO]
+
+MAP & WORLD:
+├── map.js: Generazione e navigazione mappa
+├── world.js: Gestione mondo procedurale [NUOVO]
+└── bestiary.js: Creature e nemici [NUOVO]
+
+UI & INTERFACE:
+├── ui.js: Interfaccia principale
+├── combat_ui.js: UI combattimento [NUOVO]
+└── retro_interface.css: Stili autentici anni '80
+```
+
+#### 📊 **METRICHE SVILUPPO**
+```
+COMPLESSITÀ STIMATA:
+
+LINEE CODICE ATTUALI: ~3,500
+LINEE CODICE TARGET: ~12,000-15,000
+
+BREAKDOWN ESPANSIONE:
+├── Sistema D&D: +2,000 linee
+├── Combattimento: +2,500 linee  
+├── Contenuti: +3,000 linee
+├── Storia: +1,500 linee
+├── UI Espansa: +1,000 linee
+└── Testing/Polish: +500 linee
+
+EFFORT STIMATO:
+├── 3-5 mesi sviluppo intensivo
+├── Testing continuo ogni fase
+├── Documentazione parallela
+└── Bilanciamento iterativo
+```
+
+--- 
