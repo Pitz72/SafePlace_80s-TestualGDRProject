@@ -7,6 +7,12 @@
 **Sviluppatore:** Claude Sonnet 4 + Utente  
 **Stato:** PROTETTI DA MODIFICHE FUTURE  
 
+### ⚔️ **AGGIORNAMENTO SISTEMA COMBATTIMENTO (27-01-2025)**
+**IMPORTANTE**: Gli eventi di tipo PREDATOR e ANIMAL ora utilizzano il **Sistema di Combattimento Automatico Evoluto D&D** implementato in v0.9.1. 
+- Il combattimento a turni **NON ESISTE** e **NON DEVE MAI ESSERE IMPLEMENTATO**
+- Tutti i combattimenti sono risolti automaticamente nel popup eventi esistente
+- Vedere `doc_e_log/SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md` per dettagli
+
 ---
 
 ## 📋 **REGISTRO EVENTI PROTETTI**

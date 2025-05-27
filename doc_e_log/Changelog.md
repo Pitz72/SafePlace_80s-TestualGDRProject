@@ -1,5 +1,71 @@
 # THE SAFE PLACE - CHANGELOG DEFINITIVO
 
+## [v0.9.1-COMBATTIMENTO-AUTOMATICO-D&D] - 27-01-2025 - **SISTEMA COMBATTIMENTO EVOLUTO**
+
+### ⚔️ **IMPLEMENTAZIONE SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D**
+
+#### **🚫 DECISIONE DEFINITIVA: NESSUN COMBATTIMENTO A TURNI**
+Il sistema di combattimento a turni è stato **PERMANENTEMENTE CANCELLATO** dal progetto. Questa decisione è **IRREVOCABILE** e documentata in tutti i file critici per prevenire regressioni.
+
+#### **🎯 SISTEMA IMPLEMENTATO**
+
+##### **1. DATABASE NEMICI COMPLETO**
+- ✅ **ENEMY_DATA** in `js/game_data.js` con 3 categorie:
+  - **Predoni**: Disperato (HP:10), Armato (HP:15), Capo (HP:20)
+  - **Animali**: Ratto Mutante (HP:8), Cane Selvaggio (HP:12), Lupo Mutato (HP:18)
+  - **Speciali**: Orrore della Zona (HP:25)
+- ✅ Ogni nemico ha statistiche complete: HP, Bonus Attacco, Classe Difesa, Danno, Resistenza, EXP, Loot
+
+##### **2. SISTEMA DI CALCOLO D&D SEMPLIFICATO**
+```javascript
+const CombatSystem = {
+    rollD20: () => Math.floor(Math.random() * 20) + 1,
+    rollDice: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+    resolveAttack: (attacker, defender) => // Tiro d20 + bonus vs Classe Difesa,
+    resolveCombat: (player, enemy) => // Risoluzione completa istantanea
+}
+```
+
+##### **3. INTEGRAZIONE EVENTI**
+- ✅ Modificata gestione eventi PREDATOR e ANIMAL in `events.js`
+- ✅ Selezione dinamica nemici basata su contesto
+- ✅ Calcolo automatico con bonus equipaggiamento
+- ✅ Funzione `showCombatResultWithSuspense` per presentazione
+
+##### **4. PRESENTAZIONE CON SUSPENSE**
+- ✅ Visualizzazione nel popup eventi esistente
+- ✅ Animazione 1-2 secondi di attesa per il risultato
+- ✅ Colori dinamici: Verde per vittoria, Rosso per sconfitta
+- ✅ Narrazione dettagliata dei round chiave
+- ✅ CSS dedicato in `events.css` per stile combattimento
+
+##### **5. BONUS EQUIPAGGIAMENTO**
+- ✅ Sistema calcola automaticamente bonus da armi e armature
+- ✅ Gestione vecchio formato danno (singolo valore) e nuovo (min/max)
+- ✅ Bonus agilità e potenza del giocatore integrati
+- ✅ Classe difesa dinamica basata su statistiche + armatura
+
+#### **🛡️ DOCUMENTAZIONE ANTI-REGRESSIONE**
+- ✅ Creato `SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md` (239 righe)
+- ✅ Aggiornato `SOLUZIONE_DEFINITIVA_EVENTI.md` con avviso critico
+- ✅ Aggiornato `CURSOR_REFERENCE_LOG.md` con sezione permanente
+- ✅ Modificati tutti i documenti roadmap per rimuovere turni
+
+#### **📊 IMPATTO SUL GAMEPLAY**
+- **Combattimenti più dinamici**: Calcoli complessi ma presentazione immediata
+- **Bilanciamento migliorato**: Statistiche nemici calibrate per difficoltà progressiva
+- **Narrativa preservata**: Focus su storia e conseguenze, non su meccaniche
+- **Zero interruzioni**: Flusso di gioco continuo senza menu aggiuntivi
+- **Varietà tattica**: Equipaggiamento e statistiche influenzano esiti
+
+#### **⚠️ PROMEMORIA PER SVILUPPATORI**
+- **MAI** suggerire o implementare combattimento a turni
+- **MAI** creare interfacce separate per combattimenti
+- **SEMPRE** usare il sistema automatico documentato
+- **SEMPRE** mantenere focus narrativo
+
+---
+
 ## [v0.9.0-SURVIVAL-PERFECTED] - 27-05-2025 - **VERSIONE CONSOLIDATA DEFINITIVA**
 
 ### 🏆 **TRAGUARDO RAGGIUNTO: SISTEMA DI SOPRAVVIVENZA PERFEZIONATO**

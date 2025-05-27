@@ -549,3 +549,80 @@ mysqldump -u root -proot safeplace_db > backup.sql
 *Template creato: 26 Maggio 2025*  
 *Prossimo aggiornamento: [DA COMPILARE]*  
 *Responsabile: [UTENTE]* 
+
+---
+
+## 🎮 **[27-05-2025] DECISIONE DEFINITIVA SUL SISTEMA DI COMBATTIMENTO**
+
+### **CANCELLAZIONE PERMANENTE COMBATTIMENTO A TURNI**
+- **RIMOSSO** qualsiasi riferimento a combattimento a turni dalla documentazione
+- **CHIARITO** che questa decisione è **permanente e irrevocabile**
+- **AGGIORNATI** tutti i documenti principali con avvisi critici
+
+### **DEFINIZIONE SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D**
+- **CREATO** nuovo documento: `SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md`
+- **DEFINITE** meccaniche precise per risoluzione istantanea ma complessa
+- **SPECIFICATE** regole D&D semplificate per calcoli automatici
+- **DETTAGLIATO** sistema di feedback con suspense e colori
+
+### **DOCUMENTI AGGIORNATI:**
+1. `ROADMAP_SVILUPPO.md` - Aggiunto avviso critico in cima
+2. `ANALISI_ESPANSIONE_MASSIVA.md` - Sostituita FASE 5 completamente
+3. `RIEPILOGO_PROGETTO_COMPLETO.md` - Aggiunta sezione decisione definitiva
+4. `SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md` - Nuovo documento creato
+
+### **PRINCIPI CHIAVE STABILITI:**
+- Tutto avviene nel popup eventi esistente
+- Calcoli D&D complessi ma risoluzione istantanea
+- Suspense 1-2 secondi prima del risultato
+- Feedback colorato: verde chiaro (vittoria), rosso (sconfitta)
+- MAI game over diretto, solo danni e conseguenze
+- Perfetta integrazione con sistemi esistenti
+
+### **MOTIVAZIONE:**
+Sistema troppo complesso e ambizioso per lo stato del progetto. Il nuovo approccio mantiene la semplicità aggiungendo profondità strategica attraverso statistiche evolute e regole D&D, senza stravolgere l'interfaccia o il gameplay esistente.
+
+---
+
+## 🎮 **[27-01-2025] IMPLEMENTAZIONE SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D**
+
+### **SISTEMA IMPLEMENTATO**
+- **AGGIUNTO** sistema di combattimento automatico evoluto basato su regole D&D semplificate
+- **CREATO** database nemici con statistiche complete in `game_data.js`
+- **INTEGRATO** con eventi PREDATOR e ANIMAL esistenti
+
+### **COMPONENTI TECNICI:**
+1. **Database Nemici** (`ENEMY_DATA`):
+   - Predoni: 3 livelli (Disperato, Armato, Capo)
+   - Animali: 3 livelli (Ratto Mutante, Cane Selvaggio, Lupo Mutato)
+   - Creature Speciali: Orrore della Zona
+   - Statistiche: HP, Bonus Attacco, Classe Difesa, Danno, Resistenza, EXP, Loot
+
+2. **Sistema Combattimento** (`CombatSystem`):
+   - Tiri d20 per attacchi
+   - Calcolo automatico danni e resistenze
+   - Massimo 5 round per evitare loop infiniti
+   - Integrazione con equipaggiamento giocatore
+
+3. **Presentazione Risultati**:
+   - Funzione `showCombatResultWithSuspense()` per mostrare round chiave
+   - Feedback colorato (verde vittoria, rosso sconfitta)
+   - Animazioni CSS per maggiore impatto visivo
+
+4. **Integrazione Eventi**:
+   - Sostituita vecchia logica in `handleEventChoice()`
+   - Selezione dinamica nemici basata su statistiche giocatore
+   - Gestione loot e perdite in caso di sconfitta
+
+### **FILE MODIFICATI:**
+- `js/game_data.js` - Aggiunto ENEMY_DATA e CombatSystem
+- `js/events.js` - Integrate nuove funzioni combattimento
+- `css/events.css` - Aggiunti stili per risultati combattimento
+- `doc_e_log/SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md` - Aggiornata documentazione
+
+### **NOTE:**
+- Il sistema rispetta la decisione di NON implementare combattimenti a turni
+- Tutto avviene automaticamente nel popup eventi esistente
+- Bilanciamento e test approfonditi ancora da completare
+
+--- 

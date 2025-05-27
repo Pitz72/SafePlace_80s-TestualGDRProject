@@ -467,6 +467,28 @@ function movePlayer(dx, dy) {
     // Marca la casella di destinazione come visitata
     targetTile.visited = true; // Riferimento corretto a targetTile
 
+    // === ESPERIENZA PER ESPLORAZIONE ===
+    if (typeof awardExperience === 'function') {
+        let expAmount = 1; // Esperienza base per movimento
+        
+        // Bonus per esplorare nuovi luoghi
+        if (!targetTile.visited) {
+            expAmount += 2; // Bonus per prima visita
+        }
+        
+        // Bonus per movimento notturno (più rischioso)
+        if (!isDay) {
+            expAmount += 1;
+        }
+        
+        // Bonus per luoghi speciali
+        if (['V', 'C', 'R', 'F', 'L'].includes(targetTile.type)) {
+            expAmount += 1;
+        }
+        
+        awardExperience(expAmount, "esplorazione");
+    }
+
     // Log del movimento (mostra descrizione del luogo)
     addMessage(`Ti muovi verso (${newX}, ${newY}). Luogo: ${TILE_DESC[targetTile.type] || '???'}`);
 
@@ -874,6 +896,23 @@ function transitionToDay() {
 
     // Resetta il flag di avviso notturno
     if (player) player.hasBeenWarnedAboutNight = false;
+    
+    // === ESPERIENZA PER SOPRAVVIVENZA ===
+    if (typeof awardExperience === 'function') {
+        let expAmount = 10; // Esperienza base per sopravvivere una notte
+        
+        // Bonus per giorni consecutivi sopravvissuti
+        if (daysSurvived > 1) {
+            expAmount += Math.min(daysSurvived, 10); // Max +10 bonus
+        }
+        
+        // Bonus se si è sopravvissuti con pochi HP
+        if (player && player.hp < player.maxHp * 0.3) {
+            expAmount += 5; // Bonus per sopravvivenza difficile
+        }
+        
+        awardExperience(expAmount, `sopravvivenza giorno ${daysSurvived}`);
+    }
 
     addMessage(`Sorge un nuovo giorno... Giorno ${daysSurvived}. La luce del sole porta un po' di speranza.`, "info", true);
 

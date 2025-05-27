@@ -5,9 +5,12 @@
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
+// === THE SAFE PLACE - COSTANTI DI GIOCO ===
+// === v0.9.1-COMBAT-D&D - PROGRESSIONE D&D IMPLEMENTATA + COMBATTIMENTO AUTOMATICO EVOLUTO + BUGFIX FINALI ===
+
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "v0.9.0-SURVIVAL-PERFECTED";
+const GAME_VERSION = "v0.9.1-COMBAT-D&D";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
@@ -343,7 +346,20 @@ const RANDOM_ITEM_TABLES = {
         'map_fragment_local': 10
     },
     'random_blueprint': {
-        'blueprint_crude_club': 100
+        'blueprint_medicine_crude': 20,
+        'blueprint_disinfectant_paste': 15,
+        'blueprint_makeshift_splint': 15,
+        'blueprint_honey_bandage': 12,
+        'blueprint_fishing_rod': 18,
+        'blueprint_animal_trap': 15,
+        'blueprint_fire_starter': 20,
+        'blueprint_signal_mirror': 10,
+        'blueprint_climbing_rope': 12,
+        'blueprint_sewing_kit': 15,
+        'blueprint_water_filter': 18,
+        'blueprint_electrolyte_drink': 8,
+        'blueprint_pine_needle_tea': 10,
+        'blueprint_crude_club': 25
     }
 };
 
@@ -363,7 +379,20 @@ const MAX_MAP_REVEAL_RADIUS = 8;
 
 // NUOVO: Pool per i progetti (blueprints)
 const BLUEPRINT_POOL = [
-    { id: 'blueprint_crude_club', weight: 100 } // Per ora solo questo, peso 100 per assicurare che venga scelto se il pool è selezionato
+    { id: 'blueprint_medicine_crude', weight: 20 },
+    { id: 'blueprint_disinfectant_paste', weight: 15 },
+    { id: 'blueprint_makeshift_splint', weight: 15 },
+    { id: 'blueprint_honey_bandage', weight: 12 },
+    { id: 'blueprint_fishing_rod', weight: 18 },
+    { id: 'blueprint_animal_trap', weight: 15 },
+    { id: 'blueprint_fire_starter', weight: 20 },
+    { id: 'blueprint_signal_mirror', weight: 10 },
+    { id: 'blueprint_climbing_rope', weight: 12 },
+    { id: 'blueprint_sewing_kit', weight: 15 },
+    { id: 'blueprint_water_filter', weight: 18 },
+    { id: 'blueprint_electrolyte_drink', weight: 8 },
+    { id: 'blueprint_pine_needle_tea', weight: 10 },
+    { id: 'blueprint_crude_club', weight: 25 }
 ];
 
 const RANDOM_REWARD_POOLS = {

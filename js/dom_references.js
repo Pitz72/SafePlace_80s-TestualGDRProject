@@ -46,7 +46,8 @@ function assignAllDOMReferences() {
     DOM.statInf = document.getElementById('stat-inf');
     DOM.statPre = document.getElementById('stat-pre');
     DOM.statAda = document.getElementById('stat-ada');
-    DOM.statAcq = document.getElementById('stat-acq');
+    DOM.statExp = document.getElementById('stat-exp');
+    DOM.statPts = document.getElementById('stat-pts');
 
     // Recupera riferimenti per risorse e stato condizione
     DOM.statFood = document.getElementById('stat-food');

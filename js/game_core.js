@@ -206,6 +206,44 @@ function handleGlobalKeyPress(event) {
         }
         return;
     }
+    
+    // === TASTO R PER MIGLIORAMENTO STATISTICHE ===
+    if (event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        // Effetto visivo
+        const statOption = document.querySelector('.stat-improvement-option');
+        if (statOption) {
+            statOption.classList.add('pressed');
+            setTimeout(() => statOption.classList.remove('pressed'), 300);
+        }
+        if (typeof showStatImprovementPopup === 'function') {
+            showStatImprovementPopup();
+        } else {
+            if (typeof addMessage === 'function') {
+                addMessage("Sistema di miglioramento statistiche non disponibile.", "warning");
+            }
+        }
+        return;
+    }
+    
+    // === TASTO I PER GESTIONE INVENTARIO ===
+    if (event.key.toLowerCase() === 'i') {
+        event.preventDefault();
+        // Effetto visivo
+        const inventoryOption = document.querySelector('.inventory-management-option');
+        if (inventoryOption) {
+            inventoryOption.classList.add('pressed');
+            setTimeout(() => inventoryOption.classList.remove('pressed'), 300);
+        }
+        if (typeof showInventoryManagementPopup === 'function') {
+            showInventoryManagementPopup();
+        } else {
+            if (typeof addMessage === 'function') {
+                addMessage("Sistema di gestione inventario non disponibile.", "warning");
+            }
+        }
+        return;
+    }
 
     // Il resto della logica di handleKeyPress (movimento, spazio per attendere)
     const key = event.key.toLowerCase(); 
@@ -262,8 +300,13 @@ function handleGlobalKeyPress(event) {
             if (typeof enableControls === 'function') enableControls();
             else console.warn("handleGlobalKeyPress (Spazio): enableControls non disponibile.");
             break;
-        // case 'i': (Lasciato per riferimento, non implementato)
-        // break;
+        case 'i':
+            if (typeof showInventoryManagementPopup === 'function') {
+                showInventoryManagementPopup();
+            } else {
+                console.error("handleGlobalKeyPress (I): showInventoryManagementPopup non disponibile (player.js?).");
+            }
+            break;
     }
 }
 

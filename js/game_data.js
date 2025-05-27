@@ -221,7 +221,7 @@ const loreFragments = [
     "Chip dati militare. Inserendolo in un terminale funzionante, potresti accedere a vecchie mappe tattiche o rapporti classificati.",
     "Libro di fiabe per bambini, 'Le Avventure di Capitano Cometa'. Le pagine sono rovinate dall'umidità, ma le illustrazioni colorate di razzi e pianeti alieni sono ancora visibili.",
     "Messaggio lasciato in una bottiglia vicino a un fiume prosciugato: 'Se leggi questo, vai a Ovest. Evita le guglie di vetro. Cantano di notte. Non ascoltarle.'",
-    "Terminale medico portatile, schermo crepato. Log: Paziente 04-B - Esposizione a 'Nebbia Cinerea'. Sintomi: cristallizzazione epidermica, paranoia acuta. Prognosi: infausta. Ultimo aggiornamento: 8 anni fa.",
+    "Terminale medico portatile, schermo rotto ma leggibile: Log: Paziente 04-B - Esposizione a 'Nebbia Cinerea'. Sintomi: cristallizzazione epidermica, paranoia acuta. Prognosi: infausta. Ultimo aggiornamento: 8 anni fa.",
     "Pezzo di ceramica dipinta, forse parte di un vaso antico. Raffigura figure umanoidi che adorano un sole nero.",
     "'Guida Pratica alla Sopravvivenza nel Dopocrollo' - Edizione Pirata. Molte pagine sono dedicate a come cucinare ratti e riconoscere funghi velenosi.",
     "Comunicazione radio intercettata e trascritta su un foglio: '...ripetere, Eco-Alfa-Uno, la Zona di Quarantena è compromessa. Protocollo Scudo Divino attivato. Che Dio ci perdoni...'",
@@ -230,11 +230,33 @@ const loreFragments = [
     "Relazione scolastica scritta a mano da un bambino: 'Il mio animale preferito è il Gatto Ombra. È soffice e silenzioso e mangia i brutti sogni'."
 ];
 
+const descrizioniTracceOkLoot = [
+    "Le tracce ti conducono a una piccola cache nascosta. Qualcuno ha lasciato qui delle provviste!",
+    "Seguendo le impronte, scopri un nascondiglio ben camuffato con oggetti utili all'interno.",
+    "Le tracce terminano presso un vecchio zaino abbandonato, ancora contenente materiali preziosi.",
+    "Gli indizi ti portano a una scorta di emergenza nascosta sotto alcuni rami secchi."
+];
+
 const descrizioniTracceOkLore = [
     "Le tracce ti conducono a un piccolo nascondiglio dimenticato. Trovi un appunto sbiadito che rivela un frammento del passato.",
     "Seguendo gli indizi, scopri un vecchio terminale dati parzialmente funzionante. Riesci a recuperare un breve log.",
     "Le impronte terminano vicino a un oggetto inciso. Contiene simboli strani e un pezzo di una storia più grande.",
     "In un angolo nascosto, trovi una registrazione audio danneggiata. Ascolti voci distorte che parlano di tempi andati."
+];
+
+const descrizioniTracceNothing = [
+    "Le tracce si perdono nel terreno duro. Qualunque cosa sia passata di qui, non ha lasciato indizi utili.",
+    "Segui le impronte per un po', ma si disperdono su terreno roccioso. Un vicolo cieco.",
+    "Le tracce sembravano promettenti, ma si rivelano essere solo segni di animali selvatici.",
+    "Dopo aver seguito gli indizi per diversi minuti, ti rendi conto che non portano da nessuna parte."
+];
+
+const descrizioniOrroreIndicibile = [
+    "Una presenza malvagia sembra permeare l'aria. Qualcosa di innaturale e terrificante si nasconde qui.",
+    "Un brivido di puro terrore ti attraversa la spina dorsale. Questo posto è maledetto.",
+    "L'atmosfera diventa opprimente e minacciosa. Ogni ombra sembra nascondere orrori indicibili.",
+    "Una sensazione di dread assoluto ti invade. Devi allontanarti da questo luogo maledetto.",
+    "L'aria stessa sembra vibrare di malevolenza. Qualcosa di antico e malvagio dimora qui."
 ];
 
 // Probabilità base degli eventi per tipo di casella (0 = mai, 1 = sempre).
@@ -1700,6 +1722,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 3,
+        stackable: true,
         effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.3, heal_hp_on_success: 5 }]
     },
     'bandages_clean': {
@@ -1710,6 +1733,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.1,
         value: 10,
+        stackable: true,
         effects: [{ type: 'cure_status', status_cured: 'isInjured', chance: 0.7, heal_hp_on_success: 10 }]
     },
     'first_aid_kit': {
@@ -3154,3 +3178,253 @@ const esitiEvitaAnimaleKo = [
 // Data protezione: Dicembre 2024
 // Crescita database: +140% eventi specifici (32→77)
 // 🔒 NON MODIFICARE GLI EVENTI PROTETTI 🔒
+
+// === SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D ===
+// Definizioni nemici con statistiche per il nuovo sistema
+
+const ENEMY_DATA = {
+    // PREDONI (Umani ostili)
+    predators: {
+        weak: {
+            name: "Predone Disperato",
+            hp: 10,
+            attackBonus: 1,
+            defenseClass: 11,
+            damage: { min: 1, max: 4, bonus: 0 }, // 1d4
+            resistance: 0,
+            expValue: 15,
+            description: "Un sopravvissuto ridotto alla disperazione",
+            lootTable: {
+                'bandages_dirty': 0.3,
+                'canned_food': 0.2,
+                'water_dirty': 0.2,
+                'scrap_metal': 0.1
+            }
+        },
+        standard: {
+            name: "Predone Armato",
+            hp: 15,
+            attackBonus: 3,
+            defenseClass: 13,
+            damage: { min: 1, max: 6, bonus: 1 }, // 1d6+1
+            resistance: 1,
+            expValue: 25,
+            description: "Un predone ben equipaggiato e pericoloso",
+            lootTable: {
+                'ration_pack': 0.4,
+                'water_bottle': 0.3,
+                'ammo_pistol': 0.2,
+                'weapon_pistol_old': 0.1
+            }
+        },
+        elite: {
+            name: "Capo Predone",
+            hp: 25,
+            attackBonus: 5,
+            defenseClass: 15,
+            damage: { min: 1, max: 8, bonus: 2 }, // 1d8+2
+            resistance: 2,
+            expValue: 50,
+            description: "Un veterano della sopravvivenza spietato",
+            lootTable: {
+                'weapon_rifle_broken': 0.3,
+                'armor_kevlar_damaged': 0.2,
+                'medkit_field': 0.2,
+                'ammo_rifle': 0.3
+            }
+        }
+    },
+    
+    // ANIMALI MUTATI
+    animals: {
+        weak: {
+            name: "Ratto Mutante",
+            hp: 8,
+            attackBonus: 2,
+            defenseClass: 12,
+            damage: { min: 1, max: 3, bonus: 0 }, // 1d3
+            resistance: 0,
+            expValue: 10,
+            description: "Un roditore malformato dalle radiazioni",
+            lootTable: {
+                'meat_raw': 0.6,
+                'diseased_meat': 0.2
+            }
+        },
+        standard: {
+            name: "Cane Selvaggio",
+            hp: 18,
+            attackBonus: 4,
+            defenseClass: 14,
+            damage: { min: 1, max: 6, bonus: 1 }, // 1d6+1
+            resistance: 1,
+            expValue: 30,
+            description: "Un canide reso aggressivo dalla fame",
+            lootTable: {
+                'meat_raw': 0.7,
+                'animal_hide': 0.3,
+                'small_sharp_bones': 0.2
+            }
+        },
+        dangerous: {
+            name: "Lupo Mutato",
+            hp: 30,
+            attackBonus: 6,
+            defenseClass: 16,
+            damage: { min: 2, max: 8, bonus: 2 }, // 2d4+2
+            resistance: 3,
+            expValue: 60,
+            description: "Un predatore alpha modificato dalle radiazioni",
+            lootTable: {
+                'meat_raw': 0.8,
+                'animal_hide': 0.5,
+                'wolf_fang': 0.3,
+                'thick_fur': 0.4
+            }
+        }
+    },
+    
+    // CREATURE SPECIALI
+    special: {
+        zone_horror: {
+            name: "Orrore della Zona",
+            hp: 40,
+            attackBonus: 7,
+            defenseClass: 17,
+            damage: { min: 2, max: 10, bonus: 3 }, // 2d5+3
+            resistance: 4,
+            expValue: 100,
+            description: "Una creatura deforme nata dalle zone più contaminate",
+            lootTable: {
+                'strange_meat': 0.5,
+                'radiation_crystal': 0.2,
+                'contaminated_blood': 0.3
+            }
+        }
+    }
+};
+
+// Sistema di calcolo combattimento D&D semplificato
+const CombatSystem = {
+    // Tiro d20 base
+    rollD20: function() {
+        return Math.floor(Math.random() * 20) + 1;
+    },
+    
+    // Tiro dadi generico
+    rollDice: function(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+    
+    // Calcola il risultato di un attacco
+    resolveAttack: function(attacker, defender) {
+        const attackRoll = this.rollD20() + attacker.attackBonus;
+        const hit = attackRoll >= defender.defenseClass;
+        
+        let damage = 0;
+        if (hit) {
+            damage = this.rollDice(attacker.damage.min, attacker.damage.max) + attacker.damage.bonus;
+            damage = Math.max(1, damage - defender.resistance); // Minimo 1 danno
+        }
+        
+        return {
+            hit: hit,
+            attackRoll: attackRoll,
+            damage: damage,
+            critical: (this.rollD20() === 20) // Critico naturale
+        };
+    },
+    
+    // Risolvi un combattimento completo automatico
+    resolveCombat: function(player, enemy) {
+        // Calcola bonus del giocatore basato su equipaggiamento e statistiche
+        const playerAttackBonus = Math.floor(player.potenza / 2);
+        
+        // Calcola la classe difesa del giocatore
+        let armorBonus = 0;
+        if (player.equippedArmor && player.equippedArmor.itemId && ITEM_DATA[player.equippedArmor.itemId]) {
+            const armorData = ITEM_DATA[player.equippedArmor.itemId];
+            armorBonus = armorData.armorValue || 0;
+        }
+        const playerDefenseClass = 10 + Math.floor(player.agilità / 2) + armorBonus;
+        
+        // Determina il danno dell'arma del giocatore
+        let playerDamage = { min: 1, max: 4, bonus: 0 }; // Pugni base
+        if (player.equippedWeapon && player.equippedWeapon.itemId && ITEM_DATA[player.equippedWeapon.itemId]) {
+            const weaponData = ITEM_DATA[player.equippedWeapon.itemId];
+            if (weaponData.damage && typeof weaponData.damage === 'object') {
+                // Nuovo formato con min/max
+                playerDamage = weaponData.damage;
+            } else if (weaponData.damage && typeof weaponData.damage === 'number') {
+                // Vecchio formato con valore singolo
+                playerDamage = { min: 1, max: weaponData.damage, bonus: 0 };
+            }
+        }
+        
+        const playerCombatant = {
+            name: "Tu",
+            hp: player.hp,
+            attackBonus: playerAttackBonus,
+            defenseClass: playerDefenseClass,
+            damage: playerDamage,
+            resistance: Math.floor(player.vigore / 3)
+        };
+        
+        // Simula scambi di colpi
+        let rounds = [];
+        let playerWins = false;
+        let enemyHP = enemy.hp;
+        let playerHP = player.hp;
+        
+        // Massimo 5 round di combattimento
+        for (let i = 0; i < 5; i++) {
+            // Attacco del giocatore
+            const playerAttack = this.resolveAttack(playerCombatant, enemy);
+            if (playerAttack.hit) {
+                enemyHP -= playerAttack.damage;
+            }
+            
+            rounds.push({
+                attacker: "player",
+                ...playerAttack,
+                targetHP: enemyHP
+            });
+            
+            if (enemyHP <= 0) {
+                playerWins = true;
+                break;
+            }
+            
+            // Contrattacco del nemico
+            const enemyAttack = this.resolveAttack(enemy, playerCombatant);
+            if (enemyAttack.hit) {
+                playerHP -= enemyAttack.damage;
+            }
+            
+            rounds.push({
+                attacker: "enemy",
+                ...enemyAttack,
+                targetHP: playerHP
+            });
+            
+            if (playerHP <= 0) {
+                break;
+            }
+        }
+        
+        return {
+            victory: playerWins,
+            rounds: rounds,
+            finalPlayerHP: playerHP,
+            finalEnemyHP: enemyHP,
+            damageDealt: enemy.hp - enemyHP,
+            damageTaken: player.hp - playerHP,
+            expGained: playerWins ? enemy.expValue : 0
+        };
+    }
+};
+
+// Esporta per utilizzo in altri moduli
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ENEMY_DATA, CombatSystem };
+}

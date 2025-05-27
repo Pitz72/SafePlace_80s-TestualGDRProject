@@ -194,7 +194,6 @@ function triggerComplexEvent(tileSymbol) {
          return;
      }
 
-
     // --- Costruzione dei Dati dell'Evento Complesso specifici per il tipo ---
     // Crea l'oggetto dati evento completo con titolo, descrizione e scelte dinamiche.
     // Queste funzioni (getRandomPredatorEvent, etc.) sono definite qui sotto.
@@ -221,7 +220,8 @@ function triggerComplexEvent(tileSymbol) {
                     skillCheck: { stat: 'potenza', difficulty: SHELTER_TILES.includes(tileSymbol) ? 13 : 14 },
                     actionKey: 'lotta',
                     successText: "La tua ferocia li sorprende! Dopo uno scontro brutale, riesci ad abbatterne o a mettere in fuga abbastanza da sopravvivere.",
-                    failureText: "Sono troppi o troppo forti. Vieni sopraffatto nello scontro."
+                    failureText: "Sono troppi o troppo forti. Vieni sopraffatto nello scontro.",
+                    usesWeapon: true // Aggiunto flag per usura arma
                 },
                 {
                     text: "Prova a parlare",
@@ -239,7 +239,7 @@ function triggerComplexEvent(tileSymbol) {
              eventDescription = getRandomText(descrizioniIncontroBestie).replace("{animale}", animalType); // Sostituisce placeholder
              eventChoices = [
                  { text: "Evita silenziosamente", skillCheck: { stat: 'tracce', difficulty: !isDay ? 12 : 11 }, actionKey: 'evita' }, // Più difficile evitare di notte
-                 { text: "Attacca la bestia", skillCheck: { stat: 'potenza', difficulty: 13 }, actionKey: 'attacca' }, // Difficoltà fissa per attaccare
+                 { text: "Attacca la bestia", skillCheck: { stat: 'potenza', difficulty: 13 }, actionKey: 'attacca', usesWeapon: true }, // Difficoltà fissa per attaccare
                  // { text: "Osserva da lontano", skillCheck: { stat: 'presagio', difficulty: 10 }, actionKey: 'osserva' } // Opzione rimossa nel codice originale
              ];
              break;
@@ -339,29 +339,36 @@ function triggerComplexEvent(tileSymbol) {
                  choices: [], // Nessuna scelta
                  isOutcome: true // Trattalo come un risultato semplice (solo bottone Continua)
              };
-             break; // Esci dallo switch per usare i dati fallback
+             break;
     }
 
-    // Se il tipo di evento è stato gestito (cioè non è andato nel fallback default)
-    if (eventType !== null && eventData === null) { // eventData è null solo se non è andato nel fallback default
-        // Costruisci l'oggetto eventData combinando titolo, descrizione, scelte e contesto.
-        // Il contesto è utile per handleEventChoice per accedere a dettagli specifici (es. tipo animale).
+    // Se eventType è null (es. dopo fallimento selezione dilemma), non mostrare popup
+    if (!eventType) {
+        return;
+    }
+
+    // --- Costruzione Finale dell'Oggetto Evento ---
+    if (!eventData) { // Se eventData non è stato impostato nel switch (casi normali)
         eventData = {
-            type: eventType, // Aggiunge il tipo per la logica esito in handleEventChoice
             title: eventTitle,
             description: eventDescription,
-            choices: eventChoices,
-            isOutcome: false, // Non è un popup di risultato iniziale
-            context: context // CORRETTO: usa la variabile 'context' definita nello scope
+            choices: eventChoices
         };
     }
 
-    // Mostra il popup evento utilizzando la funzione UI.
-    if (eventData && typeof showEventPopup === 'function') {
-         showEventPopup(eventData);
-    } else if (eventData) {
-         console.error("triggerComplexEvent: showEventPopup non disponibile in ui.js!");
-         addMessage("Errore interno nel sistema eventi.", "danger");
+    // --- Salvataggio del Contesto Globale ---
+    // Salva il contesto dell'evento per handleEventChoice
+    currentEventContext = {
+        type: eventType,
+        context: context
+    };
+
+    // --- Visualizzazione del Popup Evento ---
+    // Usa la funzione showEventPopup da ui.js per mostrare l'evento
+    if (typeof showEventPopup === 'function') {
+        showEventPopup(eventData);
+    } else {
+        console.error("triggerComplexEvent: showEventPopup non disponibile (ui.js?).");
     }
 }
 
@@ -445,6 +452,10 @@ function applyChoiceReward(rewardData) {
     }
 
     let feedbackMessage = "";
+    
+    // === SISTEMA ESPERIENZA D&D-INSPIRED ===
+    // Assegna esperienza automaticamente per ogni ricompensa ottenuta
+    let expAwarded = 0;
 
     // Gestione ricompense singole (itemId diretto)
     if (rewardData.itemId) {
@@ -457,7 +468,16 @@ function applyChoiceReward(rewardData) {
                 feedbackMessage += ` (x${rewardData.quantity})`;
             }
             feedbackMessage += ". ";
+            
+            // Esperienza basata su rarità/valore dell'oggetto
+            expAwarded += (rewardData.quantity || 1) * 2; // 2 exp per oggetto
         }
+        
+        // === ASSEGNAZIONE ESPERIENZA FINALE ===
+        if (expAwarded > 0 && typeof awardExperience === 'function') {
+            awardExperience(expAwarded, "ricompensa ottenuta");
+        }
+        
         return feedbackMessage;
     }
 
@@ -475,6 +495,9 @@ function applyChoiceReward(rewardData) {
                         feedbackMessage += ` (x${item.quantity})`;
                     }
                     feedbackMessage += ". ";
+                    
+                    // Esperienza per oggetto ottenuto
+                    expAwarded += (item.quantity || 1) * 2;
                 }
             } else if (item.type) {
                 // Oggetto casuale da tabella
@@ -489,10 +512,19 @@ function applyChoiceReward(rewardData) {
                             feedbackMessage += ` (x${item.quantity})`;
                         }
                         feedbackMessage += ". ";
+                        
+                        // Esperienza per oggetto casuale (bonus per la fortuna)
+                        expAwarded += (item.quantity || 1) * 3;
                     }
                 }
             }
         });
+        
+        // === ASSEGNAZIONE ESPERIENZA FINALE ===
+        if (expAwarded > 0 && typeof awardExperience === 'function') {
+            awardExperience(expAwarded, "ricompense multiple ottenute");
+        }
+        
         return feedbackMessage;
     }
 
@@ -515,9 +547,18 @@ function applyChoiceReward(rewardData) {
                         feedbackMessage += ` (x${rewardData.quantity})`;
                     }
                     feedbackMessage += ". ";
+                    
+                    // Esperienza per oggetto da tabella pesata (bonus per rarità)
+                    expAwarded += (rewardData.quantity || 1) * 4;
                 }
             }
         }
+        
+        // === ASSEGNAZIONE ESPERIENZA FINALE ===
+        if (expAwarded > 0 && typeof awardExperience === 'function') {
+            awardExperience(expAwarded, "ricompensa rara ottenuta");
+        }
+        
         return feedbackMessage;
     }
 
@@ -534,12 +575,27 @@ function applyChoiceReward(rewardData) {
                     feedbackMessage += ` (x${rewardData.quantity})`;
                 }
                 feedbackMessage += ". ";
+                
+                // Esperienza per oggetto casuale singolo
+                expAwarded += (rewardData.quantity || 1) * 3;
             }
         }
+        
+        // === ASSEGNAZIONE ESPERIENZA FINALE ===
+        if (expAwarded > 0 && typeof awardExperience === 'function') {
+            awardExperience(expAwarded, "oggetto casuale ottenuto");
+        }
+        
         return feedbackMessage;
     }
 
     console.warn("applyChoiceReward: Formato rewardData non riconosciuto:", rewardData);
+    
+    // === ASSEGNAZIONE ESPERIENZA FINALE ===
+    if (expAwarded > 0 && typeof awardExperience === 'function') {
+        awardExperience(expAwarded, "ricompensa ottenuta");
+    }
+    
     return "";
 }
 
@@ -675,6 +731,91 @@ function applyPenalty(penaltyObject) {
 
 // --- FINE FUNZIONI HELPER EVENTI ---
 
+// === NUOVO SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D ===
+
+/**
+ * Mostra il risultato del combattimento con animazione e suspense
+ * @param {Object} combatResult - Risultato del combattimento da CombatSystem
+ * @param {string} enemyName - Nome del nemico
+ */
+function showCombatResultWithSuspense(combatResult, enemyName) {
+    let outcomeDescription = `<div class="combat-result">`;
+    outcomeDescription += `<strong>Combattimento contro ${enemyName}!</strong><br><br>`;
+    
+    // Mostra alcuni round chiave del combattimento
+    const keyRounds = combatResult.rounds.slice(0, 3); // Primi 3 round
+    keyRounds.forEach((round, index) => {
+        if (round.attacker === 'player') {
+            if (round.hit) {
+                outcomeDescription += `→ Colpisci per ${round.damage} danni!<br>`;
+            } else {
+                outcomeDescription += `→ Il tuo attacco manca!<br>`;
+            }
+        } else {
+            if (round.hit) {
+                outcomeDescription += `← ${enemyName} ti colpisce per ${round.damage} danni!<br>`;
+            } else {
+                outcomeDescription += `← Schivi l'attacco di ${enemyName}!<br>`;
+            }
+        }
+    });
+    
+    outcomeDescription += `<br><strong>`;
+    if (combatResult.victory) {
+        outcomeDescription += `<span style="color: #4ade80;">VITTORIA!</span></strong><br>`;
+        outcomeDescription += `Hai sconfitto ${enemyName}!<br>`;
+        if (combatResult.expGained > 0) {
+            outcomeDescription += `Guadagni ${combatResult.expGained} punti esperienza.<br>`;
+        }
+    } else {
+        outcomeDescription += `<span style="color: #ef4444;">SCONFITTA!</span></strong><br>`;
+        outcomeDescription += `${enemyName} ti ha sopraffatto!<br>`;
+        outcomeDescription += `Subisci ${combatResult.damageTaken} danni totali.<br>`;
+    }
+    outcomeDescription += `</div>`;
+    
+    return outcomeDescription;
+}
+
+/**
+ * Seleziona un nemico appropriato in base al tipo di evento e al contesto
+ * @param {string} eventType - Tipo di evento (PREDATOR o ANIMAL)
+ * @param {Object} context - Contesto dell'evento
+ * @returns {Object} Dati del nemico
+ */
+function selectEnemyForCombat(eventType, context) {
+    let enemyCategory, enemyTier;
+    
+    if (eventType === 'PREDATOR') {
+        enemyCategory = 'predators';
+        // Determina il livello del predone in base a vari fattori
+        if (player.adattamento >= 15 || player.potenza >= 15) {
+            enemyTier = Math.random() < 0.7 ? 'standard' : 'elite';
+        } else if (player.adattamento >= 10 || player.potenza >= 10) {
+            enemyTier = Math.random() < 0.8 ? 'weak' : 'standard';
+        } else {
+            enemyTier = 'weak';
+        }
+    } else if (eventType === 'ANIMAL') {
+        enemyCategory = 'animals';
+        // Determina il livello dell'animale
+        if (context.animalType && context.animalType.toLowerCase().includes('lupo')) {
+            enemyTier = 'dangerous';
+        } else if (player.tracce >= 12) {
+            enemyTier = Math.random() < 0.6 ? 'standard' : 'dangerous';
+        } else {
+            enemyTier = Math.random() < 0.7 ? 'weak' : 'standard';
+        }
+    }
+    
+    if (enemyCategory && enemyTier && ENEMY_DATA[enemyCategory] && ENEMY_DATA[enemyCategory][enemyTier]) {
+        return ENEMY_DATA[enemyCategory][enemyTier];
+    }
+    
+    // Fallback: nemico debole generico
+    return ENEMY_DATA.predators.weak;
+}
+
 // --- FUNZIONE PRINCIPALE PER GESTIRE LA SCELTA DELL'EVENTO ---
 function handleEventChoice(choiceIndex) {
     if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log(`[handleEventChoice] CHIAMATA con choiceIndex: ${choiceIndex}`);
@@ -802,22 +943,111 @@ function handleEventChoice(choiceIndex) {
             outcomeTitle = "Successo!";
             messageType = 'success';
             outcomeDescription = choice.successText || "Hai avuto successo!";
+            
+            // === ESPERIENZA PER SKILL CHECK RIUSCITI ===
+            if (typeof awardExperience === 'function') {
+                const difficultyBonus = Math.max(1, Math.floor(choice.skillCheck.difficulty / 3));
+                awardExperience(3 + difficultyBonus, `skill check ${choice.skillCheck.stat} riuscito`);
+            }
+            
             if (choice.successReward) {
                 if (typeof applyChoiceReward === 'function') applyChoiceReward(choice.successReward); else console.error("[handleEventChoice] ERRORE: applyChoiceReward non trovata!");
             }
             // --- INIZIO LOGICA SUCCESSO EVENTI COMPLESSI (SINTETIZZATA DALLA v0.7.17) ---
             if (eventType === 'PREDATOR' && actionKey === 'lotta') { 
-                if (typeof describeWeaponDamage === 'function') outcomeConsequencesText += `\n` + describeWeaponDamage(player.equippedWeapon?.itemId, currentTileSymbol); else console.error("[handleEventChoice] ERRORE: describeWeaponDamage non trovata!");
-                if (Math.random() < PREDATOR_LOOT_CHANCE && typeof PREDATOR_LOOT_WEIGHTS !== 'undefined' && typeof chooseWeighted === 'function' && typeof applyChoiceReward === 'function') {
-                    const lootTable = Object.keys(PREDATOR_LOOT_WEIGHTS).map(id => ({ id: id, weight: PREDATOR_LOOT_WEIGHTS[id] }));
-                    if (lootTable.length > 0) {
-                        const chosenLoot = chooseWeighted(lootTable);
-                        if (chosenLoot && chosenLoot.id) applyChoiceReward({ itemId: chosenLoot.id, quantity: 1 });
+                // === NUOVO SISTEMA DI COMBATTIMENTO AUTOMATICO EVOLUTO D&D ===
+                const enemy = selectEnemyForCombat(eventType, currentEventContext.context);
+                const combatResult = CombatSystem.resolveCombat(player, enemy);
+                
+                // Applica i risultati del combattimento
+                player.hp = combatResult.finalPlayerHP;
+                
+                // Mostra il risultato con suspense
+                outcomeDescription = showCombatResultWithSuspense(combatResult, enemy.name);
+                
+                if (combatResult.victory) {
+                    messageType = 'success';
+                    
+                    // Esperienza bonus per la vittoria
+                    if (typeof awardExperience === 'function' && combatResult.expGained > 0) {
+                        awardExperience(combatResult.expGained, `vittoria contro ${enemy.name}`);
+                    }
+                    
+                    // Loot del nemico
+                    if (enemy.lootTable) {
+                        const lootKeys = Object.keys(enemy.lootTable);
+                        lootKeys.forEach(itemId => {
+                            if (Math.random() < enemy.lootTable[itemId]) {
+                                if (typeof applyChoiceReward === 'function') {
+                                    applyChoiceReward({ itemId: itemId, quantity: 1 });
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    messageType = 'danger';
+                    outcomeTitle = "Sconfitta!";
+                    
+                    // Possibile perdita di oggetti se sconfitto
+                    if (Math.random() < PREDATOR_FIGHT_FAIL_LOOT_LOSS_CHANCE) {
+                        const foodItems = player.inventory.filter(item => item.type === 'food');
+                        if (foodItems.length > 0) {
+                            const lostItem = foodItems[Math.floor(Math.random() * foodItems.length)];
+                            const lossAmount = Math.min(lostItem.quantity, PREDATOR_FIGHT_FAIL_LOOT_LOSS_MAX);
+                            if (removeItemFromInventory(lostItem.itemId, lossAmount)) {
+                                outcomeConsequencesText += `<br>I predoni ti derubano di ${lossAmount} ${ITEM_DATA[lostItem.itemId].name}!`;
+                            }
+                        }
+                    }
+                }
+                
+                // Applica usura all'arma
+                if (player.equippedWeapon && player.equippedWeapon.itemId) {
+                    if (typeof applyWearToEquippedItem === 'function') {
+                        applyWearToEquippedItem('equippedWeapon', WEAR_FROM_USAGE);
                     }
                 }
             } else if (eventType === 'ANIMAL' && actionKey === 'attacca') {
-                if (typeof describeWeaponDamage === 'function') outcomeConsequencesText += `\n` + describeWeaponDamage(player.equippedWeapon?.itemId, currentTileSymbol); else console.error("[handleEventChoice] ERRORE: describeWeaponDamage non trovata!");
-                if (Math.random() < ANIMAL_MEAT_DROP_CHANCE && typeof applyChoiceReward === 'function') applyChoiceReward({ itemId: 'meat_raw', quantity: 1 });
+                // === NUOVO SISTEMA DI COMBATTIMENTO AUTOMATICO EVOLUTO D&D ===
+                const enemy = selectEnemyForCombat(eventType, currentEventContext.context);
+                const combatResult = CombatSystem.resolveCombat(player, enemy);
+                
+                // Applica i risultati del combattimento
+                player.hp = combatResult.finalPlayerHP;
+                
+                // Mostra il risultato con suspense
+                outcomeDescription = showCombatResultWithSuspense(combatResult, enemy.name);
+                
+                if (combatResult.victory) {
+                    messageType = 'success';
+                    
+                    // Esperienza bonus per la vittoria
+                    if (typeof awardExperience === 'function' && combatResult.expGained > 0) {
+                        awardExperience(combatResult.expGained, `caccia riuscita contro ${enemy.name}`);
+                    }
+                    
+                    // Loot dell'animale (principalmente carne)
+                    if (enemy.lootTable) {
+                        const lootKeys = Object.keys(enemy.lootTable);
+                        lootKeys.forEach(itemId => {
+                            if (Math.random() < enemy.lootTable[itemId]) {
+                                if (typeof applyChoiceReward === 'function') {
+                                    applyChoiceReward({ itemId: itemId, quantity: 1 });
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    messageType = 'danger';
+                    outcomeTitle = "Sconfitta!";
+                }
+                
+                // Applica usura all'arma
+                if (player.equippedWeapon && player.equippedWeapon.itemId) {
+                    if (typeof applyWearToEquippedItem === 'function') {
+                        applyWearToEquippedItem('equippedWeapon', WEAR_FROM_USAGE);
+                    }
+                }
             } else if (eventType === 'TRACKS' && (actionKey === 'segui' || actionKey === 'ispeziona')) {
                 const trackOutcomeRoll = Math.random();
                 if (trackOutcomeRoll < TRACCE_LOOT_CHANCE) {
@@ -954,4 +1184,6 @@ function performRestStopNightLootCheck() {
     }
 } // Fine performRestStopNightLootCheck
 
+if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) { console.log('[events.js] CHECK A FINE FILE: typeof handleEventChoice è:', typeof handleEventChoice, '; typeof triggerTileEvent è:', typeof triggerTileEvent, '; typeof triggerComplexEvent è:', typeof triggerComplexEvent); }
+if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) { console.log('[events.js] CHECK A FINE FILE: typeof handleEventChoice è:', typeof handleEventChoice, '; typeof triggerTileEvent è:', typeof triggerTileEvent, '; typeof triggerComplexEvent è:', typeof triggerComplexEvent); }
 if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) { console.log('[events.js] CHECK A FINE FILE: typeof handleEventChoice è:', typeof handleEventChoice, '; typeof triggerTileEvent è:', typeof triggerTileEvent, '; typeof triggerComplexEvent è:', typeof triggerComplexEvent); }

@@ -1,309 +1,273 @@
-# ROADMAP SVILUPPO - THE SAFE PLACE
-## Piano di Evoluzione Semplificato per GDR Single-Player
+# THE SAFE PLACE - ROADMAP SVILUPPO
+## VERSIONE: v0.9.0-SURVIVAL-PERFECTED + PROGRESSIONE D&D + BUGFIX FINALI
 
-### 🎯 **NUOVA FILOSOFIA**: Semplicità e Autenticità Anni '80
+## ⚠️ **IMPORTANTE: SISTEMA DI COMBATTIMENTO**
 
-Dopo analisi approfondita, il progetto si concentra su un'esperienza **autentica** di GDR single-player anni '80, **senza complicazioni moderne** come registrazioni utente o sistemi cloud complessi.
+### **COMBATTIMENTO A TURNI: NON SARÀ IMPLEMENTATO**
+**DECISIONE DEFINITIVA**: Il sistema di combattimento a turni è stato **PERMANENTEMENTE CANCELLATO** dalla roadmap. 
+- **Troppo complesso** e ambizioso per lo stato attuale del progetto
+- **Non allineato** con la filosofia di semplicità del gioco
+- **NON deve essere suggerito o implementato** in nessuna forma futura
 
----
+### **SISTEMA DI COMBATTIMENTO AUTOMATICO EVOLUTO D&D**
+**COSA SARÀ IMPLEMENTATO**: Un sistema di risoluzione combattimenti **automatico ma evoluto** che:
+- **Mantiene** la risoluzione istantanea tramite eventi (nessun turno)
+- **Evolve** le meccaniche usando regole D&D semplificate
+- **Confronta** caratteristiche dettagliate tra protagonista e nemici
+- **Calcola** risultati basati su: Attacco vs Difesa, Forza vs Resistenza, Bonus Armi/Armature
+- **Presenta** risultati con suspense (breve delay) e feedback colorato (verde=vittoria, rosso=sconfitta)
+- **Preserva** il gameplay esistente: nessun game over immediato, solo danni/conseguenze
 
-### FASE 1: INTERFACCIA RETRO AUTENTICA ✅ **COMPLETATA**
+### **PRINCIPI CHIAVE**
+1. **Automatismo**: Tutto avviene nel popup evento esistente
+2. **Semplicità**: Nessuna interfaccia aggiuntiva o complessità
+3. **Integrazione**: Usa il sistema eventi già presente
+4. **Dinamicità**: Risultati variabili basati su statistiche evolute
+5. **Narrativa**: Mantiene il focus sulla storia, non sulla tattica
 
-#### 1.1 Trasformazione Interfaccia Testuale Anni '80 ✅
-- [x] **SOLO TESTO PURO**: Eliminati completamente tutti i pulsanti grafici
-- [x] **Layout Testuale**: Controlli `[W] [A] [S] [D] [SPC]` in formato ASCII
-- [x] **Sistema Salvataggio Testuale**: `[F5] Salva Locale`, `[F6] Scarica File`, `[F7] Carica File`
-- [x] **Struttura Righe/Colonne**: `<ul><li>` come tutto il resto dell'interfaccia
-- [x] **Crafting Integrato**: `[C] Crafting` nelle statistiche, completamente testuale
-- [x] **Autenticità Retrocomputazionale**: Zero elementi grafici moderni, solo caratteri
-- [x] **Colori Coordinati**: Verde fosforescente (#00FF00) uniforme con tutto il sistema
-- [x] **Responsività Autentica**: Layout testuale funziona universalmente
+## 🎯 **STATO ATTUALE DEL PROGETTO**
 
-#### 1.2 Sistema Salvataggio File-Based ✅
-- [x] **Funzione downloadSaveFile()**: Scarica salvataggio come file JSON
-- [x] **Funzione loadSaveFile()**: Carica salvataggio da file JSON
-- [x] **Interfaccia retro**: F5/F6/F7 invece di pulsanti moderni
-- [x] **Compatibilità**: Mantiene localStorage come backup automatico
-- [x] **Validazione**: Controllo integrità file e compatibilità versioni
+### **✅ FASE COMPLETATA: CORE GAME + PROGRESSIONE D&D**
+**Data Completamento**: 27-05-2025  
+**Status**: **PRONTO PER DISTRIBUZIONE**
 
-#### 1.3 Vantaggi dell'Interfaccia Testuale Autentica
-- ✅ **Autenticità Assoluta**: Come un vero computer anni '80, solo caratteri ASCII
-- ✅ **Zero Problemi UI**: Impossibile avere problemi di layout con solo testo
-- ✅ **Responsività Universale**: Funziona perfettamente su qualsiasi dispositivo
-- ✅ **Controlli Naturali**: Click e tastiera su elementi testuali
-- ✅ **Atmosfera Realistica**: Verde fosforescente coordinato, font monospace autentico
-- ✅ **Compatibilità Totale**: Nessun browser o dispositivo escluso
-
----
-
-### FASE 2: CONSOLIDAMENTO E PULIZIA ✅ **COMPLETATA v0.8.3 (Estesa a v0.8.5 con Bilanciamento Iniziale)** ⚠️ **EVENTI PROTETTI**
-
-#### 2.1 Rimozione Complessità Backend ✅ **COMPLETATO**
-- [x] **Semplificazione architettura**: Rimozione sistema dual-mode complesso
-- [x] **Pulizia codice**: Eliminazione API client e character manager
-- [x] **Focus localStorage + File**: Sistema ibrido semplice
-- [x] **🔒 ESPANSIONE MASSIVA EVENTI**: +45 nuovi eventi aggiunti e protetti (v0.8.3)
-- [x] **🔒 DATABASE CONSOLIDATO**: 77 eventi specifici totali (era 32)
-- [x] **Aggiornamento Documentazione**: `README.md`, commenti versione file JS (v0.8.5)
-- [x] **Bilanciamento Iniziale Risorse Sopravvivenza**: Calibrazione tassi di consumo e drop rate di cibo, acqua e medicine per migliorare la curva di difficoltà iniziale (v0.8.5).
-- [x] **Introduzione Sistema di Consumo a Porzioni (v0.8.6)**: Implementata meccanica di consumo frazionato per cibo e acqua, per aumentare realismo e strategia nella gestione delle scorte. Richiede bilanciamento specifico dei costi e degli effetti per porzione.
-
-#### 2.2 🔒 **EVENTI PROTETTI AGGIUNTI v0.8.3** - ⚠️ **NON MODIFICARE**
-- **PLAINS:** +5 eventi (plains_flower_solitary → plains_fallen_scavenger) 🔒
-- **FOREST:** +10 eventi (forest_sacrificial_tree → forest_exposed_roots) 🔒  
-- **RIVER:** +10 eventi (river_stranded_wreck → river_message_bottle) 🔒
-- **VILLAGE:** +10 eventi (village_forgotten_altar → village_echo_laughter) 🔒
-- **CITY:** +10 eventi (city_devastated_library → city_intact_apartment) 🔒
-
-⚠️ **ATTENZIONE CRITICA**: Questi 45 eventi sono ora **INTOCCABILI** per future revisioni
-
-#### 2.2 Ottimizzazione Esperienza Utente
-- [ ] **Miglioramento UI**: Interfaccia più pulita e intuitiva
-- [ ] **Messaggi chiari**: Feedback utente per operazioni file
-- [ ] **Gestione errori**: Validazione robusta file di salvataggio
-- [ ] **Performance**: Ottimizzazione caricamento e rendering
-
-#### 2.3 Testing e Stabilizzazione
-- [ ] **Test cross-browser**: Compatibilità download/upload file
-- [ ] **Test file corrotti**: Gestione errori e recovery
-- [ ] **Test grandi salvataggi**: Performance con mappe estese
-- [ ] **Test mobile**: Funzionalità su dispositivi touch
+#### **Sistemi Implementati e Funzionanti:**
+- ✅ **Core Gameplay**: Movimento, risorse, ciclo giorno/notte
+- ✅ **Sistema Eventi**: Skill check, scelte multiple, conseguenze
+- ✅ **Inventario Avanzato**: Gestione completa con tasto (I)
+- ✅ **Crafting**: Ricette, blueprint, materiali
+- ✅ **Progressione D&D**: Esperienza automatica, miglioramento statistiche
+- ✅ **UI Completa**: Interfaccia intuitiva e responsive
+- ✅ **Salvataggio**: Sistema completo con download/upload
+- ✅ **Zero Bug Critici**: Tutti i problemi risolti
+- ✅ **Documentazione**: Completa e aggiornata
 
 ---
 
-### FASE 3: ESPANSIONE CONTENUTI MASSIVA (3-4 settimane) 🆕
+## 🚀 **ROADMAP FUTURA**
 
-#### 3.1 Analisi Contenuti Attuali 📊
-**STATO ATTUALE INVENTARIATO:**
-- **Eventi**: 30 specifici + 6 tipologie complesse + 2 easter eggs
-- **Oggetti**: 68 items (7 risorse, 12 cibo/acqua, 8 medicine, 18 armi, 6 munizioni, 8 armature, 9 strumenti/blueprint)
-- **Ricette**: 8 ricette crafting base
-- **Sistema Combattimento**: ASSENTE (solo skill checks narrativi)
+### **📋 FASE 1: STABILIZZAZIONE E TESTING (PRIORITÀ ALTA)**
+**Durata Stimata**: 2-4 settimane  
+**Obiettivo**: Preparazione per rilascio pubblico
 
-#### 3.2 Espansione Eventi per Tipologia 🎭
-- [ ] **+10 Eventi Plains**: Rovine, carovane, tempeste di sabbia, oasi
-- [ ] **+10 Eventi Forest**: Alberi mutati, accampamenti, animali rari, grotte
-- [ ] **+10 Eventi River**: Ponti, guadi, creature acquatiche, relitti
-- [ ] **+10 Eventi Village**: Mercanti, fazioni, segreti, bunker
-- [ ] **+10 Eventi City**: Grattacieli, metropolitana, gang, laboratori
-- [ ] **+10 Eventi Rest Stop**: Stazioni, officine, depositi, rifugi
-- [ ] **+5 Easter Eggs**: Riferimenti pop culture anni '80, segreti sviluppatori
-
-**TARGET: 95 eventi totali (+65 nuovi)**
-
-#### 3.3 Espansione Oggetti Massiva 🎒
-- [ ] **+20 Armi**: Spade, asce, fucili, esplosivi, armi improvvisate
-- [ ] **+15 Armature**: Tute, elmetti, scudi, protezioni specifiche
-- [ ] **+10 Risorse**: Elettronica, chimici, combustibili, materiali rari
-- [ ] **+15 Cibo/Medicine**: Stimolanti, veleni, cibi speciali, cure avanzate
-- [ ] **+10 Strumenti**: Hacking tools, veicoli, comunicazioni, sopravvivenza
-- [ ] **+20 Blueprint**: Ricette avanzate per tutti i nuovi oggetti
-
-**TARGET: 158 oggetti totali (+90 nuovi)**
-
-#### 3.4 Espansione Crafting 🔧
-- [ ] **+15 Ricette Armi**: Dalla lancia al fucile improvvisato
-- [ ] **+10 Ricette Armature**: Da stracci a tute da combattimento
-- [ ] **+8 Ricette Medicine**: Stimolanti, antidoti, pozioni
-- [ ] **+7 Ricette Strumenti**: Dispositivi elettronici, trappole, veicoli
-
-**TARGET: 48 ricette totali (+40 nuove)**
-
----
-
-### FASE 4: SISTEMA D&D ANNI '70 SEMPLIFICATO (2-3 settimane) 🎲
-
-#### 4.1 Meccaniche Base D&D Adattate
-- [ ] **Sistema Livelli**: Esperienza e crescita per Ultimo (1-10 livelli)
-- [ ] **Punti Ferita Scalabili**: HP = 10 + Vigore + (Livello × 2)
-- [ ] **Classe Armatura**: CA = 10 + Agilità + Armatura
-- [ ] **Bonus Attacco**: +Livello + Modificatore Statistica
-- [ ] **Tiri Salvezza**: Contro veleni, malattie, paura, morte
-
-#### 4.2 Sistema Avversari
-- [ ] **Bestiary Completo**: 20+ creature con statistiche D&D
-- [ ] **Predoni Umani**: Diversi livelli e specializzazioni
-- [ ] **Mutanti**: Creature post-apocalittiche uniche
-- [ ] **Boss Encounters**: 5 nemici leggendari per aree specifiche
-- [ ] **Scaling Dinamico**: Nemici si adattano al livello del giocatore
-
-#### 4.3 Crescita Personaggio
-- [ ] **Punti Esperienza**: Guadagno da combattimenti, eventi, scoperte
-- [ ] **Aumento Statistiche**: +1 ogni 2 livelli a scelta
-- [ ] **Abilità Speciali**: Talenti sbloccabili per livello
-- [ ] **Specializzazioni**: Percorsi di crescita (Guerriero, Esploratore, Sopravvissuto)
-
----
-
-### FASE 5: COMBATTIMENTO A TURNI TESTUALE (2-3 settimane) ⚔️
-
-#### 5.1 Sistema Combattimento Base
-- [ ] **Iniziativa**: Tiro d20 + Agilità per ordine turni
-- [ ] **Azioni per Turno**: Attacca, Difendi, Usa Oggetto, Fuggi, Azione Speciale
-- [ ] **Tiri Attacco**: d20 + Bonus vs Classe Armatura
-- [ ] **Danni**: Arma + Modificatore + Bonus situazionali
-- [ ] **Condizioni**: Ferito, Avvelenato, Stordito, Spaventato
-
-#### 5.2 Interfaccia Combattimento Testuale
-- [ ] **ASCII Art Arena**: Rappresentazione posizioni combattenti
-- [ ] **Menu Azioni**: Lista testuale con hotkeys [A]ttacca, [D]ifendi, etc.
-- [ ] **Log Combattimento**: Cronologia dettagliata azioni e risultati
-- [ ] **Barra HP Testuale**: `[████████░░] 80/100 HP`
-- [ ] **Indicatori Status**: `[FERITO] [AVVELENATO]` in tempo reale
-
-#### 5.3 Meccaniche Avanzate
-- [ ] **Combattimento Multiplo**: Fino a 3 nemici contemporaneamente
-- [ ] **Tattiche**: Posizionamento, coperture, imboscate
-- [ ] **Armi Speciali**: Effetti unici per tipo arma
-- [ ] **Magie/Tecnologie**: Abilità speciali post-apocalittiche
-- [ ] **Fuga Dinamica**: Possibilità di ritirata con conseguenze
-
----
-
-### FASE 6: STORIA PRINCIPALE E MAPPA PROCEDURALE (2-3 settimane) 🗺️
-
-#### 6.1 Eventi Storia Principale
-- [ ] **10 Punti Narrativi**: Eventi chiave distribuiti sulla mappa
-- [ ] **Sequenza Logica**: Progressione storia nonostante mappa procedurale
-- [ ] **Checkpoint System**: Trigger basati su esplorazione/livello
-- [ ] **Multiple Endings**: 3-5 finali diversi basati su scelte
-- [ ] **Lore Integrato**: Frammenti storia collegati agli eventi principali
-
-#### 6.2 Adattamento Mappa Procedurale
-- [ ] **Zone Narrative**: Aree speciali che appaiono sempre
-- [ ] **Trigger Distanza**: Eventi attivati da distanza dal centro
-- [ ] **Landmark System**: Punti fissi per eventi storia
-- [ ] **Breadcrumb Trail**: Indizi che guidano verso obiettivi
-- [ ] **Dynamic Scaling**: Difficoltà eventi scala con progressione
-
-#### 6.3 Integrazione Sistemi
-- [ ] **Combattimento + Storia**: Boss fights negli eventi principali
-- [ ] **Crafting + Progressione**: Oggetti unici per avanzare storia
-- [ ] **Livelli + Narrative**: Gating basato su potenza personaggio
-- [ ] **Scelte + Conseguenze**: Decisioni influenzano eventi futuri
-
----
-
-### FASE 7: BILANCIAMENTO E POLISH (2-3 settimane) ⚖️
-
-#### 7.1 Bilanciamento Sistemi
-- [ ] **Curve Esperienza**: Progressione livelli equilibrata
-- [ ] **Economia Oggetti**: Rarità e valore items bilanciati
-- [ ] **Difficoltà Combattimenti**: Scaling nemici ottimizzato
-- [ ] **Risorse Sopravvivenza**: Cibo/acqua/medicine calibrati (include bilanciamento fine del sistema a porzioni introdotto in v0.8.6).
-- [ ] **RNG Mitigation**: Sistemi anti-sfortuna per eventi critici
-
-#### 7.2 Testing Intensivo
+#### **1.1 Testing Estensivo**
 - [ ] **Playtest Completi**: Partite dall'inizio alla fine
-- [ ] **Bug Hunting**: Ricerca sistematica errori
-- [ ] **Performance**: Ottimizzazione per dispositivi lenti
-- [ ] **Save Compatibility**: Test retrocompatibilità salvataggi
-- [ ] **Edge Cases**: Gestione situazioni limite
+- [ ] **Stress Testing**: Inventario pieno, statistiche massime
+- [ ] **Edge Cases**: Situazioni limite e casi estremi
+- [ ] **Performance**: Ottimizzazione memoria e rendering
+- [ ] **Compatibilità**: Test su diversi browser e dispositivi
 
-#### 7.3 Qualità della Vita
-- [ ] **Tutorial Esteso**: Guida completa per nuovi giocatori
-- [ ] **Hotkeys Avanzate**: Scorciatoie per azioni comuni
-- [ ] **Auto-Save Intelligente**: Backup automatici in momenti chiave
-- [ ] **Statistics Tracking**: Statistiche dettagliate progressi
-- [ ] **Accessibility**: Miglioramenti per diversi tipi di utenti
+#### **1.2 Ottimizzazioni**
+- [ ] **Performance**: Riduzione lag e miglioramento fluidità
+- [ ] **Memoria**: Garbage collection e leak prevention
+- [ ] **Loading**: Ottimizzazione tempi di caricamento
+- [ ] **Responsive**: Adattamento a schermi diversi
 
----
+#### **1.3 Accessibilità**
+- [ ] **Screen Reader**: Supporto per non vedenti
+- [ ] **Keyboard Navigation**: Navigazione completa da tastiera
+- [ ] **Contrast**: Miglioramento contrasto colori
+- [ ] **Font Size**: Opzioni dimensione testo
 
-### MILESTONE AGGIORNATE
-
-| Fase | Durata | Deliverable Principale | Contenuti |
-|------|--------|------------------------|-----------|
-| 1 | ✅ Completata | Sistema file-based funzionante | Interfaccia retro autentica |
-| 2 | 1-2 sett | Architettura semplificata | Pulizia codice backend |
-| 3 | 3-4 sett | Contenuti massivamente espansi | +65 eventi, +90 oggetti, +40 ricette |
-| 4 | 2-3 sett | Sistema D&D implementato | Livelli, statistiche, crescita |
-| 5 | 2-3 sett | Combattimento a turni | Sistema tattico completo |
-| 6 | 2-3 sett | Storia principale | 10 eventi narrativi + integrazione |
-| 7 | 2-3 sett | Versione finale bilanciata | Testing e polish completo |
-
-**TOTALE STIMATO: 13-20 settimane** (3-5 mesi)
+#### **1.4 Mobile Support**
+- [ ] **Touch Controls**: Adattamento controlli touch
+- [ ] **Mobile UI**: Interfaccia ottimizzata per mobile
+- [ ] **Responsive Layout**: Layout adattivo
+- [ ] **Performance Mobile**: Ottimizzazioni specifiche
 
 ---
 
-### CONTENUTI TARGET FINALI 🎯
+### **📈 FASE 2: ESPANSIONE CONTENUTI (PRIORITÀ MEDIA)**
+**Durata Stimata**: 6-8 settimane  
+**Obiettivo**: Arricchimento esperienza di gioco
 
-#### **Eventi**: 95 totali
-- 65 eventi specifici per tile (vs 30 attuali)
-- 6 tipologie eventi complessi (invariato)
-- 7 easter eggs (vs 2 attuali)
+#### **2.1 Nuovi Eventi e Biomi**
+- [ ] **Biomi Aggiuntivi**: Deserti, paludi, città sotterranee
+- [ ] **Eventi Speciali**: Situazioni uniche per bioma
+- [ ] **Catene Eventi**: Sequenze di eventi collegati
+- [ ] **Eventi Stagionali**: Contenuti temporali
 
-#### **Oggetti**: 158 totali  
-- 90 nuovi oggetti (vs 68 attuali)
-- Tutte le categorie espanse significativamente
-- Focus su varietà armi e armature
+#### **2.2 Sistema Combattimento Automatico Evoluto D&D**
+- [ ] **Statistiche Nemici**: Definizione HP, Attacco, Difesa per ogni tipo
+- [ ] **Calcolo Combattimento**: Algoritmo D&D semplificato (d20 + bonus)
+- [ ] **Confronto Dinamico**: Attacco vs Difesa, modificatori situazionali
+- [ ] **Feedback Visivo**: Delay suspense + colori risultato (verde/rosso)
+- [ ] **Integrazione Eventi**: Modifica eventi PREDATOR, ANIMAL per nuovo sistema
+- [ ] **Bilanciamento**: Test e calibrazione difficoltà per ogni nemico
 
-#### **Ricette**: 48 totali
-- 40 nuove ricette (vs 8 attuali)
-- Crafting per ogni categoria oggetti
-- Progressione da base ad avanzato
+#### **2.3 Meccaniche Avanzate**
+- [ ] **Compagni**: NPC che si uniscono al viaggio
+- [ ] **Veicoli**: Mezzi di trasporto
+- [ ] **Base Building**: Costruzione rifugi temporanei
+- [ ] **Trading**: Sistema commercio con NPC
 
-#### **Sistemi Gameplay**
-- Sistema D&D completo con livelli 1-10
-- Combattimento a turni tattico
-- Storia principale con 10 eventi chiave
-- Bilanciamento professionale
-
----
-
-### VANTAGGI DELLA NUOVA DIREZIONE
-
-#### 🎮 **Per i Giocatori**
-- **Contenuti Massicci**: 3x eventi, 2.3x oggetti, 6x ricette
-- **Profondità Meccanica**: Sistema D&D autentico anni '70
-- **Combattimento Tattico**: Vero sistema a turni strategico
-- **Storia Coinvolgente**: Narrativa principale strutturata
-- **Replay Value**: Mappa procedurale + scelte multiple
-
-#### 🛠️ **Per lo Sviluppo**
-- **Struttura Chiara**: Fasi ben definite e misurabili
-- **Crescita Organica**: Ogni fase costruisce sulla precedente
-- **Testing Continuo**: Validazione ad ogni milestone
-- **Modularità**: Sistemi indipendenti ma integrati
-- **Scalabilità**: Facile aggiungere contenuti futuri
-
-#### 🎯 **Per il Progetto**
-- **Ambizione Realistica**: Obiettivi sfidanti ma raggiungibili
-- **Valore Aggiunto**: Trasformazione da demo a gioco completo
-- **Autenticità Mantenuta**: Fedeltà all'estetica anni '80
-- **Innovazione**: Combattimento testuale moderno
-- **Completezza**: Esperienza GDR completa e bilanciata
+#### **2.4 Espansione Crafting**
+- [ ] **Ricette Avanzate**: Oggetti complessi multi-step
+- [ ] **Stazioni Crafting**: Workbench specializzati
+- [ ] **Modifiche Oggetti**: Upgrade e personalizzazioni
+- [ ] **Ricette Rare**: Blueprint leggendari
 
 ---
 
-### TECNOLOGIE FINALI
+### **🌐 FASE 3: MULTIPLAYER E SOCIAL (PRIORITÀ MEDIA)**
+**Durata Stimata**: 8-12 settimane  
+**Obiettivo**: Esperienza sociale e cooperativa
 
-#### **Frontend Espanso**
-- **HTML5 + CSS3 + JavaScript ES6**: Stack base mantenuto
-- **Modular Architecture**: Sistemi separati per combattimento, crafting, storia
-- **Advanced JSON**: Strutture dati complesse per salvataggi
-- **Performance Optimization**: Gestione efficiente contenuti massicci
-- **Responsive Design**: Interfaccia testuale adattiva
+#### **3.1 Modalità Cooperativa**
+- [ ] **Co-op Locale**: Gioco condiviso stesso schermo
+- [ ] **Co-op Online**: Multiplayer via internet
+- [ ] **Sync System**: Sincronizzazione stati gioco
+- [ ] **Shared Resources**: Gestione risorse condivise
 
-#### **Nessun Backend Richiesto**
-- ❌ ~~PHP + MySQL~~
-- ❌ ~~Sistema autenticazione~~
-- ❌ ~~API REST~~
-- ❌ ~~Infrastruttura server~~
-- ✅ **100% Client-Side**: Tutto funziona offline
+#### **3.2 Competizione**
+- [ ] **Leaderboards**: Classifiche sopravvivenza
+- [ ] **Achievements**: Sistema obiettivi
+- [ ] **Daily Challenges**: Sfide giornaliere
+- [ ] **Seasonal Events**: Eventi competitivi
+
+#### **3.3 Community Features**
+- [ ] **Map Sharing**: Condivisione mappe generate
+- [ ] **Screenshot System**: Cattura e condivisione momenti
+- [ ] **Story Sharing**: Condivisione storie sopravvivenza
+- [ ] **Mod Support**: Supporto modifiche community
+
+---
+
+### **🎨 FASE 4: MIGLIORAMENTI AUDIOVISIVI (PRIORITÀ BASSA)**
+**Durata Stimata**: 6-10 settimane  
+**Obiettivo**: Esperienza immersiva migliorata
+
+#### **4.1 Sistema Grafico**
+- [ ] **Sprite System**: Grafica 2D per oggetti e personaggi
+- [ ] **Animazioni**: Movimento e azioni animate
+- [ ] **Particle Effects**: Effetti visivi per azioni
+- [ ] **Weather System**: Effetti meteorologici
+
+#### **4.2 Audio**
+- [ ] **Musica Ambientale**: Colonna sonora dinamica
+- [ ] **Sound Effects**: Effetti sonori per azioni
+- [ ] **Voice Acting**: Narrazione vocale eventi
+- [ ] **Audio Settings**: Controlli volume e qualità
+
+#### **4.3 UI/UX Avanzata**
+- [ ] **Themes**: Temi grafici alternativi
+- [ ] **Customization**: Personalizzazione interfaccia
+- [ ] **Animations**: Transizioni e animazioni UI
+- [ ] **Advanced Tooltips**: Tooltip interattivi
 
 ---
 
-### CONCLUSIONI
+### **🌍 FASE 5: LOCALIZZAZIONE E DISTRIBUZIONE (PRIORITÀ BASSA)**
+**Durata Stimata**: 4-6 settimane  
+**Obiettivo**: Raggiungimento audience globale
 
-Questa **roadmap espansa** trasforma il progetto da **esperimento** a **GDR completo**:
-- **Contenuti Tripli**: Espansione massiva di eventi, oggetti e ricette
-- **Meccaniche Autentiche**: Sistema D&D anni '70 fedele e semplificato  
-- **Combattimento Strategico**: Vero sistema a turni testuale
-- **Storia Strutturata**: Narrativa principale con 10 eventi chiave
-- **Esperienza Completa**: Da 2-3 ore a 20-30 ore di gameplay
+#### **5.1 Localizzazione**
+- [ ] **Inglese**: Traduzione completa
+- [ ] **Francese**: Traduzione e localizzazione
+- [ ] **Spagnolo**: Traduzione e localizzazione
+- [ ] **Tedesco**: Traduzione e localizzazione
 
-Il risultato sarà un **capolavoro retro-gaming** che rispetta l'autenticità anni '80 mentre offre profondità meccanica moderna.
+#### **5.2 Piattaforme**
+- [ ] **Steam**: Preparazione per Steam
+- [ ] **Itch.io**: Distribuzione indie
+- [ ] **Mobile Stores**: App Store e Google Play
+- [ ] **Web Platforms**: Hosting su piattaforme web
+
+#### **5.3 Marketing**
+- [ ] **Trailer**: Video promozionale
+- [ ] **Screenshots**: Materiale promozionale
+- [ ] **Press Kit**: Kit per stampa e influencer
+- [ ] **Social Media**: Presenza sui social
 
 ---
-*Roadmap aggiornata: 26 Maggio 2025*
-*Nuova filosofia: Autenticità + Profondità = Capolavoro Retro* 
+
+## 🔧 **CONSIDERAZIONI TECNICHE**
+
+### **Architettura Attuale:**
+- ✅ **Modular Design**: Facilita espansioni
+- ✅ **Event System**: Supporta nuovi contenuti
+- ✅ **Data-Driven**: Configurazione esterna
+- ✅ **Save System**: Compatibilità versioni future
+
+### **Preparazione per Espansioni:**
+- ✅ **Plugin System**: Pronto per modding
+- ✅ **API Design**: Interfacce estensibili
+- ✅ **Version Control**: Gestione aggiornamenti
+- ✅ **Backward Compatibility**: Salvataggi compatibili
+
+---
+
+## 📊 **METRICHE DI SUCCESSO**
+
+### **Fase 1 (Testing):**
+- **Bug Reports**: < 5 bug critici
+- **Performance**: 60+ FPS costanti
+- **Compatibility**: 95%+ browser supportati
+- **Accessibility**: WCAG 2.1 AA compliance
+
+### **Fase 2 (Contenuti):**
+- **Nuovi Eventi**: 50+ eventi aggiuntivi
+- **Tempo Gioco**: +100% durata media partita
+- **Rigiocabilità**: 80%+ giocatori rigiocano
+- **Engagement**: 70%+ completamento contenuti
+
+### **Fase 3 (Multiplayer):**
+- **Concurrent Players**: 100+ giocatori simultanei
+- **Session Length**: +50% durata sessioni
+- **Retention**: 60%+ ritorno dopo 7 giorni
+- **Community**: 1000+ membri attivi
+
+---
+
+## 🎯 **PRIORITÀ IMMEDIATE**
+
+### **Prossimi 30 Giorni:**
+1. **Testing Completo**: Identificare e risolvere bug residui
+2. **Performance**: Ottimizzazioni per gameplay fluido
+3. **Documentation**: Finalizzare guide utente
+4. **Accessibility**: Implementare supporti base
+
+### **Prossimi 90 Giorni:**
+1. **Mobile Support**: Adattamento touch e responsive
+2. **Nuovi Contenuti**: 20+ eventi aggiuntivi
+3. **Sistema Reputazione**: Implementazione base
+4. **Community**: Preparazione per feedback pubblico
+
+---
+
+## 🚨 **RISCHI E MITIGAZIONI**
+
+### **Rischi Tecnici:**
+- **Performance Mobile**: Mitigazione tramite ottimizzazioni specifiche
+- **Browser Compatibility**: Testing estensivo su piattaforme diverse
+- **Save Corruption**: Sistema backup e validazione robusto
+
+### **Rischi di Progetto:**
+- **Feature Creep**: Roadmap rigida con priorità chiare
+- **Resource Constraints**: Fasi modulari e incrementali
+- **Community Feedback**: Beta testing per validazione precoce
+
+---
+
+## 🏆 **OBIETTIVI A LUNGO TERMINE**
+
+### **6 Mesi:**
+- Gioco stabile con contenuti espansi
+- Community attiva di giocatori
+- Supporto multiplayer funzionante
+
+### **1 Anno:**
+- Distribuzione su multiple piattaforme
+- Sistema modding attivo
+- Riconoscimento nella community indie
+
+### **2 Anni:**
+- Sequel o espansione maggiore
+- Partnership commerciali
+- Franchise consolidato
+
+---
+
+*Documento creato il 27-05-2025*  
+*Roadmap basata su progetto completato e stabile*  
+*Priorità orientate a crescita sostenibile e qualità* 

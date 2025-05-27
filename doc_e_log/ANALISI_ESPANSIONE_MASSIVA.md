@@ -1,4 +1,16 @@
-# ANALISI ESPANSIONE MASSIVA - THE SAFE PLACE
+# THE SAFE PLACE - ANALISI ESPANSIONE E INVENTARIO COMPLETO
+## VERSIONE: v0.8.2 - VERSO LA TRASFORMAZIONE
+
+## ⚠️ **AVVISO CRITICO: SISTEMA DI COMBATTIMENTO**
+
+### **IL COMBATTIMENTO A TURNI NON SARÀ MAI IMPLEMENTATO**
+Questo documento contiene riferimenti storici a un sistema di combattimento a turni che è stato **DEFINITIVAMENTE CANCELLATO**.
+- **IGNORARE** qualsiasi riferimento a combattimento a turni, interfacce ASCII arena, o sistemi tattici
+- **SOSTITUITO DA**: Sistema di Combattimento Automatico Evoluto D&D (vedi FASE 5 aggiornata)
+- **QUESTA DECISIONE È PERMANENTE** e non deve essere riconsiderata
+
+---
+
 ## Da Esperimento a GDR Completo
 
 ### 🎯 **OBIETTIVO**: Trasformazione da Demo a Capolavoro Retro
@@ -406,34 +418,43 @@ CRESCITA PERSONAGGIO:
 └── Progressione Organica: Miglioramento graduale
 ```
 
-#### **FASE 5: COMBATTIMENTO A TURNI (2-3 settimane)**
+#### **FASE 5: SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D (2-3 settimane)**
 ```
+⚠️ IMPORTANTE: NESSUN COMBATTIMENTO A TURNI - SOLO RISOLUZIONE AUTOMATICA EVOLUTA
+
 OBIETTIVI:
-├── Sistema iniziativa e azioni per turno
-├── Interfaccia combattimento ASCII autentica
-├── Meccaniche tattiche avanzate
-└── Supporto combattimenti multipli (1 vs 3)
+├── Sistema di risoluzione istantanea ma complessa
+├── Calcoli D&D avanzati dietro le quinte
+├── Presentazione con suspense e feedback colorato
+└── Integrazione perfetta con eventi esistenti
 
-SISTEMA COMBATTIMENTO BASE:
-├── Iniziativa: D20 + Agilità per ordine turni
-├── Azioni per Turno: Attacca, Difendi, Usa, Fuggi, Speciale
-├── Tiri Attacco: D20 + Bonus vs Classe Armatura
-├── Sistema Danni: Arma + Modificatore + Situazionali
-└── Condizioni: Ferito, Avvelenato, Stordito, Spaventato
+SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO:
+├── Statistiche Nemici: HP, Attacco, Difesa, Resistenza
+├── Calcolo Istantaneo: D20 + modificatori confrontati
+├── Confronti Multipli: Attacco vs Difesa, Forza vs Resistenza
+├── Bonus Situazionali: Armi, armature, condizioni, ambiente
+└── Risultato Unico: Danni variabili, non game over immediato
 
-INTERFACCIA TESTUALE:
-├── ASCII Art Arena: Posizioni combattenti
-├── Menu Azioni: [A]ttacca [D]ifendi [U]sa [F]uggi
-├── Log Combattimento: Cronologia dettagliata
-├── Barre HP: [████████░░] 80/100 HP
-└── Status: [FERITO] [AVVELENATO] in tempo reale
+PRESENTAZIONE NEL POPUP EVENTO:
+├── Descrizione Iniziale: Setup narrativo dello scontro
+├── Calcolo con Delay: 1-2 secondi di suspense
+├── Risultato Colorato: Verde chiaro (vittoria) o Rosso (sconfitta)
+├── Conseguenze: Danni, perdita oggetti, ferite, ma MAI game over diretto
+└── Narrativa Risultato: Descrizione dettagliata dell'esito
 
-MECCANICHE AVANZATE:
-├── Posizionamento: Distanza, coperture, flanking
-├── Armi Speciali: Effetti unici per tipo
-├── Tattiche: Imboscate, ritirate, manovre
-├── Magie/Tech: Abilità speciali post-apocalittiche
-└── Fuga Dinamica: Ritirata con conseguenze
+MECCANICHE D&D SEMPLIFICATE:
+├── Tiro Attacco: 1d20 + Bonus Attacco vs Difesa Nemico
+├── Danno: Arma Base + Modificatore Forza
+├── Riduzione Danno: Armatura e Resistenza nemico
+├── Contrattacco: Se fallisci, il nemico risponde
+└── Modificatori: Ferite, malattie, ambiente influenzano
+
+INTEGRAZIONE EVENTI:
+├── PREDATOR: Confronto completo con statistiche predoni
+├── ANIMAL: Bestie con caratteristiche diverse per tipo
+├── HORROR: Resistenza mentale vs potere dell'orrore
+├── Boss Speciali: Nemici unici con statistiche elevate
+└── Scaling: Difficoltà cresce con progressione giocatore
 ```
 
 #### **FASE 6: STORIA PRINCIPALE (2-3 settimane)**

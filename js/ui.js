@@ -23,7 +23,7 @@
 function renderStats() {
     if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[renderStats] Player Equip LETTO - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
     // Verifica che il giocatore esista e che i riferimenti DOM siano validi.
-    if (!player || !DOM.statHp || !DOM.statMaxHp || !DOM.statVig || !DOM.statPot || !DOM.statAgi || !DOM.statTra || !DOM.statInf || !DOM.statPre || !DOM.statAda || !DOM.statAcq || !DOM.statFood || !DOM.statWater || !DOM.statCondition || !DOM.statWeapon || !DOM.statArmor || !DOM.posX || !DOM.posY || !DOM.tileType || !DOM.statDayTime) {
+    if (!player || !DOM.statHp || !DOM.statMaxHp || !DOM.statVig || !DOM.statPot || !DOM.statAgi || !DOM.statTra || !DOM.statInf || !DOM.statPre || !DOM.statAda || !DOM.statExp || !DOM.statPts || !DOM.statFood || !DOM.statWater || !DOM.statCondition || !DOM.statWeapon || !DOM.statArmor || !DOM.posX || !DOM.posY || !DOM.tileType || !DOM.statDayTime) {
         console.warn("renderStats: Elementi DOM o dati giocatore non pronti.");
         return;
     }
@@ -52,8 +52,21 @@ function renderStats() {
     DOM.statAda.textContent = player.stats.adattamento;
     if (DOM.statAda.parentElement) DOM.statAda.parentElement.setAttribute('title', 'Adattamento');
     
-    // DOM.statAcq.textContent = 0; // Statistica rimossa - non implementata
-    if (DOM.statAcq.parentElement) DOM.statAcq.parentElement.setAttribute('title', 'Acquisita');
+    // === NUOVE STATISTICHE SISTEMA PROGRESSIONE ===
+    DOM.statExp.textContent = player.experience || 0;
+    if (DOM.statExp.parentElement) DOM.statExp.parentElement.setAttribute('title', 'Esperienza');
+    
+    DOM.statPts.textContent = player.availableStatPoints || 0;
+    if (DOM.statPts.parentElement) DOM.statPts.parentElement.setAttribute('title', 'Punti Statistica Disponibili');
+    
+    // Evidenzia i punti statistica se disponibili
+    if (player.availableStatPoints > 0) {
+        DOM.statPts.style.color = '#00FF00';
+        DOM.statPts.style.fontWeight = 'bold';
+    } else {
+        DOM.statPts.style.color = '';
+        DOM.statPts.style.fontWeight = '';
+    }
 
     // Aggiorna visualizzazione risorse (cibo e acqua)
     DOM.statFood.textContent = Math.floor(player.food); // Arrotonda risorse a interi per UI
@@ -194,7 +207,7 @@ function renderStats() {
         DOM.statDayTime.style.color = ''; // Rimuove colore personalizzato (usa default)
     } else {
         DOM.statDayTime.textContent = 'Notte';
-        DOM.statDayTime.style.color = '#4A90E2'; // Blu acceso per la notte
+        DOM.statDayTime.style.color = '#4A90E2'; // Blu per la notte
     }
 
     // --- (INIZIO BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---

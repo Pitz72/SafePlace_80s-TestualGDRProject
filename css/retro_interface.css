@@ -78,18 +78,21 @@
     margin: 0 3px; /* Aggiunge un po' di spazio attorno ai trattini */
 }
 
-/* === CRAFTING NEL PANNELLO STATISTICHE === */
-.crafting-option {
+/* === CRAFTING E MIGLIORAMENTO STATISTICHE NEL PANNELLO === */
+.crafting-option,
+.stat-improvement-option {
     cursor: pointer;
     transition: color 0.1s ease;
 }
 
-.crafting-option:hover {
+.crafting-option:hover,
+.stat-improvement-option:hover {
     color: var(--accent-color, #00FF00) !important;
     text-shadow: 0 0 3px var(--accent-color, #00FF00);
 }
 
-.crafting-option.pressed {
+.crafting-option.pressed,
+.stat-improvement-option.pressed {
     color: #FFFFFF !important;
     text-shadow: 0 0 5px #FFFFFF;
 }

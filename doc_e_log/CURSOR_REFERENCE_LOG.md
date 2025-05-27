@@ -894,3 +894,60 @@ EFFORT STIMATO:
 ```
 
 --- 
+
+## 🚫 **SISTEMA COMBATTIMENTO - DECISIONE PERMANENTE**
+*Aggiornato: 27-01-2025*
+
+### ⚠️ **NESSUN COMBATTIMENTO A TURNI - MAI**
+
+**DECISIONE IRREVOCABILE**: Il combattimento a turni è stato **PERMANENTEMENTE CANCELLATO** dal progetto.
+
+#### **COSA È STATO IMPLEMENTATO INVECE:**
+
+```javascript
+// SISTEMA COMBATTIMENTO AUTOMATICO EVOLUTO D&D
+// File: js/game_data.js
+
+const ENEMY_DATA = {
+    predators: { weak, standard, elite },
+    animals: { weak, standard, dangerous },
+    special: { zone_horror }
+};
+
+const CombatSystem = {
+    rollD20(),
+    rollDice(min, max),
+    resolveAttack(attacker, defender),
+    resolveCombat(player, enemy)
+};
+```
+
+#### **INTEGRAZIONE IN EVENTI:**
+
+```javascript
+// File: js/events.js
+// Eventi PREDATOR e ANIMAL ora usano:
+const enemy = selectEnemyForCombat(eventType, context);
+const combatResult = CombatSystem.resolveCombat(player, enemy);
+showCombatResultWithSuspense(combatResult, enemy.name);
+```
+
+#### **COSA NON FARE MAI:**
+- ❌ Suggerire combattimento a turni
+- ❌ Creare interfacce combattimento separate
+- ❌ Aggiungere complessità tattica
+- ❌ Implementare posizionamento/movimento
+- ❌ Mostrare HP nemici o barre vita
+
+#### **COSA FARE SEMPRE:**
+- ✅ Usare popup eventi esistente
+- ✅ Risoluzione istantanea (1 calcolo)
+- ✅ Feedback con suspense 1-2 secondi
+- ✅ Colori: verde vittoria, rosso sconfitta
+- ✅ Conseguenze graduali (no instant death)
+
+**DOCUMENTAZIONE COMPLETA**: `doc_e_log/SISTEMA_COMBATTIMENTO_AUTOMATICO_D&D.md`
+
+---
+
+*Fine del documento CURSOR_REFERENCE_LOG.md* 

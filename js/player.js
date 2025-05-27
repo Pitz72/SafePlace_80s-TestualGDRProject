@@ -13,6 +13,9 @@
 // - Funzioni UI (renderStats, renderInventory, showItemActionPopup, closeEventPopup, showItemTooltip, hideItemTooltip, getItemDetailsHTML) da ui.js
 // - Funzione endGame (da game_core.js)
 
+// Variabile globale per gestire i popup di azione
+let savedActionPopupContext = null;
+
 
 /**
  * Genera le statistiche base e l'inventario iniziale del personaggio giocante.
@@ -50,7 +53,12 @@ function generateCharacter() {
         isPoisoned: false, // Nuovo stato
         // ... altri stati come 'affamato', 'assetato' sono impliciti da food/water <= 0
         bonusStats: { forza: 0, agilita: 0, vigore: 0, percezione: 0, carisma: 0, adattamento: 0 },
-        knownRecipes: ['purify_water', 'cook_meat', 'craft_shiv', 'craft_healing_poultice', 'craft_bandages_clean'] // Ricette iniziali di sopravvivenza
+        knownRecipes: ['purify_water', 'cook_meat', 'craft_shiv', 'craft_healing_poultice', 'craft_bandages_clean'], // Ricette iniziali di sopravvivenza
+        
+        // === SISTEMA PROGRESSIONE D&D-INSPIRED ===
+        experience: 0, // Punti esperienza accumulati
+        availableStatPoints: 0, // Punti disponibili per migliorare statistiche
+        totalStatUpgrades: 0 // Contatore totale miglioramenti (per bilanciamento)
     };
 
     // Calcolo HP massimi basati sul Vigore
@@ -144,17 +152,11 @@ function addItemToInventory(itemId, quantity) {
     if (itemInfo.stackable) {
         const existingItemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
         if (existingItemIndex !== -1) {
-            // Se l'oggetto è stackabile e multiporzione, ogni "stack" rappresenta un'istanza separata dell'oggetto
-            // Quindi, se troviamo un item esistente, stiamo aggiungendo una *nuova istanza* di quell'oggetto, non porzioni ad uno esistente.
-            // Questo significa che dobbiamo trovare uno slot vuoto o un altro stack dello stesso item ID non ancora al massimo (per item non-multiporzione).
-            // Per semplicità, al momento, gli oggetti multiporzione stackabili creano nuove entry se lo slot non è pieno.
-            // Se invece l'oggetto NON è multiporzione, allora incrementiamo la quantità.
-            if (!itemInfo.max_portions || itemInfo.max_portions === 1) {
-                 player.inventory[existingItemIndex].quantity += quantity;
-                 addMessage(`${itemInfo.name} x${quantity} aggiunto all'inventario.`, "success");
-                 renderInventory();
-                 return true;
-            }
+            // Per oggetti stackabili, incrementa sempre la quantità nello slot esistente
+            player.inventory[existingItemIndex].quantity += quantity;
+            addMessage(`${itemInfo.name} x${quantity} aggiunto all'inventario.`, "success");
+            renderInventory();
+            return true;
         }
     }
 
@@ -171,10 +173,9 @@ function addItemToInventory(itemId, quantity) {
         renderInventory();
         return true;
     } else {
-        // Caso in cui l'inventario è pieno e l'oggetto non può essere stackato con uno esistente.
-        // (Questo viene già controllato all'inizio, ma per sicurezza)
-        addMessage("Inventario pieno. Impossibile aggiungere " + itemInfo.name + ".", "warning");
-        return false;
+        // Inventario pieno - offri scelta al giocatore
+        showInventoryFullChoicePopup(itemId, quantity);
+        return false; // Non aggiunto immediatamente
     }
 }
 
@@ -385,6 +386,23 @@ function useItem(itemId) {
     }
 
     if (effectApplied) {
+        // === ESPERIENZA PER USO OGGETTI ===
+        if (typeof awardExperience === 'function') {
+            let expAmount = 2; // Esperienza base per uso oggetto
+            
+            // Bonus per oggetti curativi
+            if (itemInfo.effects && itemInfo.effects.some(e => e.type === 'cure_status' || e.type === 'add_resource')) {
+                expAmount += 1;
+            }
+            
+            // Bonus per oggetti rischiosi (pillole sospette, ecc.)
+            if (itemInfo.effects && itemInfo.effects.some(e => e.type === 'random_pill_effect' || e.type === 'add_resource_poisonable')) {
+                expAmount += 2;
+            }
+            
+            awardExperience(expAmount, `uso ${itemInfo.nameShort || itemInfo.name}`);
+        }
+        
         // Gestione consumo porzioni
         if (itemSlot.hasOwnProperty('current_portions') && itemSlot.max_portions > 1) {
             itemSlot.current_portions -= 1;
@@ -1236,15 +1254,15 @@ function checkAndLogStatusMessages() {
         addMessage(getRandomText(STATO_MESSAGGI.FERITO), 'warning');
     }
     // Check Fame E Sete (combinato)
-    else if (player.food <= 0 && player.water <= 0 && Math.random() < checkChance) {
+    else if (player.food < 0 && player.water < 0 && Math.random() < checkChance) {
         addMessage(getRandomText(STATO_MESSAGGI.AFFAMATO_E_ASSETATO), 'warning');
     }
     // Check Fame (solo se non assetato)
-    else if (player.food <= 0 && Math.random() < checkChance) {
+    else if (player.food < 0 && Math.random() < checkChance) {
         addMessage(getRandomText(STATO_MESSAGGI.AFFAMATO), 'warning');
     }
     // Check Sete (solo se non affamato)
-    else if (player.water <= 0 && Math.random() < checkChance) {
+    else if (player.water < 0 && Math.random() < checkChance) {
         addMessage(getRandomText(STATO_MESSAGGI.ASSETATO), 'warning');
     }
 
@@ -1396,6 +1414,18 @@ function attemptCraftItem(recipeKey) {
     if (recipe.successMessage) {
         addMessage(recipe.successMessage, "success", true);
     }
+    
+    // === ESPERIENZA PER CRAFTING ===
+    if (typeof awardExperience === 'function') {
+        let expAmount = 5; // Esperienza base per crafting
+        
+        // Bonus per ricette complesse (più ingredienti)
+        if (recipe.ingredients && recipe.ingredients.length > 2) {
+            expAmount += recipe.ingredients.length;
+        }
+        
+        awardExperience(expAmount, `crafting ${recipe.productId}`);
+    }
 
     // Aggiorna UI (già fatto da removeItem e addItem, ma per sicurezza)
     if (typeof renderInventory === 'function') renderInventory();
@@ -1488,6 +1518,302 @@ function consumePortions(resourceType, portionsNeeded) {
     renderInventory();
     renderStats(); // Aggiorna le statistiche nel caso il consumo diretto da player.food/water sia ancora presente altrove
     return portionsConsumed;
+}
+
+// === SISTEMA PROGRESSIONE D&D-INSPIRED ===
+
+/**
+ * Assegna punti esperienza al giocatore e converte automaticamente in punti statistica
+ * @param {number} expAmount - Quantità di esperienza da assegnare
+ * @param {string} reason - Motivo dell'assegnazione (per feedback)
+ */
+function awardExperience(expAmount, reason = "azione completata") {
+    if (!player || expAmount <= 0) return;
+    
+    player.experience += expAmount;
+    
+    // Conversione automatica: ogni 10 punti esperienza = 1 punto statistica
+    const newStatPoints = Math.floor(player.experience / 10);
+    const earnedPoints = newStatPoints - player.availableStatPoints;
+    
+    if (earnedPoints > 0) {
+        player.availableStatPoints = newStatPoints;
+        addMessage(`Hai guadagnato ${expAmount} esperienza per ${reason}. Punti statistica disponibili: ${player.availableStatPoints}`, "success");
+        
+        // Suggerimento per spendere punti se ne ha abbastanza
+        if (player.availableStatPoints >= 3) {
+            addMessage("Hai abbastanza punti per migliorare le tue abilità! Usa (R) durante il riposo.", "info");
+        }
+    } else {
+        addMessage(`Hai guadagnato ${expAmount} esperienza per ${reason}.`, "success");
+    }
+    
+    if (typeof renderStats === 'function') renderStats();
+}
+
+/**
+ * Migliora una statistica spendendo punti disponibili
+ * @param {string} statName - Nome della statistica da migliorare
+ * @returns {boolean} True se il miglioramento è riuscito
+ */
+function improveStat(statName) {
+    if (!player || !player.stats.hasOwnProperty(statName)) {
+        addMessage("Statistica non valida.", "error");
+        return false;
+    }
+    
+    // Costo crescente: 1 punto per i primi 3 miglioramenti, poi 2, poi 3, ecc.
+    const currentLevel = player.stats[statName];
+    const baseCost = Math.max(1, Math.floor((currentLevel - 5) / 2));
+    const totalUpgradesCost = Math.floor(player.totalStatUpgrades / 5); // Costo aggiuntivo ogni 5 miglioramenti totali
+    const finalCost = baseCost + totalUpgradesCost;
+    
+    if (player.availableStatPoints < finalCost) {
+        addMessage(`Servono ${finalCost} punti per migliorare ${statName}. Ne hai ${player.availableStatPoints}.`, "warning");
+        return false;
+    }
+    
+    // Limite massimo per bilanciamento (ispirato a D&D)
+    if (currentLevel >= 18) {
+        addMessage(`${statName} ha già raggiunto il limite massimo (18).`, "warning");
+        return false;
+    }
+    
+    // Applica il miglioramento
+    player.stats[statName]++;
+    player.availableStatPoints -= finalCost;
+    player.totalStatUpgrades++;
+    
+    // Aggiorna alias per compatibilità eventi
+    updateStatAliases();
+    
+    // Ricalcola HP se è stato migliorato il vigore
+    if (statName === 'vigore') {
+        const oldMaxHp = player.maxHp;
+        player.maxHp = 70 + (player.stats.vigore * 5);
+        const hpIncrease = player.maxHp - oldMaxHp;
+        player.hp += hpIncrease; // Aumenta anche HP attuali
+        addMessage(`${statName} migliorato! HP massimi aumentati di ${hpIncrease}.`, "success");
+    } else {
+        addMessage(`${statName} migliorato! Nuovo valore: ${player.stats[statName]}`, "success");
+    }
+    
+    if (typeof renderStats === 'function') renderStats();
+    return true;
+}
+
+/**
+ * Aggiorna gli alias delle statistiche per compatibilità eventi
+ */
+function updateStatAliases() {
+    if (!player || !player.stats) return;
+    
+    player.potenza = player.stats.forza;
+    player.agilita = player.stats.agilita;
+    player.tracce = player.stats.percezione;
+    player.influenza = player.stats.carisma;
+    player.presagio = player.stats.percezione;
+    player.adattamento = player.stats.adattamento;
+}
+
+/**
+ * Mostra popup quando l'inventario è pieno e si tenta di aggiungere un oggetto
+ * @param {string} newItemId - ID dell'oggetto da aggiungere
+ * @param {number} newItemQuantity - Quantità dell'oggetto da aggiungere
+ */
+function showInventoryFullChoicePopup(newItemId, newItemQuantity) {
+    const newItemInfo = ITEM_DATA[newItemId];
+    if (!newItemInfo) {
+        addMessage("Errore: oggetto non valido.", "error");
+        return;
+    }
+    
+    const choices = [];
+    
+    // Opzione 1: Perdere l'oggetto nuovo
+    choices.push({
+        text: `Lascia ${newItemInfo.name} x${newItemQuantity}`,
+        action: () => {
+            addMessage(`Hai lasciato ${newItemInfo.name} x${newItemQuantity} per mancanza di spazio.`, "warning");
+            if (typeof closeEventPopup === 'function') closeEventPopup();
+        }
+    });
+    
+    // Opzione 2: Sostituire un oggetto esistente
+    player.inventory.forEach((slot, index) => {
+        const itemInfo = ITEM_DATA[slot.itemId];
+        if (itemInfo) {
+            const quantityText = slot.quantity > 1 ? ` x${slot.quantity}` : '';
+            const portionsText = slot.current_portions ? ` (${slot.current_portions}/${slot.max_portions} porz.)` : '';
+            
+            choices.push({
+                text: `Sostituisci ${itemInfo.name}${quantityText}${portionsText}`,
+                action: () => {
+                    // Rimuovi l'oggetto esistente
+                    const removedItem = player.inventory.splice(index, 1)[0];
+                    addMessage(`Hai lasciato ${itemInfo.name}${quantityText} per fare spazio.`, "info");
+                    
+                    // Aggiungi il nuovo oggetto
+                    const newItem = { itemId: newItemId, quantity: newItemQuantity };
+                    if (newItemInfo.max_portions && newItemInfo.max_portions > 1) {
+                        newItem.current_portions = newItemInfo.max_portions;
+                        newItem.max_portions = newItemInfo.max_portions;
+                    }
+                    player.inventory.push(newItem);
+                    addMessage(`${newItemInfo.name} x${newItemQuantity} aggiunto all'inventario.`, "success");
+                    
+                    if (typeof renderInventory === 'function') renderInventory();
+                    if (typeof closeEventPopup === 'function') closeEventPopup();
+                }
+            });
+        }
+    });
+    
+    const popupData = {
+        title: "Inventario Pieno!",
+        description: `Vuoi aggiungere ${newItemInfo.name} x${newItemQuantity}, ma l'inventario è pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS}). Cosa vuoi fare?`,
+        choices: choices,
+        isActionPopup: true
+    };
+    
+    if (typeof showEventPopup === 'function') {
+        savedActionPopupContext = popupData;
+        showEventPopup(popupData);
+    } else {
+        addMessage("Sistema di gestione inventario non disponibile.", "error");
+    }
+}
+
+/**
+ * Mostra l'interfaccia per gestire l'inventario quando è pieno
+ */
+function showInventoryManagementPopup() {
+    if (!player || !player.inventory) {
+        addMessage("Errore nell'accesso all'inventario.", "error");
+        return;
+    }
+    
+    if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+        addMessage("L'inventario non è pieno. Gestione non necessaria.", "info");
+        return;
+    }
+    
+    // Crea le scelte per il popup
+    const choices = [];
+    
+    // Aggiungi ogni oggetto dell'inventario come opzione per essere lasciato
+    player.inventory.forEach((slot, index) => {
+        const itemInfo = ITEM_DATA[slot.itemId];
+        if (itemInfo) {
+            const quantityText = slot.quantity > 1 ? ` x${slot.quantity}` : '';
+            const portionsText = slot.current_portions ? ` (${slot.current_portions}/${slot.max_portions} porz.)` : '';
+            
+            choices.push({
+                text: `Lascia ${itemInfo.name}${quantityText}${portionsText}`,
+                action: () => {
+                    dropItem(slot.itemId, slot.quantity);
+                    if (typeof closeEventPopup === 'function') closeEventPopup();
+                }
+            });
+        }
+    });
+    
+    // Aggiungi opzione per chiudere
+    choices.push({
+        text: "Chiudi",
+        action: () => {
+            if (typeof closeEventPopup === 'function') closeEventPopup();
+        }
+    });
+    
+    const popupData = {
+        title: "Gestione Inventario",
+        description: `Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS}). Scegli cosa lasciare per fare spazio.`,
+        choices: choices,
+        isActionPopup: true
+    };
+    
+    if (typeof showEventPopup === 'function') {
+        savedActionPopupContext = popupData;
+        showEventPopup(popupData);
+    } else {
+        addMessage("Sistema di gestione inventario non disponibile.", "error");
+    }
+}
+
+/**
+ * Mostra l'interfaccia per migliorare le statistiche
+ */
+function showStatImprovementPopup() {
+    if (!player || player.availableStatPoints <= 0) {
+        addMessage("Non hai punti statistica disponibili. Accumula più esperienza!", "warning");
+        return;
+    }
+    
+    const statDescriptions = {
+        forza: "Potenza fisica - Aumenta danni in combattimento",
+        agilita: "Destrezza e riflessi - Migliora fuga e schivata", 
+        vigore: "Resistenza - Aumenta HP massimi e resistenza a malattie",
+        percezione: "Notare dettagli - Migliora ricerca e individuazione pericoli",
+        carisma: "Influenza sociale - Migliora negoziazione e leadership",
+        adattamento: "Apprendimento - Migliora resistenza a shock e adattabilità"
+    };
+    
+    // Crea le scelte per il popup
+    const choices = [];
+    
+    for (const [statName, description] of Object.entries(statDescriptions)) {
+        const currentLevel = player.stats[statName];
+        const baseCost = Math.max(1, Math.floor((currentLevel - 5) / 2));
+        const totalUpgradesCost = Math.floor(player.totalStatUpgrades / 5);
+        const finalCost = baseCost + totalUpgradesCost;
+        const canAfford = player.availableStatPoints >= finalCost && currentLevel < 18;
+        
+        let choiceText = `${statName.toUpperCase()} (${currentLevel}) - Costo: ${finalCost}`;
+        if (currentLevel >= 18) {
+            choiceText += " [MASSIMO]";
+        } else if (!canAfford) {
+            choiceText += " [INSUFFICIENTE]";
+        }
+        
+        choices.push({
+            text: choiceText,
+            action: canAfford ? () => {
+                improveStat(statName);
+                // NON chiudere il popup, aggiorna invece le scelte
+                showStatImprovementPopup();
+            } : () => {
+                if (currentLevel >= 18) {
+                    addMessage(`${statName} ha già raggiunto il limite massimo (18).`, "warning");
+                } else {
+                    addMessage(`Servono ${finalCost} punti per migliorare ${statName}. Ne hai ${player.availableStatPoints}.`, "warning");
+                }
+            },
+            disabled: !canAfford
+        });
+    }
+    
+    // Aggiungi opzione per chiudere
+    choices.push({
+        text: "Chiudi",
+        action: () => {
+            if (typeof closeEventPopup === 'function') closeEventPopup();
+        }
+    });
+    
+    const popupData = {
+        title: "Miglioramento Abilità",
+        description: `Punti disponibili: ${player.availableStatPoints}\n\nScegli quale abilità migliorare. Il costo aumenta con il livello attuale e i miglioramenti totali.`,
+        choices: choices,
+        isActionPopup: true
+    };
+    
+    if (typeof showEventPopup === 'function') {
+        savedActionPopupContext = popupData;
+        showEventPopup(popupData);
+    } else {
+        addMessage("Sistema di miglioramento non disponibile.", "error");
+    }
 }
 
 // --- FINE LOGICA GIOCATORE ---
