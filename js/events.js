@@ -439,14 +439,239 @@ function describeWeaponDamage(equippedWeaponId, currentTileSymbol) {
 // Fine describeWeaponDamage
 
 function applyChoiceReward(rewardData) {
-    // ... (INSERISCI QUI IL CORPO COMPLETO di applyChoiceReward dalla v0.7.17) ...
+    if (!rewardData) {
+        console.warn("applyChoiceReward: rewardData è null o undefined.");
+        return "";
+    }
+
+    let feedbackMessage = "";
+
+    // Gestione ricompense singole (itemId diretto)
+    if (rewardData.itemId) {
+        const success = addItemToInventory(rewardData.itemId, rewardData.quantity || 1);
+        if (success) {
+            const itemInfo = ITEM_DATA[rewardData.itemId];
+            const itemName = itemInfo ? itemInfo.name : rewardData.itemId;
+            feedbackMessage += `Hai ottenuto ${itemName}`;
+            if (rewardData.quantity > 1) {
+                feedbackMessage += ` (x${rewardData.quantity})`;
+            }
+            feedbackMessage += ". ";
+        }
+        return feedbackMessage;
+    }
+
+    // Gestione ricompense multiple (array items)
+    if (rewardData.items && Array.isArray(rewardData.items)) {
+        rewardData.items.forEach(item => {
+            if (item.itemId) {
+                // Oggetto normale
+                const success = addItemToInventory(item.itemId, item.quantity || 1);
+                if (success) {
+                    const itemInfo = ITEM_DATA[item.itemId];
+                    const itemName = itemInfo ? itemInfo.name : item.itemId;
+                    feedbackMessage += `Hai ottenuto ${itemName}`;
+                    if (item.quantity > 1) {
+                        feedbackMessage += ` (x${item.quantity})`;
+                    }
+                    feedbackMessage += ". ";
+                }
+            } else if (item.type) {
+                // Oggetto casuale da tabella
+                const randomItem = getRandomItemFromType(item.type);
+                if (randomItem) {
+                    const success = addItemToInventory(randomItem, item.quantity || 1);
+                    if (success) {
+                        const itemInfo = ITEM_DATA[randomItem];
+                        const itemName = itemInfo ? itemInfo.name : randomItem;
+                        feedbackMessage += `Hai ottenuto ${itemName}`;
+                        if (item.quantity > 1) {
+                            feedbackMessage += ` (x${item.quantity})`;
+                        }
+                        feedbackMessage += ". ";
+                    }
+                }
+            }
+        });
+        return feedbackMessage;
+    }
+
+    // Gestione ricompense da tabella pesata
+    if (rewardData.type === 'random_from_table' && rewardData.table) {
+        const lootTable = Object.keys(rewardData.table).map(id => ({
+            id: id,
+            weight: rewardData.table[id]
+        }));
+        
+        if (lootTable.length > 0 && typeof chooseWeighted === 'function') {
+            const chosenLoot = chooseWeighted(lootTable);
+            if (chosenLoot && chosenLoot.id) {
+                const success = addItemToInventory(chosenLoot.id, rewardData.quantity || 1);
+                if (success) {
+                    const itemInfo = ITEM_DATA[chosenLoot.id];
+                    const itemName = itemInfo ? itemInfo.name : chosenLoot.id;
+                    feedbackMessage += `Hai ottenuto ${itemName}`;
+                    if (rewardData.quantity > 1) {
+                        feedbackMessage += ` (x${rewardData.quantity})`;
+                    }
+                    feedbackMessage += ". ";
+                }
+            }
+        }
+        return feedbackMessage;
+    }
+
+    // Gestione tipi casuali singoli
+    if (rewardData.type) {
+        const randomItem = getRandomItemFromType(rewardData.type);
+        if (randomItem) {
+            const success = addItemToInventory(randomItem, rewardData.quantity || 1);
+            if (success) {
+                const itemInfo = ITEM_DATA[randomItem];
+                const itemName = itemInfo ? itemInfo.name : randomItem;
+                feedbackMessage += `Hai ottenuto ${itemName}`;
+                if (rewardData.quantity > 1) {
+                    feedbackMessage += ` (x${rewardData.quantity})`;
+                }
+                feedbackMessage += ". ";
+            }
+        }
+        return feedbackMessage;
+    }
+
+    console.warn("applyChoiceReward: Formato rewardData non riconosciuto:", rewardData);
+    return "";
 }
-// Fine applyChoiceReward
+
+// Funzione helper per ottenere oggetti casuali da tipo
+function getRandomItemFromType(type) {
+    if (!RANDOM_ITEM_TABLES || !RANDOM_ITEM_TABLES[type]) {
+        console.warn(`getRandomItemFromType: Tabella '${type}' non trovata in RANDOM_ITEM_TABLES.`);
+        return null;
+    }
+
+    const table = RANDOM_ITEM_TABLES[type];
+    const lootTable = Object.keys(table).map(id => ({
+        id: id,
+        weight: table[id]
+    }));
+
+    if (lootTable.length > 0 && typeof chooseWeighted === 'function') {
+        const chosen = chooseWeighted(lootTable);
+        return chosen ? chosen.id : null;
+    }
+
+    return null;
+}
 
 function applyPenalty(penaltyObject) {
-    // ... (INSERISCI QUI IL CORPO COMPLETO di applyPenalty dalla v0.7.17) ...
+    if (!penaltyObject || !penaltyObject.type) {
+        console.warn("applyPenalty: penaltyObject non valido o senza tipo.");
+        return "";
+    }
+
+    let feedbackMessage = "";
+
+    switch (penaltyObject.type) {
+        case 'damage':
+            const damageAmount = penaltyObject.amount || 1;
+            const oldHp = player.hp;
+            player.hp = Math.max(0, player.hp - damageAmount);
+            const actualDamage = oldHp - player.hp;
+            
+            if (actualDamage > 0) {
+                feedbackMessage = `Subisci ${Math.floor(actualDamage)} danni`;
+                if (player.hp <= 0) {
+                    feedbackMessage += " e crolli a terra!";
+                    if (typeof endGame === 'function') {
+                        endGame("Sei morto a causa delle ferite subite.");
+                    }
+                    gameActive = false;
+                    return feedbackMessage;
+                }
+            }
+            break;
+
+        case 'status':
+            const status = penaltyObject.status;
+            if (status === 'isSick' && !player.isSick) {
+                player.isSick = true;
+                feedbackMessage = "Ti senti male e febbricitante";
+            } else if (status === 'isPoisoned' && !player.isPoisoned) {
+                player.isPoisoned = true;
+                feedbackMessage = "Sei stato avvelenato";
+            } else if (status === 'isInjured' && !player.isInjured) {
+                player.isInjured = true;
+                feedbackMessage = "Sei ferito";
+            } else {
+                feedbackMessage = `Sei già affetto da ${status.replace('is', '')}`;
+            }
+            break;
+
+        case 'resource_loss':
+            const resourceType = penaltyObject.resource_type;
+            const lossAmount = penaltyObject.amount || 1;
+            
+            if (player.hasOwnProperty(resourceType)) {
+                const oldValue = player[resourceType];
+                player[resourceType] = Math.max(0, player[resourceType] - lossAmount);
+                const actualLoss = oldValue - player[resourceType];
+                
+                if (actualLoss > 0) {
+                    const resourceName = resourceType === 'hp' ? 'HP' : 
+                                       resourceType.charAt(0).toUpperCase() + resourceType.slice(1);
+                    feedbackMessage = `Perdi ${Math.floor(actualLoss)} ${resourceName}`;
+                }
+            }
+            break;
+
+        case 'item_loss':
+            const itemId = penaltyObject.itemId;
+            const quantity = penaltyObject.quantity || 1;
+            
+            if (removeItemFromInventory(itemId, quantity)) {
+                const itemInfo = ITEM_DATA[itemId];
+                const itemName = itemInfo ? itemInfo.name : itemId;
+                feedbackMessage = `Perdi ${itemName}`;
+                if (quantity > 1) {
+                    feedbackMessage += ` (x${quantity})`;
+                }
+            } else {
+                feedbackMessage = "Non hai l'oggetto richiesto da perdere";
+            }
+            break;
+
+        case 'equipment_damage':
+            const equipmentSlot = penaltyObject.equipmentSlot || 'equippedWeapon';
+            const wearAmount = penaltyObject.amount || 1;
+            
+            if (player[equipmentSlot] && typeof applyWearToEquippedItem === 'function') {
+                applyWearToEquippedItem(equipmentSlot, wearAmount);
+                const itemInfo = ITEM_DATA[player[equipmentSlot].itemId];
+                const itemName = itemInfo ? itemInfo.name : 'equipaggiamento';
+                feedbackMessage = `${itemName} subisce danni`;
+            }
+            break;
+
+        case 'danger':
+            // Tipo speciale: indica pericolo generico senza effetto meccanico immediato
+            // Usato per eventi che creano tensione narrativa
+            feedbackMessage = penaltyObject.description || "Hai attirato attenzioni pericolose";
+            break;
+
+        default:
+            console.warn(`applyPenalty: Tipo penalità '${penaltyObject.type}' non riconosciuto.`);
+            feedbackMessage = "Subisci una penalità sconosciuta";
+            break;
+    }
+
+    // Aggiorna le statistiche dopo aver applicato la penalità
+    if (typeof renderStats === 'function') {
+        renderStats();
+    }
+
+    return feedbackMessage;
 }
-// Fine applyPenalty
 
 // --- FINE FUNZIONI HELPER EVENTI ---
 
@@ -630,7 +855,7 @@ function handleEventChoice(choiceIndex) {
                  if (typeof applyPenalty === 'function') {
                     const damageFeedback = applyPenalty({ type: 'damage', amount: baseDamage });
                     if (!gameActive) return;
-                    if (damageFeedback) outcomeConsequencesText += `<br>Sei colpito dal pericolo ambientale!${damageFeedback}.`;
+                    if (damageFeedback) outcomeConsequencesText += `<br>Il pericolo ambientale ti danneggia!${damageFeedback}.`;
                     if (Math.random() < ENVIRONMENTAL_SICKNESS_CHANCE) {
                         const statusFeedback = applyPenalty({ type: 'status', status: 'isSick' });
                         if (!gameActive) return;

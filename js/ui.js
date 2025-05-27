@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.8.5-consolidated
+ * Versione: v0.9.0-SURVIVAL-PERFECTED
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente, aggiornamento DOM, popup.
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -31,28 +31,28 @@ function renderStats() {
     // Aggiorna i valori delle statistiche primarie e secondarie
     DOM.statHp.textContent = Math.floor(player.hp); // Arrotonda HP a interi per UI
     DOM.statMaxHp.textContent = player.maxHp;
-    DOM.statVig.textContent = player.vigore;
+    DOM.statVig.textContent = player.stats.vigore;
     if (DOM.statVig.parentElement) DOM.statVig.parentElement.setAttribute('title', 'Vigore');
     
-    DOM.statPot.textContent = player.potenza;
-    if (DOM.statPot.parentElement) DOM.statPot.parentElement.setAttribute('title', 'Potenza');
+    DOM.statPot.textContent = player.stats.forza;
+    if (DOM.statPot.parentElement) DOM.statPot.parentElement.setAttribute('title', 'Forza');
     
-    DOM.statAgi.textContent = player.agilita;
+    DOM.statAgi.textContent = player.stats.agilita;
     if (DOM.statAgi.parentElement) DOM.statAgi.parentElement.setAttribute('title', 'Agilità');
     
-    DOM.statTra.textContent = player.tracce;
-    if (DOM.statTra.parentElement) DOM.statTra.parentElement.setAttribute('title', 'Tracce');
+    DOM.statTra.textContent = player.stats.percezione;
+    if (DOM.statTra.parentElement) DOM.statTra.parentElement.setAttribute('title', 'Percezione');
     
-    DOM.statInf.textContent = player.influenza;
-    if (DOM.statInf.parentElement) DOM.statInf.parentElement.setAttribute('title', 'Influenza');
+    DOM.statInf.textContent = player.stats.carisma;
+    if (DOM.statInf.parentElement) DOM.statInf.parentElement.setAttribute('title', 'Carisma');
     
-    DOM.statPre.textContent = player.presagio;
-    if (DOM.statPre.parentElement) DOM.statPre.parentElement.setAttribute('title', 'Presagio');
+    DOM.statPre.textContent = player.stats.percezione;
+    if (DOM.statPre.parentElement) DOM.statPre.parentElement.setAttribute('title', 'Percezione');
     
-    DOM.statAda.textContent = player.adattamento;
+    DOM.statAda.textContent = player.stats.adattamento;
     if (DOM.statAda.parentElement) DOM.statAda.parentElement.setAttribute('title', 'Adattamento');
     
-    DOM.statAcq.textContent = player.acquisita || 0;
+    // DOM.statAcq.textContent = 0; // Statistica rimossa - non implementata
     if (DOM.statAcq.parentElement) DOM.statAcq.parentElement.setAttribute('title', 'Acquisita');
 
     // Aggiorna visualizzazione risorse (cibo e acqua)
@@ -65,41 +65,58 @@ function renderStats() {
     DOM.statFood.classList.toggle('zero-resource', player.food <= 0);
     DOM.statWater.classList.toggle('zero-resource', player.water <= 0);
 
-    // Aggiorna visualizzazione stato condizione
+    // Aggiorna visualizzazione stato condizione - SISTEMA MULTIPLO
+    let statusParts = [];
+    let statusClasses = [];
+
+    // Controlla HP critici (priorità massima)
+    if (player.hp <= 0) {
+        statusParts.push("Morto");
+        statusClasses.push("status-dying");
+    } else if (player.hp <= player.maxHp * 0.2) {
+        statusParts.push("Morente");
+        statusClasses.push("status-dying");
+    }
+
+    // Controlla stati di salute
+    if (player.isPoisoned) {
+        statusParts.push("Avvelenato");
+        statusClasses.push("status-poisoned");
+    }
+    if (player.isSick) {
+        statusParts.push("Infetto");
+        statusClasses.push("status-sick");
+    }
+    if (player.isInjured) {
+        statusParts.push("Ferito");
+        statusClasses.push("status-injured");
+    }
+
+    // Controlla risorse
+    if (player.food <= 0) {
+        statusParts.push("Affamato");
+        statusClasses.push("status-hungry");
+    }
+    if (player.water <= 0) {
+        statusParts.push("Assetato");
+        statusClasses.push("status-thirsty");
+    }
+
+    // Determina testo e classe finale
     let statoText = "Normale";
     let statoClass = "status-normal";
 
-    // Determina lo stato più grave per visualizzazione (con priorità)
-    if (player.hp <= 0) {
-        statoText = "Morto";
-        statoClass = "status-dying"; // HP a 0
-    } else if (player.hp <= player.maxHp * 0.2) { // Soglia morente (es. 20%)
-        statoText = "Morente";
-        statoClass = "status-dying"; // HP bassi ma > 0
-    } else if (player.isPoisoned) { // Avvelenato ha alta priorità visiva
-        statoText = "Avvelenato";
-        statoClass = "status-poisoned";
+    if (statusParts.length > 0) {
+        statoText = statusParts.join(", ");
+        // Usa la classe più grave o critica se ci sono più stati
+        if (statusClasses.includes("status-dying")) {
+            statoClass = "status-dying";
+        } else if (statusParts.length > 1) {
+            statoClass = "status-critical"; // Multipli stati = critico
+        } else {
+            statoClass = statusClasses[0]; // Singolo stato
+        }
     }
-     else if (player.isInjured && player.isSick) { // Ferito E Malato è critico
-        statoText = "Ferito & Infetto";
-        statoClass = "status-critical";
-    } else if (player.isSick) { // Solo Malato
-        statoText = "Infetto";
-        statoClass = "status-sick";
-    } else if (player.isInjured) { // Solo Ferito
-        statoText = "Ferito";
-        statoClass = "status-injured";
-    } else if (player.food <= 0 && player.water <= 0) { // Affamato E Assetato è critico risorse
-        statoText = "Affamato & Assetato";
-        statoClass = "status-critical";
-    } else if (player.food <= 0) { // Solo Affamato
-        statoText = "Affamato";
-        statoClass = "status-hungry";
-    } else if (player.water <= 0) { // Solo Assetato
-        statoText = "Assetato";
-        statoClass = "status-thirsty";
-    }
-    // Se nessuno stato negativo grave è attivo, rimane "Normale"
 
     DOM.statCondition.textContent = statoText;
     DOM.statCondition.className = ''; // Pulisce tutte le classi esistenti
@@ -174,8 +191,10 @@ function renderStats() {
         const formattedHour = currentHour.toString().padStart(2, '0');
         const formattedMinute = currentMinute.toString().padStart(2, '0');
         DOM.statDayTime.textContent = `${formattedHour}:${formattedMinute}`;
+        DOM.statDayTime.style.color = ''; // Rimuove colore personalizzato (usa default)
     } else {
         DOM.statDayTime.textContent = 'Notte';
+        DOM.statDayTime.style.color = '#4A90E2'; // Blu acceso per la notte
     }
 
     // --- (INIZIO BLOCCO DA AGGIUNGERE/SOSTITUIRE) ---
@@ -701,12 +720,21 @@ function showItemTooltip(itemSlot, event) {
     const itemDetails = ITEM_DATA[itemSlot.itemId];
 
     // Popola il contenuto del tooltip
-    DOM.tooltipItemName.textContent = itemDetails.name + (itemSlot.quantity > 1 ? ` (x${itemSlot.quantity})` : '');
+    let itemNameDisplay = itemDetails.name;
+    if (itemSlot.quantity > 1 && (!itemSlot.max_portions || itemSlot.max_portions === 1)) {
+        itemNameDisplay += ` (x${itemSlot.quantity})`;
+    } else if (itemSlot.max_portions && itemSlot.max_portions > 1 && itemSlot.hasOwnProperty('current_portions')) {
+        itemNameDisplay += ` (${itemSlot.current_portions}/${itemSlot.max_portions} porz.)`;
+    }
+    DOM.tooltipItemName.textContent = itemNameDisplay;
     DOM.tooltipItemDesc.textContent = itemDetails.description || "Nessuna descrizione disponibile.";
 
+    // Genera solo le statistiche SENZA la descrizione (che è già mostrata sopra)
     let statsDetailsHTML = '';
     if (typeof getItemDetailsHTML === 'function') {
-        statsDetailsHTML = getItemDetailsHTML(itemSlot); // Passa l'istanza, non il template!
+        const fullHTML = getItemDetailsHTML(itemSlot);
+        // Rimuovi la parte della descrizione dall'HTML delle statistiche
+        statsDetailsHTML = fullHTML.replace(/<div class="item-description">.*?<\/div>/, '');
     }
     const tooltipStatsContainer = DOM.itemTooltip.querySelector('.item-stats-container');
     if (tooltipStatsContainer) {
@@ -1191,6 +1219,23 @@ function getItemDetailsHTML(itemInstance) {
     }
 
     let detailsHTML = '';
+
+    // Aggiungi sempre la descrizione dell'oggetto
+    if (itemTemplate.description) {
+        detailsHTML += `<div class="item-description">${itemTemplate.description}</div>`;
+    }
+
+    // Aggiungi informazioni sulle porzioni per oggetti multiporzione
+    if (itemTemplate.max_portions && itemTemplate.max_portions > 1 && itemInstance.hasOwnProperty('current_portions')) {
+        detailsHTML += `<div class="item-stat">Porzioni: <span class="stat-value">${itemInstance.current_portions}/${itemTemplate.max_portions}</span></div>`;
+        if (itemTemplate.effects && itemTemplate.effects.length > 0) {
+            const effect = itemTemplate.effects[0];
+            if (effect.type === 'add_resource') {
+                const resourceName = effect.resource_type === 'hp' ? 'HP' : effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1);
+                detailsHTML += `<div class="item-stat">Per porzione: <span class="stat-value">+${effect.amount} ${resourceName}</span></div>`;
+            }
+        }
+    }
 
     if (itemTemplate.type === 'weapon') {
         detailsHTML += `<div class="item-stat">Tipo: <span class="stat-value">${getTipoArmaLabel(itemTemplate.weaponType)}</span></div>`;

@@ -35,6 +35,13 @@ function generateCharacter() {
             carisma: getRandomInt(3, 6), // Influenzare gli altri
             adattamento: getRandomInt(3, 6) // Capacità di apprendere, resistere a shock
         },
+        // Alias per compatibilità con eventi (puntano alle stesse statistiche)
+        potenza: 0, // Sarà calcolato da stats.forza
+        agilita: 0, // Sarà calcolato da stats.agilita  
+        tracce: 0, // Sarà calcolato da stats.percezione
+        influenza: 0, // Sarà calcolato da stats.carisma
+        presagio: 0, // Sarà calcolato da stats.percezione
+        adattamento: 0, // Sarà calcolato da stats.adattamento
         inventory: [],
         equippedWeapon: null,
         equippedArmor: null,
@@ -43,25 +50,42 @@ function generateCharacter() {
         isPoisoned: false, // Nuovo stato
         // ... altri stati come 'affamato', 'assetato' sono impliciti da food/water <= 0
         bonusStats: { forza: 0, agilita: 0, vigore: 0, percezione: 0, carisma: 0, adattamento: 0 },
-        knownRecipes: ['craft_water_purified_small', 'craft_meat_cooked'] // Ricette iniziali
+        knownRecipes: ['purify_water', 'cook_meat', 'craft_shiv', 'craft_healing_poultice', 'craft_bandages_clean'] // Ricette iniziali di sopravvivenza
     };
 
     // Calcolo HP massimi basati sul Vigore
     player.maxHp = 70 + (player.stats.vigore * 5);
     player.hp = player.maxHp;
 
-    // Inizializzazione dell'inventario e degli oggetti equipaggiati
-    // Rimosso l'aggiunta automatica di oggetti di test dall'inventario iniziale
-    // per rendere il gioco più pulito per il bilanciamento.
-    // Saranno aggiunti tramite eventi o loot.
-    // Esempio: addItemToInventory('mre_pack', 1); 
-    // Esempio: addItemToInventory('water_bottle', 1); 
+    // Calcolo alias statistiche per compatibilità eventi
+    player.potenza = player.stats.forza;
+    player.agilita = player.stats.agilita;
+    player.tracce = player.stats.percezione;
+    player.influenza = player.stats.carisma;
+    player.presagio = player.stats.percezione;
+    player.adattamento = player.stats.adattamento;
 
-    const startingWeapon = ITEM_DATA['small_knife'];
+    // Inizializzazione dell'inventario e degli oggetti equipaggiati
+    player.inventory = [];
+    player.equippedWeapon = null;
+    player.equippedArmor = null;
+
+    // Aggiungi oggetti iniziali essenziali per la sopravvivenza
+    addItemToInventory('canned_food', 1);        // 2 porzioni
+    addItemToInventory('water_bottle', 1);       // 4 porzioni
+    addItemToInventory('bandages_dirty', 3);
+    
+    // Oggetti aggiuntivi per completare l'inventario originale di Ultimo
+    addItemToInventory('scrap_metal', 2);        // Materiale per crafting base
+    addItemToInventory('cloth_rags', 3);         // Stracci per riparazioni e crafting
+    addItemToInventory('charcoal', 1);           // Per purificare l'acqua
+
+    // Equipaggia arma iniziale (coltello da cucina)
+    const startingWeapon = ITEM_DATA['kitchen_knife'];
     if (startingWeapon) {
         const weaponInstance = { 
-            ...startingWeapon, 
-            currentDurability: startingWeapon.durability 
+            itemId: 'kitchen_knife',
+            currentDurability: startingWeapon.durability || startingWeapon.maxDurability
         };
         // Se l'arma ha porzioni (improbabile per armi, ma per coerenza)
         if (startingWeapon.max_portions) {
@@ -71,11 +95,12 @@ function generateCharacter() {
         player.equippedWeapon = weaponInstance;
     }
 
-    const startingArmor = ITEM_DATA['worn_clothes'];
+    // Equipaggia armatura iniziale (armatura di stracci)
+    const startingArmor = ITEM_DATA['armor_rags_simple'];
     if (startingArmor) {
         const armorInstance = { 
-            ...startingArmor, 
-            currentDurability: startingArmor.durability
+            itemId: 'armor_rags_simple',
+            currentDurability: startingArmor.durability || startingArmor.maxDurability
         };
         // Se l'armatura ha porzioni (improbabile)
         if (startingArmor.max_portions) {
@@ -333,7 +358,9 @@ function useItem(itemId) {
                             currentEffectApplied = false; // L'effetto principale (cura) non è avvenuto
                         }
                     } else {
-                        feedbackMessage += `Nessun ${effect.status_cured.replace('is', '')} da curare. `;
+                        const statusName = effect.status_cured.replace('is', '').toLowerCase();
+                const statusTranslation = statusName === 'injured' ? 'ferita' : statusName === 'sick' ? 'malattia' : statusName;
+                feedbackMessage += `Nessuna ${statusTranslation} da curare. `;
                         currentEffectApplied = false; // Non c'era nulla da curare, quindi l'effetto non si è "applicato" in senso stretto
                     }
                     break;

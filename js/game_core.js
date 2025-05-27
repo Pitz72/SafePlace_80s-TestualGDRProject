@@ -353,12 +353,10 @@ function handleEventKeyPress(event) {
     const numKey = parseInt(key, 10);
     
     if (key === 'Escape') {
-        // Se è attivo un popup di azione oggetto (che usa lo stesso eventScreenActive)
-        if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext && savedActionPopupContext.isActionPopup) {
-            if (typeof closeItemActionPopup === 'function') { // Assumendo che closeItemActionPopup sia in player.js
+        // Controlla se è attivo il popup azioni oggetto
+        if (DOM.itemActionOverlay && DOM.itemActionOverlay.classList.contains('visible')) {
+            if (typeof closeItemActionPopup === 'function') {
                 closeItemActionPopup();
-            } else if (typeof closeEventPopup === 'function') { // Fallback se closeItemActionPopup non c'è ma si usa il popup eventi
-                closeEventPopup();
             }
         } else if (typeof closeEventPopup === 'function') { // Per i normali popup evento
             closeEventPopup();

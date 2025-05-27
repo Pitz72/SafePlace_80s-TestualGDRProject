@@ -153,6 +153,20 @@ const descrizioniIncontroPredoni = [
     "Senti un fischio acuto, e in un attimo sei circondato da individui dall'aspetto minaccioso."
 ];
 
+const esitiFugaPredoniKo = [
+    "Non sei abbastanza veloce! Ti raggiungono e ti attaccano brutalmente.",
+    "Inciampi durante la fuga. I predoni ti sono addosso in un istante.",
+    "La fuga è bloccata. Ti ritrovi intrappolato e devi subire la loro violenza.",
+    "Uno di loro ti colpisce alla schiena mentre scappi. Il dolore ti rallenta fatalmente."
+];
+
+const esitiParlaPredoniKo = [
+    "Le tue parole cadono nel vuoto. Ridono e ti attaccano senza pietà.",
+    "Tentare di ragionare con loro è stato un errore. La loro risposta è immediata e violenta.",
+    "Ti guardano con disprezzo prima di colpirti. Le parole non servono a nulla qui.",
+    "La tua diplomazia li irrita ancora di più. Ti puniscono per l'audacia."
+];
+
 const loreFragments = [
     "Pagina strappata di diario: '... giorno 47. Le scorte sono finite. Ho sentito di un posto sicuro a est, oltre le montagne spezzate. Forse è solo una favola per disperati come me, ma è la mia ultima speranza...'",
     "Pezzo di metallo inciso a laser: 'Progetto Chimera - Soggetto #007 - Proprietà del Lab 7 - TERMINATO'",
@@ -1496,7 +1510,9 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 8,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 3 }] // MODIFICATO: amount da 2 a 3
+        stackable: true,
+        max_portions: 2,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }] // +2 per porzione
     },
     'soda_flat': {
         id: 'soda_flat',

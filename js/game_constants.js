@@ -1,13 +1,13 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.9.0-SURVIVAL-PERFECTED
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "v0.8.5-consolidated";
+const GAME_VERSION = "v0.9.0-SURVIVAL-PERFECTED";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
@@ -264,6 +264,89 @@ const ITEM_EFFECT_DESCRIPTIONS = {
 };
 
 // --- FINE COSTANTI NUMERICHE E PROBABILISTICHE ---
+
+// Tabelle per oggetti casuali usate dal sistema di ricompense eventi
+// Mappano i tipi usati negli eventi ai pool di ricompense
+const RANDOM_ITEM_TABLES = {
+    'random_food_item': {
+        'canned_food': 30,
+        'ration_pack': 20,
+        'berries': 15,
+        'chips_stale': 15,
+        'canned_beans': 20,
+        'meat_raw': 8,
+        'chocolate_bar': 12,
+        'dried_fruit': 15,
+        'protein_bar_old': 12,
+        'mystery_meat_cooked': 10,
+        'meat_cooked': 10,
+        'mre_pack': 5
+    },
+    'random_water_item': {
+        'water_purified_small': 35,
+        'water_dirty': 25,
+        'soda_flat': 15,
+        'rainwater_collected': 18,
+        'juice_box_found': 12,
+        'herbal_tea_crude': 10,
+        'energy_drink_old': 8,
+        'water_bottle': 5
+    },
+    'random_weapon_item': {
+        'wooden_club': 20,
+        'kitchen_knife': 15,
+        'shiv_improvised': 18,
+        'metal_bar': 12,
+        'pipe_wrench': 8,
+        'combat_knife': 7,
+        'machete_rusty': 6,
+        'baseball_bat': 7,
+        'throwing_knife': 10,
+        'rock_sharp': 15,
+        'improvised_bow': 5,
+        'pistol_makeshift': 3
+    },
+    'random_ammo_item': {
+        'ammo_arrow_crude': 25,
+        'ammo_generic': 20,
+        'ammo_9mm': 15,
+        'ammo_bolt': 10,
+        'ammo_revolver_generic': 8,
+        'ammo_shell': 5
+    },
+    'nothing': {
+        // Tabella vuota per ricompense "nessuna"
+    },
+    'random_medical_item': {
+        'bandages_clean': 35,
+        'suspicious_pills': 15,
+        'herbal_salve': 20,
+        'medicine_crude': 25,
+        'antidote': 10,
+        'first_aid_kit': 5,
+        'charcoal_powder_medical': 8,
+        'chewed_willow_leaves': 10
+    },
+    'random_common_resource': {
+        'scrap_metal': 30,
+        'charcoal': 20,
+        'bandages_dirty': 20,
+        'water_dirty': 15,
+        'wood_planks': 25,
+        'cloth_rags': 20
+    },
+    'random_rare_resource': {
+        'mechanical_parts': 35,
+        'repair_kit': 20,
+        'vitamins': 15,
+        'lockpick_set_crude': 15,
+        'map_fragment_local': 10
+    },
+    'random_blueprint': {
+        'blueprint_crude_club': 100
+    }
+};
+
 // Pool di risorse comuni trovate casualmente (usato da applyChoiceReward con type: 'random_common_resource')
 const COMMON_RESOURCES_POOL = [
     'scrap_metal',
