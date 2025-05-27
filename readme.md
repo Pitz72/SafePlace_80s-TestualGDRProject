@@ -4,7 +4,7 @@
   </br>
 </div>
 
-# The Safe Place 💀⚛️ | ![version](https://img.shields.io/badge/version-0.7.22-green.svg)
+# The Safe Place 💀⚛️ | ![version](https://img.shields.io/badge/version-0.8.5--consolidated-green.svg)
 
 [![HTML](https://img.shields.io/badge/HTML-5-orange?logo=html5)](https://developer.mozilla.org/en-US/docs/Web/HTML) [![CSS](https://img.shields.io/badge/CSS-3-blue?logo=css3)](https://developer.mozilla.org/en-US/docs/Web/CSS) [![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
@@ -61,19 +61,19 @@ Il progetto utilizza un'architettura modulare e una struttura solida, sfruttando
 **FASE ATTUALE: Consolidamento e Preparazione**
 
 ### Prossimi Passi Strategici:
-- 🔄 **Migrazione Backend**: Transizione da architettura client-side a PHP + MySQL
-- 🛡️ **Sicurezza**: Implementazione autenticazione server-side e anti-cheat
-- 📊 **Persistenza Dati**: Sistema salvataggio affidabile e backup automatici
-- 🌐 **API REST**: Creazione endpoint per comunicazione client-server
-- ⚡ **Performance**: Ottimizzazione carico computazionale e scalabilità
+- ✅ **Consolidamento Architettura**: Completare la pulizia del codice da residui obsoleti e verificare a fondo la stabilità e la correttezza di tutte le funzionalità client-side esistenti (salvataggio locale, interfaccia retro, meccaniche di sopravvivenza, eventi, crafting).
+- ⚖️ **Bilanciamento Meccaniche**: Lavorare sul bilanciamento di tutti gli aspetti del gameplay: difficoltà della sopravvivenza (fame, sete, stati negativi), frequenza e impatto degli eventi, probabilità e difficoltà degli skill check, logica del loot, costi e benefici del crafting.
+- ⚔️ **Sviluppo Combattimento**: Progettare e implementare un sistema di combattimento testuale a turni, integrato con le statistiche del personaggio, l'equipaggiamento e gli effetti degli oggetti.
+- 📜 **Espansione Narrativa**: Sviluppare la trama principale che guidi il giocatore verso "The Safe Place", introducendo nuovi eventi chiave, personaggi non giocanti (seppur testuali) e frammenti di lore che arricchiscano il mondo di gioco.
+- 📦 **Arricchimento Contenuti**: Espandere ulteriormente la varietà di oggetti (cibo, medicine, armi, armature, attrezzi), ricette di crafting, tipi di creature, incontri ed aree speciali sulla mappa.
+- ✨ **Miglioramenti Interfaccia e UX**: Valutare piccoli miglioramenti all'interfaccia utente retro per chiarezza e usabilità, mantenendo l'estetica definita.
 
 ### Documentazione Tecnica:
-📋 **Roadmap Completa**: `doc_e_log/ROADMAP_SVILUPPO.md`  
-📝 **Log Sviluppo**: `doc_e_log/LOG_SVILUPPO_CONSOLIDATO.md`  
+📋 **Roadmap Sviluppo Precedente**: `doc_e_log/ROADMAP_SVILUPPO.md` (per riferimento storico delle fasi completate)  
+📝 **Log Sviluppo Precedente**: `doc_e_log/LOG_SVILUPPO_CONSOLIDATO.md`  
 📚 **Changelog**: `doc_e_log/Changelog.md`
 
-**Durata Stimata Migrazione**: 11-15 settimane  
-**Obiettivo**: Architettura robusta, sicura e scalabile
+**Obiettivo**: Portare il gioco a una versione completa e godibile, interamente client-side, ricca di contenuti e meccaniche bilanciate.
 
 ## Contributi e Supporto
 

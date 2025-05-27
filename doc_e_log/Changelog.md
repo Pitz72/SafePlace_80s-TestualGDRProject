@@ -3,6 +3,81 @@
 
 Non esiste una vera versione, poiché possiamo considerare questa una sorta di azzeramento.
 
+## [v0.8.6] - 27-05-2025 - Sistema di Consumo a Porzioni e Bilanciamento Cibo/Acqua Notturno
+### 🍲 **Meccanica di Consumo a Porzioni**
+- **Nuova Logica Oggetti:** Introdotti `max_portions` e `current_portions` in `js/game_data.js` per oggetti consumabili (cibo e acqua).
+    - Gli effetti degli oggetti ora si riferiscono al consumo di una singola porzione.
+    - Esempi di oggetti modificati/aggiunti con porzioni: `canned_food` (2 porzioni), `ration_pack` (3 porzioni), `mre_pack` (4 porzioni), `water_bottle` (3 porzioni), `water_purified_large` (4 porzioni).
+- **Gestione Inventario (`js/player.js`):**
+    - Modificata `addItemToInventory`: Ora, quando si aggiunge un oggetto con `max_portions`, viene inizializzato con `current_portions = max_portions`. Se l'oggetto non è stackabile o è l'ultima istanza di un oggetto stackabile con porzioni, viene aggiunto come un nuovo slot con le sue porzioni.
+    - Modificata `useItem`: Ora consuma una porzione alla volta. Se `current_portions` arriva a 0, l'oggetto viene rimosso. Se l'oggetto non ha porzioni, funziona come prima.
+    - Nuova Funzione `consumePortions(resourceType, portionsNeeded)`:
+        - Consuma automaticamente il numero richiesto di porzioni di cibo o acqua dall'inventario.
+        - Dà priorità agli oggetti multiporzione già iniziati, poi a quelli monoporzione e infine a quelli multiporzione pieni.
+        - Registra messaggi dettagliati sul consumo e sugli oggetti utilizzati.
+        - Restituisce il numero di porzioni effettivamente consumate.
+- **Interfaccia Utente (`js/ui.js`):**
+    - Aggiornata `renderInventory`: Mostra `(current_portions/max_portions porz.)` per gli oggetti con porzioni.
+    - Aggiornata `getItemDetailsHTML`: Mostra le informazioni sulle porzioni anche nel popup dettagli e tooltip.
+- **Consumo Notturno (`js/map.js` - `transitionToNight`):**
+    - Sostituita la sottrazione diretta di `NIGHT_FOOD_COST` e `NIGHT_WATER_COST` da `player.food` e `player.water` con chiamate a `consumePortions('food', NIGHT_FOOD_COST)` e `consumePortions('water', NIGHT_WATER_COST)`.
+    - Mantenuto un fallback: se le porzioni consumate tramite oggetti non sono sufficienti a coprire `NIGHT_FOOD_COST` o `NIGHT_WATER_COST`, la differenza viene sottratta direttamente dalle statistiche del giocatore. Questo permette di applicare una penalità anche se il giocatore ha risorse ma non abbastanza porzioni per coprire il costo intero della notte.
+    - I messaggi di penalità per fame/sete a zero sono gestiti dalla logica generale di `player.food/water <= 0`.
+- **Costanti di Gioco (`js/game_constants.js`):**
+    - `NIGHT_FOOD_COST` e `NIGHT_WATER_COST` ora rappresentano il numero di *porzioni* richieste per notte, non più unità dirette di risorsa. (Valori attuali mantenuti, ma interpretazione cambiata).
+
+### 🎯 **OBIETTIVO**: Aumentare il realismo della gestione delle risorse, permettendo un consumo più granulare e strategico degli oggetti di cibo e acqua. Ridurre lo spreco e incentivare la pianificazione.
+
+### ✅ **RISULTATO ATTESO**: Gameplay più immersivo e strategico nella gestione delle scorte. Il giocatore dovrà decidere se consumare interamente un oggetto o conservarne porzioni per il futuro.
+
+## [v0.8.5-consolidated] - 27-05-2025 - Consolidamento e Bilanciamento Iniziale
+
+### 🧹 **Consolidamento Architettura (Come da log precedenti)**
+- Rimozione file obsoleti (`js/api_client.js`, `js/character_manager.js`).
+- Commento riferimenti DOM obsoleti in `js/dom_references.js`.
+- Aggiornamento `README.md` per riflettere l'architettura client-side pura.
+- Aggiornamento commenti di versione in tutti i file JS principali a `v0.8.5-consolidated`.
+- Implementazione gestione tasto ESC per chiusura popup evento e crafting.
+- Modifiche strutturali e di stile minori all'interfaccia (controlli di salvataggio inline).
+
+### ⚖️ **Bilanciamento Risorse e Sopravvivenza (Fase 1)**
+
+#### 🎯 **OBIETTIVO**: Rendere la sopravvivenza iniziale meno punitiva e più gestibile, aumentando la disponibilità e l'efficacia delle risorse vitali di base e regolando i tassi di consumo.
+
+#### 🛠️ **MODIFICHE EFFETTI OGGETTI (`js/game_data.js`)**
+- **`water_purified_small`**: Effetto aumentato da +2 a +3 water.
+- **`berries`**: Effetto modificato da +1 food (5% veleno) a +2 food (10% veleno).
+- **`water_dirty`**: Rischio malattia ridotto da 70% a 45% (vedi modifica costante sotto).
+- **`mre_pack`**: Effetto potenziato da +6 food a +10 food e +5 HP.
+- **`water_bottle`**: Effetto aumentato da +6 water a +8 water.
+- **`medicine_crude`**: Probabilità di successo aumentata da 50% a 60%.
+
+#### ⚙️ **MODIFICHE COSTANTI DI GIOCO (`js/game_constants.js`)**
+- **`DIRTY_WATER_POISON_CHANCE`**: Valore ridotto da 0.70 a 0.45.
+- **`MOVE_FOOD_COST`**: Ridotto da 0.1 a 0.07 per passo.
+- **`MOVE_WATER_COST`**: Ridotto da 0.15 a 0.10 per passo.
+
+#### ⚖️ **MODIFICHE PESI NEI POOL DI LOOT (`js/game_constants.js`)**
+- **`RANDOM_REWARD_POOLS.FOOD_ITEM`**:
+    - `canned_food`: peso aumentato da 25 a 30.
+    - `berries`: peso aumentato da 10 a 15.
+- **`RANDOM_REWARD_POOLS.WATER_ITEM`**:
+    - `water_purified_small`: peso aumentato da 30 a 35.
+    - `water_dirty`: peso aumentato da 20 a 25.
+- **`RANDOM_REWARD_POOLS.MEDICAL_ITEM`**:
+    - `bandages_clean`: peso aumentato da 30 a 35.
+    - `medicine_crude`: peso aumentato da 20 a 25.
+    - Aggiunto `charcoal_powder_medical` con `weight: 8`.
+    - Aggiunto `chewed_willow_leaves` con `weight: 10`.
+- **`SHELTER_INSPECT_LOOT_WEIGHTS`**:
+    - `canned_food`: peso aumentato da 14 a 20.
+    - `water_purified_small`: peso aumentato da 10 a 18.
+    - `bandages_clean`: peso aumentato da 7 a 10.
+    - Aggiunto `medicine_crude` con `weight: 5`.
+
+#### ✅ **RISULTATO ATTESO**: Curva di difficoltà iniziale più dolce, maggiore possibilità per il giocatore di stabilizzarsi prima di affrontare sfide più complesse. Necessario testing per validare l'impatto effettivo.
+
+
 ## [v0.8.4] - 2024-12-XX - ESPANSIONE MASSIVA DATABASE OGGETTI 🚀
 ### 📦 Aggiunta di 77 Nuovi Elementi al Sistema
 

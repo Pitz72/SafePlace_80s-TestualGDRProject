@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.21 Durability Reforged
+ * Versione: v0.8.5-consolidated
  * File: js/ui.js
  * Descrizione: Gestione dell'interfaccia utente, aggiornamento DOM, popup.
  * Dipende da: dom_references.js, game_constants.js, game_data.js, game_utils.js, player.js
@@ -1271,6 +1271,13 @@ function getItemDetailsHTML(itemInstance) {
 
 let selectedRecipeKey = null; // Memorizza la ricetta attualmente selezionata nel popup
 
+// Funzione per gestire la pressione di ESC per il popup di crafting
+function handleCraftingPopupKeyPress(event) {
+    if (event.key === 'Escape') {
+        closeCraftingPopup();
+    }
+}
+
 /**
  * Mostra il popup di crafting.
  * Popola la lista delle ricette conosciute dal giocatore.
@@ -1292,6 +1299,9 @@ function showCraftingPopup() {
 
     DOM.craftingOverlay.classList.add('visible');
     DOM.craftingPopup.classList.add('visible');
+
+    // Aggiungi listener per il tasto ESC specificamente per questo popup
+    document.addEventListener('keydown', handleCraftingPopupKeyPress);
 
     // LOG DI DEBUG RIMOSSI
     // console.log("CSS - #crafting-overlay opacity:", window.getComputedStyle(DOM.craftingOverlay).opacity);
@@ -1334,6 +1344,8 @@ function closeCraftingPopup() {
         gamePaused = false;
         eventScreenActive = false;
         if (typeof enableControls === 'function') enableControls();
+        // Rimuovi il listener per ESC quando il popup si chiude
+        document.removeEventListener('keydown', handleCraftingPopupKeyPress);
         return;
     }
 
@@ -1343,6 +1355,8 @@ function closeCraftingPopup() {
     eventScreenActive = false;
     if (typeof enableControls === 'function') enableControls();
     selectedRecipeKey = null; // Resetta la ricetta selezionata
+    // Rimuovi il listener per ESC quando il popup si chiude
+    document.removeEventListener('keydown', handleCraftingPopupKeyPress);
 }
 
 /**

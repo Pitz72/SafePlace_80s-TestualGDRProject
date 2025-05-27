@@ -7,7 +7,7 @@
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "0.7.22 Event Flow Integrity";
+const GAME_VERSION = "v0.8.5-consolidated";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
@@ -50,8 +50,8 @@ const NIGHT_FOOD_COST = 1;  // Costo di sazietà per riposo notturno (indipenden
 const NIGHT_WATER_COST = 1; // Costo di idratazione per riposo notturno.
 
 // Costi risorse per movimento (valori piccoli, frazionari per simulare consumo graduale)
-const MOVE_FOOD_COST = 0.1; // Consumo di sazietà per ogni passo.
-const MOVE_WATER_COST = 0.15; // Consumo di idratazione per ogni passo.
+const MOVE_FOOD_COST = 0.07; // Consumo di sazietà per ogni passo.
+const MOVE_WATER_COST = 0.10; // Consumo di idratazione per ogni passo.
 
 // Costo in passi (tempo) per effettuare una ricerca in un evento
 const SEARCH_TIME_COST = 3;
@@ -132,10 +132,11 @@ const TRACCE_SUCCESS_LOOT_WEIGHTS = {
 
 // Probabilità di trovare loot ispezionando rifugi
 const SHELTER_INSPECT_LOOT_WEIGHTS = {
-    'scrap_metal': 20, 'bandages_dirty': 18, 'canned_food': 14,
-    'water_purified_small': 10, 'vitamins': 8, 'bandages_clean': 7,
+    'scrap_metal': 20, 'bandages_dirty': 18, 'canned_food': 20,
+    'water_purified_small': 18, 'vitamins': 8, 'bandages_clean': 10,
     'repair_kit': 6, 'ammo_9mm': 5, 'mechanical_parts': 4,
-    'pistol_makeshift': 2, 'leather_jacket_worn': 1
+    'pistol_makeshift': 2, 'leather_jacket_worn': 1,
+    'medicine_crude': 5
 }; // Pesi per random_common_resource migliorato su Rifugi
 
 // Probabilità di contrarre malattia da carne cruda
@@ -143,7 +144,14 @@ const RAW_MEAT_SICKNESS_CHANCE = 0.25;
 
 // Probabilità di contrarre avvelenamento da bacche/acqua sporca
 const BERRIES_POISON_CHANCE = 0.20;
-const DIRTY_WATER_POISON_CHANCE = 0.70;
+const DIRTY_WATER_POISON_CHANCE = 0.45;
+
+// Durata Malattia
+const SICKNESS_DURATION_MIN = 2; // Giorni
+const SICKNESS_DURATION_MAX = 5; // Giorni
+
+// Probabilità di fallire un disinnesco generico
+const GENERIC_TRAP_FAIL_CHANCE = 0.35;
 
 // Probabilità di recuperare munizioni da balestra/arco dopo l'uso
 const RECOVER_ARROW_BOLT_CHANCE = 0.40;
@@ -292,17 +300,19 @@ const RANDOM_REWARD_POOLS = {
         { id: 'map_fragment_local', weight: 10 }
     ],
     MEDICAL_ITEM: [
-        { id: 'bandages_clean', weight: 30 },
+        { id: 'bandages_clean', weight: 35 },
         { id: 'suspicious_pills', weight: 15 },
         { id: 'herbal_salve', weight: 20 },
-        { id: 'medicine_crude', weight: 20 },
+        { id: 'medicine_crude', weight: 25 },
         { id: 'antidote', weight: 10 },
-        { id: 'first_aid_kit', weight: 5 }
+        { id: 'first_aid_kit', weight: 5 },
+        { id: 'charcoal_powder_medical', weight: 8 },
+        { id: 'chewed_willow_leaves', weight: 10 }
     ],
     FOOD_ITEM: [
-        { id: 'canned_food', weight: 25 },
+        { id: 'canned_food', weight: 30 },
         { id: 'ration_pack', weight: 20 },
-        { id: 'berries', weight: 10 },
+        { id: 'berries', weight: 15 },
         { id: 'chips_stale', weight: 15 },
         { id: 'canned_beans', weight: 20 },
         { id: 'meat_raw', weight: 8 },
@@ -314,8 +324,8 @@ const RANDOM_REWARD_POOLS = {
         { id: 'mre_pack', weight: 5 }
     ],
     WATER_ITEM: [
-        { id: 'water_purified_small', weight: 30 },
-        { id: 'water_dirty', weight: 20 },
+        { id: 'water_purified_small', weight: 35 },
+        { id: 'water_dirty', weight: 25 },
         { id: 'soda_flat', weight: 15 },
         { id: 'rainwater_collected', weight: 18 },
         { id: 'juice_box_found', weight: 12 },

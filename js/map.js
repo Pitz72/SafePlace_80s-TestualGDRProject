@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/map.js
  * Descrizione: Gestione della mappa di gioco (generazione, movimento, interazioni tile)
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, events.js
@@ -774,38 +774,55 @@ function transitionToNight() {
     if (inShelter) {
         // Passa la notte al sicuro
         addMessage("Il sole tramonta. Ti trovi al sicuro nel rifugio. Riposi fino all'alba.", "info", true);
-        // Applica i costi di "riposo notturno" (indipendenti dall'essere all'aperto o al chiuso, rappresentano consumo base dormendo)
-        // Queste costanti (NIGHT_FOOD_COST, NIGHT_WATER_COST) sono definite in game_constants.js
-        player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
-        player.water = Math.max(0, player.water - NIGHT_WATER_COST);
+        
+        // Consuma porzioni di cibo e acqua dall'inventario
+        const foodPortionsConsumed = consumePortions('food', NIGHT_FOOD_COST);
+        const waterPortionsConsumed = consumePortions('water', NIGHT_WATER_COST);
+
+        // Se le porzioni consumate non sono sufficienti, applica il consumo diretto residuo
+        // (Questo blocco serve come fallback o se si vuole un consumo MINIMO anche se si hanno oggetti)
+        // Per ora, con la logica di consumePortions, questo potrebbe non essere strettamente necessario
+        // se NIGHT_FOOD_COST è interpretato solo come porzioni da oggetti.
+        // Ma lo teniamo per completezza o per futuri design dove c'è un costo base + oggetti.
+        if (foodPortionsConsumed < NIGHT_FOOD_COST) {
+            const foodDeficit = NIGHT_FOOD_COST - foodPortionsConsumed;
+            player.food = Math.max(0, player.food - foodDeficit); 
+            // Non è necessario un messaggio qui, consumePortions già logga l'uso degli oggetti
+            // e la penalità per fame/sete gestirà il messaggio di deficit se food arriva a 0.
+        }
+        if (waterPortionsConsumed < NIGHT_WATER_COST) {
+            const waterDeficit = NIGHT_WATER_COST - waterPortionsConsumed;
+            player.water = Math.max(0, player.water - waterDeficit);
+        }
+
         // Nessuna penalità di danno aggiuntiva se si è in rifugio.
-        // La transizione a giorno avviene subito se la notte è trascorsa in un rifugio sicuro.
-         // console.log(`transitionToNight: Passata la notte in rifugio. Consumato ${NIGHT_FOOD_COST} cibo, ${NIGHT_WATER_COST} acqua.`); // Log di debug
         transitionToDay(); // Passa subito al giorno successivo
     } else {
         // Passa la notte all'aperto
         addMessage("Il sole tramonta. Sei all'aperto - la notte sarà pericolosa. Trova un rifugio al più presto!", "warning", true);
-        // Applica i costi di "riposo notturno"
-        player.food = Math.max(0, player.food - NIGHT_FOOD_COST);
-        player.water = Math.max(0, player.water - NIGHT_WATER_COST);
-        // console.log(`transitionToNight: Passata la notte all'aperto. Consumato ${NIGHT_FOOD_COST} cibo, ${NIGHT_WATER_COST} acqua.`); // Log di debug
+        
+        const foodPortionsConsumedOutdoors = consumePortions('food', NIGHT_FOOD_COST);
+        const waterPortionsConsumedOutdoors = consumePortions('water', NIGHT_WATER_COST);
 
-        // Applica le penalità di danno per non aver trovato rifugio (basato solo su risorse 0 alla fine del giorno)
-        // Queste costanti (HUNGER_PENALTY_HP, THIRST_PENALTY_HP) sono definite in game_constants.js
-        let nightPenaltyDamage = 0;
-        if (player.food <= 0) {
-            nightPenaltyDamage += HUNGER_PENALTY_HP;
-             // Messaggio specifico fame notturna (opzionale, STATO_MESSAGGI.AFFAMATO può bastare)
-             // addMessage(getRandomText(STATO_MESSAGGI.AFFAMATO), 'warning');
+        if (foodPortionsConsumedOutdoors < NIGHT_FOOD_COST) {
+            const foodDeficit = NIGHT_FOOD_COST - foodPortionsConsumedOutdoors;
+            player.food = Math.max(0, player.food - foodDeficit);
         }
-        if (player.water <= 0) {
+        if (waterPortionsConsumedOutdoors < NIGHT_WATER_COST) {
+            const waterDeficit = NIGHT_WATER_COST - waterPortionsConsumedOutdoors;
+            player.water = Math.max(0, player.water - waterDeficit);
+        }
+
+        let nightPenaltyDamage = 0;
+        if (player.food <= 0 && foodPortionsConsumedOutdoors < NIGHT_FOOD_COST) { // Penalità solo se le scorte (oggetti + dirette) non bastano
+            nightPenaltyDamage += HUNGER_PENALTY_HP;
+        }
+        if (player.water <= 0 && waterPortionsConsumedOutdoors < NIGHT_WATER_COST) { // Penalità solo se le scorte non bastano
             nightPenaltyDamage += THIRST_PENALTY_HP;
-             // Messaggio specifico sete notturna (opzionale)
-             // addMessage(getRandomText(STATO_MESSAGGI.ASSETATO), 'warning');
         }
 
         if (nightPenaltyDamage > 0) {
-             const oldHp = player.hp;
+            const oldHp = player.hp;
             player.hp -= nightPenaltyDamage;
             const actualDamage = oldHp - player.hp;
              addMessage(`Hai sofferto l'esposizione notturna (-${actualDamage} HP).`, "danger", true);

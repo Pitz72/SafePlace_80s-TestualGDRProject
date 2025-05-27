@@ -42,35 +42,40 @@
 }
 
 /* === SISTEMA SALVATAGGIO (Solo Testo) === */
-#save-controls {
-    list-style: none;
+#save-controls-inline {
     padding: 0;
     margin: 15px 0 5px 0;
     font-family: 'Courier New', monospace;
+    text-align: center; /* Centra il div contenitore */
 }
 
-#save-controls .save-option {
-    margin: 3px 0;
-    padding: 2px 0;
+#save-controls-inline .save-option {
+    padding: 2px 4px; /* Aggiunto un po' di padding laterale per respiro */
     font-size: 0.9em;
     color: var(--fg-color, #00FF00);
     cursor: pointer;
-    transition: color 0.1s ease;
+    transition: color 0.1s ease, text-shadow 0.1s ease;
 }
 
-#save-controls .save-option:hover {
+#save-controls-inline .save-option:hover {
     color: var(--accent-color, #00FF00);
     text-shadow: 0 0 3px var(--accent-color, #00FF00);
 }
 
-#save-controls .save-option.pressed {
+#save-controls-inline .save-option.pressed,
+#save-controls-inline .save-option:active {
     color: #FFFFFF;
     text-shadow: 0 0 5px #FFFFFF;
 }
 
-#save-controls .option-key {
+#save-controls-inline .option-key {
     font-weight: bold;
     color: var(--accent-color, #00FF00);
+}
+
+#save-controls-inline .separator {
+    color: var(--fg-color, #00FF00);
+    margin: 0 3px; /* Aggiunge un po' di spazio attorno ai trattini */
 }
 
 /* === CRAFTING NEL PANNELLO STATISTICHE === */
@@ -117,7 +122,7 @@
         font-size: 0.9em;
     }
     
-    #save-controls .save-option {
+    #save-controls-inline .save-option {
         font-size: 0.8em;
     }
 }
@@ -132,7 +137,7 @@
         width: 2ch;
     }
     
-    #save-controls .save-option {
+    #save-controls-inline .save-option {
         font-size: 0.75em;
     }
 }

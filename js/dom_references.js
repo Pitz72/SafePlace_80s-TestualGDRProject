@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/dom_references.js
  * Descrizione: Riferimenti agli elementi DOM usati nel gioco.
  */
@@ -65,7 +65,7 @@ function assignAllDOMReferences() {
 
     // Recupera riferimenti per log e controlli
     DOM.messagesList = document.getElementById('messages');
-    DOM.moveButtons = document.querySelectorAll('.control-grid button');
+    // DOM.moveButtons = document.querySelectorAll('.control-grid button'); // OBSOLETO: Riferimento a controlli pre-retro interfaccia
 
     // Recupera riferimenti per il popup eventi (con log di errore rimossi)
     DOM.eventOverlay = document.getElementById('event-overlay');
@@ -152,7 +152,7 @@ function assignAllDOMReferences() {
     }
 
     // NUOVO: Riferimenti pulsante e popup Crafting
-    DOM.openCraftingButton = document.getElementById('open-crafting-button') || null;
+    // DOM.openCraftingButton = document.getElementById('open-crafting-button') || null; // OBSOLETO: Il crafting è attivato dal tasto 'C' o dal pannello stats
     DOM.craftingOverlay = document.getElementById('crafting-overlay') || null;
     DOM.craftingPopup = document.getElementById('crafting-popup') || null;
     if (DOM.craftingPopup) {

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/player.js
  * Descrizione: Gestione del personaggio giocante, statistiche, inventario, azioni.
  * Dipende da: game_constants.js, game_data.js, ui.js, game_utils.js
@@ -20,179 +20,137 @@
  * Dipende da: game_constants.js (player, STARTING_FOOD, STARTING_WATER), game_utils.js (getRandomInt), ui.js (addItemToInventory).
  */
 function generateCharacter() {
-    // Inizializza l'oggetto player (definito in game_constants.js)
     player = {
-        name: "Ultimo", // Nome fisso per ora
-
-        // Attributi base con una piccola variazione casuale
-        // Range di base 6-10 per gli attributi
-        vigore: 8 + getRandomInt(0, 2),      // Resistenza fisica, base HP
-        potenza: 8 + getRandomInt(0, 2),     // Forza fisica, danno corpo a corpo
-        agilita: 12 + getRandomInt(0, 2),    // Schivata, velocità, furtività, check vs trappole agilità
-        tracce: 12 + getRandomInt(0, 2),     // Seguire/nascondere tracce, osservazione, check vs trappole tracce
-        influenza: 7 + getRandomInt(0, 2),   // Interazione sociale, persuasione, intimidazione (check vs predoni)
-        presagio: 8 + getRandomInt(0, 2),    // Intuizione, percepire pericoli/opportunità nascoste (check vs pericoli/tracce/rifugi)
-        adattamento: 8 + getRandomInt(0, 2), // Resistenza a malattie/veleni/orrore, riparazioni/crafting (check vs pericoli/orrore/rifugi)
-        acquisita: 0,                    // Punti abilità guadagnati da spendere (feature futura)
-
-        // Risorse e stato di sopravvivenza
-        // maxHp e hp verranno calcolati e impostati dopo la definizione degli attributi base
+        hp: 100,
+        maxHp: 100,
         food: STARTING_FOOD,
+        maxFood: 10, // Massimo cibo che può avere
         water: STARTING_WATER,
-
-        // Posizione (verrà definita in map.js durante la generazione della mappa)
-        x: -1, // -1 o undefined per indicare non ancora posizionato
-        y: -1,
-
-        // Stati negativi (boolean flags)
-        isInjured: false, // Ferito: Subisce danno per movimento/notte, penalità a Potenza/Agilità check (RIPRISTINATO A FALSE)
-        isSick: false,    // Malato: Subisce danno per movimento/notte, penalità a Vigore/Adattamento check, consumo extra risorse
-        isPoisoned: false, // Avvelenato: Subisce danno per movimento/notte, penalità a Agilità/Adattamento check (o altro a seconda del design)
-        poisonDuration: 0,      // Turni rimanenti di avvelenamento
-        currentLocationType: null, // Tipo di tile attuale (simbolo)
-        knownRecipes: ["purify_water", "cook_meat", "craft_shiv", "craft_rags_armor", "craft_healing_poultice", "craft_bandages_clean"],       // Array delle ricette conosciute
-
-        // Flag stato notturno (non salvato, solo per logica transizione)
-        hasBeenWarnedAboutNight: false, // Per non spammare il messaggio di pericolo notturno
-
-        // Equipaggiamento (memorizza l'oggetto equipaggiato come {itemId, currentDurability})
-        equippedWeapon: null, // Verrà impostato sotto
-        equippedArmor: null,  // Verrà impostato sotto
-
-        // Inventario: array di oggetti { itemId: string, quantity: number }
-        inventory: []
+        maxWater: 10, // Massima acqua
+        stats: {
+            forza: getRandomInt(3, 6), // Potenza fisica
+            agilita: getRandomInt(3, 6), // Destrezza e riflessi
+            vigore: getRandomInt(3, 6),  // Resistenza a malattie, fatica
+            percezione: getRandomInt(3, 6), // Notare dettagli, tracce
+            carisma: getRandomInt(3, 6), // Influenzare gli altri
+            adattamento: getRandomInt(3, 6) // Capacità di apprendere, resistere a shock
+        },
+        inventory: [],
+        equippedWeapon: null,
+        equippedArmor: null,
+        isInjured: false,
+        isSick: false,
+        isPoisoned: false, // Nuovo stato
+        // ... altri stati come 'affamato', 'assetato' sono impliciti da food/water <= 0
+        bonusStats: { forza: 0, agilita: 0, vigore: 0, percezione: 0, carisma: 0, adattamento: 0 },
+        knownRecipes: ['craft_water_purified_small', 'craft_meat_cooked'] // Ricette iniziali
     };
 
-    // Calcola HP massimi basati sul Vigore (formula base: 10 + Vigore)
-    player.maxHp = 10 + player.vigore; // Calcolo originale
-    player.hp = player.maxHp; // Inizia con HP pieni (RIPRISTINATO)
+    // Calcolo HP massimi basati sul Vigore
+    player.maxHp = 70 + (player.stats.vigore * 5);
+    player.hp = player.maxHp;
 
-    // Impostazioni iniziali per lo stato del giocatore (ferito e con HP ridotti) - RIGHE DI TEST COMMENTATE
-    // player.isInjured = true;
-    // player.hp = Math.floor(player.maxHp / 3);
+    // Inizializzazione dell'inventario e degli oggetti equipaggiati
+    // Rimosso l'aggiunta automatica di oggetti di test dall'inventario iniziale
+    // per rendere il gioco più pulito per il bilanciamento.
+    // Saranno aggiunti tramite eventi o loot.
+    // Esempio: addItemToInventory('mre_pack', 1); 
+    // Esempio: addItemToInventory('water_bottle', 1); 
 
-    // Le righe temporanee per il test degli HP sono state rimosse.
-
-    // Aggiunge oggetti iniziali all'inventario (usando la funzione addItemToInventory definita qui sotto)
-    addItemToInventory('bandages_dirty', 2);
-    addItemToInventory('water_purified_small', 1);
-    addItemToInventory('canned_food', 1);
-    addItemToInventory('suspicious_pills', 1);
-    addItemToInventory('scrap_metal', getRandomInt(1,3)); // Inizia con qualche materiale
-    addItemToInventory('berries', 2);         // Per le Bacche Comuni
-    addItemToInventory('cloth_rags', 1);      // Per gli Stracci di Stoffa
-    addItemToInventory('water_dirty', 1);     // Per l'Acqua Sporca
-    // addItemToInventory('charcoal', 1);        // <<< RIMOSSO CARBONE PER TEST
-    // addItemToInventory('repair_kit', 1); // Assicurati che questa riga rimanga commentata o rimossa
-
-    // Equipaggia un'arma base all'inizio
-    const startingWeaponId = 'pipe_wrench';
-    const startingWeaponData = ITEM_DATA[startingWeaponId];
-    if (startingWeaponData) {
-        player.equippedWeapon = {
-            itemId: startingWeaponId,
-            currentDurability: startingWeaponData.maxDurability
+    const startingWeapon = ITEM_DATA['small_knife'];
+    if (startingWeapon) {
+        const weaponInstance = { 
+            ...startingWeapon, 
+            currentDurability: startingWeapon.durability 
         };
-    } else {
-        player.equippedWeapon = null;
-        console.warn(`generateCharacter: Arma iniziale '${startingWeaponId}' non trovata in ITEM_DATA.`);
+        // Se l'arma ha porzioni (improbabile per armi, ma per coerenza)
+        if (startingWeapon.max_portions) {
+            weaponInstance.current_portions = startingWeapon.max_portions;
+            weaponInstance.max_portions = startingWeapon.max_portions;
+        }
+        player.equippedWeapon = weaponInstance;
     }
 
-    // Equipaggia un'armatura base all'inizio
-    const startingArmorId = 'leather_jacket_worn';
-    const startingArmorData = ITEM_DATA[startingArmorId];
-    if (startingArmorData) {
-        player.equippedArmor = {
-            itemId: startingArmorId,
-            currentDurability: startingArmorData.maxDurability
+    const startingArmor = ITEM_DATA['worn_clothes'];
+    if (startingArmor) {
+        const armorInstance = { 
+            ...startingArmor, 
+            currentDurability: startingArmor.durability
         };
-    } else {
-        player.equippedArmor = null;
-        console.warn(`generateCharacter: Armatura iniziale '${startingArmorId}' non trovata in ITEM_DATA.`);
+        // Se l'armatura ha porzioni (improbabile)
+        if (startingArmor.max_portions) {
+            armorInstance.current_portions = startingArmor.max_portions;
+            armorInstance.max_portions = startingArmor.max_portions;
+        }
+        player.equippedArmor = armorInstance;
     }
 
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log('[generateCharacter] Player Equip INIZIALE - Arma:', JSON.stringify(player.equippedWeapon), 'Armatura:', JSON.stringify(player.equippedArmor));
-
-    // Aggiorna la UI delle stats iniziali
-    if (typeof renderStats === 'function') {
-         renderStats();
-    } else {
-         console.warn("generateCharacter: renderStats non disponibile.");
-    }
-     // Aggiorna UI inventario
-     if (typeof renderInventory === 'function') {
-          renderInventory();
-     } else {
-          console.warn("generateCharacter: renderInventory non disponibile.");
-     }
-
-
-    // Log di debug (opzionale, rimuovere in produzione)
-    // console.log("Personaggio generato:", player);
+    addMessage("Ti svegli in un silenzio innaturale. Il mondo come lo conoscevi non esiste più.", "info");
+    addMessage("Devi trovare un posto sicuro. Inizia a esplorare.", "info");
+    checkAndLogStatusMessages();
 }
 
 /**
- * Aggiunge un oggetto all'inventario del giocatore o ne aumenta la quantità se già presente.
- * Dipende da: game_constants.js (player, MAX_INVENTORY_SLOTS, ITEM_DATA), ui.js (renderInventory, addMessage).
- * @param {string} itemId - L'ID dell'oggetto da aggiungere (corrispondente a una chiave in ITEM_DATA).
- * @param {number} quantity - La quantità dell'oggetto da aggiungere.
+ * Aggiunge un oggetto all'inventario del giocatore.
+ * Gestisce la stackabilità e i limiti dell'inventario.
+ * @param {string} itemId L'ID dell'oggetto da aggiungere.
+ * @param {number} quantity La quantità dell'oggetto da aggiungere.
+ * @returns {boolean} True se l'oggetto è stato aggiunto, false altrimenti.
  */
 function addItemToInventory(itemId, quantity) {
-    // Verifica che l'inventario sia inizializzato e che la quantità sia valida
-    if (!player || !Array.isArray(player.inventory) || quantity <= 0) {
-        console.error(`addItemToInventory: Dati giocatore/inventario non validi o quantità (${quantity}) <= 0.`);
-        return;
-    }
-    // Verifica che l'itemId esista in ITEM_DATA
     const itemInfo = ITEM_DATA[itemId];
     if (!itemInfo) {
-        console.error(`addItemToInventory: Oggetto con ID '${itemId}' non trovato in ITEM_DATA.`);
-        addMessage(`Non puoi raccogliere Oggetto Sconosciuto (ID: ${itemId}).`, "warning");
-        return;
+        console.error(`Tentativo di aggiungere un oggetto inesistente: ${itemId}`);
+        addMessage(`Errore: oggetto ${itemId} non trovato.`, 'error');
+        return false;
     }
 
-    // --- GESTIONE OGGETTI CON DURABILITÀ (maxDurability) ---
-    if (typeof itemInfo.maxDurability === 'number') {
-        // Oggetti con durabilità (armi/armature): aggiungi uno slot per ogni copia
-        let added = 0;
-        for (let i = 0; i < quantity; i++) {
-            if (player.inventory.length < MAX_INVENTORY_SLOTS) {
-                player.inventory.push({ itemId: itemId, quantity: 1, currentDurability: itemInfo.maxDurability });
-                added++;
-            } else {
-                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Solo ${added} su ${quantity} ${itemInfo.name} aggiunti.`, 'warning');
-                break;
-            }
+    if (player.inventory.length >= MAX_INVENTORY_SLOTS && !itemInfo.stackable) {
+        const existingItemIndex = player.inventory.findIndex(slot => slot.itemId === itemId && itemInfo.stackable);
+        if (existingItemIndex === -1) {
+            addMessage("Inventario pieno.", "warning");
+            return false;
         }
-        // Non serve gestire stackabilità: ogni oggetto con durabilità è slot singolo
-    } else {
-        // --- LOGICA ORIGINALE PER OGGETTI STACKABILI O SENZA DURABILITÀ ---
-        // Cerca se l'oggetto è già presente nell'inventario
-        const existingItemSlot = player.inventory.find(slot => slot.itemId === itemId);
-        const isStackable = itemInfo.stackable !== false;
+    }
+    
+    // Gestione oggetti con porzioni
+    let currentPortions = itemInfo.max_portions || 1;
 
-        if (isStackable && existingItemSlot) {
-            // Se esiste e stackable, aumenta la quantità
-            existingItemSlot.quantity += quantity;
-        } else {
-            // Se non esiste OPPURE non è stackable: aggiungi un nuovo slot (se c'è spazio)
-            if (player.inventory.length >= MAX_INVENTORY_SLOTS) {
-                addMessage(`Inventario pieno (${player.inventory.length}/${MAX_INVENTORY_SLOTS} slot)! Non puoi raccogliere ${itemInfo.name}.`, 'warning');
-                return;
+    if (itemInfo.stackable) {
+        const existingItemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
+        if (existingItemIndex !== -1) {
+            // Se l'oggetto è stackabile e multiporzione, ogni "stack" rappresenta un'istanza separata dell'oggetto
+            // Quindi, se troviamo un item esistente, stiamo aggiungendo una *nuova istanza* di quell'oggetto, non porzioni ad uno esistente.
+            // Questo significa che dobbiamo trovare uno slot vuoto o un altro stack dello stesso item ID non ancora al massimo (per item non-multiporzione).
+            // Per semplicità, al momento, gli oggetti multiporzione stackabili creano nuove entry se lo slot non è pieno.
+            // Se invece l'oggetto NON è multiporzione, allora incrementiamo la quantità.
+            if (!itemInfo.max_portions || itemInfo.max_portions === 1) {
+                 player.inventory[existingItemIndex].quantity += quantity;
+                 addMessage(`${itemInfo.name} x${quantity} aggiunto all'inventario.`, "success");
+                 renderInventory();
+                 return true;
             }
-            player.inventory.push({ itemId: itemId, quantity: quantity });
         }
     }
 
-    // Aggiorna la visualizzazione dell'inventario
-    if (typeof renderInventory === 'function') {
+    // Se non è stackabile, o è stackabile ma non c'è uno stack esistente (o è multiporzione),
+    // cerca uno slot vuoto.
+    if (player.inventory.length < MAX_INVENTORY_SLOTS) {
+        const newItem = { itemId: itemId, quantity: quantity };
+        if (itemInfo.max_portions && itemInfo.max_portions > 1) {
+            newItem.current_portions = itemInfo.max_portions;
+            newItem.max_portions = itemInfo.max_portions; // Memorizza anche max per UI
+        }
+        player.inventory.push(newItem);
+        addMessage(`${itemInfo.name} aggiunto all'inventario.` + (newItem.current_portions ? ` (${newItem.current_portions} porz.)` : ''), "success");
         renderInventory();
+        return true;
     } else {
-        console.warn("addItemToInventory: renderInventory non disponibile.");
+        // Caso in cui l'inventario è pieno e l'oggetto non può essere stackato con uno esistente.
+        // (Questo viene già controllato all'inizio, ma per sicurezza)
+        addMessage("Inventario pieno. Impossibile aggiungere " + itemInfo.name + ".", "warning");
+        return false;
     }
-
-    // Non loggiamo un messaggio qui di default; la funzione che assegna l'oggetto dovrebbe loggarlo.
-    // Esempio: addMessage(`Hai trovato ${quantity} x ${itemInfo.name}.`, 'success');
 }
 
 
@@ -260,430 +218,175 @@ function removeItemFromInventory(itemId, quantityToRemove = 0) {
  * @param {string} itemId - L'ID dell'oggetto da usare.
  */
 function useItem(itemId) {
-    // console.log(`useItem: Tentativo di usare item '${itemId}'`); // Log di debug
-
-    const itemInfo = ITEM_DATA[itemId];
     const itemIndex = player.inventory.findIndex(slot => slot.itemId === itemId);
+    if (itemIndex === -1) {
+        addMessage("Oggetto non trovato nell'inventario.", "error");
+        closeEventPopup();
+        return;
+    }
 
-    // Verifiche preliminari
-    if (itemIndex === -1 || !itemInfo) {
-        console.error(`useItem: Oggetto '${itemId}' non trovato nell'inventario o nei dati.`);
-        addMessage("Errore nell'usare l'oggetto.", "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
-        return;
-    }
-    const itemSlot = player.inventory[itemIndex]; // Slot originale
-    // console.log(`DEBUG: useItem - INIZIO. Item: ${itemId}, Quantità nello slot: ${itemSlot.quantity}, Idratazione iniziale: ${player.water}`); // NUOVO LOG
+    const itemSlot = player.inventory[itemIndex];
+    const itemInfo = ITEM_DATA[itemSlot.itemId];
 
-    if (!itemInfo.usable) {
-        addMessage(`${itemInfo.name} non può essere usato direttamente.`, "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
+    if (!itemInfo || !itemInfo.usable) {
+        addMessage("Questo oggetto non può essere usato.", "warning");
+        closeEventPopup();
         return;
     }
-    // MODIFICATO: Controlla itemInfo.effects (plurale) e che non sia un array vuoto
-    if (!itemInfo.effects || itemInfo.effects.length === 0) {
-        console.warn(`useItem: Oggetto '${itemId}' non ha un array 'effects' definito o è vuoto.`);
-        addMessage(`${itemInfo.name} non ha effetto quando usato.`, "warning");
-        if (typeof closeEventPopup === 'function') closeEventPopup();
+
+    // Gestione Kit di Riparazione (logica speciale)
+    if (itemInfo.effects && itemInfo.effects.some(e => e.type === 'repair_item_type')) {
+        showRepairItemPopup(itemSlot.itemId); // Passa l'ID del kit di riparazione
+        // Il consumo del kit avviene dopo la selezione dell'oggetto da riparare
         return;
     }
+    
+    // Gestione Progetti (Blueprints)
+    if (itemInfo.effects && itemInfo.effects.some(e => e.type === 'learn_recipe')) {
+        const recipeEffect = itemInfo.effects.find(e => e.type === 'learn_recipe');
+        if (recipeEffect && recipeEffect.recipeKey) {
+            learnRecipe(recipeEffect.recipeKey, itemSlot.itemId); // Passa l'ID del blueprint per consumarlo
+        } else {
+            addMessage("Errore: Progetto non valido.", "error");
+        }
+        closeEventPopup();
+        renderInventory();
+        renderCraftingRecipes(); // Aggiorna la UI del crafting
+        return;
+    }
+
 
     let effectApplied = false;
-    let consumptionMessage = `${itemInfo.name} usato.`; // Messaggio iniziale sull'uso
-    let consumeItem = true; // Flag per decidere se consumare l'oggetto dopo l'uso
-    let messageType = 'info'; // Tipo messaggio default
+    let feedbackMessage = "";
 
-    // Estrai il primo oggetto effetto dall'array (la maggior parte degli item ne ha solo uno)
-    // Se un item dovesse avere effetti multipli simultanei, questa logica andrebbe estesa (es. con un ciclo)
-    const currentEffect = itemInfo.effects[0];
-
-    // Gestisce i vari tipi di effetti (definiti nell'oggetto effect in ITEM_DATA)
-    // MODIFICATO: Usa currentEffect.type
-    switch (currentEffect.type) {
-
-        case 'add_resource': // Aumenta risorse (HP, Cibo, Acqua)
-            // amount può essere un numero fisso o un intervallo {min, max}
-            // MODIFICATO: Usa currentEffect.amount
-            const amountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
-                ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
-                : (currentEffect.amount || 1); // Default a 1 se amount non definito
-
-            // MODIFICATO: Usa currentEffect.resource_type
-            if (currentEffect.resource_type === 'hp') {
-                const oldHp = player.hp;
-                player.hp = Math.min(player.hp + amountToAdd, player.maxHp);
-                const actualHeal = player.hp - oldHp; // Quanto HP è stato effettivamente curato
-                consumptionMessage = `Hai usato ${itemInfo.name}. Recuperi ${actualHeal} HP.`;
-                if (actualHeal > 0) messageType = 'success'; else messageType = 'info';
-                // TODO: Aggiungere effetto visivo di cura?
-            // MODIFICATO: Usa currentEffect.resource_type
-            } else if (currentEffect.resource_type === 'food') {
-                player.food = Math.min(player.food + amountToAdd, 10); // Limite Sazietà a 10
-                 consumptionMessage = `Hai usato ${itemInfo.name}. Sazietà +${amountToAdd}. Totale: ${Math.floor(player.food)}.`;
-                 messageType = 'success';
-            // MODIFICATO: Usa currentEffect.resource_type
-            } else if (currentEffect.resource_type === 'water') {
-                const waterPrimaDellEffetto = player.water; // Salva acqua prima
-                player.water = Math.min(player.water + amountToAdd, 10); // Limite Idratazione a 10
-                 consumptionMessage = `Hai usato ${itemInfo.name}. Idratazione +${amountToAdd}. Totale: ${Math.floor(player.water)}.`;
-                 // console.log(`DEBUG: useItem - EFFETTO ACQUA. Idratazione Prima: ${waterPrimaDellEffetto}, Amount Aggiunto da Effetto: ${amountToAdd}, Idratazione Dopo: ${player.water}`); // NUOVO LOG
-                 messageType = 'success';
-            } else {
-                // MODIFICATO: Usa currentEffect.resource_type
-                console.warn(`useItem: Tipo risorsa sconosciuto in add_resource per item '${itemId}': ${currentEffect.resource_type}`);
-                consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto sconosciuto)`;
-                 messageType = 'warning';
-                 consumeItem = false; // Non consumare se l'effetto è sconosciuto
-            }
-            effectApplied = true;
-            break;
-
-        case 'add_resource_poisonable': // Aggiunge risorse con rischio avvelenamento
-             // Simile a add_resource, ma con check rischio
-             // MODIFICATO: Usa currentEffect.amount
-             const pAmountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
-                 ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
-                 : (currentEffect.amount || 1);
-
-             // MODIFICATO: Usa currentEffect.resource_type
-             if (currentEffect.resource_type === 'food') {
-                 player.food = Math.min(player.food + pAmountToAdd, 10);
-                 consumptionMessage = `Hai consumato ${itemInfo.name}. Sazietà +${pAmountToAdd}. Totale: ${Math.floor(player.food)}.`;
-                 messageType = 'success';
-             // MODIFICATO: Usa currentEffect.resource_type
-             } else if (currentEffect.resource_type === 'water') {
-                 player.water = Math.min(player.water + pAmountToAdd, 10);
-                 consumptionMessage = `Hai consumato ${itemInfo.name}. Idratazione +${pAmountToAdd}. Totale: ${Math.floor(player.water)}.`;
-                 messageType = 'success';
-             } else {
-                 // MODIFICATO: Usa currentEffect.resource_type
-                 console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_poisonable per item '${itemId}': ${currentEffect.resource_type}`);
-                 consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto risorsa sconosciuto)`;
-                 messageType = 'warning';
-                 consumeItem = false;
-             }
-
-             // Check rischio avvelenamento (dipende da game_constants.js per le chance)
-             // NOTA: La logica originale usava le probabilità direttamente nell'effetto.
-             // Ora le probabilità base sono nelle costanti per centralizzazione.
-             // MODIFICATO: Usa currentEffect.poison_chance
-             let poisonChance = currentEffect.poison_chance || 0;
-             // RIMOSSA LA SEGUENTE RIGA: if (itemId === 'berries') poisonChance = BERRIES_POISON_CHANCE;
-             // Questo if per water_dirty andrebbe corretto o rimosso se water_dirty ha la sua poison_chance in ITEM_DATA
-             // if (itemId === 'water_dirty') poisonChance = DIRTY_WATER_POISON_CHANCE;
-
-             if (Math.random() < poisonChance) {
-                 player.isPoisoned = true;
-                 consumptionMessage += ` Ma senti subito un sapore amaro... Sei stato avvelenato!`;
-                 messageType = 'danger';
-             }
-             effectApplied = true;
-             break;
-
-         case 'add_resource_sickness': // Aggiunge risorse con rischio malattia (usato per carne cruda)
-              // Simile a add_resource, ma con check rischio malattia
-              // MODIFICATO: Usa currentEffect.amount
-              const sAmountToAdd = (typeof currentEffect.amount === 'object' && currentEffect.amount !== null)
-                  ? getRandomInt(currentEffect.amount.min, currentEffect.amount.max)
-                  : (currentEffect.amount || 1);
-
-              // MODIFICATO: Usa currentEffect.resource_type
-              if (currentEffect.resource_type === 'food') {
-                  player.food = Math.min(player.food + sAmountToAdd, 10);
-                  consumptionMessage = `Hai consumato ${itemInfo.name}. Sazietà +${sAmountToAdd}. Totale: ${Math.floor(player.food)}.`;
-                  messageType = 'success';
-              // MODIFICATO: Usa currentEffect.resource_type
-              } else if (currentEffect.resource_type === 'water') { // Aggiunto caso water che mancava nel type sickness
-                  player.water = Math.min(player.water + sAmountToAdd, 10);
-                  consumptionMessage = `Hai consumato ${itemInfo.name}. Idratazione +${sAmountToAdd}. Totale: ${Math.floor(player.water)}.`;
-                  messageType = 'success';
-              } else {
-                  // MODIFICATO: Usa currentEffect.resource_type
-                  console.warn(`useItem: Tipo risorsa sconosciuto in add_resource_sickness per item '${itemId}': ${currentEffect.resource_type}`);
-                  consumptionMessage = `Hai usato ${itemInfo.name}. (Effetto risorsa sconosciuto)`;
-                  messageType = 'warning';
-                  consumeItem = false;
-              }
-
-              // Check rischio malattia (dipende da game_constants.js per la chance)
-              // NOTA: La logica originale usava le probabilità direttamente nell'effetto.
-              // Ora le probabilità base sono nelle costanti per centralizzazione.
-              // MODIFICATO: Usa currentEffect.sickness_chance
-              let sicknessChance = currentEffect.sickness_chance; // Usa la probabilità definita nell'effetto
-
-              if (Math.random() < sicknessChance) {
-                  player.isSick = true;
-                  consumptionMessage += ` Poco dopo, avverti un malessere... Potresti esserti ammalato!`;
-                  messageType = 'danger';
-              }
-              effectApplied = true;
-              break;
-
-
-        case 'cure_status': // Cura uno stato negativo (Ferito, Malato, Avvelenato)
-            // status_cured: 'isInjured', 'isSick', 'isPoisoned'
-            // chance: probabilità di successo (default 1.0)
-            // success_message, failure_message
-            // heal_hp_on_success: HP curati in aggiunta se successo (opzionale)
-
-            // MODIFICATO: Usa currentEffect
-            const statusToCure = currentEffect.status_cured;
-            const cureChance = currentEffect.chance || 1.0; // Default 100% chance
-
-            // Verifica se il giocatore ha lo stato da curare
-            if (!player[statusToCure]) {
-                // console.log(`useItem: Giocatore non ha lo stato '${statusToCure}' da curare con item '${itemId}'.`); // Log di debug rimosso
-                consumptionMessage = `${itemInfo.name} usato. Non hai bisogno di curare lo stato: ${statusToCure.replace('is', '')}.`;
-                messageType = 'info';
-                consumeItem = false; // Non consumare se lo stato non è presente
-            } else {
-                 // Tenta la cura
-                 if (Math.random() < cureChance) {
-                     player[statusToCure] = false; // Cura lo stato
-                     // MODIFICATO: Usa currentEffect
-                     consumptionMessage = currentEffect.success_message || `${itemInfo.name} ha curato lo stato ${statusToCure.replace('is', '')}.`;
-                     messageType = 'success';
-                     effectApplied = true; // Effetto applicato (cura riuscita)
-
-                     // Applica cura HP aggiuntiva se definita
-                     // MODIFICATO: Usa currentEffect
-                     if (currentEffect.heal_hp_on_success) {
-                        const oldHp = player.hp;
-                        // MODIFICATO: Usa currentEffect
-                        player.hp = Math.min(player.hp + currentEffect.heal_hp_on_success, player.maxHp);
-                        const actualHeal = player.hp - oldHp;
-                        consumptionMessage += ` Recuperi anche ${actualHeal} HP.`;
-                     }
-
-                 } else { // Se la cura fallisce
-                     consumptionMessage = currentEffect.failure_message || `${itemInfo.name} non è riuscito a curare lo stato ${statusToCure.replace('is', '')}.`;
-                     messageType = 'warning';      // AGGIUNTA
-                     effectApplied = false;      // AGGIUNTA (o assicurati sia false se già impostato prima)
-                 }
-            }
-            break;
-
-        case 'repair_item_type': // Es. Kit di Riparazione che ripara 'weapon' O 'armor'
-            // Questo effetto non consuma l'oggetto immediatamente, ma apre un altro popup.
-            // La consumazione avviene in applyRepair() dopo che l'arma è stata scelta e riparata.
-            // repair_amount: quantità di durabilità ripristinata
-            // item_type_target: array di stringhe ['weapon', 'armor']
-            // charges: numero di usi del kit
-            // MODIFICATO: Usa currentEffect
-            const repairAmount = currentEffect.repair_amount || 10; // Default repair amount
-            const targetTypes = currentEffect.item_type_target || ['weapon', 'armor']; // Default
-            const charges = currentEffect.charges || 1; // Default
-
-            // showRepairItemTypePopup (da definire) gestirà la logica successiva
-            showRepairItemTypePopup(itemId, repairAmount, targetTypes, charges);
-
-            // Non consumare l'oggetto qui! La consumazione è gestita in applyRepair.
-            consumeItem = false;
-            effectApplied = true; // L'azione di avviare la riparazione è considerata un "effetto applicato"
-
-            // Non loggiamo un messaggio generico "Item usato" qui, il popup di riparazione gestirà i messaggi.
-            consumptionMessage = null; // Sopprimi il messaggio generico "Item usato"
-            break;
-
-
-        case 'reveal_map_area': // Per oggetti come 'map_fragment_local'
-            // MODIFICATO: Usa currentEffect
-            const radius = currentEffect.radius || 3; // Default radius
-            if (typeof revealMapAreaAroundPlayer === 'function') {
-                revealMapAreaAroundPlayer(radius);
-                consumptionMessage = `${itemInfo.name} consultato. Alcune aree della mappa sono state rivelate.`;
-                messageType = 'info'; // O 'lore' se preferisci per le mappe
-                effectApplied = true;
-                consumeItem = true; // Le mappe di solito si consumano
-                if (typeof renderMap === 'function') renderMap(); // Aggiorna la mappa visualizzata
-            } else {
-                console.warn("useItem: Funzione revealMapAreaAroundPlayer non trovata (map_utils.js?).");
-                consumptionMessage = `${itemInfo.name} consultato, ma non succede nulla (funzione mancante).`;
-                messageType = 'warning';
-                consumeItem = false;
-            }
-            break;
-
-        // TODO: Aggiungere altri casi per tipi di effetto diversi (es. buff temporanei, ecc.)
-        case 'random_pill_effect':
-            if (!currentEffect.outcomes || !Array.isArray(currentEffect.outcomes) || currentEffect.outcomes.length === 0) {
-                console.error(`useItem (random_pill_effect): 'outcomes' array mancante o non valido per ${itemId}`);
-                consumptionMessage = "Hai preso le pillole... ma sembrano inerti.";
-                messageType = 'warning';
-                consumeItem = true; // Consuma anche se l'effetto è mal definito
-                effectApplied = false;
-                break;
-            }
-
-            // Usa chooseWeighted per selezionare un risultato basato sui pesi
-            const chosenOutcome = chooseWeighted(currentEffect.outcomes); // Assumi che chooseWeighted accetti { result: ..., weight: ... }
-
-            if (!chosenOutcome || !chosenOutcome.result) {
-                 console.error(`useItem (random_pill_effect): chooseWeighted non ha restituito un risultato valido.`);
-                 consumptionMessage = "Ingoi le pillole. Non senti nulla di strano.";
-                 messageType = 'info';
-                 consumeItem = true;
-                 effectApplied = false;
-                 break;
-            }
-
-            const outcomeResult = chosenOutcome.result;
-            effectApplied = true; // L'effetto (anche se nullo) è stato determinato
-            consumeItem = true;   // Consuma sempre la pillola
-
-            switch (outcomeResult) {
-                case 'good_heal_small':
-                    const healAmount = getRandomInt(3, 7);
-                    const oldHpHeal = player.hp;
-                    player.hp = Math.min(player.maxHp, player.hp + healAmount);
-                    const actualHeal = player.hp - oldHpHeal;
-                    consumptionMessage = `Ingoi le pillole. Ti senti stranamente rinvigorito! (+${actualHeal} HP)`;
-                    messageType = 'success';
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
-                    break;
-                case 'good_boost_temp':
-                    // Per ora solo un messaggio, nessun effetto meccanico di buff temporaneo
-                    consumptionMessage = "Prendi le pillole. Per un momento, ti senti più leggero e scattante!";
-                    messageType = 'success';
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
-                    // TODO: Implementare buff temporanei se necessario
-                    break;
-                case 'good_cure_minor':
-                    if (player.isInjured) {
-                        player.isInjured = false;
-                        consumptionMessage = "Le pillole hanno un sapore strano, ma il dolore della tua ferita sembra alleviarsi.";
-                        messageType = 'success';
+    if (itemInfo.effects) {
+        itemInfo.effects.forEach(effect => {
+            let currentEffectApplied = true; // Flag per tracciare se l'effetto corrente è stato applicato
+            switch (effect.type) {
+                case 'add_resource':
+                    if (player.hasOwnProperty(effect.resource_type)) {
+                        const oldValue = player[effect.resource_type];
+                        player[effect.resource_type] = Math.min(player[`max${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)}`], oldValue + effect.amount);
+                        const diff = player[effect.resource_type] - oldValue;
+                        if (diff > 0) {
+                            feedbackMessage += `${effect.resource_type === 'hp' ? 'HP' : effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} +${diff}. `;
+                        } else {
+                            feedbackMessage += `${effect.resource_type === 'hp' ? 'HP' : effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} al massimo. `;
+                        }
                     } else {
-                        consumptionMessage = "Ingoi le pillole. Non sembrano avere effetto sulle tue condizioni attuali.";
-                        messageType = 'info';
-                        effectApplied = false; // Nessun cambiamento di stato effettivo
+                        console.warn(`Risorsa ${effect.resource_type} non trovata nel giocatore.`);
+                        currentEffectApplied = false;
                     }
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
                     break;
-                case 'bad_damage_small':
-                    const damageAmount = getRandomInt(2, 5);
-                    const oldHpDmg = player.hp;
-                    player.hp = Math.max(0, player.hp - damageAmount);
-                    const actualDamage = oldHpDmg - player.hp;
-                    consumptionMessage = `Prendi le pillole e subito dopo senti una fitta allo stomaco! (-${actualDamage} HP)`;
-                    messageType = 'danger';
-                     if (player.hp <= 0) { // Check morte immediato
-                         consumptionMessage += " ...fatale.";
-                         // endGame sarà chiamato da useItem dopo lo switch
-                     }
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
+                case 'add_resource_poisonable':
+                    if (player.hasOwnProperty(effect.resource_type)) {
+                        const oldValue = player[effect.resource_type];
+                        player[effect.resource_type] = Math.min(player[`max${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)}`], oldValue + effect.amount);
+                        const diff = player[effect.resource_type] - oldValue;
+                        if (diff > 0) {
+                            feedbackMessage += `${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} +${diff}. `;
+                        } else {
+                            feedbackMessage += `${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} al massimo. `;
+                        }
+                        if (Math.random() < (effect.poison_chance || 0)) {
+                            player.isPoisoned = true;
+                            feedbackMessage += "Ti senti nauseato... Sei stato avvelenato! ";
+                            // Potrebbe essere utile un checkAndLogStatusMessages qui o dopo
+                        }
+                    } else {
+                        console.warn(`Risorsa ${effect.resource_type} non trovata nel giocatore.`);
+                        currentEffectApplied = false;
+                    }
                     break;
-                case 'bad_nausea_temp':
-                    // Solo messaggio, nessun effetto meccanico di status temporaneo
-                    consumptionMessage = "Dopo aver preso le pillole, la testa inizia a girare e senti una leggera nausea.";
-                    messageType = 'warning';
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
-                    // TODO: Implementare status temporanei minori se necessario
+                case 'add_resource_sickness':
+                     if (player.hasOwnProperty(effect.resource_type)) {
+                        const oldValue = player[effect.resource_type];
+                        player[effect.resource_type] = Math.min(player[`max${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)}`], oldValue + effect.amount);
+                        const diff = player[effect.resource_type] - oldValue;
+                        if (diff > 0) {
+                            feedbackMessage += `${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} +${diff}. `;
+                        } else {
+                            feedbackMessage += `${effect.resource_type.charAt(0).toUpperCase() + effect.resource_type.slice(1)} al massimo. `;
+                        }
+                        if (Math.random() < (effect.sickness_chance || 0)) {
+                            player.isSick = true;
+                            feedbackMessage += "Un brivido ti percorre la schiena... Ti senti male. ";
+                        }
+                    } else {
+                        console.warn(`Risorsa ${effect.resource_type} non trovata nel giocatore.`);
+                        currentEffectApplied = false;
+                    }
                     break;
-                case 'neutral_nothing':
+                case 'cure_status':
+                    if (player.hasOwnProperty(effect.status_cured) && player[effect.status_cured]) {
+                        if (Math.random() < (effect.chance || 1.0)) {
+                            player[effect.status_cured] = false;
+                            feedbackMessage += `${effect.success_message || `${effect.status_cured.replace('is', '')} curato.`} `;
+                            if (effect.heal_hp_on_success && effect.heal_hp_on_success > 0) {
+                                const oldHp = player.hp;
+                                player.hp = Math.min(player.maxHp, player.hp + effect.heal_hp_on_success);
+                                const hpGained = player.hp - oldHp;
+                                if (hpGained > 0) feedbackMessage += `Recuperati +${hpGained} HP. `;
+                            }
+                        } else {
+                            feedbackMessage += `${effect.failure_message || `Non ha avuto effetto su ${effect.status_cured.replace('is', '')}.`} `;
+                            currentEffectApplied = false; // L'effetto principale (cura) non è avvenuto
+                        }
+                    } else {
+                        feedbackMessage += `Nessun ${effect.status_cured.replace('is', '')} da curare. `;
+                        currentEffectApplied = false; // Non c'era nulla da curare, quindi l'effetto non si è "applicato" in senso stretto
+                    }
+                    break;
+                case 'random_pill_effect': // Pillole Sospette
+                    applyRandomPillEffect(); // Questa funzione dovrebbe generare il suo feedbackMessage e settare effectApplied
+                    // Per ora, assumiamo che applyRandomPillEffect chiami addMessage e gestisca l'effetto.
+                    // Per coerenza, potremmo farla ritornare il messaggio e lo stato.
+                    // Ma per ora, la lasciamo così.
+                    effectApplied = true; // Assumiamo che qualcosa succeda sempre
+                    break;
+                // Altri tipi di effetti...
                 default:
-                    consumptionMessage = "Ingoi le pillole sospette... non senti alcun effetto particolare.";
-                    messageType = 'info';
-                    effectApplied = false; // Nessun effetto meccanico
-                    showTemporaryMessage(consumptionMessage, 4000); // MOSTRA MESSAGGIO TEMP
-                    break;
+                    console.warn(`Tipo di effetto sconosciuto: ${effect.type}`);
+                    feedbackMessage += `Effetto ${effect.type} non riconosciuto. `;
+                    currentEffectApplied = false;
             }
-            break; // Fine case 'random_pill_effect'
-        // ...
-
-        case 'learn_recipe': // NUOVO CASO PER IMPARARE RICETTE
-            if (currentEffect.recipeKey) {
-                if (!player.knownRecipes.includes(currentEffect.recipeKey)) {
-                    player.knownRecipes.push(currentEffect.recipeKey);
-                    const recipeDetails = CRAFTING_RECIPES[currentEffect.recipeKey];
-                    const learnedItemName = recipeDetails ? (recipeDetails.productName || recipeDetails.productId) : currentEffect.recipeKey;
-                    consumptionMessage = `Hai studiato il progetto e imparato a creare: ${learnedItemName}!`;
-                    messageType = 'success';
-                    addMessage(consumptionMessage, messageType, true);
-                    // Il blueprint viene consumato, quindi consumeItem rimane true (default)
-                    effectApplied = true;
-                } else {
-                    consumptionMessage = `Conosci già la ricetta per ${CRAFTING_RECIPES[currentEffect.recipeKey]?.productName || currentEffect.recipeKey}.`;
-                    messageType = 'info';
-                    addMessage(consumptionMessage, messageType);
-                    consumeItem = false; // Non consumare se già conosciuta
-                    effectApplied = false;
-                }
-            } else {
-                console.error(`useItem (learn_recipe): recipeKey mancante nell'effetto per ${itemId}`);
-                consumptionMessage = "Questo progetto sembra incompleto o illeggibile.";
-                messageType = 'warning';
-                consumeItem = true; // Consuma anche se mal definito per non lasciarlo nell'inventario
-                effectApplied = false;
-            }
-            break;
-
-        case 'show_lore':
-            // Assumiamo che loreFragments (da game_data.js) sia accessibile globalmente
-            // e getRandomText (da game_utils.js) sia accessibile globalmente.
-            if (typeof getRandomText === 'function' && typeof loreFragments !== 'undefined' && loreFragments.length > 0) {
-                addMessage(getRandomText(loreFragments), 'lore');
-            } else {
-                addMessage("Hai esaminato il frammento, ma le parole svaniscono prima che tu possa comprenderle... (Errore: Risorse lore non trovate)", 'warning');
-                console.warn("useItem (show_lore): getRandomText o loreFragments non disponibili/vuoti.");
-            }
-            consumptionMessage = 'Hai esaminato il frammento...';
-            messageType = 'lore';
-            effectApplied = true;
-            consumeItem = true;
-            break;
-
-        default:
-            // MODIFICATO: Usa currentEffect
-            console.warn(`useItem: Tipo effetto '${currentEffect.type}' non gestito per item '${itemId}'.`);
-            consumptionMessage = `${itemInfo.name} usato, ma l'effetto è sconosciuto.`;
-            messageType = 'warning';
-            consumeItem = false; // Non consumare se l'effetto non è gestito
-            effectApplied = false;
-            break;
-    }
-
-    // Consumazione dell'oggetto dopo l'applicazione dell'effetto (se consentito)
-    if (consumeItem) {
-        const itemSlotPrimaRimozione = player.inventory.find(s => s.itemId === itemId);
-        // Logga una copia profonda per evitare problemi con riferimenti modificati
-        // console.log(`DEBUG: useItem - Prima di removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotPrimaRimozione ? itemSlotPrimaRimozione.quantity : 'NON TROVATO'}, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : ''}`, itemSlotPrimaRimozione ? JSON.parse(JSON.stringify(itemSlotPrimaRimozione)) : '');
-
-         // Rimuovi 1 quantità dell'oggetto dall'inventario
-         removeItemFromInventory(itemId, 1);
-         // removeItemFromInventory chiama già renderInventory e addMessage
-
-        const itemSlotDopoRimozione = player.inventory.find(s => s.itemId === itemId);
-        // Logga una copia profonda
-        // console.log(`DEBUG: useItem - Dopo removeItemFromInventory per ${itemId}. Slot (quantità attuale): ${itemSlotDopoRimozione ? itemSlotDopoRimozione.quantity : 'NON TROVATO (o rimosso)'}, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : ''}`, itemSlotDopoRimozione ? JSON.parse(JSON.stringify(itemSlotDopoRimozione)) : '');
-    }
-
-
-    // Log del messaggio di ESITO (se non soppresso)
-    // MODIFICATO: Logga sempre il consumptionMessage se non è null, indipendentemente da consumeItem
-    if (consumptionMessage !== null) {
-         addMessage(consumptionMessage, messageType);
-    }
-
-
-    // Aggiorna la UI delle stats (HP, risorse, stato)
-    if (typeof renderStats === 'function') {
-         renderStats();
+            if (currentEffectApplied) effectApplied = true; // Se anche solo un sub-effetto è applicato, l'uso generale è considerato valido.
+        });
     } else {
-         console.warn("useItem: renderStats non disponibile.");
+        feedbackMessage = "Questo oggetto non ha effetti diretti se usato così.";
+        // effectApplied rimane false
     }
 
-    // Controlla se il giocatore è morto a seguito di effetti negativi dall'uso (raro, ma possibile)
-    if (player.hp <= 0) {
-        if (typeof endGame === 'function') endGame(false);
-        return; // Esce subito se morto
+    if (effectApplied) {
+        // Gestione consumo porzioni
+        if (itemSlot.hasOwnProperty('current_portions') && itemSlot.max_portions > 1) {
+            itemSlot.current_portions -= 1;
+            feedbackMessage = `Hai usato una porzione di ${itemInfo.nameShort || itemInfo.name}. ` + feedbackMessage;
+            if (itemSlot.current_portions <= 0) {
+                player.inventory.splice(itemIndex, 1);
+                feedbackMessage += ` Hai finito ${itemInfo.nameShort || itemInfo.name}.`;
+            }
+        } else {
+            // Consumo oggetto normale (non multiporzione o multiporzione con solo 1 porzione rimasta non gestita dal blocco sopra)
+            itemSlot.quantity -= 1;
+            if (itemSlot.quantity <= 0) {
+                player.inventory.splice(itemIndex, 1);
+            }
+             feedbackMessage = `Hai usato ${itemInfo.nameShort || itemInfo.name}. ` + feedbackMessage;
+        }
+        addMessage(feedbackMessage.trim(), "success");
+    } else {
+        if (!feedbackMessage.includes("Nessun") && !feedbackMessage.includes("al massimo")) { // Non mostrare "non ha avuto effetto" se era già al massimo o non c'era status
+            addMessage(`${itemInfo.nameShort || itemInfo.name} non ha avuto effetto.`, "neutral");
+        } else if (feedbackMessage) { // Se c'è un messaggio (es. "HP al massimo") mostralo
+            addMessage(feedbackMessage.trim(), "neutral");
+        }
     }
 
-    // Chiude il popup dell'evento/azione oggetto DOPO che l'effetto è stato gestito
-    // (Tranne se un nuovo popup viene aperto, come nel caso 'repair_weapon')
-    if (typeof closeEventPopup === 'function' && consumeItem) { // Chiudi solo se l'oggetto è stato consumato (per evitare doppio popup per riparazione)
-        closeEventPopup();
-    }
+    renderStats();
+    renderInventory();
+    closeEventPopup();
+    checkAndLogStatusMessages(); // Aggiorna i messaggi di stato dopo l'uso dell'oggetto
 }
 
 
@@ -1672,6 +1375,92 @@ function attemptCraftItem(recipeKey) {
     if (typeof renderStats === 'function') renderStats(); // Anche le stats per sicurezza
 
     // La chiusura del popup avviene nell'handler del bottone in showItemActionPopup
+}
+
+/**
+ * Tenta di consumare un certo numero di porzioni di una risorsa specificata (cibo o acqua)
+ * dall'inventario del giocatore. Dà priorità agli oggetti già iniziati,
+ * poi a quelli monoporzione, e infine a quelli multiporzione pieni.
+ * @param {string} resourceType 'food' o 'water'.
+ * @param {number} portionsNeeded Il numero di porzioni richieste.
+ * @returns {number} Il numero di porzioni effettivamente consumate.
+ */
+function consumePortions(resourceType, portionsNeeded) {
+    if (portionsNeeded <= 0) return 0;
+
+    let portionsConsumed = 0;
+    let messageLog = [];
+
+    // Fase 1: Oggetti multiporzione già iniziati
+    for (let i = player.inventory.length - 1; i >= 0; i--) {
+        if (portionsConsumed >= portionsNeeded) break;
+        const itemSlot = player.inventory[i];
+        const itemInfo = ITEM_DATA[itemSlot.itemId];
+        if (itemInfo && itemInfo.type === resourceType && itemSlot.max_portions > 1 && itemSlot.current_portions < itemSlot.max_portions) {
+            while (itemSlot.current_portions > 0 && portionsConsumed < portionsNeeded) {
+                itemSlot.current_portions -= 1;
+                portionsConsumed++;
+                if (itemSlot.current_portions <= 0) {
+                    messageLog.push(`Hai finito ${itemInfo.nameShort || itemInfo.name}.`);
+                    player.inventory.splice(i, 1);
+                    break; // L'oggetto è finito, esci dal while interno
+                } else {
+                    messageLog.push(`Hai consumato una porzione di ${itemInfo.nameShort || itemInfo.name}.`);
+                }
+            }
+        }
+    }
+
+    // Fase 2: Oggetti monoporzione (o quelli con max_portions non definito o 1)
+    if (portionsConsumed < portionsNeeded) {
+        for (let i = player.inventory.length - 1; i >= 0; i--) {
+            if (portionsConsumed >= portionsNeeded) break;
+            const itemSlot = player.inventory[i];
+            const itemInfo = ITEM_DATA[itemSlot.itemId];
+            if (itemInfo && itemInfo.type === resourceType && (!itemSlot.max_portions || itemSlot.max_portions === 1)) {
+                // Questo è un oggetto monoporzione, consumalo interamente se serve
+                // L'effetto dell'oggetto monoporzione è già definito come singola porzione
+                // Quindi se lo "consumiamo" per la notte, stiamo usando quella singola porzione/effetto.
+                portionsConsumed++; 
+                messageLog.push(`Hai consumato ${itemInfo.nameShort || itemInfo.name}.`);
+                itemSlot.quantity -=1;
+                if (itemSlot.quantity <=0) {
+                    player.inventory.splice(i, 1);
+                }
+                if (portionsConsumed >= portionsNeeded) break;
+            }
+        }
+    }
+
+    // Fase 3: Oggetti multiporzione pieni (se ancora necessario)
+    if (portionsConsumed < portionsNeeded) {
+        for (let i = player.inventory.length - 1; i >= 0; i--) {
+            if (portionsConsumed >= portionsNeeded) break;
+            const itemSlot = player.inventory[i];
+            const itemInfo = ITEM_DATA[itemSlot.itemId];
+            if (itemInfo && itemInfo.type === resourceType && itemSlot.max_portions > 1 && itemSlot.current_portions === itemSlot.max_portions) {
+                while (itemSlot.current_portions > 0 && portionsConsumed < portionsNeeded) {
+                    itemSlot.current_portions -= 1;
+                    portionsConsumed++;
+                    if (itemSlot.current_portions <= 0) {
+                        messageLog.push(`Hai finito ${itemInfo.nameShort || itemInfo.name}.`);
+                        player.inventory.splice(i, 1);
+                        break; // L'oggetto è finito, esci dal while interno
+                    } else {
+                        messageLog.push(`Hai consumato una porzione di ${itemInfo.nameShort || itemInfo.name}.`);
+                    }
+                }
+            }
+        }
+    }
+
+    if (messageLog.length > 0) {
+        addMessage(messageLog.join(' '), 'neutral');
+    }
+    
+    renderInventory();
+    renderStats(); // Aggiorna le statistiche nel caso il consumo diretto da player.food/water sia ancora presente altrove
+    return portionsConsumed;
 }
 
 // --- FINE LOGICA GIOCATORE ---

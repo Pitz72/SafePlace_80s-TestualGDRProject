@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/game_data.js
  * Descrizione: Contiene tutti i dati statici del gioco come definizioni di oggetti, eventi, ecc.
  */
@@ -1196,24 +1196,29 @@ const ITEM_DATA = {
     // --- CIBO ---
     'canned_food': {
         id: 'canned_food',
-        name: 'Cibo in Scatola',
-        nameShort: 'Cibo Scatola',
-        description: "Una scatoletta ammaccata ma sigillata. Chissà cosa contiene, ma è cibo.",
-        type: 'food',
-        usable: true,
-        weight: 0.5,
-        value: 10,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 5 }]
-    },
-    'ration_pack': {
-        id: 'ration_pack',
-        name: 'Pacco Razione',
-        description: "Razione di sopravvivenza compatta. Non un granché, ma nutriente.",
+        name: 'Cibo in Scatola Generico',
+        nameShort: 'Lattina Cibo',
+        description: 'Una lattina senza etichetta. Chissà cosa contiene, ma sembra commestibile.',
         type: 'food',
         usable: true,
         weight: 0.4,
+        value: 8,
+        stackable: true, // Rimane stackabile se sono lattine diverse, ma ogni lattina avrà le sue porzioni
+        max_portions: 2,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 3 }] // +3 per porzione
+    },
+    'ration_pack': {
+        id: 'ration_pack',
+        name: 'Razione K da Campo',
+        nameShort: 'Razione K',
+        description: 'Razione militare compatta, progettata per fornire sostentamento in condizioni difficili.',
+        type: 'food',
+        usable: true,
+        weight: 0.5,
         value: 15,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
+        stackable: true,
+        max_portions: 3,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 4 }] // +4 per porzione
     },
     'berries_suspicious': {
         id: 'berries_suspicious',
@@ -1235,7 +1240,7 @@ const ITEM_DATA = {
         weight: 0.1,
         value: 3,
         stackable: true,
-        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 1, poison_chance: 0.05 }]
+        effects: [{ type: 'add_resource_poisonable', resource_type: 'food', amount: 2, poison_chance: 0.10 }] // MODIFICATO: amount da 1 a 2, poison_chance da 0.05 a 0.10
     },
     'meat_raw': {
         id: 'meat_raw',
@@ -1250,14 +1255,17 @@ const ITEM_DATA = {
     'meat_cooked': {
         id: 'meat_cooked',
         name: 'Carne Cotta',
-        description: "Carne arrostita su un fuoco improvvisato. Sicuramente più sicura di quella cruda.",
+        nameShort: 'Carne Cotta',
+        description: 'Un pezzo di carne arrostita su un fuoco improvvisato. Meglio della carne cruda.',
         type: 'food',
         usable: true,
-        weight: 0.5,
-        value: 12,
+        weight: 0.3,
+        value: 10,
+        stackable: true, // Pezzi diversi di carne cotta possono stackare
+        max_portions: 2, // Assumiamo che un "pezzo" possa essere mangiato in due volte
         effects: [
-            { type: 'add_resource', resource_type: 'food', amount: 6 },
-            { type: 'add_resource', resource_type: 'hp', amount: 2 }
+            { type: 'add_resource', resource_type: 'food', amount: 4 }, // +4 cibo per porzione
+            { type: 'add_resource', resource_type: 'hp', amount: 1 }     // +1 HP per porzione
         ]
     },
     'chips_stale': {
@@ -1283,12 +1291,15 @@ const ITEM_DATA = {
     'canned_beans': {
         id: 'canned_beans',
         name: 'Fagioli in Scatola',
-        description: "Un classico della dispensa post-apocalittica.",
+        nameShort: 'Fagioli Lattina',
+        description: 'Una lattina di fagioli. Un classico della sopravvivenza.',
         type: 'food',
         usable: true,
-        weight: 0.5,
-        value: 12,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
+        weight: 0.4,
+        value: 7,
+        stackable: true,
+        max_portions: 2,
+        effects: [{ type: 'add_resource', resource_type: 'food', amount: 3 }] // +3 per porzione
     },
     'dried_fruit': {
         id: 'dried_fruit',
@@ -1303,22 +1314,31 @@ const ITEM_DATA = {
     'mre_pack': {
         id: 'mre_pack',
         name: 'Razione Militare (MRE)',
+        nameShort: 'MRE',
         description: "Pasto completo, sigillato. Pesante ma saziante.",
         type: 'food',
         usable: true,
         weight: 1.0,
         value: 25,
-        effects: [{ type: 'add_resource', resource_type: 'food', amount: 6 }]
+        stackable: false, // Generalmente un MRE è un'unità singola grande
+        max_portions: 4,
+        effects: [
+            { type: 'add_resource', resource_type: 'food', amount: 5 }, // +5 cibo per porzione
+            { type: 'add_resource', resource_type: 'hp', amount: 2 }     // +2 HP per porzione
+        ]
     },
     'mystery_meat_cooked': {
         id: 'mystery_meat_cooked',
         name: 'Carne Misteriosa Cotta',
-        description: "Cucinata alla meno peggio, odore incerto.",
+        nameShort: 'Carne Cotta?',
+        description: "Carne di dubbia provenienza, cotta alla bell'e meglio. Speriamo bene.",
         type: 'food',
         usable: true,
-        weight: 0.4,
-        value: 10,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 5, sickness_chance: 0.10 }]
+        weight: 0.3,
+        value: 5,
+        stackable: true,
+        max_portions: 2,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'food', amount: 3, sickness_chance: 0.10 }] // +3 per porzione
     },
     'protein_bar_old': {
         id: 'protein_bar_old',
@@ -1445,13 +1465,16 @@ const ITEM_DATA = {
     // --- ACQUA E BEVANDE ---
     'water_bottle': {
         id: 'water_bottle',
-        name: 'Borraccia d\'Acqua',
-        description: "Una borraccia piena d'acqua, sembra pulita.",
+        name: 'Bottiglia d\'Acqua Grande',
+        nameShort: 'Bott. Acqua G.',
+        description: 'Una bottiglia di plastica riutilizzabile, piena d\'acqua. Sembra potabile.',
         type: 'water',
         usable: true,
-        weight: 1.0,
-        value: 10,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 6 }]
+        weight: 1.5, // Pesa di più se è grande
+        value: 12,
+        stackable: false, // Ogni bottiglia grande è un item a sé
+        max_portions: 4,
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }] // +2 per porzione
     },
     'water_dirty': {
         id: 'water_dirty',
@@ -1462,7 +1485,7 @@ const ITEM_DATA = {
         weight: 1.0,
         value: 1,
         stackable: true, // Esplicitiamo stackable
-        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 3, sickness_chance: DIRTY_WATER_POISON_CHANCE }]
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 3, sickness_chance: 0.45 }] // MODIFICATO: sickness_chance da DIRTY_WATER_POISON_CHANCE (0.70) a 0.45. La costante DIRTY_WATER_POISON_CHANCE verrà modificata in game_constants.js
     },
     'water_purified_small': {
         id: 'water_purified_small',
@@ -1473,7 +1496,7 @@ const ITEM_DATA = {
         usable: true,
         weight: 0.3,
         value: 8,
-        effects: [{ type: 'add_resource', resource_type: 'water', amount: 2 }]
+        effects: [{ type: 'add_resource', resource_type: 'water', amount: 3 }] // MODIFICATO: amount da 2 a 3
     },
     'soda_flat': {
         id: 'soda_flat',
@@ -1508,12 +1531,15 @@ const ITEM_DATA = {
     'rainwater_collected': {
         id: 'rainwater_collected',
         name: 'Acqua Piovana Raccolta',
-        description: "Fresca, ma la purezza dipende da dove è stata raccolta.",
+        nameShort: 'Acqua Piovana',
+        description: 'Acqua raccolta in un contenitore di fortuna. Non il massimo, ma disseta.',
         type: 'water',
         usable: true,
-        weight: 1.0,
-        value: 7,
-        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 5, sickness_chance: 0.10 }]
+        weight: 0.5, // Assumiamo una piccola quantità
+        value: 3,
+        stackable: true, // Diverse "raccolte" possono stackare
+        max_portions: 2,
+        effects: [{ type: 'add_resource_sickness', resource_type: 'water', amount: 2, sickness_chance: 0.05 }] // +2 per porzione, piccolo rischio
     },
     'herbal_tea_crude': {
         id: 'herbal_tea_crude',
@@ -1873,7 +1899,7 @@ const ITEM_DATA = {
         weight: 0.3,
         value: 15,
         stackable: true, // AGGIUNTO
-        effects: [{ type: 'cure_status', status_cured: 'isSick', chance: 0.5, heal_hp_on_success: 5 }]
+        effects: [{ type: 'cure_status', status_cured: 'isSick', chance: 0.6, heal_hp_on_success: 5 }] // MODIFICATO: chance da 0.5 a 0.6
     },
     'vitamins': {
         id: 'vitamins',

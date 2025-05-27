@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/events.js
  * Descrizione: Gestione degli eventi di gioco, scelte e risultati.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js

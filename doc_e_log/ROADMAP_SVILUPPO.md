@@ -36,15 +36,17 @@ Dopo analisi approfondita, il progetto si concentra su un'esperienza **autentica
 
 ---
 
-### FASE 2: CONSOLIDAMENTO E PULIZIA ✅ **COMPLETATA v0.8.3** ⚠️ **EVENTI PROTETTI**
+### FASE 2: CONSOLIDAMENTO E PULIZIA ✅ **COMPLETATA v0.8.3 (Estesa a v0.8.5 con Bilanciamento Iniziale)** ⚠️ **EVENTI PROTETTI**
 
 #### 2.1 Rimozione Complessità Backend ✅ **COMPLETATO**
 - [x] **Semplificazione architettura**: Rimozione sistema dual-mode complesso
 - [x] **Pulizia codice**: Eliminazione API client e character manager
 - [x] **Focus localStorage + File**: Sistema ibrido semplice
-- [x] **🔒 ESPANSIONE MASSIVA EVENTI**: +45 nuovi eventi aggiunti e protetti
+- [x] **🔒 ESPANSIONE MASSIVA EVENTI**: +45 nuovi eventi aggiunti e protetti (v0.8.3)
 - [x] **🔒 DATABASE CONSOLIDATO**: 77 eventi specifici totali (era 32)
-- [ ] **Documentazione**: Aggiornamento per riflettere nuova direzione
+- [x] **Aggiornamento Documentazione**: `README.md`, commenti versione file JS (v0.8.5)
+- [x] **Bilanciamento Iniziale Risorse Sopravvivenza**: Calibrazione tassi di consumo e drop rate di cibo, acqua e medicine per migliorare la curva di difficoltà iniziale (v0.8.5).
+- [x] **Introduzione Sistema di Consumo a Porzioni (v0.8.6)**: Implementata meccanica di consumo frazionato per cibo e acqua, per aumentare realismo e strategia nella gestione delle scorte. Richiede bilanciamento specifico dei costi e degli effetti per porzione.
 
 #### 2.2 🔒 **EVENTI PROTETTI AGGIUNTI v0.8.3** - ⚠️ **NON MODIFICARE**
 - **PLAINS:** +5 eventi (plains_flower_solitary → plains_fallen_scavenger) 🔒
@@ -188,7 +190,7 @@ Dopo analisi approfondita, il progetto si concentra su un'esperienza **autentica
 - [ ] **Curve Esperienza**: Progressione livelli equilibrata
 - [ ] **Economia Oggetti**: Rarità e valore items bilanciati
 - [ ] **Difficoltà Combattimenti**: Scaling nemici ottimizzato
-- [ ] **Risorse Sopravvivenza**: Cibo/acqua/medicine calibrati
+- [ ] **Risorse Sopravvivenza**: Cibo/acqua/medicine calibrati (include bilanciamento fine del sistema a porzioni introdotto in v0.8.6).
 - [ ] **RNG Mitigation**: Sistemi anti-sfortuna per eventi critici
 
 #### 7.2 Testing Intensivo

@@ -1,6 +1,6 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.7.22 Event Flow Integrity
+ * Versione: v0.8.5-consolidated
  * File: js/game_core.js
  * Descrizione: Logica principale del gioco, inizializzazione, loop di gioco e gestione input.
  * Dipende da: game_constants.js, game_data.js, game_utils.js, ui.js, player.js, map.js, events.js, dom_references.js
@@ -352,6 +352,20 @@ function handleEventKeyPress(event) {
     const key = event.key;
     const numKey = parseInt(key, 10);
     
+    if (key === 'Escape') {
+        // Se è attivo un popup di azione oggetto (che usa lo stesso eventScreenActive)
+        if (typeof savedActionPopupContext !== 'undefined' && savedActionPopupContext && savedActionPopupContext.isActionPopup) {
+            if (typeof closeItemActionPopup === 'function') { // Assumendo che closeItemActionPopup sia in player.js
+                closeItemActionPopup();
+            } else if (typeof closeEventPopup === 'function') { // Fallback se closeItemActionPopup non c'è ma si usa il popup eventi
+                closeEventPopup();
+            }
+        } else if (typeof closeEventPopup === 'function') { // Per i normali popup evento
+            closeEventPopup();
+        }
+        return;
+    }
+
     if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
         const choiceIndex = numKey - 1;
         if (currentEventChoices && choiceIndex < currentEventChoices.length) { // Aggiunto controllo lunghezza array
@@ -364,13 +378,13 @@ function handleEventKeyPress(event) {
             // console.warn(`handleEventKeyPress (core): Scelta ${numKey} non valida.`);
         }
     } 
-    else if (key === 'Escape' || key === 'Enter') {
-        if (DOM.continueButton && DOM.continueButton.style.display !== 'none') {
+    else if (key === 'Enter' || key === ' ') { // Aggiunto Spazio come alias per Enter per "Continua"
+        if (DOM.continueButton && DOM.continueButton.style.display !== 'none' && !DOM.continueButton.disabled) {
             DOM.continueButton.click();
         } else {
-            // Se non c'è un bottone "Continua", potremmo voler chiudere popup semplici con Esc.
-            // Questo dipende da come è strutturato closeEventPopup.
-            // Per ora, ci affidiamo al bottone continua.
+            // Se non c'è un bottone "Continua" visibile E non disabilitato,
+            // Enter/Spazio non dovrebbero fare nulla per evitare chiusure accidentali di popup con scelte.
+            // La chiusura con ESC è gestita sopra.
         }
     }
 }
