@@ -1,0 +1,42 @@
+// TEST COMANDI v1.0.0 - Esegui nella console del browser (F12)
+
+// 1. Verifica caricamento moduli
+console.log('=== VERIFICA MODULI ===');
+console.log('LORE_EVENTS_LINEAR:', typeof LORE_EVENTS_LINEAR);
+console.log('ENEMY_DATABASE:', typeof ENEMY_DATABASE);
+console.log('LORE_ITEMS:', typeof LORE_ITEMS);
+console.log('LoreEventManager:', typeof LoreEventManager);
+console.log('CombatVisuals:', typeof CombatVisuals);
+console.log('AchievementSystem:', typeof AchievementSystem);
+console.log('getNextLoreEvent:', typeof getNextLoreEvent);
+
+// 2. Forza inizializzazione se necessario
+console.log('\n=== FORZA INIZIALIZZAZIONE ===');
+V1_DEBUG.forceInitV1();
+
+// 3. Lista eventi lore disponibili
+console.log('\n=== EVENTI LORE ===');
+console.log(V1_DEBUG.listLoreEvents());
+
+// 4. Mostra database nemici
+console.log('\n=== DATABASE NEMICI ===');
+V1_DEBUG.showEnemyDatabase();
+
+// 5. Mostra oggetti lore
+console.log('\n=== OGGETTI LORE ===');
+V1_DEBUG.showLoreItems();
+
+// 6. Test evento iniziale
+console.log('\n=== TEST EVENTO INIZIALE ===');
+V1_DEBUG.testLoreEvent('echo_of_departure');
+
+// 7. Verifica integrazione
+console.log('\n=== VERIFICA INTEGRAZIONE ===');
+console.log('loreEventManager:', window.loreEventManager);
+console.log('combatVisuals:', window.combatVisuals);
+console.log('achievementSystem:', window.achievementSystem);
+
+// 8. Test manuale evento se non appare
+console.log('\n=== TEST MANUALE EVENTO ===');
+console.log('Se l\'evento non appare automaticamente, esegui:');
+console.log('V1_DEBUG.testLoreEvent("echo_of_departure")');

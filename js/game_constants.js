@@ -10,7 +10,7 @@
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "v0.9.1-COMBAT-D&D";
+const GAME_VERSION = "v1.0.0-ULTIMOS-JOURNEY";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
@@ -36,8 +36,8 @@ let uniqueEventWebRadioFound = false; // Flag: true se l'evento unico WebRadio √
 // Queste costanti definiscono i parametri del gioco e le probabilit√† meccaniche.
 
 // Dimensioni della mappa
-const MAP_WIDTH = 250;
-const MAP_HEIGHT = 250;
+const MAP_WIDTH = 200;
+const MAP_HEIGHT = 200;
 
 // Log dei messaggi
 const MAX_MESSAGES = 30; // Numero massimo di messaggi nel log visibile.

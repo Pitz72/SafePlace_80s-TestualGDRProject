@@ -2116,3 +2116,74 @@ TOTAL: 155 database entries (+77, +98% growth)
 **🎉 DEPLOYMENT APPROVED - READY FOR GITHUB RELEASE**
 
 // ... existing code ...
+
+## v1.0.0 - "ULTIMO'S JOURNEY" - 29-05-2025
+
+### 🎮 RILASCIO MAGGIORE - STORIA COMPLETA
+
+#### ✨ Nuove Funzionalità
+- **Sistema Eventi Lore Lineari**: 10 eventi narrativi che raccontano la storia di Ultimo
+  - L'Eco della Partenza
+  - La Prima Prova da Solo
+  - Sussurri dal Passato
+  - L'Ombra degli Altri
+  - Il Dilemma del Viandante
+  - Echi della Guerra Inespressa
+  - Il Sogno della Valle Verde
+  - L'Intercettazione Radio
+  - Il Guardiano della Soglia
+  - La Valle Nascosta
+
+- **Sistema Achievement Completo**: 24 trofei in 11 categorie
+  - Notifiche in stile retrò anni '80
+  - Salvataggio persistente
+  - Tracking automatico di tutte le azioni
+
+- **Combattimento Narrativo Avanzato**:
+  - Animazioni round per round con delay
+  - Colori distintivi (verde/rosso/blu)
+  - Pausa di suspense prima del risultato
+  - Barre HP animate
+
+- **Database Espanso**:
+  - 18 nemici in 6 categorie (BEAST, SCAVENGER, BANDIT, RAIDER, MUTANT, DRONI)
+  - 15 oggetti lore speciali che espandono la narrativa
+
+- **Manager Eventi Intelligente**:
+  - Calcolo dinamico basato su distanza, tempo, esplorazione
+  - Sistema di pacing narrativo
+  - Eventi contestuali basati sulla posizione
+
+#### 🔧 Modifiche Tecniche
+- Architettura modulare con file separati per categoria
+- Sistema di hook per tracciare azioni per achievement
+- Integrazione completa con sistema esistente tramite v1_integration.js
+- Mappa ridotta a 200x200 per controllo narrativo
+
+#### 🐛 Bug Fix Post-Test
+- Rimossi riferimenti a CSS inesistenti
+- Corretti script duplicati in index.html
+- Fixato errore visitedBiomes undefined
+- Aggiornati colori achievement per coerenza stile
+
+#### 📝 Note
+- Calibrato per partite di 5-6 giorni
+- Stile visivo completamente coerente anni '80
+- Achievement salvati in localStorage
+- Compatibile con salvataggi esistenti
+
+### File Aggiunti:
+- `js/data/enemies_database.js`
+- `js/data/items_lore.js`
+- `js/events/lore_events_linear.js`
+- `js/achievement_hooks.js`
+- `js/achievement_system.js`
+- `js/combat_visuals.js`
+- `js/lore_event_manager.js`
+- `js/v1_integration.js`
+- `css/achievement_system.css`
+- `css/combat_visuals.css`
+
+---
+
+// ... existing code ...
