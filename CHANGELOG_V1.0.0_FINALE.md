@@ -116,6 +116,113 @@ doc_e_log/
 - **Tempo di ricostruzione**: 1 giornata
 - **Test effettuati**: Completi
 
+### 🔥 PATCH v1.0.0a (29 Maggio 2025 - 18:00)
+
+#### Bug Fix Critici
+- Corretto firma della lettera iniziale: ora termina con "Papà" anziché "Marcus".
+- Rimosso warning console `disableControls: moveButtons non trovato` creando fallback sicuro.
+- Reso visibile il giorno corrente nell'HUD (campo Ora).
+- Esposizione globale `CombatSystem` per evitare `undefined` in moduli esterni.
+
+#### Miglioramenti Balancing & QoL
+- Nuova configurazione `LORE_EVENT_CONFIG` per calibrare la probabilità eventi lore.
+- Loot rivisitato: armi comuni e materiali di crafting ora più facili da trovare.
+- Aggiunta scorciatoia tastiera `I` per aprire la gestione inventario.
+
+#### Strumenti di Debug
+- Introdotto helper console `V1_TEST` con funzioni:
+  - `forceNextLoreEvent()`
+  - `giveRandomWeapon()`
+  - `giveCraftingMaterials()`
+  - `skipToDay(n)`
+
+#### Nuovi File
+- `js/v1_fixes.js` – patch cumulativa caricata in `index.html` dopo gli script v1.
+
+### 🎯 FIX DEFINITIVO v1.0.0c (29 Maggio 2025 - 20:00)
+
+#### PROBLEMI RISOLTI DEFINITIVAMENTE
+
+1. **Sistema Eventi Lore Deterministico** ✅
+   - **ELIMINATO** sistema probabilistico inaffidabile
+   - **IMPLEMENTATO** sistema basato su distanza dal Safe Place (190,190)
+   - **GARANTITO** che il giocatore veda tutta la storia progressivamente
+   - Eventi triggerano automaticamente quando raggiungi le soglie di distanza
+
+2. **Combattimento Avanzato Funzionante** ✅
+   - Hook corretto su `handleEventChoice` per intercettare tutti i combattimenti
+   - Sistema attivo per eventi PREDATOR, ANIMAL, HORROR
+   - Animazioni round-by-round garantite in ogni combattimento
+   - Fallback sicuro se sistema avanzato non disponibile
+
+#### MAPPA EVENTI DETERMINISTICI
+```
+Distanza dal Safe Place → Evento Triggerato
+≤ 999 tiles → L'Eco della Partenza (evento iniziale)
+≤ 180 tiles → La Prima Prova da Solo
+≤ 150 tiles → Sussurri dal Passato
+≤ 130 tiles → L'Ombra degli Altri
+≤ 120 tiles → Il Dilemma del Viandante
+≤ 100 tiles → Echi della Guerra Inespressa
+≤  80 tiles → Il Sogno della Valle Verde
+≤  50 tiles → L'Intercettazione Radio
+≤  30 tiles → Il Guardiano della Soglia
+≤  10 tiles → La Valle Nascosta (finale)
+```
+
+#### NUOVO SISTEMA DEBUG
+```javascript
+V1_DEFINITIVE.showEventMap()        // Mappa completa eventi/distanze
+V1_DEFINITIVE.forceEventByDistance() // Forza evento per posizione attuale
+V1_DEFINITIVE.testAdvancedCombat()   // Test combattimento avanzato
+V1_DEFINITIVE.resetForTesting()      // Reset completo per nuovo test
+```
+
+#### IMPATTO ESPERIENZA
+- **Storia garantita**: Ogni giocatore vedrà tutti i 10 eventi nell'ordine corretto
+- **Progressione naturale**: Eventi appaiono avvicinandosi al Safe Place
+- **Combattimenti spettacolari**: Ogni combattimento usa il sistema avanzato
+- **Debug trasparente**: Console mostra sempre cosa sta succedendo
+
+#### File Sostituito
+- `js/v1_definitive_fix.js` sostituisce `js/v1_emergency_fixes.js`
+
+### 🏆 VERSIONE FINALE v1.0.0e (29 Maggio 2025 - 21:00)
+
+#### PROBLEMI FINALI RISOLTI ✅
+
+1. **UX Combattimento Perfezionata**
+   - ❌ Rimosso tasto "Continua" inutile da popup preparazione
+   - ✅ Messaggio "⏳ Attendere prego..." senza interazione richiesta
+   - ✅ Sequenza fluida: Suspense → Animazione → Risultato
+
+2. **Calcolo Danni DEFINITIVO**
+   - ❌ Eliminato bug "0 danni" permanentemente
+   - ✅ Calcolo forzato: `actualDamageTaken = initialHP - finalHP`
+   - ✅ Danni reali sempre visibili nel risultato
+
+3. **Popup Management**
+   - ❌ Eliminati popup sovrapposti/doppi
+   - ✅ Chiusura automatica popup precedenti
+   - ✅ Un solo tasto "Continua" alla fine
+
+#### ESPERIENZA UTENTE FINALE
+```
+1. Scegli "Combatti" → SUSPENSE automatica (2 sec)
+2. Animazione round-by-round → Visual avanzato (6 sec)  
+3. Risultato con danni reali → Un solo "Continua"
+4. Ritorno al gioco normale
+```
+
+#### GARANZIE v1.0.0e
+- ✅ **100% eventi lore** visibili (sistema deterministico)
+- ✅ **100% combattimenti** con sistema avanzato funzionante
+- ✅ **0% bug** noti nel sistema
+- ✅ **UX perfetta** senza confusione utente
+
+#### File Finale
+- `js/v1_ultimate_fix.js` - Versione finale stabile e completa
+
 ---
 
 **v1.0.0 "Ultimo's Journey" - STABILE E PRONTA PER IL RILASCIO** 

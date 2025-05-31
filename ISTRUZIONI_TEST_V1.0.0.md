@@ -1,86 +1,106 @@
 # ISTRUZIONI SEMPLICI PER TESTARE v1.0.0
 
-## ⚠️ CORREZIONI APPLICATE (29/05/2025)
-- ✅ Corretto errore "CharacterManager.initialize" che bloccava l'avvio
-- ✅ Corretto sistema achievement che non si caricava
-- ✅ Corretto ID evento iniziale
-- ✅ Corretto errore "CharacterManager.showCharacterSelection"
+## 🎯 FIX DEFINITIVO v1.0.0c (29/05/2025 – 20:00)
+**RISOLUZIONE DEFINITIVA:**
+- ✅ Eventi lore ora **GARANTITI** con sistema deterministico basato su distanza
+- ✅ Combattimento avanzato **GARANTITO** in ogni combattimento di evento
+- ✅ Eliminato completamente il sistema probabilistico inaffidabile
+- ✅ Console debug potenziato con `V1_DEFINITIVE.*`
 
-## 📌 IMPORTANTE: QUANDO APPARE UN EVENTO
+## 🎯 SISTEMA DETERMINISTICO EVENTI
 
-**Se appare un popup di evento (come "L'Eco della Partenza"):**
-1. **LEGGI** il testo dell'evento
-2. **CLICCA** su una delle scelte disponibili
-3. **CLICCA** sul pulsante "Continua..." quando appare
-4. Solo dopo il popup si chiuderà e potrai continuare
+**Gli eventi lore NON sono più casuali!** Appaiono automaticamente quando raggiungi le giuste distanze dal Safe Place (190,190):
 
-**Il gioco NON è bloccato** - devi solo completare l'evento!
+```
+≤ 999 tiles → L'Eco della Partenza (all'inizio)
+≤ 180 tiles → La Prima Prova da Solo
+≤ 150 tiles → Sussurri dal Passato
+≤ 130 tiles → L'Ombra degli Altri
+≤ 120 tiles → Il Dilemma del Viandante
+≤ 100 tiles → Echi della Guerra Inespressa
+≤  80 tiles → Il Sogno della Valle Verde
+≤  50 tiles → L'Intercettazione Radio
+≤  30 tiles → Il Guardiano della Soglia
+≤  10 tiles → La Valle Nascosta (finale)
+```
 
-## ⚠️ ORDINE CORRETTO:
+## 📋 COME TESTARE:
 
-1. **NON premere "TEST EVENTO INIZIALE" dal menu principale!**
-2. **Prima avvia una nuova partita**
-3. **L'evento apparirà automaticamente** dopo 2 secondi
-4. Se non appare, ALLORA usa il pulsante test (ma solo dopo essere nel gioco)
-
-## COSA FARE:
-
-### 1. RICARICA IL GIOCO
+### 1. **RICARICA COMPLETAMENTE**
 - Apri il gioco nel browser
-- Premi **Ctrl + F5** per ricaricare completamente la pagina
+- Premi **Ctrl + F5** (ricarica forzata)
+- Attendi caricamento completo
 
-### 2. CERCA IL PULSANTE TEST
-- Nel menu principale (schermata iniziale)
-- In **alto a destra** apparirà un pulsante verde **"TEST v1.0.0"**
-- **Clicca** su questo pulsante
-
-### 3. NELLA FINESTRA DI TEST
-Apparirà una finestra nera con informazioni. Vedrai:
-
-- **MODULI CARICATI**: Devono essere tutti verdi ✅
-- **INTEGRAZIONE**: Devono essere tutti verdi ✅
-- **CONTENUTI v1.0.0**: Numeri degli eventi, nemici, oggetti
-
-### 4. USA I PULSANTI DI TEST
-
-#### Pulsante "TEST EVENTO INIZIALE"
-- Clicca questo pulsante verde
-- Dovrebbe apparire l'evento "L'Eco della Partenza"
-- Se non appare, prova prima "FORZA INIZIALIZZAZIONE"
-
-#### Pulsante "FORZA INIZIALIZZAZIONE"
-- Clicca questo pulsante giallo se qualcosa è rosso ❌
-- Ricarica tutti i sistemi v1.0.0
-- La finestra si aggiornerà automaticamente
-
-#### Pulsante "CHIUDI"
-- Chiude la finestra di test
-
-### 5. INIZIA UNA NUOVA PARTITA
-- Dopo aver visto tutto verde nel test
-- Chiudi la finestra di test
+### 2. **AVVIA NUOVA PARTITA**
 - Clicca "Nuova Partita"
-- L'evento iniziale dovrebbe apparire dopo 1-2 secondi
+- **L'evento iniziale** ("L'Eco della Partenza") appare automaticamente dopo 3 secondi
+- Leggi e completa l'evento
 
-## SE NON FUNZIONA:
+### 3. **VERIFICA SISTEMA EVENTI**
+Apri console (`F12`) e digita:
+```javascript
+V1_DEFINITIVE.showEventMap()
+```
+Vedrai:
+- La tua posizione attuale
+- La distanza dal Safe Place
+- Quali eventi puoi vedere e quali no
 
-1. **Il pulsante TEST non appare?**
-   - Ricarica la pagina con Ctrl+F5
-   - Aspetta qualche secondo
+### 4. **MUOVITI VERSO IL SAFE PLACE**
+- Il Safe Place è alle coordinate (190, 190)
+- Muoviti verso est/sud se sei nella posizione di partenza
+- **Gli eventi appariranno automaticamente** quando raggiungi le soglie di distanza
+- Non serve più aspettare o sperare nella fortuna!
 
-2. **Ci sono elementi rossi nel test?**
-   - Clicca "FORZA INIZIALIZZAZIONE"
-   - Se rimangono rossi, ricarica la pagina
+### 5. **TESTA COMBATTIMENTI**
+- Quando appare un evento con opzioni di combattimento (es. "Combatti", "Attacca")
+- Scegli l'opzione di combattimento
+- **Vedrai SEMPRE** le animazioni round-by-round colorate
 
-3. **L'evento iniziale non appare?**
-   - Dalla finestra test, clicca "TEST EVENTO INIZIALE"
-   - Se ancora non appare, inizia a giocare normalmente
-   - Gli eventi dovrebbero apparire mentre ti muovi
+### 6. **COMANDI DEBUG UTILI**
 
-## COSA DOVRESTI VEDERE NEL GIOCO:
+```javascript
+// Mostra mappa eventi e distanza attuale
+V1_DEFINITIVE.showEventMap()
 
-- **Eventi Storia**: Popup speciali mentre esplori
-- **Nuovi Nemici**: DRONI, MUTANTI nei combattimenti
-- **Animazioni Combat**: I combattimenti mostrano round colorati
-- **Achievement**: Notifiche verdi quando sblocchi trofei
-- **Oggetti Speciali**: Carillon di Lena, diari militari, etc. 
+// Forza evento appropriato per la tua posizione
+V1_DEFINITIVE.forceEventByDistance()
+
+// Test combattimento avanzato
+V1_DEFINITIVE.testAdvancedCombat()
+
+// Reset completo per rifare test
+V1_DEFINITIVE.resetForTesting()
+```
+
+## ✅ COSA DOVRESTI VEDERE:
+
+1. **Evento iniziale automatico** dopo 3 secondi dalla partita
+2. **Eventi progressivi** mentre ti avvicini al Safe Place  
+3. **Combattimenti animati** con round colorati SEMPRE
+4. **Console feedback** `[LORE_TRIGGER]` e `[COMBAT_OVERRIDE]`
+5. **Storia completa** garantita in 10 eventi lineari
+
+## 🚨 SE NON FUNZIONA:
+
+1. **Console mostra errori?** 
+   - Ricarica con Ctrl+F5
+   - Verifica che tutti i file siano caricati
+
+2. **Eventi non appaiono?**
+   ```javascript
+   V1_DEFINITIVE.showEventMap()  // Controlla distanza
+   V1_DEFINITIVE.forceEventByDistance()  // Forza evento
+   ```
+
+3. **Combattimenti senza animazioni?**
+   ```javascript
+   V1_DEFINITIVE.testAdvancedCombat()  // Test diretto
+   ```
+
+## 🎯 GARANZIE v1.0.0c:
+
+- ✅ **100% degli eventi lore** visibili completando il viaggio
+- ✅ **100% dei combattimenti** con sistema avanzato  
+- ✅ **0% casualità** nell'esperienza narrativa
+- ✅ **Debug completo** per verificare ogni aspetto 

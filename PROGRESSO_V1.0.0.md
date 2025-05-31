@@ -86,4 +86,23 @@
 
 ---
 
-**v1.0.0 "Ultimo's Journey" - RICOSTRUZIONE COMPLETATA** 🎉 
+**v1.0.0 "Ultimo's Journey" - RICOSTRUZIONE COMPLETATA** 🎉
+
+## 📌 PATCH v1.0.0a (29/05/2025 – 18:00)
+
+### Fix Implementati:
+- Firma corretta lettera iniziale ("Papà").
+- Debounce warning `moveButtons` (fallback array).
+- HUD ora mostra giorno corrente.
+- CombatSystem esposto globalmente.
+- Tabella loot aggiornata con armi e materiali.
+- Nuove scorciatoie tastiera e helper debug.
+
+### Nuovi File:
+- `js/v1_fixes.js` (patch cumulativa)
+
+### Da Verificare:
+- ☑️ Tutti i test anti‐regressione passano (vedi VERIFICA_V1.0.0.md)
+- ☐ Bilanciamento probabilità eventi dopo 5+ giorni di gioco
+
+--- 

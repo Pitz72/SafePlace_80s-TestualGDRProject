@@ -84,3 +84,71 @@ console.log('getNextLoreEvent:', typeof getNextLoreEvent);
 - Il primo evento dovrebbe apparire automaticamente all'inizio
 - Gli eventi successivi si sbloccano in ordine narrativo
 - La probabilità aumenta se non vedi eventi per più di 1-2 giorni di gioco 
+
+## Verifica Patch v1.0.0a (29/05/2025 18:00)
+
+| Test | Azione | Esito Atteso | Stato |
+|------|--------|--------------|-------|
+| Lettera Iniziale | Avvia nuova partita e leggi evento "L'Eco della Partenza" | Firma con "Papà" | ☐ |
+| Warning moveButtons | Apri console dopo alcuni movimenti | Nessun warning `moveButtons` | ☐ |
+| Giorno Visibile | Muoviti finché scatta cambio ora | HUD mostra `Giorno X - Alba/Notte` | ☐ |
+| Armi Loot | Apri console `V1_TEST.giveRandomWeapon()` oppure esplora 20 mosse | Armi base presenti nell'inventario | ☐ |
+| Lore Event Probability | Usa `V1_TEST.skipToDay(3)` poi muoviti 10 passi | Almeno 1 evento lore si attiva | ☐ |
+| Inventory Hotkey | Premi `I` durante il gioco | Si apre gestione inventario | ☐ |
+
+### Comandi di Debug Rapido
+```javascript
+// Forza patch reload (dopo refresh completo)
+V1_TEST.forceNextLoreEvent();
+V1_TEST.giveRandomWeapon();
+V1_TEST.giveCraftingMaterials();
+```
+
+Aggiornare la colonna **Stato** con ✅ una volta superato ogni test. 
+
+## 🎯 VERIFICA FIX DEFINITIVO v1.0.0c (29/05/2025 20:00)
+
+### NUOVO SISTEMA DETERMINISTICO IMPLEMENTATO:
+
+1. **Eventi Lore Garantiti** ❌➡️✅
+   - Sistema probabilistico completamente rimosso
+   - Trigger basato su distanza fissa dal Safe Place
+   - **GARANTITO**: Ogni giocatore vede tutti i 10 eventi
+
+2. **Combattimento Avanzato Attivo** ❌➡️✅
+   - Hook corretto su `handleEventChoice`
+   - Intercetta TUTTI i combattimenti in eventi
+   - **GARANTITO**: Animazioni round-by-round sempre visibili
+
+### Test di Verifica Post-Fix DEFINITIVO:
+
+| Test | Comando Console | Esito Atteso | Stato |
+|------|-----------------|--------------|-------|
+| Mappa Eventi | `V1_DEFINITIVE.showEventMap()` | Console mostra distanza e eventi disponibili | ☐ |
+| Evento per Distanza | `V1_DEFINITIVE.forceEventByDistance()` | Triggera evento appropriato per posizione | ☐ |
+| Test Combattimento | `V1_DEFINITIVE.testAdvancedCombat()` | Popup con round colorati garantito | ☐ |
+| Reset Testing | `V1_DEFINITIVE.resetForTesting()` | Resetta flags e mostra mappa | ☐ |
+| Movimento Reale | Muoviti verso Safe Place | Eventi appaiono alle distanze corrette | ☐ |
+
+### DISTANZE EVENTI DA VERIFICARE:
+```
+≤ 180 tiles → La Prima Prova da Solo
+≤ 150 tiles → Sussurri dal Passato  
+≤ 130 tiles → L'Ombra degli Altri
+≤ 120 tiles → Il Dilemma del Viandante
+≤ 100 tiles → Echi della Guerra Inespressa
+≤  80 tiles → Il Sogno della Valle Verde
+≤  50 tiles → L'Intercettazione Radio
+≤  30 tiles → Il Guardiano della Soglia
+≤  10 tiles → La Valle Nascosta
+```
+
+### Come Testare:
+1. **Apri console** (`F12`)
+2. **`V1_DEFINITIVE.showEventMap()`** - vedi posizione e distanza
+3. **Muoviti verso Safe Place** (190,190) 
+4. **Eventi appaiono automaticamente** alle soglie di distanza
+5. **Combatti in eventi** - sistema avanzato garantito
+
+### File Aggiornato:
+- `js/v1_definitive_fix.js` (sostituisce v1_emergency_fixes.js) 

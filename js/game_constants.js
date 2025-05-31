@@ -10,7 +10,7 @@
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "v1.0.0-ULTIMOS-JOURNEY";
+const GAME_VERSION = "v1.0.1-ULTIMOS-JOURNEY";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
