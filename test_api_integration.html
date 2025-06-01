@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Integration - The Safe Place</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #000; 
+            color: #00ff00; 
+            margin: 20px; 
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .test-section { 
+            border: 1px solid #00ff00; 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: #001100; 
+        }
+        .success { color: #00ff00; }
+        .warning { color: #ffaa00; }
+        .error { color: #ff0000; }
+        button { 
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 8px 16px; 
+            margin: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #005500; }
+        .log { 
+            background: #000; 
+            border: 1px solid #444; 
+            padding: 10px; 
+            height: 150px; 
+            overflow-y: scroll; 
+            font-size: 12px; 
+            white-space: pre-wrap; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 TEST API INTEGRATION v2.0</h1>
+        <p>Sistema Dual-Mode: Backend MySQL + localStorage fallback</p>
+        
+        <div class="test-section">
+            <h2>📊 Status API</h2>
+            <button onclick="checkStatus()">Check Status</button>
+            <button onclick="testConnection()">Test Connection</button>
+            <button onclick="forceBackend()">Force Backend</button>
+            <button onclick="forceLocalStorage()">Force localStorage</button>
+            <div id="status-result" class="log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>💾 Test Salvataggio</h2>
+            <button onclick="testSave()">Test Save</button>
+            <button onclick="testLoad()">Test Load</button>
+            <div id="save-result" class="log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>👤 Test Personaggi</h2>
+            <button onclick="testCharacters()">Get Characters</button>
+            <button onclick="testCreateCharacter()">Create Character</button>
+            <div id="character-result" class="log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📝 Log Console</h2>
+            <button onclick="clearLog()">Clear Log</button>
+            <div id="console-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- Carica API Client -->
+    <script src="js/api_client.js"></script>
+    
+    <script>
+        // Override console.log per catturare i messaggi
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function addToLog(message, type = 'info') {
+            const logDiv = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'warn' ? 'warning' : 'success';
+            logDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '), 'info');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog(args.join(' '), 'warn');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog(args.join(' '), 'error');
+        };
+        
+        // Funzioni di test
+        async function checkStatus() {
+            const status = window.API_DEBUG.status();
+            document.getElementById('status-result').innerHTML = JSON.stringify(status, null, 2);
+        }
+        
+        async function testConnection() {
+            try {
+                await window.API_DEBUG.testConnection();
+                document.getElementById('status-result').innerHTML += '\n✅ Test connessione completato';
+            } catch (error) {
+                document.getElementById('status-result').innerHTML += '\n❌ Errore: ' + error.message;
+            }
+        }
+        
+        function forceBackend() {
+            window.API_DEBUG.forceBackend();
+            addToLog('🔗 Modalità backend forzata', 'info');
+            checkStatus();
+        }
+        
+        function forceLocalStorage() {
+            window.API_DEBUG.forceLocalStorage();
+            addToLog('💾 Modalità localStorage forzata', 'warn');
+            checkStatus();
+        }
+        
+        async function testSave() {
+            const testData = {
+                player: {
+                    name: 'Test Player',
+                    hp: 100,
+                    maxHp: 100,
+                    x: 10,
+                    y: 20,
+                    level: 1,
+                    experience: 50,
+                    potenza: 12,
+                    agilita: 11,
+                    vigore: 13,
+                    intelletto: 10,
+                    percezione: 9,
+                    influenza: 8,
+                    food: 80,
+                    water: 75
+                },
+                gameDay: 5,
+                isDay: true,
+                testTimestamp: new Date().toISOString()
+            };
+            
+            try {
+                const result = await window.APIClient.saveGame(testData);
+                document.getElementById('save-result').innerHTML = 
+                    '✅ Salvataggio: ' + JSON.stringify(result, null, 2);
+                addToLog(`💾 Save result: ${result.mode} - ${result.message}`, 'info');
+            } catch (error) {
+                document.getElementById('save-result').innerHTML = 
+                    '❌ Errore: ' + error.message;
+                addToLog(`❌ Save error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLoad() {
+            try {
+                const result = await window.APIClient.loadGame();
+                document.getElementById('save-result').innerHTML += 
+                    '\n\n✅ Caricamento: ' + JSON.stringify(result, null, 2);
+                addToLog(`📂 Load result: ${result.mode} - ${result.message}`, 'info');
+            } catch (error) {
+                document.getElementById('save-result').innerHTML += 
+                    '\n\n❌ Errore: ' + error.message;
+                addToLog(`❌ Load error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCharacters() {
+            try {
+                const result = await window.APIClient.getCharacters();
+                document.getElementById('character-result').innerHTML = 
+                    '✅ Personaggi: ' + JSON.stringify(result, null, 2);
+                addToLog(`👤 Characters result: ${result.mode}`, 'info');
+            } catch (error) {
+                document.getElementById('character-result').innerHTML = 
+                    '❌ Errore: ' + error.message;
+                addToLog(`❌ Characters error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCreateCharacter() {
+            try {
+                const result = await window.APIClient.createCharacter({
+                    name: 'Test Hero',
+                    stats: { strength: 15, agility: 12 }
+                });
+                document.getElementById('character-result').innerHTML += 
+                    '\n\n✅ Creazione: ' + JSON.stringify(result, null, 2);
+                addToLog(`👤 Character created: ${result.mode}`, 'info');
+            } catch (error) {
+                document.getElementById('character-result').innerHTML += 
+                    '\n\n❌ Errore: ' + error.message;
+                addToLog(`❌ Create character error: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = '';
+        }
+        
+        // Auto-check status al caricamento
+        window.addEventListener('load', () => {
+            setTimeout(checkStatus, 1000);
+        });
+    </script>
+</body>
+</html> 

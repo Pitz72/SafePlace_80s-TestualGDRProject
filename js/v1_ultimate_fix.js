@@ -234,13 +234,11 @@ if (typeof window !== 'undefined') {
                     if (typeof CombatVisuals !== 'undefined' && CombatVisuals.showCombatWithNarrativeEffects) {
                         console.log('[COMBAT_UNIVERSAL] Usando sistema visual avanzato');
                         
-                        // Mostra combattimento con effetti completi (animazione in background)
-                        const description = CombatVisuals.showCombatWithNarrativeEffects(combatResult, enemy);
-                        
-                        // Il sistema visual gestisce tutto automaticamente, incluso il popup finale
-                        // Aggiungiamo solo esperienza e loot dopo l'animazione
-                        setTimeout(() => {
-                            // Esperienza e loot
+                        // Mostra combattimento con effetti completi
+                        CombatVisuals.showCombatWithNarrativeEffects(combatResult, enemy).then(() => {
+                            console.log('[COMBAT_UNIVERSAL] Animazione combattimento completata');
+                            
+                            // Aggiungi esperienza e loot dopo che l'animazione è completata
                             if (combatResult.victory) {
                                 if (typeof awardExperience === 'function' && combatResult.expGained) {
                                     awardExperience(combatResult.expGained, `vittoria contro ${enemy.name}`);
@@ -260,7 +258,9 @@ if (typeof window !== 'undefined') {
                             if (player.equippedWeapon && typeof applyWearToEquippedItem === 'function') {
                                 applyWearToEquippedItem('equippedWeapon', 1);
                             }
-                        }, 7000); // Dopo che l'animazione visual è completa
+                        }).catch(error => {
+                            console.error('[COMBAT_UNIVERSAL] Errore nel sistema visual:', error);
+                        });
                     } else {
                         console.log('[COMBAT_UNIVERSAL] Sistema visual non disponibile, fallback');
                         

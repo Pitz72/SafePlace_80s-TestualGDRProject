@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="css/retro_interface.css">
     <link rel="stylesheet" href="css/combat_visuals.css">
     <link rel="stylesheet" href="css/achievement_system.css">
+    <link rel="stylesheet" href="js/combat_v2/combat_v2.css"> <!-- Combat System V2.0 Styles -->
     
     <!-- Puoi aggiungere qui altri link per font o icone se necessario -->
 </head>
@@ -305,6 +306,39 @@
     <script src="js/map.js"></script>              <!-- 8. Mappa (dipende da costanti, dati, utils, ui, events, player) -->
     <script src="js/api_client.js"></script>       <!-- 9. API Client (sistema dual-mode) -->
     <script src="js/character_manager.js"></script> <!-- 10. Character Manager (gestione personaggi) -->
+    
+    <!-- Advanced Combat System v2.0 - FASE 3 RECUPERO ARCHITETTURA -->
+    <script src="js/advanced_combat_system.js"></script> <!-- Sistema D&D avanzato con abilità speciali -->
+    
+    <!-- Advanced Items Database v2.0 - FASE 4 RECUPERO ARCHITETTURA -->
+    <script src="js/advanced_items_database.js"></script> <!-- Database oggetti avanzato (119 oggetti totali) -->
+    <script src="js/advanced_items_integration.js"></script> <!-- Sistema integrazione database oggetti -->
+    
+    <!-- Quick Fixes FASE 4 - Fix problemi post-integrazione -->
+    <script src="js/quick_fixes_fase_4.js"></script> <!-- Fix eventi lore e combattimento -->
+    
+    <!-- COMBAT SYSTEM V2.0 - Sistema Ricostruito da Zero -->
+    <script src="js/combat_v2/combat_controller.js"></script> <!-- Controller principale -->
+    <script src="js/combat_v2/combat_engine.js"></script> <!-- Engine logica combattimento -->
+    <script src="js/combat_v2/combat_display.js"></script> <!-- Sistema visual e animazioni -->
+    <script src="js/combat_v2/combat_integration.js"></script> <!-- Integrazione con gioco esistente -->
+    
+    <!-- EVENT ENGINE V2.0 - FASE 5 Sistema Eventi Narrativi Avanzati -->
+    <script src="js/events_v2/event_state_manager.js"></script> <!-- State Manager per narrativa persistente -->
+    <script src="js/events_v2/trigger_engine_v2.js"></script> <!-- Trigger Engine avanzato -->
+    <script src="js/events_v2/event_database_v2.js"></script> <!-- Database eventi complessi -->
+    <script src="js/events_v2/narrative_engine.js"></script> <!-- Narrative Engine per outcome dinamici -->
+    <script src="js/events_v2/event_engine_v2.js"></script> <!-- Controller principale V2.0 -->
+    <script src="js/events_v2/system_validator.js"></script> <!-- System Validator per testing -->
+    <script src="js/events_v2/debug_loader.js"></script> <!-- Debug loader per identificare errori -->
+    
+    <!-- MULTIPLE ENDINGS SYSTEM - FASE 6 Sistema Finali Multipli -->
+    <script src="js/endgame/karma_tracking.js"></script> <!-- Sistema tracciamento karma e scelte morali -->
+    <script src="js/endgame/ending_calculator.js"></script> <!-- Engine calcolo finale basato su scelte -->
+    <script src="js/endgame/endings_database.js"></script> <!-- Database completo narrativa 7 finali -->
+    <script src="js/endgame/ending_presentation.js"></script> <!-- Sistema presentazione visuale finali -->
+    <script src="js/endgame/karma_integration.js"></script> <!-- Sistema integrazione con eventi esistenti -->
+    
     <script src="js/game_core.js"></script>        <!-- 11. Core (usa tutto, avvia il gioco) -->
     
     <!-- Script v1.0.0 "Ultimo's Journey" -->

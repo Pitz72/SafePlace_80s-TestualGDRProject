@@ -936,22 +936,14 @@ function loadSaveFile() {
 }
 
 /**
- * Raccoglie lo stato corrente del gioco e lo salva usando il sistema dual-mode.
+ * Raccoglie lo stato corrente del gioco e lo salva usando il nuovo sistema dual-mode API.
+ * Integrazione Fase 2.2 - Recupero Architettura Avanzata
  */
 async function saveGame() {
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio partita...");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio partita con sistema dual-mode...");
     
     try {
-        // Se il sistema dual-mode è disponibile, usalo
-        if (typeof DualModeGame !== 'undefined' && DualModeGame.saveGame) {
-            const success = await DualModeGame.saveGame();
-            if (success) {
-                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio dual-mode completato.");
-                return;
-            }
-        }
-        
-        // Fallback al sistema localStorage originale
+        // Prepara i dati di sessione
         const saveData = {
             player: player,
             map: map,
@@ -960,81 +952,227 @@ async function saveGame() {
             gameDay: gameDay,
             easterEggPixelDebhFound: easterEggPixelDebhFound,
             uniqueEventWebRadioFound: uniqueEventWebRadioFound,
-            saveTimestamp: new Date().toISOString()
+            saveTimestamp: new Date().toISOString(),
+            gameVersion: GAME_VERSION || 'v1.0.1',
+            recoveryPhase: 'FASE_2_DUAL_MODE'
         };
 
+        // Usa il nuovo sistema API dual-mode se disponibile
+        if (typeof window.APIClient !== 'undefined' && window.APIClient.saveGame) {
+            const result = await window.APIClient.saveGame(saveData);
+            
+            if (result.success) {
+                // Messaggio differenziato per modalità
+                if (result.mode === 'backend') {
+                    addMessage("✅ Partita salvata su server MySQL!", "success");
+                    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                        console.log("[DUAL-MODE] Salvataggio backend MySQL riuscito:", result.data);
+                    }
+                } else {
+                    addMessage("💾 Partita salvata localmente", "warning");
+                    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                        console.log("[DUAL-MODE] Salvataggio localStorage (fallback)");
+                    }
+                }
+                return true;
+            } else {
+                throw new Error(result.error || 'Errore salvataggio API');
+            }
+        }
+        
+        // Fallback completo al sistema localStorage originale
+        console.warn("[DUAL-MODE] API Client non disponibile, usando localStorage legacy");
         const saveDataString = JSON.stringify(saveData);
         localStorage.setItem(SAVE_KEY, saveDataString);
-
-        addMessage("Partita salvata con successo!", "success");
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio localStorage completato.");
+        addMessage("⚠️ Partita salvata localmente (modalità legacy)", "warning");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Salvataggio localStorage legacy completato.");
+        return true;
 
     } catch (error) {
-        console.error("Errore durante il salvataggio della partita:", error);
-        addMessage("Errore durante il salvataggio della partita!", "danger");
+        console.error("[DUAL-MODE] Errore durante il salvataggio:", error);
+        
+        // Tentativo di emergency fallback
+        try {
+            const emergencyData = {
+                player: player,
+                map: map,
+                dayMovesCounter: dayMovesCounter,
+                isDay: isDay,
+                gameDay: gameDay,
+                saveTimestamp: new Date().toISOString(),
+                emergencyBackup: true
+            };
+            localStorage.setItem('safeplace_emergency_backup', JSON.stringify(emergencyData));
+            addMessage("❌ Errore salvataggio! Backup di emergenza creato.", "danger");
+        } catch (emergencyError) {
+            console.error("[DUAL-MODE] Anche il backup di emergenza è fallito:", emergencyError);
+            addMessage("❌ Errore critico durante il salvataggio!", "danger");
+        }
+        return false;
     }
 }
 
 /**
- * Carica lo stato del gioco usando il sistema dual-mode.
+ * Carica lo stato del gioco usando il nuovo sistema dual-mode API.
  * @returns {boolean} True se il caricamento ha avuto successo, false altrimenti.
  */
 async function loadGame() {
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento partita...");
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento partita con sistema dual-mode...");
     
     try {
-        // Se il sistema dual-mode è disponibile, usalo
-        if (typeof DualModeGame !== 'undefined' && DualModeGame.loadGame) {
-            const success = await DualModeGame.loadGame();
-            if (success) {
-                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento dual-mode completato.");
+        // Usa il nuovo sistema API dual-mode se disponibile
+        if (typeof window.APIClient !== 'undefined' && window.APIClient.loadGame) {
+            const result = await window.APIClient.loadGame();
+            
+            if (result.success && result.data) {
+                // Ripristina stato da dati API
+                const loadedData = result.data;
+                
+                // Validazione dati essenziali
+                if (!loadedData.player || !loadedData.map) {
+                    throw new Error('Dati di salvataggio incompleti o corrotti');
+                }
+                
+                // Ripristina stato globale
+                player = loadedData.player;
+                map = loadedData.map;
+                dayMovesCounter = loadedData.dayMovesCounter || 0;
+                isDay = loadedData.isDay !== undefined ? loadedData.isDay : true;
+                gameDay = loadedData.gameDay || 1;
+                easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound || false;
+                uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound || false;
+
+                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                    console.log("[DUAL-MODE] Stato ripristinato da:", result.mode, loadedData);
+                }
+
+                // Aggiorna interfaccia
+                setTimeout(() => {
+                    if (typeof renderMap === 'function') renderMap();
+                    if (typeof renderStats === 'function') renderStats();
+                    if (typeof renderInventory === 'function') renderInventory();
+                    if (typeof renderLegend === 'function') renderLegend();
+                }, 100);
+
+                // Transizione schermata e attivazione gioco
+                if (typeof showScreen === 'function') {
+                    showScreen(DOM.gameContainer);
+                }
+                gameActive = true;
+                gamePaused = false;
+                eventScreenActive = false;
+                
+                try {
+                    if(DOM.gameContainer) DOM.gameContainer.focus();
+                } catch (e) {
+                    console.warn("loadGame: Impossibile impostare il focus iniziale.", e);
+                }
+
+                // Messaggio differenziato per modalità
+                const saveDate = loadedData.saveTimestamp ? 
+                    new Date(loadedData.saveTimestamp).toLocaleString() : 
+                    "data sconosciuta";
+                    
+                if (result.mode === 'backend') {
+                    addMessage(`✅ Partita caricata dal server MySQL (${saveDate})`, "success");
+                } else {
+                    addMessage(`💾 Partita caricata localmente (${saveDate})`, "warning");
+                }
+                
                 return true;
+            } else {
+                // Nessun salvataggio trovato tramite API
+                if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                    console.log("[DUAL-MODE] Nessun salvataggio trovato via API:", result.error);
+                }
             }
         }
         
         // Fallback al sistema localStorage originale
+        console.warn("[DUAL-MODE] API Client non disponibile o nessun dato, provo localStorage legacy");
         const saveDataString = localStorage.getItem(SAVE_KEY);
 
         if (!saveDataString) {
+            // Prova anche il backup di emergenza
+            const emergencyBackup = localStorage.getItem('safeplace_emergency_backup');
+            if (emergencyBackup) {
+                const emergencyData = JSON.parse(emergencyBackup);
+                if (emergencyData.player && emergencyData.map) {
+                    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                        console.log("[DUAL-MODE] Usando backup di emergenza");
+                    }
+                    
+                    // Ripristina da backup emergenza
+                    player = emergencyData.player;
+                    map = emergencyData.map;
+                    dayMovesCounter = emergencyData.dayMovesCounter || 0;
+                    isDay = emergencyData.isDay !== undefined ? emergencyData.isDay : true;
+                    gameDay = emergencyData.gameDay || 1;
+                    easterEggPixelDebhFound = false;
+                    uniqueEventWebRadioFound = false;
+                    
+                    // Aggiorna interfaccia
+                    setTimeout(() => {
+                        if (typeof renderMap === 'function') renderMap();
+                        if (typeof renderStats === 'function') renderStats();
+                        if (typeof renderInventory === 'function') renderInventory();
+                        if (typeof renderLegend === 'function') renderLegend();
+                    }, 100);
+
+                    if (typeof showScreen === 'function') {
+                        showScreen(DOM.gameContainer);
+                    }
+                    gameActive = true;
+                    gamePaused = false;
+                    eventScreenActive = false;
+                    
+                    try {
+                        if(DOM.gameContainer) DOM.gameContainer.focus();
+                    } catch (e) {
+                        console.warn("loadGame: Impossibile impostare il focus.", e);
+                    }
+
+                    addMessage("🔧 Partita ripristinata da backup di emergenza", "warning");
+                    return true;
+                }
+            }
+            
             if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Nessun dato di salvataggio trovato.");
-            addMessage("Nessuna partita salvata trovata.", "warning");
+            addMessage("❌ Nessuna partita salvata trovata.", "warning");
             return false;
         }
 
         const loadedData = JSON.parse(saveDataString);
 
         if (!loadedData || !loadedData.player || !loadedData.map) {
-             console.error("Dati di salvataggio corrotti o incompleti.", loadedData);
-             addMessage("Errore: Dati di salvataggio corrotti o non validi.", "danger");
+             console.error("Dati di salvataggio localStorage corrotti.", loadedData);
+             addMessage("❌ Dati di salvataggio corrotti. Rimuovo dati invalidi.", "danger");
              localStorage.removeItem(SAVE_KEY);
              return false;
         }
 
-        // Ripristina stato globale
+        // Ripristina stato globale da localStorage
         player = loadedData.player;
         map = loadedData.map;
-        dayMovesCounter = loadedData.dayMovesCounter;
-        isDay = loadedData.isDay;
-        gameDay = loadedData.gameDay;
-        easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound;
-        uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound;
+        dayMovesCounter = loadedData.dayMovesCounter || 0;
+        isDay = loadedData.isDay !== undefined ? loadedData.isDay : true;
+        gameDay = loadedData.gameDay || 1;
+        easterEggPixelDebhFound = loadedData.easterEggPixelDebhFound || false;
+        uniqueEventWebRadioFound = loadedData.uniqueEventWebRadioFound || false;
 
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato del gioco ripristinato:", loadedData);
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Stato ripristinato da localStorage legacy:", loadedData);
 
         // Aggiorna interfaccia
         setTimeout(() => {
-            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Rendering UI after load timeout...");
-            if (typeof renderMap === 'function') renderMap(); else console.error("loadGame: renderMap non trovata!");
-            if (typeof renderStats === 'function') renderStats(); else console.error("loadGame: renderStats non trovata!");
-            if (typeof renderInventory === 'function') renderInventory(); else console.error("loadGame: renderInventory non trovata!");
+            if (typeof renderMap === 'function') renderMap();
+            if (typeof renderStats === 'function') renderStats();
+            if (typeof renderInventory === 'function') renderInventory();
             if (typeof renderLegend === 'function') renderLegend();
         }, 100);
 
         // Transizione schermata e attivazione gioco
         if (typeof showScreen === 'function') {
             showScreen(DOM.gameContainer);
-        } else {
-            console.error("loadGame: showScreen non trovata!");
         }
         gameActive = true;
         gamePaused = false;
@@ -1046,13 +1184,16 @@ async function loadGame() {
             console.warn("loadGame: Impossibile impostare il focus iniziale.", e);
         }
 
-        addMessage(`Partita caricata (salvata il ${new Date(loadedData.saveTimestamp).toLocaleString()}).`, "success");
-        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento localStorage completato.");
+        const saveDate = loadedData.saveTimestamp ? 
+            new Date(loadedData.saveTimestamp).toLocaleString() : 
+            "data sconosciuta";
+        addMessage(`💾 Partita caricata da localStorage (${saveDate})`, "warning");
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log("Caricamento localStorage legacy completato.");
         return true;
 
     } catch (error) {
-        console.error("Errore durante il caricamento della partita:", error);
-        addMessage("Errore durante il caricamento della partita! Potrebbe essere corrotta.", "danger");
+        console.error("[DUAL-MODE] Errore durante il caricamento:", error);
+        addMessage("❌ Errore durante il caricamento! Dati potrebbero essere corrotti.", "danger");
         return false;
     }
 }

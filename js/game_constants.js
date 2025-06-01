@@ -1,16 +1,16 @@
 /**
  * TheSafePlace - Roguelike Postapocalittico
- * Versione: v0.9.0-SURVIVAL-PERFECTED
+ * Versione: v1.1.0-ULTIMO-IS-ON-THE-ROAD-AGAIN
  * File: js/game_constants.js
  * Descrizione: Variabili di stato globali e costanti numeriche/probabilistiche.
  */
 
 // === THE SAFE PLACE - COSTANTI DI GIOCO ===
-// === v0.9.1-COMBAT-D&D - PROGRESSIONE D&D IMPLEMENTATA + COMBATTIMENTO AUTOMATICO EVOLUTO + BUGFIX FINALI ===
+// === v1.1.0-ULTIMO-IS-ON-THE-ROAD-AGAIN - MULTIPLE ENDINGS SYSTEM + KARMA TRACKING + RPG NARRATIVO PROFONDO ===
 
 // Versione del gioco
 const GAME_NAME = "The Safe Place";
-const GAME_VERSION = "v1.0.1-ULTIMOS-JOURNEY";
+const GAME_VERSION = "v1.1.0-ULTIMO-IS-ON-THE-ROAD-AGAIN";
 const DEBUG_MODE = true; // Impostare a true per abilitare log di debug specifici
 
 // --- VARIABILI DI STATO GLOBALI ---
