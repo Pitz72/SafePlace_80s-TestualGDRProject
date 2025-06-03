@@ -36,7 +36,6 @@ var is_bleeding: bool = false
 # Inventory System
 var inventory: Array[Dictionary] = []
 var max_inventory_slots: int = 20
-var equipped_weapon = null
 var equipped: Dictionary = {
 	"weapon": null,
 	"head": null,
@@ -122,7 +121,6 @@ func _add_starting_items():
 
 ## Reset equipment a valori default
 func _reset_equipment():
-	equipped_weapon = null
 	for slot in equipped.keys():
 		equipped[slot] = null
 
@@ -190,7 +188,7 @@ func _apply_survival_damage():
 	if damage > 0:
 		take_damage(damage, "survival")
 
-## Gestione HP e danni (FUNZIONE UNIFICATA)
+## Gestione HP e danni
 func take_damage(amount: int, source: String = "unknown"):
 	var old_hp = hp
 	hp = max(0, hp - amount)
@@ -202,7 +200,7 @@ func take_damage(amount: int, source: String = "unknown"):
 		print("💀 Player KO!")
 		death.emit()
 
-## Guarigione (FUNZIONE UNIFICATA)
+## Guarigione
 func heal(amount: int, source: String = "unknown"):
 	var old_hp = hp
 	hp = min(max_hp, hp + amount)
@@ -348,19 +346,7 @@ func use_item(item_id: String) -> bool:
 			print("❌ Item non usabile: %s" % item_id)
 			return false
 
-## Equipment System (placeholder)
-func equip_item(item_id: String) -> bool:
-	print("⚔️ Tentativo di equipaggiare: %s" % item_id)
-	# This should integrate with ItemDatabase to check item type
-	return false
-
-func unequip_item(slot: String) -> bool:
-	print("🛡️ Tentativo di rimuovere equipaggiamento da: %s" % slot)
-	return false
-
-## Metodi per integrazione Session #005
-
-# Combat System Integration
+## Combat System Integration
 func get_attack_power() -> int:
 	var base_attack = pot  # Power stat as base attack
 	var weapon_bonus = _get_weapon_attack_bonus()
@@ -396,7 +382,7 @@ func get_equipped_armor():
 func has_item_in_inventory(item_id: String) -> bool:
 	return has_item(item_id, 1)
 
-# Save System Integration  
+## Save System Integration  
 func get_save_data() -> Dictionary:
 	return {
 		"stats": {
@@ -489,7 +475,7 @@ func _deserialize_equipment(data: Dictionary):
 	# Equipment deserialization will be handled by SaveManager
 	# which has access to ItemDatabase
 
-# Event System Integration
+## Event System Integration
 func can_afford_cost(cost: Dictionary) -> bool:
 	for resource in cost:
 		var required = cost[resource]
@@ -509,7 +495,7 @@ func pay_cost(cost: Dictionary) -> bool:
 	
 	return true
 
-# Map System Integration
+## Map System Integration
 func can_travel() -> bool:
 	return hp > 10 and food > 5 and water > 5  # Minimum requirements
 
@@ -519,7 +505,7 @@ func get_travel_efficiency() -> float:
 	var agility_factor = float(agi) / 20.0  # Normalize agility
 	return (health_factor + agility_factor) / 2.0
 
-# Resource management for events
+## Resource management for events
 func consume_food(amount: int) -> bool:
 	if food >= amount:
 		var old_food = food
