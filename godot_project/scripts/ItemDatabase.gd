@@ -134,8 +134,8 @@ func _get_item_categories(item: Item) -> Array[String]:
 
 ## Valida la consistenza del database
 func _validate_database():
-	var validation_errors = []
-	var warnings = []
+	var validation_errors: Array[String] = []
+	var warnings: Array[String] = []
 	
 	for item in items:
 		# Validazioni critiche
@@ -185,15 +185,19 @@ func get_item(item_id: String) -> Item:
 
 ## Recupera tutti gli items di un tipo
 func get_items_by_type(item_type: String) -> Array[Item]:
+	var result: Array[Item] = []
 	if _items_by_type.has(item_type):
-		return _items_by_type[item_type]
-	return []
+		for item in _items_by_type[item_type]:
+			result.append(item)
+	return result
 
 ## Recupera tutti gli items di una categoria
 func get_items_by_category(category: String) -> Array[Item]:
+	var result: Array[Item] = []
 	if _items_by_category.has(category):
-		return _items_by_category[category]
-	return []
+		for item in _items_by_category[category]:
+			result.append(item)
+	return result
 
 ## Cerca items per nome (fuzzy search)
 func search_items(search_term: String, max_results: int = 10) -> Array[Item]:
