@@ -479,7 +479,32 @@ func _deserialize_equipment(data: Dictionary):
 func can_afford_cost(cost: Dictionary) -> bool:
 	for resource in cost:
 		var required = cost[resource]
-		var current = get(resource, 0)
+		var current = 0
+		
+		# Get current value of the resource
+		if resource == "food":
+			current = food
+		elif resource == "water": 
+			current = water
+		elif resource == "hp":
+			current = hp
+		elif resource == "exp":
+			current = exp
+		elif resource == "vig":
+			current = vig
+		elif resource == "pot":
+			current = pot
+		elif resource == "agi":
+			current = agi
+		elif resource == "tra":
+			current = tra
+		elif resource == "inf":
+			current = inf
+		elif resource == "pre":
+			current = pre
+		elif resource == "ada":
+			current = ada
+		
 		if current < required:
 			return false
 	return true
@@ -490,8 +515,16 @@ func pay_cost(cost: Dictionary) -> bool:
 	
 	for resource in cost:
 		var amount = cost[resource]
-		var current = get(resource, 0)
-		set(resource, current - amount)
+		
+		# Pay the cost by directly modifying the appropriate resource
+		if resource == "food":
+			food = max(0, food - amount)
+		elif resource == "water":
+			water = max(0, water - amount)
+		elif resource == "hp":
+			hp = max(0, hp - amount)
+		elif resource == "exp":
+			exp = max(0, exp - amount)
 	
 	return true
 
@@ -552,6 +585,10 @@ func get_stats_dict() -> Dictionary:
 		"is_sick": is_sick,
 		"is_bleeding": is_bleeding
 	}
+
+## Alias per compatibilità con test Session #006
+func get_stats() -> Dictionary:
+	return get_stats_dict()
 
 func get_inventory_summary() -> Dictionary:
 	var summary = {}

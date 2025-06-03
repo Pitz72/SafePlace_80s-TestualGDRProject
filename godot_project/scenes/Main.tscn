@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cyqx8r4nv3qtx"]
+[gd_scene load_steps=12 format=3 uid="uid://cyqx8r4nv3qtx"]
 
 [ext_resource type="Script" path="res://scripts/GameManager.gd" id="1_gamemanager"]
 [ext_resource type="Script" path="res://scripts/Player.gd" id="2_player"]
@@ -8,6 +8,9 @@
 [ext_resource type="Script" path="res://scripts/MapManager.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/SaveManager.gd" id="7_save"]
 [ext_resource type="Script" path="res://scripts/Session005Test.gd" id="8_test"]
+[ext_resource type="Script" path="res://scripts/UIManager.gd" id="9_uimanager"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="10_hud"]
+[ext_resource type="Script" path="res://scripts/Session006Test.gd" id="11_session006test"]
 
 [node name="Main" type="Node"]
 
@@ -29,8 +32,14 @@ script = ExtResource("6_map")
 [node name="SaveManager" type="Node" parent="GameManager"]
 script = ExtResource("7_save")
 
+[node name="UIManager" type="Node" parent="GameManager"]
+script = ExtResource("9_uimanager")
+
 [node name="Session005Test" type="Node" parent="GameManager"]
 script = ExtResource("8_test")
+
+[node name="Session006Test" type="Node" parent="GameManager"]
+script = ExtResource("11_session006test")
 
 [node name="UIContainer" type="CanvasLayer" parent="."]
 
@@ -40,12 +49,19 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="StatsPanel" type="Panel" parent="UIContainer/GameUI"]
-layout_mode = 0
-anchor_right = 0.25
-anchor_bottom = 0.3
+[node name="HUD" type="Control" parent="UIContainer/GameUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("10_hud")
 
-[node name="StatsLabel" type="RichTextLabel" parent="UIContainer/GameUI/StatsPanel"]
+[node name="StatsPanel" type="Panel" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_right = 0.3
+anchor_bottom = 0.35
+
+[node name="StatsLabel" type="RichTextLabel" parent="UIContainer/GameUI/HUD/StatsPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -58,45 +74,113 @@ text = "[color=green]SAFEPLACE STATUS[/color]
 HP: 100/100
 Food: 100
 Water: 100
-Location: Test Area"
+Location: Abandoned City"
 
-[node name="InventoryUI" type="Control" parent="UIContainer"]
-visible = false
-layout_mode = 3
+[node name="HPBar" type="ProgressBar" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_right = 0.25
+anchor_bottom = 0.05
+offset_left = 10.0
+offset_top = 10.0
+value = 100.0
+
+[node name="HPLabel" type="Label" parent="UIContainer/GameUI/HUD/HPBar"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-
-[node name="InventoryPanel" type="Panel" parent="UIContainer/InventoryUI"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
-
-[node name="InventoryLabel" type="Label" parent="UIContainer/InventoryUI/InventoryPanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 20.0
-offset_right = 100.0
-offset_bottom = 46.0
-text = "INVENTORY (Press I to close)"
+text = "HP: 100/100"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MenuUI" type="Control" parent="UIContainer"]
-visible = false
-layout_mode = 3
+[node name="FoodBar" type="ProgressBar" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_right = 0.25
+anchor_bottom = 0.05
+offset_left = 10.0
+offset_top = 40.0
+value = 100.0
+
+[node name="FoodLabel" type="Label" parent="UIContainer/GameUI/HUD/FoodBar"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+text = "Food: 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WaterBar" type="ProgressBar" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_right = 0.25
+anchor_bottom = 0.05
+offset_left = 10.0
+offset_top = 70.0
+value = 100.0
+
+[node name="WaterLabel" type="Label" parent="UIContainer/GameUI/HUD/WaterBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Water: 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EXPBar" type="ProgressBar" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_right = 0.25
+anchor_bottom = 0.05
+offset_left = 10.0
+offset_top = 100.0
+value = 0.0
+
+[node name="EXPLabel" type="Label" parent="UIContainer/GameUI/HUD/EXPBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "EXP: 0/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_left = 0.85
+anchor_top = 0.02
+anchor_right = 1.0
+anchor_bottom = 0.08
+text = "Level: 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LocationLabel" type="Label" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_left = 0.4
+anchor_top = 0.02
+anchor_right = 0.8
+anchor_bottom = 0.08
+text = "Location: Abandoned City"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MovementLabel" type="Label" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_left = 0.85
+anchor_top = 0.08
+anchor_right = 1.0
+anchor_bottom = 0.12
+text = "Movement: 100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MenuButton" type="Button" parent="UIContainer/GameUI/HUD"]
+layout_mode = 0
+anchor_left = 0.9
+anchor_top = 0.85
+anchor_right = 0.98
+anchor_bottom = 0.95
+text = "MENU"
 
 [node name="WorldContainer" type="Node2D" parent="."]
 
@@ -136,4 +220,154 @@ text = "[color=yellow]DEBUG INFO[/color]
 Session #004 Active
 Core Systems: ✅ ItemDatabase
 Main Scene: ✅ Loaded
-Player: ⏳ Loading..." 
+Player: ⏳ Loading..."
+
+[node name="InventoryUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="InventoryPanel" type="Panel" parent="UIContainer/InventoryUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+
+[node name="InventoryLabel" type="Label" parent="UIContainer/InventoryUI/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 20.0
+offset_right = 150.0
+offset_bottom = 46.0
+text = "SAFEPLACE INVENTORY (Press I to close)"
+horizontal_alignment = 1
+
+[node name="CombatUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CombatPanel" type="Panel" parent="UIContainer/CombatUI"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -200.0
+
+[node name="CombatLabel" type="Label" parent="UIContainer/CombatUI/CombatPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "SAFEPLACE COMBAT"
+horizontal_alignment = 1
+
+[node name="MapUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="MapPanel" type="Panel" parent="UIContainer/MapUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = -50.0
+
+[node name="MapLabel" type="Label" parent="UIContainer/MapUI/MapPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 20.0
+offset_right = 150.0
+offset_bottom = 46.0
+text = "SAFEPLACE MAP (Press M to close)"
+horizontal_alignment = 1
+
+[node name="MenuUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="MenuPanel" type="Panel" parent="UIContainer/MenuUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+
+[node name="MenuLabel" type="Label" parent="UIContainer/MenuUI/MenuPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "SAFEPLACE MENU"
+horizontal_alignment = 1
+
+[node name="SettingsUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="SettingsPanel" type="Panel" parent="UIContainer/SettingsUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+
+[node name="SettingsLabel" type="Label" parent="UIContainer/SettingsUI/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "SAFEPLACE SETTINGS"
+horizontal_alignment = 1 

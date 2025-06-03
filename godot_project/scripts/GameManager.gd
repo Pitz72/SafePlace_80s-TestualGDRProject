@@ -10,6 +10,7 @@ extends Node
 @onready var event_manager: Node = $EventManager  
 @onready var map_manager: Node = $MapManager
 @onready var save_manager: Node = $SaveManager
+@onready var ui_manager: UIManager = $UIManager  # NEW: UI Manager Session #006
 @onready var player: Node = get_node("../WorldContainer/Player")
 @onready var ui_stats: RichTextLabel = get_node("../UIContainer/GameUI/StatsPanel/StatsLabel")
 @onready var ui_debug: RichTextLabel = get_node("../DebugContainer/DebugPanel/DebugLabel")
@@ -47,17 +48,21 @@ signal event_ended(event_id: String, result: Dictionary)
 signal location_changed(old_location: String, new_location: String)
 signal save_game_requested(slot: int)
 
+# NEW: Segnali UI Session #006
+signal combat_started()
+signal ui_state_changed(ui_state: UIManager.UIState)
+
 # Performance metrics
 var frame_count: int = 0
 var performance_samples: Array[float] = []
 var last_fps_update: float = 0.0
 
 func _init():
-	print("🎮 GameManager inizializzato")
+	print("🎮 GameManager inizializzato - Session #006 UI Integration")
 	session_start_time = Time.get_time_dict_from_system().hour * 3600 + Time.get_time_dict_from_system().minute * 60 + Time.get_time_dict_from_system().second
 
 func _ready():
-	print("🎮 GameManager ready - Inizializzazione sistemi Session #005...")
+	print("🎮 GameManager ready - Inizializzazione sistemi Session #006...")
 	
 	# Setup signal connections
 	_setup_signal_connections()
@@ -65,13 +70,13 @@ func _ready():
 	# Initialize core systems
 	await _initialize_systems()
 	
-	# Setup UI
-	_setup_ui()
+	# Setup UI (Session #006)
+	_setup_ui_system()
 	
 	# Change to playing state
 	change_state("PLAYING")
 	
-	print("🎮 GameManager: Tutti i sistemi Session #005 pronti!")
+	print("🎮 GameManager: Tutti i sistemi Session #006 pronti!")
 	all_systems_ready.emit()
 
 func _process(delta):
@@ -87,6 +92,10 @@ func _process(delta):
 	_update_ui(delta)
 
 func _input(event):
+	# Let UIManager handle input first (Session #006)
+	if ui_manager and ui_manager.is_interface_blocking():
+		return  # UI is handling input
+	
 	if event.is_action_pressed("ui_accept"):
 		print("🎮 Input test: UI Accept pressed")
 	
@@ -97,13 +106,13 @@ func _input(event):
 	if Input.is_action_just_pressed("ui_select"):  # Spacebar
 		_toggle_inventory()
 	
-	# Debug shortcuts per Session #005
+	# Debug shortcuts per Session #006
 	if Input.is_action_just_pressed("ui_home"):  # Home key
 		_debug_test_systems()
 
-## Setup delle connessioni signal tra sistemi (esteso Session #005)
+## Setup delle connessioni signal tra sistemi (esteso Session #006)
 func _setup_signal_connections():
-	print("🔗 Setup signal connections Session #005...")
+	print("🔗 Setup signal connections Session #006...")
 	
 	# Connect to database signals (se ha i metodi)
 	if item_database and item_database.has_signal("database_loaded"):
@@ -135,10 +144,16 @@ func _setup_signal_connections():
 	if save_manager and save_manager.has_signal("load_completed"):
 		save_manager.load_completed.connect(_on_load_completed)
 	
+	# NEW: Connect to UI manager signals (Session #006)
+	if ui_manager and ui_manager.has_signal("ui_state_changed"):
+		ui_manager.ui_state_changed.connect(_on_ui_state_changed)
+	if ui_manager and ui_manager.has_signal("interface_opened"):
+		ui_manager.interface_opened.connect(_on_interface_opened)
+	
 	# Connect to game state changes
 	game_state_changed.connect(_on_game_state_changed)
 	
-	print("🔗 Signal connections Session #005 complete")
+	print("🔗 Signal connections Session #006 complete")
 
 ## Inizializzazione di tutti i sistemi core (esteso Session #005)
 func _initialize_systems() -> void:
@@ -227,10 +242,16 @@ func _handle_loading_state():
 	pass
 
 func _handle_playing_state():
-	get_node("../UIContainer/InventoryUI").visible = false
+	var inventory_ui = get_node_or_null("../UIContainer/InventoryUI")
+	if inventory_ui:
+		inventory_ui.visible = false
 
 func _handle_inventory_state():
-	get_node("../UIContainer/InventoryUI").visible = true
+	var inventory_ui = get_node_or_null("../UIContainer/InventoryUI")
+	if inventory_ui:
+		inventory_ui.visible = true
+	else:
+		print("⚠️ InventoryUI non trovato, stato inventario gestito solo a livello logico")
 
 func _handle_paused_state():
 	pass
@@ -265,7 +286,7 @@ func start_combat(enemy_data: Dictionary) -> bool:
 
 # Event system API  
 func start_event(event_id: String) -> bool:
-	if event_manager and event_manager.has_method("start_event"):
+	if event_manager and event_manager.has_signal("start_event"):
 		return event_manager.start_event(event_id)
 	return false
 
@@ -333,14 +354,14 @@ func _update_stats_ui():
 		return
 	
 	var stats_text = "[color=green]SAFEPLACE STATUS[/color]\n"
-	stats_text += "HP: %d/%d\n" % [player.hp if player.has_method("get") else 100, player.max_hp if player.has_method("get") else 100]
-	stats_text += "Food: %d\n" % (player.food if player.has_method("get") else 100)
-	stats_text += "Water: %d\n" % (player.water if player.has_method("get") else 100)
-	stats_text += "Exp: %d (Lv %d)\n" % [player.exp if player.has_method("get") else 0, player.level if player.has_method("get") else 1]
+	stats_text += "HP: %d/%d\n" % [player.hp, player.max_hp]
+	stats_text += "Food: %d\n" % player.food
+	stats_text += "Water: %d\n" % player.water
+	stats_text += "Exp: %d (Lv %d)\n" % [player.exp, player.level]
 	stats_text += "Location: %s\n" % get_current_location()
 	stats_text += "Movement: %d/%d" % [
-		map_manager.movement_points if map_manager and map_manager.has_method("get") else 100,
-		map_manager.max_movement_points if map_manager and map_manager.has_method("get") else 100
+		map_manager.movement_points if map_manager else 100,
+		map_manager.max_movement_points if map_manager else 100
 	]
 	
 	ui_stats.text = stats_text
@@ -350,12 +371,13 @@ func _update_debug_ui():
 	if not ui_debug:
 		return
 	
-	var debug_text = "[color=yellow]SESSION #005 DEBUG[/color]\n"
+	var debug_text = "[color=yellow]SESSION #006 SAFEPLACE DEBUG[/color]\n"
 	debug_text += "State: %s\n" % GameState.keys()[current_state]
 	debug_text += "⚔️Combat: %s\n" % ("✅" if combat_manager else "❌")
 	debug_text += "📖Events: %s\n" % ("✅" if event_manager else "❌")
 	debug_text += "🗺️Map: %s\n" % ("✅" if map_manager else "❌")  
 	debug_text += "💾Save: %s\n" % ("✅" if save_manager else "❌")
+	debug_text += "🎨UI: %s\n" % ("✅" if ui_manager else "❌")
 	debug_text += "Items: %d\n" % (item_database.get_stats().total_items if item_database and item_database.has_method("get_stats") else 0)
 	debug_text += "Frame: %d\n" % frame_count
 	debug_text += "Time: %.1fs" % game_time
@@ -376,7 +398,7 @@ func _on_game_state_changed(new_state: GameState):
 func _on_player_stats_changed(stat_name: String, old_value: int, new_value: int):
 	print("👤 Stat changed: %s %d → %d" % [stat_name, old_value, new_value])
 	_update_stats_ui()
-	if player and player.has_method("get_stats_dict"):
+	if player:
 		player_stats_updated.emit(player.get_stats_dict())
 
 func _on_player_inventory_changed(action: String, item: Item, quantity: int):
@@ -384,10 +406,11 @@ func _on_player_inventory_changed(action: String, item: Item, quantity: int):
 	inventory_changed.emit(action, item, quantity)
 
 func _on_combat_ended(result: String, rewards: Dictionary):
-	print("🎮 Combat ended: %s, Rewards: %s" % [result, rewards])
-
-func _on_combat_started(enemy_data: Dictionary):
-	print("🎮 Combat started: %s" % enemy_data)
+	"""Handle combat end with UI coordination"""
+	print("⚔️ Combat ended: ", result, " with rewards: ", rewards)
+	if ui_manager:
+		ui_manager.set_ui_state(UIManager.UIState.HUD)
+	combat_ended.emit(result, rewards)
 
 func _on_event_started(event_data: Dictionary):
 	print("🎮 Event started: %s" % event_data)
@@ -447,7 +470,7 @@ func _debug_test_systems():
 	if map_manager:
 		print("🗺️ Testing Map System...")
 		print("  Current location: ", get_current_location())
-		print("  Movement points: ", map_manager.movement_points if map_manager.has_method("get") else "Unknown")
+		print("  Movement points: ", map_manager.movement_points)
 	
 	# Test Save
 	if save_manager:
@@ -498,7 +521,7 @@ func get_system_status() -> Dictionary:
 		"game_state": GameState.keys()[current_state],
 		"systems_ready": item_database != null and player != null,
 		"database_loaded": item_database.get_stats().is_loaded if item_database and item_database.has_method("get_stats") else false,
-		"player_initialized": player.is_initialized if player and player.has_method("get") else false,
+		"player_initialized": player.is_initialized if player else false,
 		"combat_manager": combat_manager != null,
 		"event_manager": event_manager != null,
 		"map_manager": map_manager != null,
@@ -507,11 +530,59 @@ func get_system_status() -> Dictionary:
 		"game_time": game_time,
 		"performance_avg": performance_samples.reduce(func(acc, val): return acc + val, 0.0) / performance_samples.size() if performance_samples.size() > 0 else 0.0,
 		"current_location": get_current_location(),
-		"movement_points": map_manager.movement_points if map_manager and map_manager.has_method("get") else 0
+		"movement_points": map_manager.movement_points if map_manager else 0
 	}
 
 func print_system_status():
 	var status = get_system_status()
 	print("🎮 SESSION #005 SYSTEM STATUS:")
 	for key in status.keys():
-		print("  %s: %s" % [key, status[key]]) 
+		print("  %s: %s" % [key, status[key]])
+
+## NEW: Setup UI System (Session #006)
+func _setup_ui_system():
+	print("🎨 Setup SafePlace UI System Session #006...")
+	
+	if ui_manager:
+		# Set player reference for UI
+		if player:
+			ui_manager.set_player_reference(player)
+		
+		# Set HUD references in UIManager after auto-discovery
+		if ui_manager.hud and ui_manager.hud.has_method("set_references"):
+			ui_manager.hud.set_references(player, ui_manager, self)
+			print("✅ SafePlace HUD connected to game systems")
+		
+		print("✅ SafePlace UI Manager integrato con GameManager")
+	else:
+		print("⚠️ UIManager non trovato - Continuo senza UI")
+
+## NEW: UI Event Handlers (Session #006)
+func _on_ui_state_changed(new_ui_state: UIManager.UIState):
+	"""Handle UI state changes from UIManager"""
+	print("🎨 UI State changed to: ", UIManager.UIState.keys()[new_ui_state])
+	ui_state_changed.emit(new_ui_state)
+	
+	# Sync game state with UI state when needed
+	match new_ui_state:
+		UIManager.UIState.COMBAT:
+			if current_state != GameState.COMBAT:
+				_change_game_state(GameState.COMBAT)
+		UIManager.UIState.INVENTORY:
+			if current_state != GameState.INVENTORY:
+				_change_game_state(GameState.INVENTORY)
+		UIManager.UIState.HUD:
+			if current_state != GameState.PLAYING:
+				_change_game_state(GameState.PLAYING)
+
+func _on_interface_opened(interface_name: String):
+	"""Handle interface opening"""
+	print("🎨 Interface opened: ", interface_name)
+
+# Updated: Combat signal handling with UI integration
+func _on_combat_started():
+	"""Handle combat start with UI coordination"""
+	print("⚔️ Combat started - Updating UI")
+	if ui_manager:
+		ui_manager.set_ui_state(UIManager.UIState.COMBAT)
+	combat_started.emit() 

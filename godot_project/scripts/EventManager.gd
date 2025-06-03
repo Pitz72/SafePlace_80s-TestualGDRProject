@@ -408,7 +408,7 @@ func _process_skill_check(consequences: Dictionary):
 		_end_event({})
 		return
 	
-	var player_stat = player.get(stat, 10)
+	var player_stat = _get_player_stat(stat)
 	var roll = randi_range(1, 20)
 	var total = player_stat + roll
 	var success = total >= difficulty
@@ -440,7 +440,7 @@ func _process_pay_cost(consequences: Dictionary):
 	var can_pay = true
 	for resource in cost:
 		var required = cost[resource]
-		var current = player.get(resource, 0)
+		var current = _get_player_stat(resource)
 		if current < required:
 			can_pay = false
 			break
@@ -449,7 +449,7 @@ func _process_pay_cost(consequences: Dictionary):
 		# Paga il costo
 		for resource in cost:
 			var amount = cost[resource]
-			player.set(resource, player.get(resource, 0) - amount)
+			_set_player_stat(resource, _get_player_stat(resource) - amount)
 		
 		var success_data = consequences.get("success", {})
 		_apply_result(success_data)
@@ -545,7 +545,7 @@ func _check_event_conditions(conditions: Dictionary) -> bool:
 	
 	for condition in conditions:
 		var required_value = conditions[condition]
-		var current_value = player.get(condition, 0)
+		var current_value = _get_player_stat(condition)
 		
 		if current_value < required_value:
 			return false
@@ -559,7 +559,7 @@ func _check_choice_requirements(requirements: Dictionary) -> bool:
 	
 	for requirement in requirements:
 		var required_value = requirements[requirement]
-		var current_value = player.get(requirement, 0)
+		var current_value = _get_player_stat(requirement)
 		
 		if current_value < required_value:
 			return false
@@ -640,4 +640,78 @@ func get_event_status() -> Dictionary:
 		"events_in_database": events_database.size(),
 		"events_completed": event_history.size(),
 		"story_flags": story_flags
-	} 
+	}
+
+## Helper functions per accesso sicuro alle statistiche del player
+func _get_player_stat(stat: String) -> int:
+	if not player:
+		return 0
+	
+	match stat:
+		"hp":
+			return player.hp
+		"max_hp":
+			return player.max_hp
+		"food":
+			return player.food
+		"water":
+			return player.water
+		"exp":
+			return player.exp
+		"level":
+			return player.level
+		"pts":
+			return player.pts
+		"vig":
+			return player.vig
+		"pot":
+			return player.pot
+		"agi":
+			return player.agi
+		"tra":
+			return player.tra
+		"inf":
+			return player.inf
+		"pre":
+			return player.pre
+		"ada":
+			return player.ada
+		_:
+			print("❌ Stat sconosciuta: ", stat)
+			return 0
+
+func _set_player_stat(stat: String, value: int):
+	if not player:
+		return
+	
+	match stat:
+		"hp":
+			player.hp = max(0, value)
+		"max_hp":
+			player.max_hp = max(1, value)
+		"food":
+			player.food = clamp(value, 0, 100)
+		"water":
+			player.water = clamp(value, 0, 100)
+		"exp":
+			player.exp = max(0, value)
+		"level":
+			player.level = max(1, value)
+		"pts":
+			player.pts = max(0, value)
+		"vig":
+			player.vig = max(0, value)
+		"pot":
+			player.pot = max(0, value)
+		"agi":
+			player.agi = max(0, value)
+		"tra":
+			player.tra = max(0, value)
+		"inf":
+			player.inf = max(0, value)
+		"pre":
+			player.pre = max(0, value)
+		"ada":
+			player.ada = max(0, value)
+		_:
+			print("❌ Impossibile impostare stat sconosciuta: ", stat) 

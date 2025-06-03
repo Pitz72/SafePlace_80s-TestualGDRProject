@@ -117,7 +117,10 @@ func _test_event_system():
 	
 	# Test event status
 	var event_status = event_manager.get_event_status()
-	print("   Event state: ", event_status.get("state", "unknown"))
+	if event_status:
+		print("   Event state: ", event_status.get("state", "unknown"))
+	else:
+		print("   Event state: unknown (no status)")
 
 func _test_map_system():
 	if not map_manager:
@@ -168,7 +171,10 @@ func _test_save_system():
 	
 	# Test save status
 	var save_status = save_manager.get_save_status()
-	print("   Auto-save: ", "✅" if save_status.get("auto_save_enabled", false) else "❌")
+	if save_status:
+		print("   Auto-save: ", "✅" if save_status.get("auto_save_enabled", false) else "❌")
+	else:
+		print("   Auto-save: unknown (no status)")
 
 func _test_player_integration():
 	if not player:
@@ -196,14 +202,18 @@ func _print_final_status():
 	
 	if game_manager:
 		var status = game_manager.get_system_status()
-		print("🎮 Game State: ", status.get("game_state", "unknown"))
-		print("⚔️ Combat Available: ", status.get("combat_manager", false))
-		print("📖 Events Available: ", status.get("event_manager", false))
-		print("🗺️ Map Available: ", status.get("map_manager", false))
-		print("💾 Save Available: ", status.get("save_manager", false))
-		print("🕐 Game Time: ", "%.1fs" % status.get("game_time", 0))
-		print("📍 Location: ", status.get("current_location", "unknown"))
-		print("🚶 Movement: ", status.get("movement_points", 0))
+		if status:
+			print("🎮 Game State: ", status.get("game_state", "unknown"))
+			print("⚔️ Combat Available: ", status.get("combat_manager", false))
+			print("📖 Events Available: ", status.get("event_manager", false))
+			print("🗺️ Map Available: ", status.get("map_manager", false))
+			print("💾 Save Available: ", status.get("save_manager", false))
+			print("🕐 Game Time: ", "%.1fs" % status.get("game_time", 0))
+			print("📍 Location: ", status.get("current_location", "unknown"))
+			print("🚶 Movement: ", status.get("movement_points", 0))
+		else:
+			print("🎮 Game State: unknown (no status)")
+			print("⚔️ Systems: not available")
 	
 	if player:
 		print("👤 Player Level: ", player.level)
@@ -229,4 +239,4 @@ func _print_final_status():
 	else:
 		print("⚠️ SESSION #005: Partial success, review needed")
 	
-	print("=" * 50) 
+	print("=".repeat(50)) 

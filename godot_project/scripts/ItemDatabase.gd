@@ -1,11 +1,11 @@
 class_name ItemDatabase
-extends Resource
+extends Node
 
 ## Database degli oggetti per SafePlace Godot Port
 ## Migrazione completa da js/game_data.js ITEM_DATA
 
 # Database principale degli oggetti
-@export var items: Array[Item] = []
+var items: Array[Item] = []
 
 # Lookup dictionary per accesso veloce per ID
 var _item_lookup: Dictionary = {}

@@ -390,6 +390,18 @@ func get_location_name(location_id: String) -> String:
 		return location_database[location_id].get("name", location_id)
 	return "Location sconosciuta"
 
+## Ottiene nome location corrente (wrapper per compatibilità HUD)
+func get_current_location_name() -> String:
+	return get_location_name(current_location)
+
+## Ottiene punti movimento correnti (getter per HUD)
+func get_movement_points() -> int:
+	return movement_points
+
+## Ottiene punti movimento massimi (getter per HUD)  
+func get_max_movement_points() -> int:
+	return max_movement_points
+
 ## Ottiene description location
 func get_location_description(location_id: String) -> String:
 	if location_database.has(location_id):

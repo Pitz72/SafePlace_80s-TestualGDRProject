@@ -259,8 +259,8 @@ func _serialize_inventory() -> Array:
 	for item in player.inventory:
 		if item:
 			inventory_data.append({
-				"id": item.id,
-				"quantity": item.quantity if item.has_method("get") and item.get("quantity") else 1
+				"id": item.get("item_id", ""),
+				"quantity": item.get("quantity", 1)
 			})
 	
 	return inventory_data
