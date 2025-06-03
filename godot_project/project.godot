@@ -13,14 +13,16 @@ config_version=5
 config/name="SafePlaceGodot"
 config/description="The Safe Place - Porting to Godot 4.5"
 config/version="1.0.0"
-run/main_scene="res://scenes/TestScene.tscn"
+run/main_scene="res://scenes/ItemDatabaseTestScene.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
 [debug]
 
+gdscript/warnings/enable=true
 gdscript/warnings/treat_warnings_as_errors=false
 
 [rendering]
 
+renderer/rendering_method="forward_plus"
 driver/threads/thread_models=3
