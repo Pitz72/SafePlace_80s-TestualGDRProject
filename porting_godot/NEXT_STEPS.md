@@ -371,3 +371,314 @@ FASE 2: 60% (Main Systems Operational)
 **⚡ Velocity**: Accelerated development pace established  
 **🏆 Standard**: Zero-defect methodology proven  
 **📅 Timeline**: Ahead of schedule, maintain momentum 
+
+# 📋 NEXT STEPS - SafePlace Godot Porting
+
+## **🎯 SESSION #005 PLANNING**
+
+### **CURRENT STATUS** ✅
+**Session #004 COMPLETATA** - Main Scene Architecture + Player System Foundation
+- **Main.tscn**: Complete scene hierarchy operational
+- **GameManager.gd**: Central coordination system functional
+- **Player.gd**: Complete SafePlace mechanics implemented
+- **Signal Integration**: Inter-system communication verified
+- **Testing**: All systems 100% operational
+
+### **NEXT TARGET** 🎯
+**Session #005**: Combat + Event + Map + Save Systems Foundation
+
+---
+
+## 🚀 **SESSION #005 IMMEDIATE OBJECTIVES**
+
+### **1. COMBAT SYSTEM FOUNDATION** ⚔️
+
+#### **Priority A: Combat Engine Core**
+- **CombatManager.gd**: Turn-based combat coordinator
+- **Damage calculation engine** with weapon/armor integration
+- **Attack/Defense mechanics** using Player stats
+- **Critical hit/miss system** with RNG
+
+#### **Priority B: Weapon/Armor Integration**
+- **Equipment system** connecting ItemDatabase weapons/armor
+- **Stat modification** from equipped items
+- **Durability system** for equipment degradation
+- **Equipment UI** for weapon/armor management
+
+#### **Priority C: Combat Flow**
+- **Turn management** (player → enemy → player)
+- **Action selection** (attack, defend, use item, flee)
+- **Combat resolution** with experience gain
+- **Victory/defeat handling** with consequences
+
+### **2. EVENT SYSTEM ARCHITECTURE** 📖
+
+#### **Priority A: Event Framework**
+- **EventManager.gd**: Narrative event coordinator
+- **Event.gd**: Base class for all game events
+- **Choice system** with consequence tracking
+- **Event trigger conditions** (location, stats, items)
+
+#### **Priority B: Narrative Integration**
+- **Story progression** tracking system
+- **Character interaction** framework
+- **Multiple choice consequences** affecting game state
+- **Achievement triggers** from event completion
+
+#### **Priority C: Event Types**
+- **Random encounters** during exploration
+- **Location-specific events** tied to areas
+- **Character interaction events** with NPCs
+- **Special condition events** (hunger, thirst, etc.)
+
+### **3. MAP/LOCATION SYSTEM** 🗺️
+
+#### **Priority A: Location Framework**
+- **MapManager.gd**: World location coordinator
+- **Location.gd**: Base class for game areas
+- **Movement system** with movement points
+- **Location discovery** and access control
+
+#### **Priority B: World State Management**
+- **Location status tracking** (visited, cleared, etc.)
+- **Resource availability** per location
+- **Danger level system** affecting encounters
+- **Weather/time effects** on locations
+
+#### **Priority C: Navigation**
+- **Location transitions** with movement costs
+- **Fast travel system** for discovered locations
+- **Exploration mechanics** for finding new areas
+- **Location-specific UI** with area information
+
+### **4. SAVE/LOAD FRAMEWORK** 💾
+
+#### **Priority A: Save System Core**
+- **SaveManager.gd**: Game state persistence coordinator
+- **GameState.gd**: Serializable game state container
+- **Player data serialization** (stats, inventory, progress)
+- **World state saving** (locations, events, achievements)
+
+#### **Priority B: Save File Management**
+- **Multiple save slots** with metadata
+- **Save file validation** and error handling
+- **Auto-save functionality** at key moments
+- **Save compatibility** checking
+
+#### **Priority C: Settings & Preferences**
+- **Game settings** persistence (audio, graphics, controls)
+- **Player preferences** storage
+- **Achievement tracking** across sessions
+- **Statistics collection** for game analysis
+
+---
+
+## 🔗 **INTEGRATION REQUIREMENTS**
+
+### **Combat ↔ Existing Systems**
+- **Player.gd**: Use existing HP, stats, inventory for combat
+- **ItemDatabase**: Weapon/armor data for combat calculations
+- **GameManager**: Combat state integration
+- **UI System**: Combat interface overlays
+
+### **Event ↔ Existing Systems**
+- **Player.gd**: Event effects on stats, inventory, progress
+- **ItemDatabase**: Event rewards (items, equipment)
+- **GameManager**: Event state management
+- **Location System**: Area-specific event triggers
+
+### **Map ↔ Existing Systems**
+- **Player.gd**: Movement points, location tracking
+- **Event System**: Location-based event triggers
+- **GameManager**: Travel state management
+- **Combat System**: Random encounters during travel
+
+### **Save ↔ All Systems**
+- **Player.gd**: Complete player state serialization
+- **ItemDatabase**: Inventory persistence
+- **GameManager**: Game state snapshot
+- **All Systems**: State restoration on load
+
+---
+
+## 📊 **SESSION #005 SUCCESS METRICS**
+
+### **Completion Targets**
+- **4 Core Systems**: Combat, Event, Map, Save foundations
+- **Integration Testing**: All systems working together
+- **UI Foundation**: Basic interfaces for each system
+- **Performance**: Maintain sub-millisecond standards
+
+### **Quality Standards**
+- **100% Test Coverage**: Each system fully validated
+- **Zero Technical Debt**: Clean, maintainable code
+- **Signal Integration**: Seamless inter-system communication
+- **Modular Architecture**: Independent system development
+
+### **Performance Benchmarks**
+- **Combat Calculations**: Sub-millisecond
+- **Event Processing**: Instant response
+- **Map Transitions**: Seamless navigation
+- **Save Operations**: Under 100ms for full state
+
+---
+
+## 🛠️ **TECHNICAL IMPLEMENTATION STRATEGY**
+
+### **Development Approach**
+1. **Start with Combat System**: Most complex, foundational for gameplay
+2. **Event System Next**: Narrative framework building on combat
+3. **Map System Third**: World structure connecting events/combat
+4. **Save System Last**: Persistence layer for all systems
+
+### **Integration Testing Strategy**
+- **Combat Test**: Player vs enemy with weapon/armor
+- **Event Test**: Story sequence with choices and consequences
+- **Map Test**: Location travel with random encounters
+- **Save Test**: Complete game state persistence/restoration
+
+### **Architecture Principles**
+- **Signal-Based Communication**: Continue Session #004 pattern
+- **Resource-Based Data**: Extend ItemDatabase approach
+- **State Management**: Integrate with GameManager
+- **Performance First**: Sub-millisecond operation priority
+
+---
+
+## 🎯 **IMPLEMENTATION ORDER**
+
+### **Phase 1: Core System Foundations (Priority)**
+```
+Week 1 Focus:
+├── CombatManager.gd (turn-based combat core)
+├── EventManager.gd (narrative event system)
+├── MapManager.gd (location management)
+└── SaveManager.gd (persistence framework)
+```
+
+### **Phase 2: Integration & Testing**
+```
+Week 2 Focus:
+├── Inter-system signal integration
+├── UI foundations for each system
+├── Comprehensive testing framework
+└── Performance optimization
+```
+
+### **Phase 3: Polish & Validation**
+```
+Week 3 Focus:
+├── Edge case handling
+├── Error recovery systems
+├── Documentation completion
+└── Session #006 preparation
+```
+
+---
+
+## 🚨 **RISK MITIGATION**
+
+### **Identified Risks**
+1. **System Complexity**: 4 major systems in single session
+2. **Integration Challenges**: Inter-system dependencies
+3. **Performance Impact**: Multiple systems running simultaneously
+4. **Testing Complexity**: Comprehensive validation requirements
+
+### **Mitigation Strategies**
+1. **Phased Implementation**: Core foundations first, integration second
+2. **Signal Decoupling**: Maintain loose coupling between systems
+3. **Performance Monitoring**: Real-time metrics during development
+4. **Incremental Testing**: Validate each system independently first
+
+### **Success Prerequisites**
+✅ **Session #004 Complete**: All foundation systems operational
+✅ **Architecture Solid**: Scene hierarchy and signal system proven
+✅ **Performance Baseline**: Sub-millisecond standards established
+✅ **Testing Framework**: Comprehensive validation methodology
+
+---
+
+## 📋 **SESSION #005 DELIVERABLES**
+
+### **Code Deliverables**
+- **CombatManager.gd**: Turn-based combat system (~300 lines)
+- **EventManager.gd**: Narrative event framework (~250 lines)
+- **MapManager.gd**: Location/travel system (~200 lines)
+- **SaveManager.gd**: Persistence framework (~200 lines)
+- **Integration Tests**: Comprehensive validation (~150 lines)
+
+### **Scene Deliverables**
+- **CombatUI**: Basic combat interface
+- **EventUI**: Story/choice presentation
+- **MapUI**: Location selection interface
+- **SaveUI**: Load/save game interface
+
+### **Documentation Updates**
+- **Session #005 Summary**: Complete achievement report
+- **Architecture Documentation**: System integration diagrams
+- **Anti-Regression Updates**: New system protection
+- **Current Status**: Progress metrics update
+
+---
+
+## 🏆 **SESSION #005 SUCCESS DEFINITION**
+
+### **Minimum Viable Success**
+- **Combat System**: Basic turn-based fighting functional
+- **Event System**: Story events with choices working
+- **Map System**: Location travel operational
+- **Save System**: Game state persistence working
+
+### **Optimal Success Target**
+- **Full Integration**: All 4 systems working together seamlessly
+- **UI Foundation**: Basic interfaces for all systems
+- **Performance**: All operations under sub-millisecond standards
+- **Testing**: 100% system validation complete
+
+### **Stretch Goals**
+- **Advanced Combat**: Critical hits, special abilities
+- **Complex Events**: Multi-stage narratives
+- **Rich Locations**: Detailed area descriptions and mechanics
+- **Advanced Saves**: Multiple slots, auto-save, metadata
+
+---
+
+## 🎯 **PREPARATION CHECKLIST**
+
+### **Before Starting Session #005**
+✅ **Verify Session #004 Systems**: All tests passing
+✅ **Check Performance**: Sub-millisecond standards maintained
+✅ **Validate Signal System**: Inter-component communication working
+✅ **Review Architecture**: Scene hierarchy and GameManager operational
+✅ **Testing Framework**: Ready for expansion to new systems
+
+### **Development Environment**
+✅ **Godot 4.5 dev5**: Stable and operational
+✅ **Project Structure**: Clean and organized
+✅ **Git Repository**: All commits up-to-date
+✅ **Documentation**: Current and complete
+
+---
+
+## 💼 **EXECUTIVE TIMELINE**
+
+### **Session #005 Target**
+- **Duration**: Single development session
+- **Scope**: 4 foundational systems
+- **Integration**: Complete system coordination
+- **Testing**: Comprehensive validation
+
+### **Post-Session #005 Status**
+- **Core Gameplay**: Combat, events, exploration functional
+- **Save System**: Game persistence operational
+- **Integration**: All systems working together
+- **Foundation**: Ready for Session #006 advanced features
+
+---
+
+**🚀 SESSION #005 - READY TO LAUNCH**
+**📅 Target Systems**: Combat + Event + Map + Save foundations
+**🎯 Success Metric**: 4/4 systems operational with integration
+**⚡ Timeline**: Maintaining 25% acceleration ahead of schedule
+
+*Next Steps Planning Complete - Ready for Session #005 execution* 
