@@ -1,0 +1,31 @@
+# Godot 4.x specific files
+.import/
+export_presets.cfg
+.mono/
+.tmp/
+
+# Godot-specific ignores
+*.tmp
+*.translation
+.godot/
+
+# User-specific files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+builds/
+exports/
+
+# IDE specific
+.vscode/
+.idea/
+
+# Backup files
+*~
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db 
