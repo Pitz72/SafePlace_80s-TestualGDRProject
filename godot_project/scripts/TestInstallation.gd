@@ -6,7 +6,7 @@ class_name TestInstallation
 
 func _ready():
 	print("🚀 SafePlace Godot Port - Installation Test")
-	print("=" * 50)
+	print("==================================================")
 	
 	# Godot version info
 	var version_info = Engine.get_version_info()
@@ -27,7 +27,7 @@ func _ready():
 	# SafePlace specific checks
 	_test_safeplace_requirements()
 	
-	print("=" * 50)
+	print("==================================================")
 	print("✅ Godot 4.5 dev5 installation verified!")
 	print("🎮 Ready for SafePlace porting!")
 
