@@ -19,10 +19,8 @@ config/icon="res://icon.svg"
 
 [debug]
 
-gdscript/warnings/enable=true
 gdscript/warnings/treat_warnings_as_errors=false
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
-driver/threads/thread_models=3 
+driver/threads/thread_models=3
