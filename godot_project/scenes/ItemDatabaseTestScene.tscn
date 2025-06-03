@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://bdccjb2dgrsm"]
+[gd_scene load_steps=2 format=3 uid="uid://clccjb2dgrsm"]
 
 [ext_resource type="Script" path="res://scripts/ItemDatabaseTest.gd" id="1"]
 

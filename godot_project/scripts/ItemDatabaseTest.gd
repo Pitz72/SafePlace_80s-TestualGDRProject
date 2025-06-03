@@ -13,9 +13,9 @@ func _ready():
 
 ## Esegue il test di migrazione completo
 func _run_migration_test():
-	print("=" * 60)
+	print("============================================================")
 	print("🚀 ITEMDATABASE MIGRATION TEST - SESSION #003")
-	print("=" * 60)
+	print("============================================================")
 	
 	# Step 1: Crea database
 	item_database = ItemDatabase.new()
@@ -40,12 +40,12 @@ func _run_migration_test():
 	# Step 6: Performance test
 	_test_performance()
 	
-	print("=" * 60)
+	print("============================================================")
 	if migration_success:
 		print("✅ ITEMDATABASE MIGRATION TEST: SUCCESS!")
 	else:
 		print("❌ ITEMDATABASE MIGRATION TEST: FAILED!")
-	print("=" * 60)
+	print("============================================================")
 
 ## Crea dati di test che simulano la struttura JavaScript
 func _create_test_js_data() -> Dictionary:

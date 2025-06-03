@@ -257,7 +257,7 @@ func debug_print_categories():
 ## Debug: stampa statistiche dettagliate
 func debug_print_detailed_stats():
 	print("📊 STATISTICHE DETTAGLIATE ITEMDATABASE")
-	print("=" * 50)
+	print("==================================================")
 	
 	var stats = get_stats()
 	for key in stats.keys():
