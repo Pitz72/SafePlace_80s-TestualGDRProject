@@ -17,8 +17,8 @@ func _ready():
 	await get_tree().process_frame
 	
 	# Trova i riferimenti
-	game_manager = get_node("../GameManager")
-	player = get_node("../WorldContainer/Player")
+	game_manager = get_node("../")
+	player = get_node("../../WorldContainer/Player")
 	
 	if game_manager:
 		combat_manager = game_manager.get_combat_manager()

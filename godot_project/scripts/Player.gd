@@ -12,7 +12,17 @@ var water: int = 100
 var exp: int = 0
 var level: int = 1
 
-# Combat Stats
+# New SafePlace stats for Session #005
+var pts: int = 0  # Available points
+var vig: int = 10  # Vigor 
+var pot: int = 10  # Power
+var agi: int = 10  # Agility
+var tra: int = 10  # Tracking
+var inf: int = 10  # Influence
+var pre: int = 10  # Presence
+var ada: int = 10  # Adaptability
+
+# Legacy Combat Stats (mantenuti per compatibilità)
 var attack: int = 10
 var defense: int = 5
 var agility: int = 8
@@ -26,8 +36,9 @@ var is_bleeding: bool = false
 # Inventory System
 var inventory: Array[Dictionary] = []
 var max_inventory_slots: int = 20
-var equipped_weapon: Item = null
-var equipped_armor: Dictionary = {
+var equipped_weapon = null
+var equipped: Dictionary = {
+	"weapon": null,
 	"head": null,
 	"body": null,
 	"legs": null,
@@ -47,8 +58,8 @@ var survival_update_interval: float = 30.0  # 30 seconds
 
 # Player Signals
 signal stats_changed(stat_name: String, old_value: int, new_value: int)
-signal inventory_changed(action: String, item: Item, quantity: int)
-signal equipment_changed(slot: String, item: Item)
+signal inventory_changed(action: String, item, quantity: int)
+signal equipment_changed(slot: String, item)
 signal level_up(new_level: int)
 signal death()
 signal status_effect_added(effect: String)
@@ -112,8 +123,8 @@ func _add_starting_items():
 ## Reset equipment a valori default
 func _reset_equipment():
 	equipped_weapon = null
-	for slot in equipped_armor.keys():
-		equipped_armor[slot] = null
+	for slot in equipped.keys():
+		equipped[slot] = null
 
 ## Sistema di sopravvivenza - aggiorna fame, sete, ecc.
 func _update_survival_mechanics():
@@ -179,28 +190,27 @@ func _apply_survival_damage():
 	if damage > 0:
 		take_damage(damage, "survival")
 
-## Gestione HP e danni
+## Gestione HP e danni (FUNZIONE UNIFICATA)
 func take_damage(amount: int, source: String = "unknown"):
 	var old_hp = hp
 	hp = max(0, hp - amount)
 	
-	print("💥 Danno ricevuto: -%d HP da %s (HP: %d/%d)" % [amount, source, hp, max_hp])
+	print("💔 Danno subito: -%d HP da %s (HP: %d → %d)" % [amount, source, old_hp, hp])
 	stats_changed.emit("hp", old_hp, hp)
 	
 	if hp <= 0:
-		_handle_death()
+		print("💀 Player KO!")
+		death.emit()
 
-func heal(amount: int, source: String = "healing"):
+## Guarigione (FUNZIONE UNIFICATA)
+func heal(amount: int, source: String = "unknown"):
 	var old_hp = hp
 	hp = min(max_hp, hp + amount)
+	var actual_heal = hp - old_hp
 	
-	print("💚 Curato: +%d HP da %s (HP: %d/%d)" % [amount, source, hp, max_hp])
-	stats_changed.emit("hp", old_hp, hp)
-
-## Gestione morte
-func _handle_death():
-	print("💀 Il giocatore è morto!")
-	death.emit()
+	if actual_heal > 0:
+		print("💚 Guarigione: +%d HP da %s (HP: %d → %d)" % [actual_heal, source, old_hp, hp])
+		stats_changed.emit("hp", old_hp, hp)
 
 ## Sistema Inventario
 func add_item_to_inventory(item_id: String, quantity: int = 1) -> bool:
@@ -348,6 +358,194 @@ func unequip_item(slot: String) -> bool:
 	print("🛡️ Tentativo di rimuovere equipaggiamento da: %s" % slot)
 	return false
 
+## Metodi per integrazione Session #005
+
+# Combat System Integration
+func get_attack_power() -> int:
+	var base_attack = pot  # Power stat as base attack
+	var weapon_bonus = _get_weapon_attack_bonus()
+	return base_attack + weapon_bonus
+
+func get_defense_power() -> int:
+	var base_defense = vig  # Vigor stat as base defense
+	var armor_bonus = _get_armor_defense_bonus()
+	return base_defense + armor_bonus
+
+func _get_weapon_attack_bonus() -> int:
+	var weapon = get_equipped_weapon()
+	if weapon:
+		return weapon.get("damage", 0)
+	return 0
+
+func _get_armor_defense_bonus() -> int:
+	var armor = get_equipped_armor()
+	if armor:
+		return armor.get("defense", 0)
+	return 0
+
+func get_equipped_weapon():
+	if equipped.has("weapon"):
+		return equipped["weapon"]
+	return null
+
+func get_equipped_armor():
+	if equipped.has("armor"):
+		return equipped["armor"]
+	return null
+
+func has_item_in_inventory(item_id: String) -> bool:
+	return has_item(item_id, 1)
+
+# Save System Integration  
+func get_save_data() -> Dictionary:
+	return {
+		"stats": {
+			"hp": hp,
+			"max_hp": max_hp,
+			"food": food,
+			"water": water,
+			"exp": exp,
+			"level": level,
+			"pts": pts,
+			"vig": vig,
+			"pot": pot,
+			"agi": agi,
+			"tra": tra,
+			"inf": inf,
+			"pre": pre,
+			"ada": ada
+		},
+		"inventory": _serialize_inventory(),
+		"equipped": _serialize_equipment(),
+		"status": {
+			"current_location": current_location,
+			"is_hungry": is_hungry,
+			"is_thirsty": is_thirsty,
+			"is_sick": is_sick,
+			"is_bleeding": is_bleeding
+		}
+	}
+
+func load_save_data(data: Dictionary):
+	if data.has("stats"):
+		var stats = data["stats"]
+		hp = stats.get("hp", hp)
+		max_hp = stats.get("max_hp", max_hp)
+		food = stats.get("food", food)
+		water = stats.get("water", water)
+		exp = stats.get("exp", exp)
+		level = stats.get("level", level)
+		pts = stats.get("pts", pts)
+		vig = stats.get("vig", vig)
+		pot = stats.get("pot", pot)
+		agi = stats.get("agi", agi)
+		tra = stats.get("tra", tra)
+		inf = stats.get("inf", inf)
+		pre = stats.get("pre", pre)
+		ada = stats.get("ada", ada)
+	
+	if data.has("inventory"):
+		_deserialize_inventory(data["inventory"])
+	
+	if data.has("equipped"):
+		_deserialize_equipment(data["equipped"])
+	
+	if data.has("status"):
+		var status = data["status"]
+		current_location = status.get("current_location", current_location)
+		is_hungry = status.get("is_hungry", is_hungry)
+		is_thirsty = status.get("is_thirsty", is_thirsty)
+		is_sick = status.get("is_sick", is_sick)
+		is_bleeding = status.get("is_bleeding", is_bleeding)
+
+func _serialize_inventory() -> Array:
+	var serialized = []
+	for slot in inventory:
+		serialized.append({
+			"item_id": slot.item_id,
+			"quantity": slot.quantity
+		})
+	return serialized
+
+func _deserialize_inventory(data: Array):
+	inventory.clear()
+	for slot_data in data:
+		inventory.append({
+			"item_id": slot_data.get("item_id", ""),
+			"quantity": slot_data.get("quantity", 1),
+			"stackable": _is_item_stackable(slot_data.get("item_id", ""))
+		})
+
+func _serialize_equipment() -> Dictionary:
+	var serialized = {}
+	for slot in equipped:
+		var item = equipped[slot]
+		if item:
+			serialized[slot] = item.get("id", "")
+	return serialized
+
+func _deserialize_equipment(data: Dictionary):
+	equipped.clear()
+	# Equipment deserialization will be handled by SaveManager
+	# which has access to ItemDatabase
+
+# Event System Integration
+func can_afford_cost(cost: Dictionary) -> bool:
+	for resource in cost:
+		var required = cost[resource]
+		var current = get(resource, 0)
+		if current < required:
+			return false
+	return true
+
+func pay_cost(cost: Dictionary) -> bool:
+	if not can_afford_cost(cost):
+		return false
+	
+	for resource in cost:
+		var amount = cost[resource]
+		var current = get(resource, 0)
+		set(resource, current - amount)
+	
+	return true
+
+# Map System Integration
+func can_travel() -> bool:
+	return hp > 10 and food > 5 and water > 5  # Minimum requirements
+
+func get_travel_efficiency() -> float:
+	# Based on agi stat and current health
+	var health_factor = float(hp) / float(max_hp)
+	var agility_factor = float(agi) / 20.0  # Normalize agility
+	return (health_factor + agility_factor) / 2.0
+
+# Resource management for events
+func consume_food(amount: int) -> bool:
+	if food >= amount:
+		var old_food = food
+		food -= amount
+		stats_changed.emit("food", old_food, food)
+		return true
+	return false
+
+func consume_water(amount: int) -> bool:
+	if water >= amount:
+		var old_water = water
+		water -= amount
+		stats_changed.emit("water", old_water, water)
+		return true
+	return false
+
+func restore_food(amount: int):
+	var old_food = food
+	food = min(100, food + amount)
+	stats_changed.emit("food", old_food, food)
+
+func restore_water(amount: int):
+	var old_water = water
+	water = min(100, water + amount)
+	stats_changed.emit("water", old_water, water)
+
 ## Utility Functions
 func get_stats_dict() -> Dictionary:
 	return {
@@ -400,210 +598,4 @@ func print_inventory():
 	else:
 		for i in range(inventory.size()):
 			var slot = inventory[i]
-			print("   %d. %s x%d" % [i+1, slot.item_id, slot.quantity])
-
-## Metodi per integrazione Session #005
-
-# Combat System Integration
-func get_attack_power() -> int:
-	var base_attack = attack  # Power stat as base attack
-	var weapon_bonus = _get_weapon_attack_bonus()
-	return base_attack + weapon_bonus
-
-func get_defense_power() -> int:
-	var base_defense = defense  # Vigor stat as base defense
-	var armor_bonus = _get_armor_defense_bonus()
-	return base_defense + armor_bonus
-
-func _get_weapon_attack_bonus() -> int:
-	var weapon = equipped_weapon
-	if weapon:
-		return weapon.get("damage", 0)
-	return 0
-
-func _get_armor_defense_bonus() -> int:
-	var armor = equipped_armor
-	if armor:
-		return armor.get("defense", 0)
-	return 0
-
-func get_equipped_weapon():
-	return equipped_weapon
-
-func get_equipped_armor():
-	return equipped_armor
-
-func has_item_in_inventory(item_id: String) -> bool:
-	return has_item(item_id, 1)
-
-# Save System Integration  
-func get_save_data() -> Dictionary:
-	return {
-		"stats": {
-			"hp": hp,
-			"max_hp": max_hp,
-			"food": food,
-			"water": water,
-			"exp": exp,
-			"level": level,
-			"attack": attack,
-			"defense": defense,
-			"agility": agility,
-			"is_hungry": is_hungry,
-			"is_thirsty": is_thirsty,
-			"is_sick": is_sick,
-			"is_bleeding": is_bleeding
-		},
-		"inventory": _serialize_inventory(),
-		"equipped": _serialize_equipment(),
-		"status": {
-			"current_location": current_location,
-			"is_hungry": is_hungry,
-			"is_thirsty": is_thirsty,
-			"is_sick": is_sick,
-			"is_bleeding": is_bleeding
-		}
-	}
-
-func load_save_data(data: Dictionary):
-	if data.has("stats"):
-		var stats = data["stats"]
-		hp = stats.get("hp", hp)
-		max_hp = stats.get("max_hp", max_hp)
-		food = stats.get("food", food)
-		water = stats.get("water", water)
-		exp = stats.get("exp", exp)
-		level = stats.get("level", level)
-		attack = stats.get("attack", attack)
-		defense = stats.get("defense", defense)
-		agility = stats.get("agility", agility)
-		is_hungry = stats.get("is_hungry", is_hungry)
-		is_thirsty = stats.get("is_thirsty", is_thirsty)
-		is_sick = stats.get("is_sick", is_sick)
-		is_bleeding = stats.get("is_bleeding", is_bleeding)
-	
-	if data.has("inventory"):
-		_deserialize_inventory(data["inventory"])
-	
-	if data.has("equipped"):
-		_deserialize_equipment(data["equipped"])
-	
-	if data.has("status"):
-		var status = data["status"]
-		current_location = status.get("current_location", current_location)
-		is_hungry = status.get("is_hungry", is_hungry)
-		is_thirsty = status.get("is_thirsty", is_thirsty)
-		is_sick = status.get("is_sick", is_sick)
-		is_bleeding = status.get("is_bleeding", is_bleeding)
-
-func _serialize_inventory() -> Array:
-	var serialized = []
-	for slot in inventory:
-		serialized.append({
-			"item_id": slot.item_id,
-			"quantity": slot.quantity
-		})
-	return serialized
-
-func _deserialize_inventory(data: Array):
-	inventory.clear()
-	for slot_data in data:
-		inventory.append({
-			"item_id": slot_data.get("item_id", ""),
-			"quantity": slot_data.get("quantity", 1),
-			"stackable": _is_item_stackable(slot_data.get("item_id", ""))
-		})
-
-func _serialize_equipment() -> Dictionary:
-	var serialized = {}
-	for slot in equipped_armor.keys():
-		var item = equipped_armor[slot]
-		if item:
-			serialized[slot] = item.get("id", "")
-	return serialized
-
-func _deserialize_equipment(data: Dictionary):
-	equipped_weapon = null
-	for slot in equipped_armor.keys():
-		equipped_armor[slot] = null
-	# Equipment deserialization will be handled by SaveManager
-	# which has access to ItemDatabase
-
-# Event System Integration
-func can_afford_cost(cost: Dictionary) -> bool:
-	for resource in cost:
-		var required = cost[resource]
-		var current = get_item_quantity(resource)
-		if current < required:
-			return false
-	return true
-
-func pay_cost(cost: Dictionary) -> bool:
-	if not can_afford_cost(cost):
-		return false
-	
-	for resource in cost:
-		var amount = cost[resource]
-		var current = get_item_quantity(resource)
-		remove_item_from_inventory(resource, amount)
-	
-	return true
-
-# Map System Integration
-func can_travel() -> bool:
-	return hp > 10 and food > 5 and water > 5  # Minimum requirements
-
-func get_travel_efficiency() -> float:
-	# Based on agility stat and current health
-	var health_factor = float(hp) / float(max_hp)
-	var agility_factor = float(agility) / 20.0  # Normalize agility
-	return (health_factor + agility_factor) / 2.0
-
-# Combat damage with different sources
-func take_damage(amount: int, source: String = "unknown"):
-	var old_hp = hp
-	hp = max(0, hp - amount)
-	
-	print("💔 Danno subito: -%d HP da %s (HP: %d → %d)" % [amount, source, old_hp, hp])
-	stats_changed.emit("hp", old_hp, hp)
-	
-	if hp <= 0:
-		print("💀 Player KO!")
-		death.emit()
-
-# Specialized healing with source tracking
-func heal(amount: int, source: String = "unknown"):
-	var old_hp = hp
-	hp = min(max_hp, hp + amount)
-	var actual_heal = hp - old_hp
-	
-	if actual_heal > 0:
-		print("💚 Guarigione: +%d HP da %s (HP: %d → %d)" % [actual_heal, source, old_hp, hp])
-		stats_changed.emit("hp", old_hp, hp)
-
-# Resource management for events
-func consume_food(amount: int) -> bool:
-	if food >= amount:
-		var old_food = food
-		food -= amount
-		stats_changed.emit("food", old_food, food)
-		return true
-	return false
-
-func consume_water(amount: int) -> bool:
-	if water >= amount:
-		var old_water = water
-		water -= amount
-		stats_changed.emit("water", old_water, water)
-		return true
-	return false
-
-func restore_food(amount: int):
-	var old_food = food
-	food = min(100, food + amount)
-	stats_changed.emit("food", old_food, food)
-
-func restore_water(amount: int):
-	var old_water = water
-	water = min(100, water + amount)
-	stats_changed.emit("water", old_water, water) 
+			print("   %d. %s x%d" % [i+1, slot.item_id, slot.quantity]) 
