@@ -1,0 +1,107 @@
+[gd_resource type="Theme" format=3]
+
+[sub_resource type="StyleBoxFlat" id="panel_style"]
+bg_color = Color(0, 0.15, 0.05, 0.9)  # Verde molto scuro per i pannelli
+border_width_left = 1
+border_width_top = 1  
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.7, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="button_style"]
+bg_color = Color(0, 0.4, 0.15, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1  
+border_width_bottom = 1
+border_color = Color(0, 0.7, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="button_hover_style"]
+bg_color = Color(0, 0.7, 0.25, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 1, 0.4, 1)
+
+[sub_resource type="SystemFont" id="monospace_font"]
+font_names = PackedStringArray("Fixedsys Excelsior", "Fixedsys", "Perfect DOS VGA 437", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace")
+
+[sub_resource type="StyleBoxFlat" id="background_style"]
+bg_color = Color(0, 0, 0, 1)  # Sfondo completamente nero
+
+[resource]
+# Sfondo nero per il controllo principale
+Control/styles/panel = SubResource("background_style")
+Panel/styles/panel = SubResource("panel_style")
+Button/styles/normal = SubResource("button_style")
+Button/styles/hover = SubResource("button_hover_style")
+Button/styles/pressed = SubResource("button_hover_style")
+
+# Colori testo SafePlace autentici - Verde CRT realistico
+Label/colors/font_color = Color(0, 0.7, 0.25, 1)        # Verde principale interfaccia
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.8)     # Ombra per profondità CRT
+
+# Font monospace OBBLIGATORIO per allineamento ASCII perfetto
+# TUTTI i controlli DEVONO usare Fixedsys Excelsior o fallback monospace
+
+# RichTextLabel (CRITICO per mappa ASCII)
+RichTextLabel/fonts/normal_font = SubResource("monospace_font")
+RichTextLabel/fonts/bold_font = SubResource("monospace_font")
+RichTextLabel/fonts/italics_font = SubResource("monospace_font")
+RichTextLabel/fonts/mono_font = SubResource("monospace_font")
+RichTextLabel/font_sizes/normal_font_size = 16
+RichTextLabel/font_sizes/bold_font_size = 16
+RichTextLabel/font_sizes/italics_font_size = 16
+RichTextLabel/font_sizes/mono_font_size = 16
+
+# Label (per titoli pannelli)
+Label/fonts/font = SubResource("monospace_font")
+Label/font_sizes/font_size = 16
+
+# Button (per controlli)
+Button/fonts/font = SubResource("monospace_font")
+Button/font_sizes/font_size = 16
+
+# Panel (testo nei pannelli)
+Panel/fonts/font = SubResource("monospace_font")
+
+# Control base (fallback universale)
+Control/fonts/font = SubResource("monospace_font")
+
+# Font di default per tutto il progetto
+default_font = SubResource("monospace_font")
+
+# Override forzato per qualsiasi controllo
+*/fonts/* = SubResource("monospace_font")
+
+# Colori specifici per elementi mappa ASCII
+# Pianure: Verde base (stesso dell'interfaccia)
+# Foreste: Verde scuro  
+# Montagne: Marrone scuro
+# Città: Grigio chiaro
+# Villaggi: Marrone chiaro  
+# Fiumi: Celeste
+# Player: Giallo brillante
+
+# Definizioni colore per ASCIIMapGenerator
+# Plains_Color = Color(0, 0.7, 0.25, 1)     # Verde base come interfaccia
+# Forest_Color = Color(0, 0.4, 0.15, 1)     # Verde scuro  
+# Mountain_Color = Color(0.4, 0.25, 0.1, 1) # Marrone scuro
+# City_Color = Color(0.7, 0.7, 0.7, 1)      # Grigio chiaro
+# Village_Color = Color(0.6, 0.4, 0.2, 1)   # Marrone chiaro
+# River_Color = Color(0.2, 0.6, 0.8, 1)     # Celeste
+# Player_Color = Color(1, 1, 0, 1)          # Giallo brillante
+# Night_Color = Color(0.2, 0.4, 1, 1)       # Blu acceso per "Notte"
+
+# Status Colors per pannello Sopravvivenza
+# Normal_Status = Color(0, 0.7, 0.25, 1)    # Verde normale
+# Sick_Status = Color(0.8, 0.6, 0, 1)       # Giallo malato  
+# Infected_Status = Color(0.8, 0.2, 0.8, 1) # Magenta infetto
+# Wounded_Status = Color(0.8, 0.2, 0.2, 1)  # Rosso ferito
+# Hungry_Status = Color(0.9, 0.5, 0, 1)     # Arancione affamato
+# Thirsty_Status = Color(0.6, 0.8, 1, 1)    # Azzurro assetato 
+
+Button/colors/font_color = Color(0, 0.7, 0.25, 1)
+Button/colors/font_hover_color = Color(0, 1, 0.4, 1)
+Button/fonts/font = SubResource("monospace_font") 

@@ -65,7 +65,9 @@ signal status_effect_added(effect: String)
 signal status_effect_removed(effect: String)
 
 func _init():
-	print("👤 Player inizializzato")
+	print("🏃 Player inizializzato con stats SafePlace")
+	_setup_initial_stats()
+	_add_test_items_safeplace()  # Aggiungi oggetti di test SafePlace
 
 func _ready():
 	print("👤 Player ready")
@@ -118,6 +120,9 @@ func _add_starting_items():
 	
 	# Starting armor
 	add_item_to_inventory("leather_boots", 1)
+	
+	# Aggiungi oggetti SafePlace di test per MainInterface
+	_add_test_safeplace_objects()
 
 ## Reset equipment a valori default
 func _reset_equipment():
@@ -277,8 +282,12 @@ func has_item(item_id: String, quantity: int = 1) -> bool:
 
 ## Check if item is stackable (placeholder)
 func _is_item_stackable(item_id: String) -> bool:
-	# This should query the ItemDatabase in a real implementation
-	var stackable_items = ["health_potion", "food_can", "water_bottle"]
+	# Oggetti stackable SafePlace
+	var stackable_items = [
+		"health_potion", "food_can", "water_bottle",
+		"bende_sporche", "acqua_bottiglia", "cibo_scatola",
+		"metallo_rottame", "stracci_stoffa", "carbone", "latta_cibo"
+	]
 	return item_id in stackable_items
 
 ## Sistema Experience e Level
@@ -621,4 +630,91 @@ func print_inventory():
 	else:
 		for i in range(inventory.size()):
 			var slot = inventory[i]
-			print("   %d. %s x%d" % [i+1, slot.item_id, slot.quantity]) 
+			print("   %d. %s x%d" % [i+1, slot.item_id, slot.quantity])
+
+func _add_test_items_safeplace():
+	"""Aggiunge oggetti di test SafePlace per MainInterface"""
+	print("🎒 Aggiungendo oggetti di test SafePlace...")
+	
+	# Oggetti tipici SafePlace anni '80
+	add_item_to_inventory("bende_sporche", 3)
+	add_item_to_inventory("acqua_bottiglia", 1)
+	add_item_to_inventory("cibo_scatola", 2)
+	add_item_to_inventory("metallo_rottame", 4)
+	add_item_to_inventory("coltello_arrugginito", 1)
+	add_item_to_inventory("stracci_stoffa", 5)
+	add_item_to_inventory("carbone", 2)
+	add_item_to_inventory("latta_cibo", 1)
+	
+	print("✅ Oggetti di test SafePlace aggiunti all'inventario")
+
+func get_inventory_display() -> Array[Dictionary]:
+	"""Restituisce l'inventario formattato per MainInterface"""
+	var display_array: Array[Dictionary] = []
+	
+	for slot in inventory:
+		var item_data = {
+			"id": slot.item_id,
+			"name": _get_item_display_name(slot.item_id),
+			"quantity": slot.quantity,
+			"stackable": slot.get("stackable", false)
+		}
+		display_array.append(item_data)
+	
+	return display_array
+
+func _get_item_display_name(item_id: String) -> String:
+	"""Converte l'ID oggetto in nome visualizzabile SafePlace style"""
+	var name_mapping = {
+		"bende_sporche": "Bende Sporche",
+		"acqua_bottiglia": "Bott. Acqua G.",
+		"cibo_scatola": "Cibo in Scatola",
+		"metallo_rottame": "Metallo Rottame",
+		"coltello_arrugginito": "Coltello Arrugginito", 
+		"stracci_stoffa": "Stracci di Stoffa",
+		"carbone": "Carbone",
+		"latta_cibo": "Lattina Cibo",
+		"health_potion": "Pozione Cura",
+		"food_can": "Cibo in Scatola", 
+		"water_bottle": "Bottiglia Acqua"
+	}
+	
+	return name_mapping.get(item_id, item_id.capitalize().replace("_", " "))
+
+func _setup_initial_stats():
+	"""Imposta le statistiche iniziali del player SafePlace"""
+	# Stats base SafePlace
+	hp = 95
+	max_hp = 95
+	food = 6
+	water = 6
+	exp = 0
+	level = 1
+	pts = 0
+	
+	# Stats D&D-style SafePlace
+	vig = 5  # Vigore
+	pot = 3  # Potenza  
+	agi = 4  # Agilità
+	tra = 6  # Tracce
+	inf = 4  # Influenza
+	pre = 6  # Presagio
+	ada = 0  # Adattamento
+	
+	print("📊 Stats iniziali SafePlace impostate")
+
+func _add_test_safeplace_objects():
+	"""Aggiunge oggetti di test SafePlace per MainInterface"""
+	print("🎒 Aggiungendo oggetti di test SafePlace...")
+	
+	# Oggetti tipici SafePlace anni '80
+	add_item_to_inventory("bende_sporche", 3)
+	add_item_to_inventory("acqua_bottiglia", 1)
+	add_item_to_inventory("cibo_scatola", 2)
+	add_item_to_inventory("metallo_rottame", 4)
+	add_item_to_inventory("coltello_arrugginito", 1)
+	add_item_to_inventory("stracci_stoffa", 5)
+	add_item_to_inventory("carbone", 2)
+	add_item_to_inventory("latta_cibo", 1)
+	
+	print("✅ Oggetti di test SafePlace aggiunti all'inventario") 

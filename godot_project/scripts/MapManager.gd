@@ -482,15 +482,16 @@ func fast_travel_to(destination_id: String) -> bool:
 	return true
 
 ## Signal handlers
-func _on_game_state_changed(new_state: String):
-	if new_state != "TRAVELING" and current_state == TravelState.TRAVELING:
+func _on_game_state_changed(new_state):
+	# new_state è GameManager.GameState enum
+	if game_manager and new_state != GameManager.GameState.TRAVELING and current_state == TravelState.TRAVELING:
 		# Viaggio interrotto
 		travel_interrupted.emit("state_change")
 		current_state = TravelState.IDLE
 
-func _on_player_stats_changed(stat: String, old_val: int, new_val: int):
+func _on_player_stats_changed(stat: String, _old_val: int, new_val: int):
 	# Possibili modifiche basate su stats player
-	if stat == "agi" and new_val > old_val:
+	if stat == "agi" and new_val > 10:
 		# Agilità aumentata = movimento più efficiente
 		max_movement_points = 100 + (new_val - 10) * 2
 

@@ -125,7 +125,7 @@ func _start_player_turn():
 		print("🎮 Turno del giocatore #", turn_count)
 
 ## Esegue azione del giocatore
-func player_action(action: CombatAction, target: String = "", item_id: String = "") -> bool:
+func player_action(action: CombatAction, _target: String = "", item_id: String = "") -> bool:
 	if current_state != CombatState.PLAYER_TURN:
 		print("❌ Non è il turno del giocatore!")
 		return false
@@ -394,13 +394,14 @@ func _add_to_log(message: String):
 		combat_log.pop_front()
 
 ## Signal handlers
-func _on_game_state_changed(new_state: String):
-	if new_state != "COMBAT" and current_state != CombatState.INACTIVE:
+func _on_game_state_changed(new_state):
+	# new_state è GameManager.GameState enum, non string
+	if new_state != GameManager.GameState.COMBAT and current_state != CombatState.INACTIVE:
 		# Combattimento interrotto
 		_end_combat(CombatState.FLED)
 
-func _on_player_stats_changed(stat: String, old_val: int, new_val: int):
-	if stat == "hp" and new_val <= 0 and current_state != CombatState.INACTIVE:
+func _on_player_stats_changed(_stat: String, _old_val: int, new_val: int):
+	if new_val <= 0 and current_state != CombatState.INACTIVE:
 		# Player morto durante combattimento
 		_end_combat(CombatState.DEFEAT)
 

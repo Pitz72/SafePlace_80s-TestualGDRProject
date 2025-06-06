@@ -95,7 +95,7 @@ func _test_ui_manager_initialization():
 		# Check initial state
 		if ui_manager.has_method("get_current_state"):
 			var current_state = ui_manager.get_current_state()
-			if current_state == UIManager.UIState.HUD:
+			if current_state == "HUD":
 				details.append("Initial state correct (HUD)")
 			else:
 				success = false
@@ -117,20 +117,21 @@ func _test_ui_state_management():
 	if ui_manager and ui_manager.has_method("set_ui_state"):
 		# Test state transitions
 		var test_states = [
-			UIManager.UIState.INVENTORY,
-			UIManager.UIState.MAP,
-			UIManager.UIState.HUD
+			UIManager.UIState.MAIN_INTERFACE,
+			UIManager.UIState.HUD,
+			UIManager.UIState.MENU
 		]
 		
 		for state in test_states:
 			ui_manager.set_ui_state(state)
 			var current_state = ui_manager.get_current_state()
+			var expected_state_name = UIManager.UIState.keys()[state]
 			
-			if current_state == state:
-				details.append("State transition to " + UIManager.UIState.keys()[state] + " successful")
+			if current_state == expected_state_name:
+				details.append("State transition to " + expected_state_name + " successful")
 			else:
 				success = false
-				details.append("State transition to " + UIManager.UIState.keys()[state] + " failed")
+				details.append("State transition to " + expected_state_name + " failed. Got: " + current_state)
 	else:
 		success = false
 		details.append("UIManager state methods not available")
@@ -251,7 +252,6 @@ func _report_test_results():
 	var total_tests = tests_passed + tests_failed
 	var success_rate = (float(tests_passed) / float(total_tests)) * 100.0 if total_tests > 0 else 0.0
 	
-	var separator = "=" 
 	var separator_line = ""
 	for i in range(60):
 		separator_line += "="
@@ -302,8 +302,7 @@ func test_ui_manual_transitions():
 	if ui_manager:
 		var states = [
 			UIManager.UIState.HUD,
-			UIManager.UIState.INVENTORY, 
-			UIManager.UIState.MAP,
+			UIManager.UIState.MAIN_INTERFACE, 
 			UIManager.UIState.MENU,
 			UIManager.UIState.HUD
 		]

@@ -5,32 +5,27 @@ extends Node
 ## Session #006 - UI/UX Systems Implementation
 
 # Signal definitions per UI events
-signal ui_state_changed(new_state: UIState)
+signal ui_state_changed(new_state: String)
 signal interface_opened(interface_name: String)
 signal interface_closed(interface_name: String)
 
 # UI State enum
 enum UIState {
 	HIDDEN,      # No UI active
+	MAIN_INTERFACE, # Main interface
 	HUD,         # Only HUD visible  
-	INVENTORY,   # Inventory interface
 	COMBAT,      # Combat interface
-	MAP,         # Map interface
 	MENU,        # Main menu
 	SETTINGS     # Settings interface
 }
 
 # Current UI state
-var current_state: UIState = UIState.HUD
-var previous_state: UIState = UIState.HUD
+var current_state: UIState = UIState.MAIN_INTERFACE
+var previous_state: UIState = UIState.MAIN_INTERFACE
 
 # References to UI components (will be set from GameManager)
+var main_interface: MainInterface
 var hud: Control
-var inventory_ui: Control  
-var combat_ui: Control
-var map_ui: Control
-var menu_ui: Control
-var settings_ui: Control
 
 # References to game systems
 var game_manager
@@ -53,7 +48,7 @@ func _ready():
 	_auto_discover_ui_components()
 	
 	# Setup UI state
-	set_ui_state(UIState.HUD)
+	set_ui_state(UIState.MAIN_INTERFACE)
 	print("[UIManager] SafePlace UI Manager ready - State: ", UIState.keys()[current_state])
 
 func _connect_game_signals():
@@ -77,24 +72,25 @@ func _auto_discover_ui_components():
 		# Find UI components in UIContainer
 		var ui_container = main_node.get_node_or_null("UIContainer")
 		if ui_container:
-			hud = ui_container.get_node_or_null("GameUI/HUD")
-			inventory_ui = ui_container.get_node_or_null("InventoryUI")
-			combat_ui = ui_container.get_node_or_null("CombatUI")
-			map_ui = ui_container.get_node_or_null("MapUI")
-			menu_ui = ui_container.get_node_or_null("MenuUI")
-			settings_ui = ui_container.get_node_or_null("SettingsUI")
+			main_interface = ui_container.get_node_or_null("MainInterface")
+			hud = ui_container.get_node_or_null("HUD")
 			
 			print("[UIManager] SafePlace UI components discovered:")
+			print("  MainInterface: ", main_interface != null)
 			print("  HUD: ", hud != null)
-			print("  Inventory: ", inventory_ui != null)
-			print("  Combat: ", combat_ui != null)
-			print("  Map: ", map_ui != null)
-			print("  Menu: ", menu_ui != null)
-			print("  Settings: ", settings_ui != null)
+
+func initialize_main_interface(gm: GameManager):
+	"""Initialize MainInterface with GameManager reference"""
+	game_manager = gm
+	if main_interface and main_interface.has_method("initialize"):
+		main_interface.initialize(gm)
+		print("[UIManager] MainInterface inizializzata con GameManager")
 
 func set_player_reference(player_ref: Player):
 	"""Set player reference for stats synchronization"""
 	player = player_ref
+	if main_interface:
+		main_interface.player = player
 	if player and player.has_signal("stats_changed"):
 		player.stats_changed.connect(_on_player_stats_changed)
 		print("[UIManager] Connected to Player stats updates")
@@ -116,34 +112,34 @@ func set_ui_state(new_state: UIState):
 	match current_state:
 		UIState.HIDDEN:
 			_show_nothing()
+		UIState.MAIN_INTERFACE:
+			_show_main_interface()
 		UIState.HUD:
 			_show_hud()
-		UIState.INVENTORY:
-			_show_inventory()
 		UIState.COMBAT:
 			_show_combat()
-		UIState.MAP:
-			_show_map()
 		UIState.MENU:
 			_show_menu()
 		UIState.SETTINGS:
 			_show_settings()
 	
 	# Emit state change signal
-	ui_state_changed.emit(current_state)
+	ui_state_changed.emit(_ui_state_to_string(current_state))
 
 func _hide_all_interfaces():
 	"""Hide all UI interfaces"""
+	if main_interface: main_interface.visible = false
 	if hud: hud.visible = false
-	if inventory_ui: inventory_ui.visible = false
-	if combat_ui: combat_ui.visible = false
-	if map_ui: map_ui.visible = false
-	if menu_ui: menu_ui.visible = false
-	if settings_ui: settings_ui.visible = false
 
 func _show_nothing():
 	"""Show no interfaces (complete hidden state)"""
 	pass  # All interfaces already hidden
+
+func _show_main_interface():
+	"""Show main interface"""
+	if main_interface:
+		main_interface.visible = true
+		interface_opened.emit("main_interface")
 
 func _show_hud():
 	"""Show HUD interface"""
@@ -151,87 +147,68 @@ func _show_hud():
 		hud.visible = true
 		interface_opened.emit("hud")
 
-func _show_inventory():
-	"""Show inventory interface + HUD"""
-	if hud: hud.visible = true
-	if inventory_ui:
-		inventory_ui.visible = true
-		interface_opened.emit("inventory")
-
 func _show_combat():
 	"""Show combat interface + HUD"""
 	if hud: hud.visible = true
-	if combat_ui:
-		combat_ui.visible = true
-		interface_opened.emit("combat")
-
-func _show_map():
-	"""Show map interface + HUD"""
-	if hud: hud.visible = true
-	if map_ui:
-		map_ui.visible = true
-		interface_opened.emit("map")
 
 func _show_menu():
 	"""Show main menu interface"""
-	if menu_ui:
-		menu_ui.visible = true
+	if main_interface:
+		main_interface.visible = true
 		interface_opened.emit("menu")
 
 func _show_settings():
 	"""Show settings interface"""
-	if settings_ui:
-		settings_ui.visible = true
+	if main_interface:
+		main_interface.visible = true
 		interface_opened.emit("settings")
 
 # Input handling for UI state changes
 func _input(event):
-	if event.is_action_pressed("ui_cancel"):  # ESC key
-		_handle_escape_key()
-	elif event.is_action_pressed("open_inventory"):  # I key
-		_handle_inventory_toggle()
-	elif event.is_action_pressed("open_map"):  # M key
-		_handle_map_toggle()
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_ESCAPE:
+				_handle_escape()
+			KEY_H:
+				_toggle_hud()
 
-func _handle_escape_key():
+func _handle_escape():
 	"""Handle ESC key for UI navigation"""
 	match current_state:
-		UIState.INVENTORY, UIState.MAP, UIState.SETTINGS:
-			set_ui_state(UIState.HUD)
+		UIState.MAIN_INTERFACE:
+			_show_hud()
 		UIState.HUD:
-			set_ui_state(UIState.MENU)
+			_show_main_interface()
 		UIState.MENU:
-			set_ui_state(UIState.HUD)
+			_show_main_interface()
 		UIState.COMBAT:
 			pass  # No ESC during combat
 
-func _handle_inventory_toggle():
-	"""Toggle inventory interface"""
-	if current_state == UIState.INVENTORY:
-		set_ui_state(UIState.HUD)
-	elif current_state == UIState.HUD:
-		set_ui_state(UIState.INVENTORY)
-
-func _handle_map_toggle():
-	"""Toggle map interface"""
-	if current_state == UIState.MAP:
-		set_ui_state(UIState.HUD)
-	elif current_state == UIState.HUD:
-		set_ui_state(UIState.MAP)
+func _toggle_hud():
+	"""Toggle HUD"""
+	if current_state == UIState.HUD:
+		_show_main_interface()
+	elif current_state == UIState.MAIN_INTERFACE:
+		_show_hud()
 
 # Signal handlers for game events
 func _on_game_state_changed(new_game_state):
 	"""Handle GameManager state changes"""
-	# Use string comparison instead of enum to avoid parsing issues
-	var game_state_name = str(new_game_state)
-	match game_state_name:
-		"1": # COMBAT state
+	# Convert GameState enum to UIState properly
+	match new_game_state:
+		GameManager.GameState.COMBAT:
 			set_ui_state(UIState.COMBAT)
-		"2": # PLAYING state
+		GameManager.GameState.PLAYING:
 			if current_state == UIState.COMBAT:
 				set_ui_state(UIState.HUD)
-		"5": # MAIN_MENU state
+		GameManager.GameState.MAIN_MENU:
 			set_ui_state(UIState.MENU)
+		GameManager.GameState.INVENTORY:
+			set_ui_state(UIState.MAIN_INTERFACE)
+		_:
+			# Default to HUD for other states
+			if current_state != UIState.MAIN_INTERFACE:
+				set_ui_state(UIState.HUD)
 
 func _on_combat_started():
 	"""Handle combat start"""
@@ -252,13 +229,13 @@ func show_notification(message: String, duration: float = 3.0):
 	print("[UIManager] Notification: ", message)
 	# TODO: Implement notification system
 
-func get_current_state() -> UIState:
+func get_current_state() -> String:
 	"""Get current UI state"""
-	return current_state
+	return _ui_state_to_string(current_state)
 
-func is_interface_blocking() -> bool:
+func is_interface_blocking_input() -> bool:
 	"""Check if current interface blocks game input"""
-	return current_state in [UIState.MENU, UIState.SETTINGS, UIState.INVENTORY]
+	return current_state in [UIState.MENU, UIState.SETTINGS]
 
 # Debug and testing functions
 func get_debug_info() -> Dictionary:
@@ -269,11 +246,8 @@ func get_debug_info() -> Dictionary:
 		"ui_scale": ui_scale,
 		"animations_enabled": animations_enabled,
 		"components_connected": {
-			"hud": hud != null,
-			"inventory_ui": inventory_ui != null,
-			"combat_ui": combat_ui != null,
-			"map_ui": map_ui != null,
-			"menu_ui": menu_ui != null
+			"main_interface": main_interface != null,
+			"hud": hud != null
 		}
 	}
 
@@ -283,5 +257,15 @@ func _debug_test_ui_states():
 	for state in UIState.values():
 		set_ui_state(state)
 		await get_tree().create_timer(1.0).timeout
-	set_ui_state(UIState.HUD)
-	print("[UIManager] UI state testing complete") 
+	set_ui_state(UIState.MAIN_INTERFACE)
+	print("[UIManager] UI state testing complete")
+
+func _ui_state_to_string(state: UIState) -> String:
+	match state:
+		UIState.HIDDEN: return "HIDDEN"
+		UIState.MAIN_INTERFACE: return "MAIN_INTERFACE"
+		UIState.HUD: return "HUD"
+		UIState.COMBAT: return "COMBAT"
+		UIState.MENU: return "MENU"
+		UIState.SETTINGS: return "SETTINGS"
+		_: return "UNKNOWN" 

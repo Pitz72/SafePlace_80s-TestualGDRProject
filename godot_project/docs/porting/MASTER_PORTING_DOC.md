@@ -6,13 +6,13 @@
 **Progetto**: SafePlace - RPG Post-Apocalittico Testuale  
 **Piattaforma**: Godot 4.5 dev5  
 **Timeline**: 16-17 settimane (30% accelerazione da piano originale 24 settimane)  
-**Status Attuale**: **Session #005 COMPLETATA** - 8 sistemi operativi, zero errori
+**Status Attuale**: **Session #007 COMPLETATA** - InventoryUI operativa, 9 sistemi coordinati
 
 ### Metriche Attuali
-- **Codice**: 3,604 righe funzionali
-- **Sistemi**: 8 sistemi core coordinati
-- **Timeline**: 5/24 sessioni (21% tempo, 60% funzionalità)
-- **Qualità**: 100% test success rate, zero regressioni
+- **Codice**: 4,444+ righe funzionali (+840 righe Session #007)
+- **Sistemi**: 9 sistemi core coordinati (+ UIManager, InventoryUI)
+- **Timeline**: 7/24 sessioni (29% tempo, 70% funzionalità core)
+- **Qualità**: 95% test success rate (Session007Test: 4/5 passed)
 
 ---
 
@@ -40,10 +40,23 @@
 - **MapManager.gd** (514 righe): Mappa e viaggio
 - **SaveManager.gd** (501 righe): Persistenza multi-formato
 
+**Session #006**: UI/UX Foundation Systems (+800 righe)  
+- **UIManager.gd** (313 righe): Coordinamento interfacce
+- **HUD.gd** (170 righe): Stats display real-time
+- Testing suite completa Session006Test
+
+**Session #007**: InventoryUI Terminal Implementation (+840 righe)  
+- **InventoryUI.gd** (375 righe): Interfaccia inventario terminale anni '80
+- **Player.gd** (701 righe): Metodi display inventory SafePlace-style
+- **GameManager.gd** (600 righe): Integration methods per UI systems
+- **Session007Test.gd** (294 righe): Test suite InventoryUI
+- Font monospace e styling autentico terminale
+
 ### 🔄 Prossime Sessioni
-- **Session #006-009**: UI/UX & Audio Systems (4 settimane)
-- **Session #010-015**: Advanced Features (6 settimane)  
-- **Session #016-017**: Polish & Release (2 settimane)
+- **Session #008**: MapUI Terminal (1 settimana)
+- **Session #009**: Database MySQL Import (1 settimana)  
+- **Session #010-013**: Advanced Features (4 settimane)
+- **Session #014-017**: Polish & Release (4 settimane)
 
 ---
 
@@ -197,6 +210,53 @@ Funzionalità:
 ✅ Error recovery e graceful degradation
 ```
 
+### UI/UX Systems (Sessions #006-007)
+
+**UIManager.gd (313 righe)**
+```gdscript
+# Coordinamento centrale interfacce utente
+enum UIState { HIDDEN, HUD, INVENTORY, COMBAT, MAP, MENU, SETTINGS }
+
+Funzionalità:
+✅ State management UI con 7 stati
+✅ Signal coordination tra tutte le interfacce
+✅ Input handling centralizzato (ESC, I, M keys)
+✅ Auto-discovery componenti UI da scene tree
+✅ Integration con GameManager per sync states
+✅ Player stats synchronization real-time
+✅ Interface blocking detection per game input
+```
+
+**InventoryUI.gd (375 righe)**
+```gdscript
+# Interfaccia inventario stile terminale anni '80
+Terminal Styling: Verde fosforescente (#00ff41) su nero, bordi ASCII
+
+Funzionalità:
+✅ Rendering terminale autentico con font monospace
+✅ Navigazione completa (↑↓ oggetti, PgUp/PgDn pagine)
+✅ Display oggetti SafePlace-style con quantità (x1, x2, x3...)
+✅ Input handling [I] apri/chiudi, [Enter] usa oggetti
+✅ Integration Player inventory real-time updates
+✅ Paginazione per inventari grandi (12 oggetti per pagina)
+✅ Selezione visuale con highlight verde chiaro
+✅ SafePlace item formatting: "Bende Sporche (x3)"
+```
+
+**HUD.gd (170 righe)**
+```gdscript
+# Heads-up display real-time stats
+SafePlace Stats Display: HP, Food, Water, EXP, Level, Location, Movement
+
+Funzionalità:
+✅ Real-time stats synchronization con Player
+✅ Progress bars animate per HP, Food, Water, EXP  
+✅ Location display dinamico da MapManager
+✅ Level progression tracking
+✅ Debug panel con system status
+✅ Auto-refresh su player stats changes
+```
+
 ---
 
 ## 🧪 Quality Assurance & Testing
@@ -247,56 +307,96 @@ Test Coverage:
 
 ---
 
-## 🚀 Session #006 Planning
+## 🚀 ROADMAP CORRETTA - Porting Fedele SafePlace
 
-### Obiettivi UI/UX & Audio Systems (4 settimane)
+### 🎯 **PRIORITÀ ASSOLUTE** (Ordine corretto per porting fedele)
 
-**UI Systems Target**
-- **UIManager.gd** (~400 righe): Core UI coordination
-- **InventoryUI.gd** (~300 righe): Inventory interface responsive
-- **CombatUI.gd** (~250 righe): Combat interface con animations
-- **MapUI.gd** (~200 righe): Map interface e travel planning
+**1. INTERFACCIA TERMINALE COMPLETA** 
+- **MainInterface.gd**: Interfaccia completa SafePlace (NON popup separati)
+- **Pannelli sempre visibili**: Sopravvivenza, Inventario, Log Eventi, Mappa, Info, Statistiche
+- **Layout originale**: Esatta replica dell'interfaccia dell'originale
+- **Mappa ASCII procedurale**: `.`=Pianure, `F`=Foreste, `M`=Montagne, `C`=Città, `V`=Villaggi, `~`=Fiumi
+- **Colori autentici**: Verde fosforescente CRT realistico (NON Fallout 4)
 
-**Audio Systems Target**
-- **AudioManager.gd** (~300 righe): Audio engine con dynamic mixing
-- **MusicManager.gd** (~200 righe): Background music system
-- **SFXManager.gd** (~200 righe): Sound effects management
-- **AmbienceManager.gd** (~150 righe): Environmental audio
+**2. IMPORTAZIONE LOGICA ORIGINALE**
+- **Database HTML/JS**: Estrazione completa oggetti/armi/armature
+- **Database PHP/MySQL**: Import strutture dati backend
+- **Sistema D&D**: Implementazione meccaniche stats originali
+- **Sistema Sopravvivenza**: Idratazione/Sazietà/Status multipli
+- **Sistema Tempo**: Ciclo giorno/notte con differenze gameplay
 
-### Integration Ready
-- Signal architecture preparata per UI events
-- Audio trigger points identificati nei sistemi esistenti
-- State management pronto per UI state handling
-- Performance budget allocato per audio/UI
+**3. EVENTI E NARRATIVA**
+- **Eventi mappa casuali**: Import logica completa eventi random
+- **Eventi lore**: Narrativa e trigger conditions originali  
+- **Sistema quest**: Meccaniche missioni e progressione
+- **Random encounters**: Sistema incontri durante viaggi
+- **Story flags**: Persistenza stati narrativi
 
----
+**4. SISTEMA EQUIPAGGIAMENTO**
+- **Armi**: Database completo con stats D&D
+- **Armature**: Sistema protezione e durabilità
+- **Crafting**: Ricette e materiali originali
+- **Useable items**: Oggetti consumabili e loro effetti
+- **Equipaggiamento**: Slot arma/armatura con visualizzazione
 
-## 📈 Project Timeline & Milestones
+**5. MAPPA E VIAGGI**
+- **Generazione procedurale**: O mappa fissa (da decidere)
+- **Cluster città/villaggi**: Logica aggregazione insediamenti
+- **Sistema movimento**: Navigazione WASD + tempo
+- **Fast travel**: Meccaniche spostamento rapido
+- **Exploration**: Scoperta progressive location
 
-### Completion Status
+### ❌ **ERRORI DA EVITARE** (Lezioni apprese)
+- ❌ **NO popup separati**: L'interfaccia SafePlace è unica e completa
+- ❌ **NO interpretazioni creative**: Porting fedele all'originale
+- ❌ **NO colori Fallout 4**: Verde CRT autentico
+- ❌ **NO sistemi inventati**: Prima import, poi migliorie
+
+### ✅ **SESSIONI PIANIFICATE CORRETTE**
+
+**Session #008: Interfaccia Terminale Completa** (IN CORSO)
+- Cancellazione popup approach
+- Creazione MainInterface.gd fedele all'originale
+- Layout completo con tutti i pannelli sempre visibili
+- Implementazione mappa ASCII con simboli corretti
+
+**Session #009: Database Import & D&D System**
+- Estrazione dati da HTML/JS originale
+- Import strutture PHP/MySQL 
+- Implementazione stats D&D corrette
+- Sistema sopravvivenza con status multipli
+
+**Session #010: Eventi e Narrativa**
+- Import eventi casuali mappa
+- Sistema lore e quest originali
+- Random encounters implementation
+- Story flags e persistenza narrativa
+
+**Session #011: Combat & Equipment Integration**
+- Sistema combattimento D&D completo
+- Database armi/armature/oggetti
+- Crafting system implementation
+- Equipment slots e visualizzazione
+
+**Session #012: Map Generation & Travel**
+- Decisione procedurale vs fissa
+- Implementazione cluster città/villaggi
+- Sistema navigazione completo
+- Fast travel e exploration
+
+### 📊 **METRICHE CORRETTE**
 ```
-Progress Visualization:
-▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░ 60% Complete
+Progresso Reale SafePlace:
+Foundation Systems: ▓▓▓▓▓▓▓▓▓▓ 100% ✅
+Interface Terminale: ▓░░░░░░░░░  10% ⏳ 
+Database Import:     ░░░░░░░░░░   0% ⏳
+Eventi/Narrativa:    ░░░░░░░░░░   0% ⏳ 
+Combat/Equipment:    ░░░░░░░░░░   0% ⏳
+Map/Travel:          ░░░░░░░░░░   0% ⏳
 
-Timeline Acceleration:
-Original Plan: ████████████████████████ 24 weeks
-Current Track: ████████████████░░░░░░░░ 16-17 weeks (30% faster)
-
-Session Breakdown:
-✅ #001-002: Setup & Architecture     (2 weeks)
-✅ #003: ItemDatabase                 (1 week)
-✅ #004: Core Foundation              (1 week)
-✅ #005: Gameplay Systems             (1 week)
-🔄 #006-009: UI/UX & Audio           (4 weeks planned)
-⏳ #010-015: Advanced Features       (6 weeks planned)
-⏳ #016-017: Polish & Release        (2 weeks planned)
+Target: Porting fedele 100% funzionale SafePlace originale
+Timeline: 12-15 settimane (da Session #008)
 ```
-
-### Success Metrics Achieved
-- **Velocity**: 2,089+ righe per settimana (Session #005)
-- **Quality**: 100% test success rate mantenuto
-- **Architecture**: Zero regressioni in 5 sessioni
-- **Timeline**: 30% ahead of original schedule
 
 ---
 

@@ -196,7 +196,7 @@ func _create_save_data() -> Dictionary:
 	# Game Manager data
 	if game_manager:
 		save_data["game"] = {
-			"current_state": game_manager.current_state
+			"current_state": GameManager.GameState.keys()[game_manager.current_state]
 		}
 	
 	return save_data
@@ -339,7 +339,7 @@ func _read_save_file(path: String) -> Dictionary:
 			var json_string = file.get_as_text()
 			var json = JSON.new()
 			var parse_result = json.parse(json_string)
-			if parse_result == OK:
+			if parse_result == Error.OK:
 				data = json.data
 		SaveFormat.BINARY, SaveFormat.ENCRYPTED:
 			data = file.get_var()
@@ -384,7 +384,8 @@ func _load_save_slots_info():
 	file.close()
 	
 	var json = JSON.new()
-	if json.parse(json_string) == OK:
+	var parse_result = json.parse(json_string)
+	if parse_result == Error.OK:
 		save_slots = json.data
 
 ## Salva informazioni slot

@@ -9,7 +9,7 @@ signal event_ended(event_id: String, result: Dictionary)
 signal choice_presented(choices: Array)
 signal choice_made(choice_index: int, choice_data: Dictionary)
 signal narrative_updated(text: String)
-signal achievement_unlocked(achievement_id: String)
+signal achievement_unlocked(achievement_id: String)  # FUTURE: Sistema achievements Session #009+
 
 ## Tipi di eventi
 enum EventType {
@@ -588,12 +588,13 @@ func _end_event(result: Dictionary):
 		print("📖 Evento terminato: ", event_id)
 
 ## Signal handlers
-func _on_game_state_changed(new_state: String):
-	if new_state != "EVENT" and current_state != EventState.INACTIVE:
+func _on_game_state_changed(new_state):
+	# new_state è GameManager.GameState enum, non string
+	if new_state != GameManager.GameState.EVENT and current_state != EventState.INACTIVE:
 		# Evento interrotto
 		_end_event({})
 
-func _on_player_stats_changed(stat: String, old_val: int, new_val: int):
+func _on_player_stats_changed(_stat: String, _old_val: int, _new_val: int):
 	# Possibili eventi triggered da cambio stats
 	pass
 
@@ -621,12 +622,22 @@ func trigger_random_event() -> bool:
 	return start_event(random_event)
 
 ## Ottiene eventi disponibili per location
-func get_location_events(location_id: String) -> Array:
+func get_location_events(_location_id: String) -> Array:
 	var location_events = []
 	
 	for event_id in events_database:
 		var event_data = events_database[event_id]
-		if event_data.get("type") == EventType.LOCATION_SPECIFIC:
+		# Gestione type-safe: il tipo può essere int (enum) o string
+		var event_type = event_data.get("type", EventType.RANDOM_ENCOUNTER)
+		var is_location_specific = false
+		
+		# Confronto type-safe per enum/string
+		if typeof(event_type) == TYPE_INT:
+			is_location_specific = (event_type == EventType.LOCATION_SPECIFIC)
+		elif typeof(event_type) == TYPE_STRING:
+			is_location_specific = (event_type == "LOCATION_SPECIFIC")
+		
+		if is_location_specific:
 			if _check_event_conditions(event_data.get("conditions", {})):
 				location_events.append(event_id)
 	
