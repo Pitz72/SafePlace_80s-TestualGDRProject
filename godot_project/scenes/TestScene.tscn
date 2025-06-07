@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhccjb2dgrsm"]
+
+[ext_resource type="Script" path="res://scripts/TestInstallation.gd" id="1"]
+
+[node name="TestScene" type="Node"]
+script = ExtResource("1")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -12.5
+offset_right = 100.0
+offset_bottom = 12.5
+text = "SafePlace Godot Port - Test Scene"
+horizontal_alignment = 1 

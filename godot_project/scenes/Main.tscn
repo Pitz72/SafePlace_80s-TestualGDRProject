@@ -1,0 +1,395 @@
+[gd_scene load_steps=13 format=3 uid="uid://cyqx8r4nv3qtx"]
+
+[ext_resource type="Script" path="res://scripts/GameManager.gd" id="1_gamemanager"]
+[ext_resource type="Script" path="res://scripts/Player.gd" id="2_player"]
+[ext_resource type="Script" path="res://scripts/ItemDatabase.gd" id="3_itemdb"]
+[ext_resource type="Script" path="res://scripts/CombatManager.gd" id="4_combat"]
+[ext_resource type="Script" path="res://scripts/EventManager.gd" id="5_event"]
+[ext_resource type="Script" path="res://scripts/MapManager.gd" id="6_map"]
+[ext_resource type="Script" path="res://scripts/SaveManager.gd" id="7_save"]
+
+[ext_resource type="Script" path="res://scripts/UIManager.gd" id="9_uimanager"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="10_hud"]
+
+
+[ext_resource type="Script" path="res://scripts/MainInterface.gd" id="15_maininterface"]
+
+[ext_resource type="Theme" path="res://themes/SafePlaceTheme.tres" id="17_safeplacebeme"]
+
+[node name="Main" type="Node"]
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("1_gamemanager")
+
+[node name="ItemDatabase" type="Node" parent="GameManager"]
+script = ExtResource("3_itemdb")
+
+[node name="CombatManager" type="Node" parent="GameManager"]
+script = ExtResource("4_combat")
+
+[node name="EventManager" type="Node" parent="GameManager"]
+script = ExtResource("5_event")
+
+[node name="MapManager" type="Node" parent="GameManager"]
+script = ExtResource("6_map")
+
+[node name="SaveManager" type="Node" parent="GameManager"]
+script = ExtResource("7_save")
+
+[node name="UIManager" type="Node" parent="GameManager"]
+script = ExtResource("9_uimanager")
+
+
+
+
+
+
+
+
+
+[node name="UIContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)
+
+[node name="BlackBackground" type="ColorRect" parent="UIContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)
+
+[node name="MainInterface" type="Control" parent="UIContainer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("17_safeplacebeme")
+script = ExtResource("15_maininterface")
+
+[node name="SurvivalPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 260.0
+offset_bottom = 160.0
+
+[node name="SurvivalContent" type="RichTextLabel" parent="UIContainer/MainInterface/SurvivalPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="InventoryPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 170.0
+offset_right = 260.0
+offset_bottom = 350.0
+
+[node name="InventoryContent" type="RichTextLabel" parent="UIContainer/MainInterface/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="LogPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 270.0
+offset_top = 393.0
+offset_right = 820.0
+offset_bottom = 590.0
+
+[node name="LogContent" type="RichTextLabel" parent="UIContainer/MainInterface/LogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="MapPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 270.0
+offset_top = 10.0
+offset_right = 820.0
+offset_bottom = 383.0
+
+[node name="MapContent" type="RichTextLabel" parent="UIContainer/MainInterface/MapPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="InfoPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 830.0
+offset_top = 10.0
+offset_right = 1130.0
+offset_bottom = 160.0
+
+[node name="InfoContent" type="RichTextLabel" parent="UIContainer/MainInterface/InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="StatsPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 830.0
+offset_top = 170.0
+offset_right = 1130.0
+offset_bottom = 350.0
+
+[node name="StatsContent" type="RichTextLabel" parent="UIContainer/MainInterface/StatsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="EquipmentPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 830.0
+offset_top = 360.0
+offset_right = 1130.0
+offset_bottom = 580.0
+
+[node name="EquipmentContent" type="RichTextLabel" parent="UIContainer/MainInterface/EquipmentPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="ControlsPanel" type="Panel" parent="UIContainer/MainInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 360.0
+offset_right = 260.0
+offset_bottom = 580.0
+
+[node name="ControlsContent" type="RichTextLabel" parent="UIContainer/MainInterface/ControlsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+bbcode_enabled = true
+scroll_active = false
+
+[node name="HUD" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HUDPanel" type="Panel" parent="UIContainer/HUD"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+
+[node name="HUDStats" type="RichTextLabel" parent="UIContainer/HUD/HUDPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+text = "[color=yellow]DEBUG INFO[/color]
+Session #004 Active
+Core Systems: ✅ ItemDatabase
+Main Scene: ✅ Loaded
+Player: ⏳ Loading..."
+
+[node name="WorldContainer" type="Node2D" parent="."]
+
+[node name="Player" type="Node2D" parent="WorldContainer"]
+script = ExtResource("2_player")
+
+[node name="Map" type="Node2D" parent="WorldContainer"]
+
+[node name="Events" type="Node" parent="WorldContainer"]
+
+[node name="AudioManager" type="Node" parent="."]
+
+[node name="DebugContainer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="DebugPanel" type="Panel" parent="DebugContainer"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="DebugLabel" type="RichTextLabel" parent="DebugContainer/DebugPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+text = "[color=yellow]DEBUG INFO[/color]
+Session #004 Active
+Core Systems: ✅ ItemDatabase
+Main Scene: ✅ Loaded
+Player: ⏳ Loading..."
+
+[node name="MenuUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="MenuPanel" type="Panel" parent="UIContainer/MenuUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+
+[node name="MenuLabel" type="Label" parent="UIContainer/MenuUI/MenuPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "SAFEPLACE MENU"
+horizontal_alignment = 1
+
+[node name="SettingsUI" type="Control" parent="UIContainer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="SettingsPanel" type="Panel" parent="UIContainer/SettingsUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+
+[node name="SettingsLabel" type="Label" parent="UIContainer/SettingsUI/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "SAFEPLACE SETTINGS"
+horizontal_alignment = 1 
