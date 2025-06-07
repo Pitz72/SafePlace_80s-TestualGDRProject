@@ -286,11 +286,7 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
-text = "[color=yellow]DEBUG INFO[/color]
-Session #004 Active
-Core Systems: ✅ ItemDatabase
-Main Scene: ✅ Loaded
-Player: ⏳ Loading..."
+text = ""
 
 [node name="WorldContainer" type="Node2D" parent="."]
 
@@ -303,34 +299,7 @@ script = ExtResource("2_player")
 
 [node name="AudioManager" type="Node" parent="."]
 
-[node name="DebugContainer" type="CanvasLayer" parent="."]
-layer = 100
 
-[node name="DebugPanel" type="Panel" parent="DebugContainer"]
-layout_mode = 0
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -150.0
-offset_right = 0.0
-offset_bottom = 0.0
-
-[node name="DebugLabel" type="RichTextLabel" parent="DebugContainer/DebugPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-text = "[color=yellow]DEBUG INFO[/color]
-Session #004 Active
-Core Systems: ✅ ItemDatabase
-Main Scene: ✅ Loaded
-Player: ⏳ Loading..."
 
 [node name="MenuUI" type="Control" parent="UIContainer"]
 visible = false

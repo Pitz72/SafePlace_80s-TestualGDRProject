@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Safe Place (Godot)",
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceFolder}/godot_project",
+            "port": 6007,
+            "address": "127.0.0.1",
+            "launch_game_instance": true,
+            "launch_scene": false
+        },
+        {
+            "name": "Launch Safe Place (Scene)",
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceFolder}/godot_project",
+            "port": 6007,
+            "address": "127.0.0.1",
+            "launch_game_instance": true,
+            "launch_scene": true,
+            "scene": "res://scenes/Main.tscn"
+        },
+        {
+            "name": "Attach to Godot",
+            "type": "godot",
+            "request": "attach",
+            "project": "${workspaceFolder}/godot_project",
+            "port": 6007,
+            "address": "127.0.0.1"
+        }
+    ]
+} 

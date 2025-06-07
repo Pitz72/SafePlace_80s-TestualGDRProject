@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "godot: run project",
+            "type": "shell",
+            "command": "c:/Users/Utente/Downloads/Godot_v4.5-dev5_win64.exe/Godot_v4.5-dev5_win64.exe",
+            "args": [
+                "--path",
+                "${workspaceFolder}/godot_project"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "godot: run project (debug)",
+            "type": "shell",
+            "command": "c:/Users/Utente/Downloads/Godot_v4.5-dev5_win64.exe/Godot_v4.5-dev5_win64.exe",
+            "args": [
+                "--path",
+                "${workspaceFolder}/godot_project",
+                "--debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "godot: export project",
+            "type": "shell",
+            "command": "c:/Users/Utente/Downloads/Godot_v4.5-dev5_win64.exe/Godot_v4.5-dev5_win64.exe",
+            "args": [
+                "--path",
+                "${workspaceFolder}/godot_project",
+                "--export",
+                "Windows Desktop"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "godot: open editor",
+            "type": "shell",
+            "command": "c:/Users/Utente/Downloads/Godot_v4.5-dev5_win64.exe/Godot_v4.5-dev5_win64.exe",
+            "args": [
+                "--path",
+                "${workspaceFolder}/godot_project",
+                "-e"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+} 
