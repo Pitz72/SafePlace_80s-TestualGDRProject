@@ -7,10 +7,10 @@ extends Node
 # Riferimenti ai sistemi core (usa Node generico per evitare errori di ordine)
 @onready var item_database: Node = $ItemDatabase
 @onready var combat_manager: Node = $CombatManager
-@onready var event_manager: Node = $EventManager  
+@onready var event_manager: Node = $EventManager
 @onready var map_manager: Node = $MapManager
 @onready var save_manager: Node = $SaveManager
-@onready var ui_manager: UIManager = $UIManager  # NEW: UI Manager Session #006
+@onready var ui_manager: UIManager = $UIManager # NEW: UI Manager Session #006
 @onready var player: Node = get_node("../WorldContainer/Player")
 
 # Stati del gioco (estesi per nuovi sistemi)
@@ -41,11 +41,11 @@ signal all_systems_ready()
 
 # Nuovi segnali per sistemi Session #005
 signal combat_ended(result: String, rewards: Dictionary)
-# FUTURE: Segnali per integrazione Session #009+ 
-signal event_started(event_data: Dictionary)  # Usato dai sistemi esterni
-signal event_ended(event_id: String, result: Dictionary)  # Usato dai sistemi esterni  
-signal location_changed(old_location: String, new_location: String)  # Usato da MapManager
-signal save_game_requested(slot: int)  # Futuro sistema UI salvataggio
+# FUTURE: Segnali per integrazione Session #009+
+signal event_started(event_data: Dictionary) # Usato dai sistemi esterni
+signal event_ended(event_id: String, result: Dictionary) # Usato dai sistemi esterni
+signal location_changed(old_location: String, new_location: String) # Usato da MapManager
+signal save_game_requested(slot: int) # Futuro sistema UI salvataggio
 
 # NEW: Segnali UI Session #006
 signal combat_started()
@@ -62,117 +62,120 @@ func _init():
 
 func _ready():
 	print("🎮 GameManager ready - Inizializzazione sistemi Session #006...")
-	
+
 	# Imposta sfondo nero per l'intera applicazione
 	RenderingServer.set_default_clear_color(Color.BLACK)
-	
+
 	# Setup signal connections
 	_setup_signal_connections()
-	
+
 	# Initialize core systems
 	await _initialize_systems()
-	
+
 	# Setup UI (Session #006)
 	_setup_ui_system()
-	
+
 	# Change to playing state
 	change_state("PLAYING")
-	
+
 	print("🎮 GameManager: Tutti i sistemi Session #006 pronti!")
 	all_systems_ready.emit()
 
 func _process(delta):
 	game_time += delta
 	frame_count += 1
-	
+
 	# Update performance metrics every second
 	if game_time - last_fps_update > 1.0:
 		_update_performance_metrics()
 		last_fps_update = game_time
-	
+
 	# Update UI if needed
 	_update_ui(delta)
 
 func _input(event):
 	# Let UIManager handle input first (Session #006)
 	if ui_manager and ui_manager.is_interface_blocking_input():
-		return  # UI is handling input
-	
+		return # UI is handling input
+
 	if event.is_action_pressed("ui_accept"):
 		print("🎮 Input test: UI Accept pressed")
-	
+
 	if event.is_action_pressed("ui_cancel"):
 		print("🎮 Input test: UI Cancel pressed")
-	
+
 	# Inventory toggle (placeholder)
-	if Input.is_action_just_pressed("ui_select"):  # Spacebar
+	if Input.is_action_just_pressed("ui_select"): # Spacebar
 		_toggle_inventory()
-	
+
 	# Debug shortcuts per Session #006
-	if Input.is_action_just_pressed("ui_home"):  # Home key
+	if Input.is_action_just_pressed("ui_home"): # Home key
 		_debug_test_systems()
 
 ## Setup delle connessioni signal tra sistemi (esteso Session #006)
 func _setup_signal_connections():
 	print("🔗 Setup signal connections Session #006...")
-	
+
 	# Connect to database signals (se ha i metodi)
 	if item_database and item_database.has_signal("database_loaded"):
 		item_database.database_loaded.connect(_on_database_loaded)
 	if item_database and item_database.has_signal("item_not_found"):
 		item_database.item_not_found.connect(_on_item_not_found)
-	
+
 	# Connect to combat manager signals
 	if combat_manager and combat_manager.has_signal("combat_ended"):
 		combat_manager.combat_ended.connect(_on_combat_ended)
 	if combat_manager and combat_manager.has_signal("combat_started"):
 		combat_manager.combat_started.connect(_on_combat_started)
-	
+
 	# Connect to event manager signals
 	if event_manager and event_manager.has_signal("event_started"):
 		event_manager.event_started.connect(_on_event_started)
 	if event_manager and event_manager.has_signal("event_ended"):
 		event_manager.event_ended.connect(_on_event_ended)
-	
+
 	# Connect to map manager signals
 	if map_manager and map_manager.has_signal("location_changed"):
 		map_manager.location_changed.connect(_on_location_changed)
 	if map_manager and map_manager.has_signal("travel_started"):
 		map_manager.travel_started.connect(_on_travel_started)
-	
+
 	# Connect to save manager signals
 	if save_manager and save_manager.has_signal("save_completed"):
 		save_manager.save_completed.connect(_on_save_completed)
 	if save_manager and save_manager.has_signal("load_completed"):
 		save_manager.load_completed.connect(_on_load_completed)
-	
+
 	# NEW: Connect to UI manager signals (Session #006)
 	if ui_manager and ui_manager.has_signal("ui_state_changed"):
 		ui_manager.ui_state_changed.connect(_on_ui_state_changed)
 	if ui_manager and ui_manager.has_signal("interface_opened"):
 		ui_manager.interface_opened.connect(_on_interface_opened)
-	
+
 	# Connect to game state changes
 	game_state_changed.connect(_on_game_state_changed)
-	
+
 	print("🔗 Signal connections Session #006 complete")
 
-## Inizializzazione di tutti i sistemi core (esteso Session #005)
+## Inizializzazione di tutti i sistemi core (esteso Session #010 Foundation-First)
 func _initialize_systems() -> void:
-	print("🔧 Inizializzazione sistemi Session #005...")
-	
-	# Initialize ItemDatabase
-	if item_database and item_database.has_method("load_items_from_json"):
-		print("📦 Caricamento ItemDatabase...")
-		var test_data = _create_basic_test_data()
-		var success = item_database.load_items_from_json(test_data)
-		
+	print("🔧 Inizializzazione sistemi Session #010 - Foundation-First...")
+
+	# NEW: Test caricamento database JavaScript completo (Fase 1)
+	if item_database and item_database.has_method("load_complete_database"):
+		print("🔥 AVVIO CARICAMENTO DATABASE JAVASCRIPT COMPLETO")
+		var success = item_database.load_complete_database()
+
 		if success:
-			print("✅ ItemDatabase caricato con successo")
+			print("✅ Database JavaScript caricato con SUCCESSO!")
 			database_ready.emit()
 		else:
-			print("❌ Errore caricamento ItemDatabase")
-	
+			print("⚠️ Database JavaScript fallito - Fallback su test data")
+			_initialize_fallback_database()
+	else:
+		print("⚠️ Metodo load_complete_database non trovato - Fallback")
+		_initialize_fallback_database()
+
 	# Initialize Player
 	if player and player.has_method("initialize_player"):
 		print("👤 Inizializzazione Player...")
@@ -182,21 +185,38 @@ func _initialize_systems() -> void:
 		if player.has_signal("inventory_changed"):
 			player.inventory_changed.connect(_on_player_inventory_changed)
 		print("✅ Player inizializzato")
-	
+
 	# Initialize new systems Session #005
 	print("⚔️ Sistemi Session #005 inizializzati automaticamente")
-	
+
 	# Small delay to ensure all systems are ready
 	await get_tree().process_frame
+
+## Inizializzazione database fallback se JavaScript fallisce
+func _initialize_fallback_database() -> void:
+	print("🔧 Inizializzazione database fallback...")
+
+	if item_database and item_database.has_method("load_items_from_json"):
+		print("📦 Caricamento test data...")
+		var test_data = _create_basic_test_data()
+		var success = item_database.load_items_from_json(test_data)
+
+		if success:
+			print("✅ Database fallback caricato con successo")
+			database_ready.emit()
+		else:
+			print("❌ ERRORE CRITICO: Anche il database fallback è fallito!")
+	else:
+		print("❌ ERRORE CRITICO: ItemDatabase non ha metodo load_items_from_json")
 
 ## Cambio stato del gioco con gestione completa (esteso Session #005)
 func change_state(new_state_name: String):
 	var new_state: GameState
-	
+
 	# Convert string to enum
 	match new_state_name:
 		"LOADING": new_state = GameState.LOADING
-		"MAIN_MENU": new_state = GameState.MAIN_MENU  
+		"MAIN_MENU": new_state = GameState.MAIN_MENU
 		"PLAYING": new_state = GameState.PLAYING
 		"INVENTORY": new_state = GameState.INVENTORY
 		"PAUSED": new_state = GameState.PAUSED
@@ -205,18 +225,18 @@ func change_state(new_state_name: String):
 		"TRAVELING": new_state = GameState.TRAVELING
 		"SAVING": new_state = GameState.SAVING
 		"LOADING_SAVE": new_state = GameState.LOADING_SAVE
-		_: 
+		_:
 			print("❌ Stato sconosciuto: ", new_state_name)
 			return
-	
+
 	_change_game_state(new_state)
 
 func _change_game_state(new_state: GameState):
 	var old_state = current_state
 	current_state = new_state
-	
+
 	print("🎮 Cambio stato: ", GameState.keys()[old_state], " → ", GameState.keys()[new_state])
-	
+
 	match current_state:
 		GameState.LOADING:
 			_handle_loading_state()
@@ -236,7 +256,7 @@ func _change_game_state(new_state: GameState):
 			_handle_saving_state()
 		GameState.LOADING_SAVE:
 			_handle_loading_save_state()
-	
+
 	game_state_changed.emit(new_state)
 
 ## Gestione stati specifici (estesi Session #005)
@@ -286,7 +306,7 @@ func start_combat(enemy_data: Dictionary) -> bool:
 		return combat_manager.start_combat(enemy_data)
 	return false
 
-# Event system API  
+# Event system API
 func start_event(event_id: String) -> bool:
 	if event_manager and event_manager.has_signal("start_event"):
 		return event_manager.start_event(event_id)
@@ -359,19 +379,19 @@ func _update_stats_ui():
 	else:
 		print("🎮 Stats UI: MainInterface non disponibile")
 
-## Aggiorna UI debug (esteso Session #005) - NOW HANDLED BY MAININTERFACE  
+## Aggiorna UI debug (esteso Session #005) - NOW HANDLED BY MAININTERFACE
 func _update_debug_ui():
 	# Debug info now printed to console instead of UI
 	var debug_text = "SESSION #008 SAFEPLACE DEBUG"
 	debug_text += " | State: %s" % GameState.keys()[current_state]
 	debug_text += " | Combat: %s" % ("✅" if combat_manager else "❌")
 	debug_text += " | Events: %s" % ("✅" if event_manager else "❌")
-	debug_text += " | Map: %s" % ("✅" if map_manager else "❌")  
+	debug_text += " | Map: %s" % ("✅" if map_manager else "❌")
 	debug_text += " | Save: %s" % ("✅" if save_manager else "❌")
 	debug_text += " | UI: %s" % ("✅" if ui_manager else "❌")
 	debug_text += " | Frame: %d" % frame_count
 	debug_text += " | Time: %.1fs" % game_time
-	
+
 	print("🐛 ", debug_text)
 
 ## Gestione segnali
@@ -430,7 +450,7 @@ func _update_ui(_delta: float):
 func _update_performance_metrics():
 	var current_fps = Engine.get_frames_per_second()
 	performance_samples.append(current_fps)
-	
+
 	# Keep only last 10 samples
 	if performance_samples.size() > 10:
 		performance_samples.pop_front()
@@ -438,7 +458,7 @@ func _update_performance_metrics():
 ## Debug testing per Session #005
 func _debug_test_systems():
 	print("🧪 Testing Session #005 systems...")
-	
+
 	# Test Combat
 	if combat_manager:
 		print("⚔️ Testing Combat System...")
@@ -450,58 +470,49 @@ func _debug_test_systems():
 			"experience": 10
 		}
 		start_combat(test_enemy)
-	
+
 	# Test Event
 	if event_manager:
 		print("📖 Testing Event System...")
 		trigger_random_event()
-	
+
 	# Test Map
 	if map_manager:
 		print("🗺️ Testing Map System...")
 		print("  Current location: ", get_current_location())
 		print("  Movement points: ", map_manager.movement_points)
-	
+
 	# Test Save
 	if save_manager:
 		print("💾 Testing Save System...")
-		save_game(9)  # Use slot 9 for testing
+		save_game(9) # Use slot 9 for testing
 
-## Utility per dati di test base
+## Creazione dati di test base per fallback database
 func _create_basic_test_data() -> Dictionary:
 	return {
-		"health_potion": {
-			"id": "health_potion",
-			"name": "Pozione di Cura",
-			"description": "Una piccola fiala con liquido rosso che ripristina la salute.",
-			"type": "consumable",
-			"usable": true,
-			"weight": 0.2,
-			"value": 25,
-			"stackable": true,
-			"effects": [{"type": "heal", "amount": 50}]
-		},
-		"rusty_knife": {
-			"id": "rusty_knife",
-			"name": "Coltello Arrugginito",
-			"description": "Un vecchio coltello da cucina, ancora tagliente nonostante la ruggine.",
-			"type": "weapon",
-			"weaponType": "mischia", 
-			"damage": {"min": 3, "max": 7},
+		"canned_food": {
+			"id": "canned_food",
+			"name": "Cibo in Scatola",
+			"type": "food",
 			"weight": 0.5,
-			"value": 12,
-			"maxDurability": 25
+			"value": 10,
+			"nutrition": 50
 		},
-		"leather_boots": {
-			"id": "leather_boots",
-			"name": "Stivali di Cuoio",
-			"description": "Stivali robusti che proteggono i piedi dai detriti.",
-			"type": "armor",
-			"slot": "feet",
-			"armorValue": 1,
-			"weight": 1.2,
-			"value": 20,
-			"maxDurability": 35
+		"water_bottle": {
+			"id": "water_bottle",
+			"name": "Bottiglia d'Acqua",
+			"type": "water",
+			"weight": 1.0,
+			"value": 5,
+			"hydration": 100
+		},
+		"bandages_clean": {
+			"id": "bandages_clean",
+			"name": "Bende Pulite",
+			"type": "medicine",
+			"weight": 0.1,
+			"value": 15,
+			"health_restore": 25
 		}
 	}
 
@@ -533,15 +544,15 @@ func print_system_status():
 func _setup_ui_system():
 	"""Configura il sistema UI e le connessioni"""
 	print("🖥️ [GameManager] Setup UI System Session #008...")
-	
+
 	if ui_manager:
 		# Set player reference for stats sync
 		if player:
 			ui_manager.set_player_reference(player)
-		
+
 		# Initialize MainInterface with GameManager reference (Session #008)
 		ui_manager.initialize_main_interface(self)
-		
+
 		print("✅ [GameManager] UI System configurato con MainInterface")
 
 ## Metodi per MainInterface integration (Session #008)
@@ -565,7 +576,7 @@ func _on_ui_state_changed(new_ui_state: UIManager.UIState):
 	"""Handle UI state changes from UIManager"""
 	print("🎨 UI State changed to: ", UIManager.UIState.keys()[new_ui_state])
 	ui_state_changed.emit(new_ui_state)
-	
+
 	# Sync game state with UI state when needed
 	match new_ui_state:
 		UIManager.UIState.COMBAT:
@@ -604,7 +615,7 @@ func use_item(item_id: String) -> bool:
 	"""Usa un oggetto dall'inventario tramite il Player"""
 	if player and player.has_method("use_item"):
 		return player.use_item(item_id)
-	
+
 	print("❌ [GameManager] Impossibile usare oggetto: ", item_id)
 	return false
 
@@ -619,4 +630,4 @@ func fast_travel_to(destination_id: String) -> bool:
 	"""Gestisce richiesta fast travel dall'UI"""
 	if map_manager and map_manager.has_method("fast_travel_to"):
 		return map_manager.fast_travel_to(destination_id)
-	return false 
+	return false

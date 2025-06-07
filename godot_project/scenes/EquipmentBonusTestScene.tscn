@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfuqcxskfb3jl"]
+
+[ext_resource type="Script" path="res://scripts/EquipmentBonusTest.gd" id="1_7fcp4"]
+
+[node name="EquipmentBonusTestScene" type="Node"]
+
+[node name="EquipmentBonusTest" type="Node" parent="."]
+script = ExtResource("1_7fcp4") 

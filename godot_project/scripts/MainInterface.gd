@@ -41,32 +41,32 @@ var event_log: Array[String] = []
 const MAX_LOG_ENTRIES = 15
 
 # Status player per pannello sopravvivenza
-enum PlayerStatus { NORMALE, MALATO, INFETTO, FERITO, AFFAMATO, ASSETATO }
+enum PlayerStatus {NORMALE, MALATO, INFETTO, FERITO, AFFAMATO, ASSETATO}
 var current_status: Array[PlayerStatus] = [PlayerStatus.NORMALE]
 
 # Colori CRT autentici SafePlace
-const COLOR_INTERFACE = Color(0, 0.7, 0.25, 1)      # Verde base interfaccia
-const COLOR_TEXT = Color(0, 0.7, 0.25, 1)           # Verde standard testi
-const COLOR_NUMBERS = Color(0, 0.9, 0.4, 1)         # Verde più chiaro per numeri
-const COLOR_NORMAL = Color(0, 0.7, 0.25, 1)         # Verde normale
-const COLOR_SICK = Color(0.8, 0.6, 0, 1)            # Giallo malato
-const COLOR_INFECTED = Color(0.8, 0.2, 0.8, 1)      # Magenta infetto
-const COLOR_WOUNDED = Color(0.8, 0.2, 0.2, 1)       # Rosso ferito
-const COLOR_HUNGRY = Color(0.9, 0.5, 0, 1)          # Arancione affamato
-const COLOR_THIRSTY = Color(0.6, 0.8, 1, 1)         # Azzurro assetato
-const COLOR_NIGHT = Color(0.2, 0.4, 1, 1)           # Blu acceso per notte
-const COLOR_WARNING = Color(0.8, 0.6, 0, 1)         # Giallo per avvisi
-const COLOR_ERROR = Color(0.8, 0.2, 0.2, 1)         # Rosso per errori
-const COLOR_INFO = Color(0, 0.5, 0.2, 1)            # Verde scuro per info
+const COLOR_INTERFACE = Color(0, 0.7, 0.25, 1) # Verde base interfaccia
+const COLOR_TEXT = Color(0, 0.7, 0.25, 1) # Verde standard testi
+const COLOR_NUMBERS = Color(0, 0.9, 0.4, 1) # Verde più chiaro per numeri
+const COLOR_NORMAL = Color(0, 0.7, 0.25, 1) # Verde normale
+const COLOR_SICK = Color(0.8, 0.6, 0, 1) # Giallo malato
+const COLOR_INFECTED = Color(0.8, 0.2, 0.8, 1) # Magenta infetto
+const COLOR_WOUNDED = Color(0.8, 0.2, 0.2, 1) # Rosso ferito
+const COLOR_HUNGRY = Color(0.9, 0.5, 0, 1) # Arancione affamato
+const COLOR_THIRSTY = Color(0.6, 0.8, 1, 1) # Azzurro assetato
+const COLOR_NIGHT = Color(0.2, 0.4, 1, 1) # Blu acceso per notte
+const COLOR_WARNING = Color(0.8, 0.6, 0, 1) # Giallo per avvisi
+const COLOR_ERROR = Color(0.8, 0.2, 0.2, 1) # Rosso per errori
+const COLOR_INFO = Color(0, 0.5, 0.2, 1) # Verde scuro per info
 
 # Colori SafePlace autentici - VERDE ESTREMAMENTE SCURO
-const SAFEPLACE_GREEN = Color("#001A0D")  # Verde ESTREMAMENTE scuro per i box
-const SAFEPLACE_GREEN_TEXT = Color("#00B347")  # Verde chiaro per il testo
-const SAFEPLACE_GREEN_BRIGHT = Color("#00FF41")  # Verde brillante per highlights
+const SAFEPLACE_GREEN = Color("#001A0D") # Verde ESTREMAMENTE scuro per i box
+const SAFEPLACE_GREEN_TEXT = Color("#00B347") # Verde chiaro per il testo
+const SAFEPLACE_GREEN_BRIGHT = Color("#00FF41") # Verde brillante per highlights
 
 func _ready():
 	_setup_interface()
-	_setup_panels()  # Configura i pannelli con colori SafePlace
+	_setup_panels() # Configura i pannelli con colori SafePlace
 	_initialize_ascii_map()
 	_setup_initial_content()
 	_connect_input_signals()
@@ -74,10 +74,10 @@ func _ready():
 func _process(delta):
 	# Lampeggio del player @ sulla mappa (stile CRT)
 	player_blink_timer += delta
-	if player_blink_timer >= 0.8:  # Lampeggia ogni 0.8 secondi
+	if player_blink_timer >= 0.8: # Lampeggia ogni 0.8 secondi
 		player_visible = !player_visible
 		player_blink_timer = 0.0
-		_update_map_panel()  # Aggiorna solo mappa per lampeggio
+		_update_map_panel() # Aggiorna solo mappa per lampeggio
 
 	# Aggiorna timer blinking nella mappa ASCII
 	if ascii_map and ascii_map.has_method("update_blink_timer"):
@@ -137,13 +137,13 @@ func _input(event):
 		match event.keycode:
 			# Navigazione WASD
 			KEY_W, KEY_UP:
-				_move_player(Vector2(0, -1))  # Nord
+				_move_player(Vector2(0, -1)) # Nord
 			KEY_A, KEY_LEFT:
-				_move_player(Vector2(-1, 0))  # Ovest
+				_move_player(Vector2(-1, 0)) # Ovest
 			KEY_S, KEY_DOWN:
-				_move_player(Vector2(0, 1))   # Sud
+				_move_player(Vector2(0, 1)) # Sud
 			KEY_D, KEY_RIGHT:
-				_move_player(Vector2(1, 0))   # Est
+				_move_player(Vector2(1, 0)) # Est
 			KEY_SPACE:
 				_pass_time()
 
@@ -155,13 +155,13 @@ func _input(event):
 			KEY_F7:
 				_load_file()
 			KEY_L:
-				_show_legend_popup()  # NUOVO: Mostra leggenda popup
+				_show_legend_popup() # NUOVO: Mostra leggenda popup
 			KEY_C:
-				_handle_crafting()    # NUOVO: Apri crafting
+				_handle_crafting() # NUOVO: Apri crafting
 			KEY_I:
-				_handle_inventory_management()  # NUOVO: Gestione inventario
+				_handle_inventory_management() # NUOVO: Gestione inventario
 			KEY_R:
-				_handle_character_growth()      # NUOVO: Crescita personaggio
+				_handle_character_growth() # NUOVO: Crescita personaggio
 
 ## Movimento player sulla mappa
 func _move_player(direction: Vector2):
@@ -170,10 +170,10 @@ func _move_player(direction: Vector2):
 		if moved:
 			_update_map_panel()
 			_update_info_panel()
-			_pass_time(5)  # Movimento costa 5 minuti
+			_pass_time(5) # Movimento costa 5 minuti
 
 			# Possibilità evento casuale durante movimento
-			if randf() < 0.1:  # 10% chance
+			if randf() < 0.1: # 10% chance
 				_trigger_random_event()
 
 			add_log_entry("Ti sposti verso %s" % _get_direction_name(direction))
@@ -215,7 +215,7 @@ func _apply_survival_decay():
 		return
 
 	# Ogni ora: -2 food, -3 water
-	if current_time.minute == 0:  # Nuova ora
+	if current_time.minute == 0: # Nuova ora
 		if player.food > 0:
 			player.food = max(0, player.food - 2)
 		if player.water > 0:
@@ -257,9 +257,9 @@ func _update_survival_panel():
 	var water_color = COLOR_NUMBERS
 
 	if player.food == 0:
-		food_color = Color("#CC0000") if player_visible else Color("#FF4444")  # Rosso lampeggiante
+		food_color = Color("#CC0000") if player_visible else Color("#FF4444") # Rosso lampeggiante
 	if player.water == 0:
-		water_color = Color("#CC0000") if player_visible else Color("#FF4444")  # Rosso lampeggiante
+		water_color = Color("#CC0000") if player_visible else Color("#FF4444") # Rosso lampeggiante
 
 	content += "[color=#%s]Sazietà: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(food_color), player.food]
 	content += "[color=#%s]Idratazione: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(water_color), player.water]
@@ -317,7 +317,7 @@ func _update_inventory_panel():
 		for item in inventory:
 			var item_name = item.get("name", "Sconosciuto")
 			var quantity = item.get("quantity", 1)
-			var item_type = _get_item_type_from_name(item_name)  # Determina tipo da nome
+			var item_type = _get_item_type_from_name(item_name) # Determina tipo da nome
 			var color_code = _get_item_color_code(item_type)
 
 			if quantity > 1:
@@ -353,14 +353,14 @@ func _update_log_panel():
 func _calculate_max_log_entries() -> int:
 	"""Calcola quanti eventi possono essere visualizzati nel contenitore log."""
 	if not log_content or not log_panel:
-		return 10  # Fallback sicuro
+		return 10 # Fallback sicuro
 
 	# Ottieni altezza disponibile del pannello log (escludendo titolo e separatori)
 	var panel_height = log_panel.size.y
-	var available_height = panel_height - 60  # Sottrai spazio per titolo e separatori
+	var available_height = panel_height - 60 # Sottrai spazio per titolo e separatori
 
 	# Calcola altezza approssimativa di una riga di testo (font size + interlinea)
-	var line_height = 18  # Altezza approssimativa di una riga con font 16px
+	var line_height = 18 # Altezza approssimativa di una riga con font 16px
 
 	# Calcola numero massimo di righe che ci stanno
 	var max_lines = int(available_height / line_height)
@@ -424,7 +424,7 @@ func _update_info_panel():
 
 	# Orario o Notte
 	if current_time.is_night:
-		content += "[color=#44AAFF]Notte[/color]"  # Blu acceso per la notte
+		content += "[color=#44AAFF]Notte[/color]" # Blu acceso per la notte
 	else:
 		content += "[color=#%s]Ora: [/color][color=#%s]%02d:%02d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), current_time.hour, current_time.minute]
 
@@ -441,7 +441,23 @@ func _update_stats_panel():
 	content += "[color=#%s]AGI: [/color][color=#%s]%d[/color]    [color=#%s]TRA: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.agi, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.tra]
 	content += "[color=#%s]INF: [/color][color=#%s]%d[/color]    [color=#%s]PRE: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.inf, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pre]
 	content += "[color=#%s]ADA: [/color][color=#%s]%d[/color]    [color=#%s]EXP: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.ada, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.exp]
-	content += "[color=#%s]PTS: [/color][color=#%s]%d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pts]
+	content += "[color=#%s]PTS: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pts]
+
+	# NUOVO: Equipment Bonus Display - FASE 2
+	var attack_bonus = player.get_equipment_bonus("attack")
+	var defense_bonus = player.get_equipment_bonus("defense")
+	var total_attack = player.get_attack_power()
+	var total_defense = player.get_defense_power()
+
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
+	content += "[color=#%s]ATK: [/color][color=#%s]%d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), total_attack]
+	if attack_bonus > 0:
+		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(SAFEPLACE_GREEN_TEXT), attack_bonus]
+	content += "\n"
+
+	content += "[color=#%s]DEF: [/color][color=#%s]%d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), total_defense]
+	if defense_bonus > 0:
+		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(SAFEPLACE_GREEN_TEXT), defense_bonus]
 
 	stats_content.text = content
 
@@ -452,12 +468,12 @@ func _update_controls_panel():
 
 	# Layout controlli centrato PERFETTAMENTE verticalmente
 	var content = "[color=#%s]CONTROLLI[/color]\n" % _color_to_hex(COLOR_INTERFACE)
-	content += "[color=#%s]═══════════════[/color]\n\n\n" % _color_to_hex(COLOR_TEXT)  # Spazio extra
+	content += "[color=#%s]═══════════════[/color]\n\n\n" % _color_to_hex(COLOR_TEXT) # Spazio extra
 	content += "[color=#%s]        [W][/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
 	content += "[color=#%s]    [A][SPC][D][/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
 	content += "[color=#%s]        [S][/color]\n\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
 	content += "[color=#%s][F5] Salva [F6] Carica[/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
-	content += "[color=#%s][L] Leggenda[/color]\n\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)  # Spazio finale
+	content += "[color=#%s][L] Leggenda[/color]\n\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT) # Spazio finale
 
 	controls_content.text = content
 
@@ -540,7 +556,7 @@ func _force_monospace_font_on_all_panels():
 		inventory_content,
 		log_content,
 		legend_content,
-		map_content,     # CRITICO per mappa ASCII!
+		map_content, # CRITICO per mappa ASCII!
 		info_content,
 		stats_content,
 		controls_content,
@@ -570,18 +586,18 @@ func _optimize_map_viewport():
 
 	# Ottieni dimensioni reali del MapPanel
 	var panel_size = map_panel.size
-	var content_size = panel_size - Vector2(20, 40)  # Padding ridotto per più spazio
+	var content_size = panel_size - Vector2(20, 40) # Padding ridotto per più spazio
 
 	# Calcola caratteri che entrano (ottimizzato per riempire meglio lo spazio)
-	var char_width = 8.5   # Più largo per sicurezza
-	var char_height = 16   # Ridotto per calcolo più preciso
+	var char_width = 8.5 # Più largo per sicurezza
+	var char_height = 16 # Ridotto per calcolo più preciso
 
 	var optimal_width = int(content_size.x / char_width)
-	var optimal_height = int(content_size.y / char_height) - 1  # Meno spazio sottratto per titolo
+	var optimal_height = int(content_size.y / char_height) - 1 # Meno spazio sottratto per titolo
 
 	# Applica limiti ESTESI per riempire completamente il contenitore
-	optimal_width = clamp(optimal_width, 35, 59)  # ESTESO A 59 (+2 caratteri orizzontale)
-	optimal_height = clamp(optimal_height, 12, 55)  # ESTESO A 55 (+7 righe) per riempire spazio vuoto
+	optimal_width = clamp(optimal_width, 35, 59) # ESTESO A 59 (+2 caratteri orizzontale)
+	optimal_height = clamp(optimal_height, 12, 55) # ESTESO A 55 (+7 righe) per riempire spazio vuoto
 
 	# Aggiorna viewport nell'ASCII map generator e forza l'aggiornamento
 	if ascii_map.has_method("set_viewport_size"):
@@ -653,7 +669,7 @@ var legend_popup_active: bool = false
 func _show_legend_popup():
 	"""Mostra popup leggenda simboli mappa con stile SafePlace e controllo da tastiera."""
 	if legend_popup_active:
-		return  # Evita doppie aperture
+		return # Evita doppie aperture
 
 	print("[MainInterface] Showing legend popup")
 	legend_popup_active = true
@@ -675,7 +691,7 @@ V Villaggio
 
 	# Stile pannello popup
 	var popup_style = StyleBoxFlat.new()
-	popup_style.bg_color = Color("#000503")  # Stesso sfondo dell'interfaccia
+	popup_style.bg_color = Color("#000503") # Stesso sfondo dell'interfaccia
 	popup_style.border_color = SAFEPLACE_GREEN_TEXT
 	popup_style.border_width_left = 2
 	popup_style.border_width_top = 2
@@ -704,7 +720,7 @@ V Villaggio
 
 	get_tree().current_scene.add_child(popup)
 	popup.popup_centered()
-	popup.grab_focus()  # Per ricevere input da tastiera
+	popup.grab_focus() # Per ricevere input da tastiera
 
 ## Helper functions per controlli interattivi
 
@@ -793,7 +809,7 @@ func _setup_panels():
 
 	# Panel styling con colore sfondo specificato dall'utente
 	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color("#000503")  # Colore sfondo richiesto dall'utente
+	panel_style.bg_color = Color("#000503") # Colore sfondo richiesto dall'utente
 	panel_style.border_color = SAFEPLACE_GREEN_TEXT
 	panel_style.border_width_left = 1
 	panel_style.border_width_top = 1
@@ -807,7 +823,7 @@ func _setup_panels():
 
 	# Applica sfondo anche ai contenuti dei pannelli (RichTextLabel)
 	var content_style = StyleBoxFlat.new()
-	content_style.bg_color = Color("#000503")  # Stesso colore per i container interni
+	content_style.bg_color = Color("#000503") # Stesso colore per i container interni
 	content_style.border_width_left = 0
 	content_style.border_width_top = 0
 	content_style.border_width_right = 0
@@ -832,7 +848,7 @@ func _setup_panel_titles():
 		"SurvivalTitle": "SOPRAVVIVENZA",
 		"InventoryTitle": "INVENTARIO",
 		"LogTitle": "DIARIO DI VIAGGIO",
-		"MapTitle": "MAPPA",  # Rimosso 250x250
+		"MapTitle": "MAPPA", # Rimosso 250x250
 		"InfoTitle": "INFO GIOCO",
 		"StatsTitle": "STATISTICHE",
 		"ControlsTitle": "COMANDI",
@@ -1014,14 +1030,14 @@ func any_keyword_in_string(text: String, keywords: Array) -> bool:
 func _get_item_color_code(item_type: String) -> String:
 	"""Sistema colori intelligente per oggetti inventario con 10 categorie distinte."""
 	match item_type:
-		"weapon": return "[color=#FF4757]"     # Rosso intenso per armi
-		"armor": return "[color=#2ED573]"      # Verde brillante per armature
-		"food": return "[color=#FFA502]"       # Arancione per cibo
-		"drink": return "[color=#3742FA]"      # Blu elettrico per bevande
-		"medical": return "[color=#FF6B9D]"    # Rosa per oggetti medici
-		"ammo": return "[color=#F8B500]"       # Giallo oro per munizioni
-		"tool": return "[color=#A4B0BE]"       # Grigio chiaro per attrezzi
-		"key": return "[color=#FFD700]"        # Oro per chiavi/oggetti speciali
-		"material": return "[color=#8B4513]"   # Marrone per materiali grezzi
-		"misc": return "[color=#9C88FF]"       # Lilla per oggetti vari
-		_: return "[color=#%s]" % _color_to_hex(COLOR_TEXT)  # Default verde
+		"weapon": return "[color=#FF4757]" # Rosso intenso per armi
+		"armor": return "[color=#2ED573]" # Verde brillante per armature
+		"food": return "[color=#FFA502]" # Arancione per cibo
+		"drink": return "[color=#3742FA]" # Blu elettrico per bevande
+		"medical": return "[color=#FF6B9D]" # Rosa per oggetti medici
+		"ammo": return "[color=#F8B500]" # Giallo oro per munizioni
+		"tool": return "[color=#A4B0BE]" # Grigio chiaro per attrezzi
+		"key": return "[color=#FFD700]" # Oro per chiavi/oggetti speciali
+		"material": return "[color=#8B4513]" # Marrone per materiali grezzi
+		"misc": return "[color=#9C88FF]" # Lilla per oggetti vari
+		_: return "[color=#%s]" % _color_to_hex(COLOR_TEXT) # Default verde

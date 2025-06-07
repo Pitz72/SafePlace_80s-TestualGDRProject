@@ -3,8 +3,10 @@
     "files.associations": {
         "*.gd": "gdscript",
         "*.cs": "csharp",
-        "*.tres": "text",
-        "*.tscn": "text"
+        "*.tres": "gdresource",
+        "*.tscn": "gdscene",
+        "*.cfg": "ini",
+        "project.godot": "ini"
     },
     "godot_tools.editor_path": "c:\\Users\\Utente\\Downloads\\Godot_v4.5-dev5_win64.exe\\Godot_v4.5-dev5_win64.exe",
     "godot_tools.gdscript_lsp_server_protocol": "tcp",
@@ -12,9 +14,10 @@
     "[gdscript]": {
         "editor.insertSpaces": false,
         "editor.tabSize": 4,
-        "editor.detectIndentation": false,
+        "editor.detectIndentation": true,
         "files.trimTrailingWhitespace": true,
-        "files.insertFinalNewline": true
+        "files.insertFinalNewline": true,
+        "editor.autoIndent": "full"
     },
     "godot_tools.scene_file_config": true,
     "gdscript.lsp_server_enabled": true,
@@ -24,6 +27,52 @@
         "strings": true
     },
     "files.exclude": {
-        "**/.godot/": true
+        "**/.godot/**": true,
+        "**/Composer-Setup.exe": true,
+        "**/composer.phar": true
+    },
+    "files.watcherExclude": {
+        "**/.godot/**": true
+    },
+    "editor.fontSize": 14,
+    "editor.fontFamily": "'Cascadia Code', 'Fira Code', Consolas, monospace",
+    "editor.fontLigatures": true,
+    "editor.wordWrap": "on",
+    "editor.lineNumbers": "on",
+    "editor.minimap.enabled": true,
+    "editor.rulers": [80, 120],
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "search.exclude": {
+        "**/.godot/**": true,
+        "**/build/**": true,
+        "**/node_modules/**": true,
+        "**/.git/**": true
+    },
+    "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "cursor.chat.enabled": true,
+    "cursor.autocomplete.enabled": true,
+    "cursor.cpp.intelligence": true,
+    "workbench.colorTheme": "Dark+ (default dark)",
+    "workbench.iconTheme": "vs-seti",
+    "[json]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+    "[markdown]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.wordWrap": "on"
+    },
+    "extensions.ignoreRecommendations": false,
+    "emmet.includeLanguages": {
+        "gdscript": "html"
     }
 }
