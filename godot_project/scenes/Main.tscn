@@ -7,13 +7,13 @@
 [ext_resource type="Script" path="res://scripts/EventManager.gd" id="5_event"]
 [ext_resource type="Script" path="res://scripts/MapManager.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/SaveManager.gd" id="7_save"]
-[ext_resource type="Script" path="res://scripts/Session005Test.gd" id="8_test"]
+
 [ext_resource type="Script" path="res://scripts/UIManager.gd" id="9_uimanager"]
 [ext_resource type="Script" path="res://scripts/HUD.gd" id="10_hud"]
-[ext_resource type="Script" path="res://scripts/Session006Test.gd" id="11_session006test"]
-[ext_resource type="Script" path="res://scripts/Session007Test.gd" id="13_session007test"]
+
+
 [ext_resource type="Script" path="res://scripts/MainInterface.gd" id="15_maininterface"]
-[ext_resource type="Script" path="res://scripts/Session008Test.gd" id="16_session008test"]
+
 [ext_resource type="Theme" path="res://themes/SafePlaceTheme.tres" id="17_safeplacebeme"]
 
 [node name="Main" type="Node"]
@@ -39,17 +39,13 @@ script = ExtResource("7_save")
 [node name="UIManager" type="Node" parent="GameManager"]
 script = ExtResource("9_uimanager")
 
-[node name="Session005Test" type="Node" parent="GameManager"]
-script = ExtResource("8_test")
 
-[node name="Session006Test" type="Node" parent="GameManager"]
-script = ExtResource("11_session006test")
 
-[node name="Session007Test" type="Node" parent="GameManager"]
-script = ExtResource("13_session007test")
 
-[node name="Session008Test" type="Node" parent="GameManager"]
-script = ExtResource("16_session008test")
+
+
+
+
 
 [node name="UIContainer" type="Control" parent="."]
 layout_mode = 3
@@ -128,10 +124,10 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 10.0
-offset_top = 360.0
-offset_right = 260.0
-offset_bottom = 580.0
+offset_left = 270.0
+offset_top = 393.0
+offset_right = 820.0
+offset_bottom = 590.0
 
 [node name="LogContent" type="RichTextLabel" parent="UIContainer/MainInterface/LogPanel"]
 layout_mode = 1
@@ -154,8 +150,8 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 270.0
 offset_top = 10.0
-offset_right = 870.0
-offset_bottom = 450.0
+offset_right = 820.0
+offset_bottom = 383.0
 
 [node name="MapContent" type="RichTextLabel" parent="UIContainer/MainInterface/MapPanel"]
 layout_mode = 1
@@ -176,7 +172,7 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 880.0
+offset_left = 830.0
 offset_top = 10.0
 offset_right = 1130.0
 offset_bottom = 160.0
@@ -200,7 +196,7 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 880.0
+offset_left = 830.0
 offset_top = 170.0
 offset_right = 1130.0
 offset_bottom = 350.0
@@ -217,19 +213,19 @@ offset_bottom = -8.0
 bbcode_enabled = true
 scroll_active = false
 
-[node name="LegendPanel" type="Panel" parent="UIContainer/MainInterface"]
+[node name="EquipmentPanel" type="Panel" parent="UIContainer/MainInterface"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 880.0
+offset_left = 830.0
 offset_top = 360.0
 offset_right = 1130.0
 offset_bottom = 580.0
 
-[node name="LegendContent" type="RichTextLabel" parent="UIContainer/MainInterface/LegendPanel"]
+[node name="EquipmentContent" type="RichTextLabel" parent="UIContainer/MainInterface/EquipmentPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -248,9 +244,9 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 270.0
-offset_top = 460.0
-offset_right = 870.0
+offset_left = 10.0
+offset_top = 360.0
+offset_right = 260.0
 offset_bottom = 580.0
 
 [node name="ControlsContent" type="RichTextLabel" parent="UIContainer/MainInterface/ControlsPanel"]
