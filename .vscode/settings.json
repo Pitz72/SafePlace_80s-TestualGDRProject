@@ -40,7 +40,10 @@
     "editor.wordWrap": "on",
     "editor.lineNumbers": "on",
     "editor.minimap.enabled": true,
-    "editor.rulers": [80, 120],
+    "editor.rulers": [
+        80,
+        120
+    ],
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
     "editor.codeActionsOnSave": {
@@ -60,7 +63,7 @@
     "cursor.chat.enabled": true,
     "cursor.autocomplete.enabled": true,
     "cursor.cpp.intelligence": true,
-    "workbench.colorTheme": "Dark+ (default dark)",
+    "workbench.colorTheme": "Cursor Dark",
     "workbench.iconTheme": "vs-seti",
     "[json]": {
         "editor.tabSize": 2,

@@ -708,7 +708,7 @@ V Villaggio
 		popup.queue_free()
 
 	popup.confirmed.connect(close_popup)
-	popup.cancelled.connect(close_popup)
+	# Nota: AcceptDialog non ha segnale 'cancelled', solo 'confirmed'
 
 	# Input handler per chiusura con L
 	var input_handler = func(event: InputEvent):

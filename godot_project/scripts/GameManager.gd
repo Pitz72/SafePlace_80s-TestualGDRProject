@@ -631,3 +631,83 @@ func fast_travel_to(destination_id: String) -> bool:
 	if map_manager and map_manager.has_method("fast_travel_to"):
 		return map_manager.fast_travel_to(destination_id)
 	return false
+
+# 🎮 ESTENSIONE MENU SYSTEM - SAFE IMPLEMENTATION
+# Funzioni aggiunte per supporto MenuScreen senza modificare logica esistente
+
+func start_new_game_from_menu():
+	"""Avvia nuova partita dal menu principale"""
+	print("🎮 [GameManager] Avvio nuova partita da menu...")
+
+	# Reset completo stato di gioco
+	reset_game_state()
+
+	# Carica scena principale
+	get_tree().change_scene_to_file("res://scenes/Main.tscn")
+
+	print("✅ [GameManager] Nuova partita avviata")
+
+func load_game_from_menu():
+	"""Carica partita dal menu principale"""
+	print("🎮 [GameManager] Caricamento partita da menu...")
+
+	# Usa SaveManager esistente per caricare
+	if save_manager and save_manager.has_method("load_game"):
+		save_manager.load_game(1) # Slot 1 = salvataggio principale
+		# Dopo il caricamento, vai alla scena di gioco
+		get_tree().change_scene_to_file("res://scenes/Main.tscn")
+		print("✅ [GameManager] Partita caricata")
+	else:
+		push_error("❌ [GameManager] SaveManager non disponibile")
+		# Fallback: vai comunque al gioco
+		get_tree().change_scene_to_file("res://scenes/Main.tscn")
+
+func has_saved_games() -> bool:
+	"""Controlla se esistono salvataggi"""
+	# Check primario: SaveManager
+	if save_manager and save_manager.has_method("has_saved_games"):
+		return save_manager.has_saved_games()
+
+	# Fallback: check diretto file
+	return FileAccess.file_exists("user://safeplace_save.json") or \
+		   FileAccess.file_exists("user://game_save_slot_1.json")
+
+func return_to_menu():
+	"""Ritorna al menu principale dal gioco"""
+	print("🎮 [GameManager] Ritorno al menu principale...")
+
+	# Salva automaticamente lo stato se necessario
+	if player and current_state == GameState.PLAYING:
+		save_game(1) # Auto-save prima di uscire
+
+	# Reset stato UI
+	if ui_manager:
+		ui_manager.set_ui_state(UIManager.UIState.MAIN_INTERFACE)
+
+	# Torna al menu
+	get_tree().change_scene_to_file("res://scenes/MenuScreen.tscn")
+
+	print("✅ [GameManager] Ritorno al menu completato")
+
+func reset_game_state():
+	"""Reset completo dello stato di gioco per nuova partita"""
+	print("🔄 [GameManager] Reset stato di gioco...")
+
+	# Reset stato principale
+	current_state = GameState.LOADING
+	game_time = 0.0
+	frame_count = 0
+
+	# Reset performance metrics
+	performance_samples.clear()
+
+	# Reset player se esiste
+	if player and player.has_method("reset_for_new_game"):
+		player.reset_for_new_game()
+
+	# Reset managers se hanno metodi di reset
+	for manager in [map_manager, combat_manager, event_manager]:
+		if manager and manager.has_method("reset_for_new_game"):
+			manager.reset_for_new_game()
+
+	print("✅ [GameManager] Stato di gioco resettato")
