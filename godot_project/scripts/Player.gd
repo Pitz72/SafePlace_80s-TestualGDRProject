@@ -656,16 +656,37 @@ func _add_test_items_safeplace():
 	print("✅ Oggetti di test SafePlace aggiunti all'inventario")
 
 func get_inventory_display() -> Array[Dictionary]:
-	"""Restituisce l'inventario formattato per MainInterface"""
+	"""Restituisce l'inventario formattato per MainInterface con supporto lore v1.2.0"""
 	var display_array: Array[Dictionary] = []
+
+	# Accesso al database per enrichment lore
+	var game_manager = get_node("/root/GameManager") as GameManager
+	var item_db = game_manager.get_item_database() if game_manager else null
 
 	for slot in inventory:
 		var item_data = {
 			"id": slot.item_id,
 			"name": _get_item_display_name(slot.item_id),
 			"quantity": slot.quantity,
-			"stackable": slot.get("stackable", false)
+			"stackable": slot.get("stackable", false),
+			# === LORE INTEGRATION v1.2.0 ===
+			"rarity": "common",
+			"has_lore": false,
+			"lore_text": "",
+			"rarity_color": Color.WHITE,
+			"is_special": false
 		}
+
+		# Enhancement lore se database disponibile
+		if item_db:
+			var item = item_db.get_item(slot.item_id)
+			if item and item.has_lore():
+				item_data.rarity = item.rarity
+				item_data.has_lore = true
+				item_data.lore_text = item.lore_text
+				item_data.rarity_color = item.get_rarity_color()
+				item_data.is_special = item.is_special()
+
 		display_array.append(item_data)
 
 	return display_array

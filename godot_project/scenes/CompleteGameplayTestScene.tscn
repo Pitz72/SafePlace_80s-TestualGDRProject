@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqm8vh2dqkx1h"]
+
+[ext_resource type="Script" path="res://scripts/CompleteGameplayTest.gd" id="1_0kxmw"]
+
+[node name="CompleteGameplayTestScene" type="Node"]
+script = ExtResource("1_0kxmw")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -12.5
+offset_right = 150.0
+offset_bottom = 12.5
+text = "SafePlace Complete Gameplay Test - Controlla Console"
+horizontal_alignment = 1 

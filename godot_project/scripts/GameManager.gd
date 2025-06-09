@@ -133,6 +133,9 @@ func _setup_signal_connections():
 		event_manager.event_started.connect(_on_event_started)
 	if event_manager and event_manager.has_signal("event_ended"):
 		event_manager.event_ended.connect(_on_event_ended)
+	# NUOVO: Connetti segnali lore events
+	if event_manager and event_manager.has_signal("lore_event_triggered"):
+		event_manager.lore_event_triggered.connect(_on_lore_event_triggered)
 
 	# Connect to map manager signals
 	if map_manager and map_manager.has_signal("location_changed"):
@@ -188,6 +191,15 @@ func _initialize_systems() -> void:
 
 	# Initialize new systems Session #005
 	print("⚔️ Sistemi Session #005 inizializzati automaticamente")
+
+	# NUOVO: Inizializza sistema eventi lore
+	if event_manager and event_manager.has_method("load_lore_events"):
+		print("🎭 Caricamento eventi lore lineari...")
+		var lore_success = event_manager.load_lore_events()
+		if lore_success:
+			print("✅ Eventi lore caricati con successo")
+		else:
+			print("⚠️ Errore caricamento eventi lore")
 
 	# Small delay to ensure all systems are ready
 	await get_tree().process_frame
@@ -711,3 +723,131 @@ func reset_game_state():
 			manager.reset_for_new_game()
 
 	print("✅ [GameManager] Stato di gioco resettato")
+
+## ===== NUOVO: GESTIONE EVENTI LORE =====
+
+# Variabili per tracking eventi lore
+var days_survived: int = 1
+var event_dialog: EventDialog
+var is_lore_event_active: bool = false
+
+## Callback per evento lore triggered
+func _on_lore_event_triggered(event_data: Dictionary):
+	"""Gestisce quando un evento lore viene triggerato"""
+	print("🎭 [GameManager] Lore event triggered: %s" % event_data.get("title", ""))
+
+	# Previeni sovrapposizioni
+	if is_lore_event_active:
+		print("⚠️ [GameManager] Evento lore già attivo, ignorato")
+		return
+
+	# Crea o ottieni dialog
+	_ensure_event_dialog()
+
+	# Mostra evento
+	if event_dialog:
+		is_lore_event_active = true
+		change_state("EVENT")
+		event_dialog.show_lore_event(event_data, event_manager)
+		add_log_entry("📖 " + event_data.get("title", "Evento narrativo"))
+
+## Crea EventDialog se non esiste
+func _ensure_event_dialog():
+	if not event_dialog:
+		var event_dialog_scene = load("res://scenes/EventDialog.tscn")
+		event_dialog = event_dialog_scene.instantiate()
+
+		# Aggiungi come child dello UI container
+		var ui_container = get_node_or_null("../UIContainer")
+		if ui_container:
+			ui_container.add_child(event_dialog)
+		else:
+			# Fallback: aggiungi direttamente alla scena
+			get_tree().current_scene.add_child(event_dialog)
+
+		# Connetti segnali
+		event_dialog.choice_selected.connect(_on_lore_choice_selected)
+		event_dialog.dialog_closed.connect(_on_lore_dialog_closed)
+
+		print("🎭 [GameManager] EventDialog creato e inizializzato")
+
+## Callback per scelta lore selezionata
+func _on_lore_choice_selected(choice_index: int, choice_data: Dictionary):
+	"""Gestisce quando una scelta viene selezionata in un evento lore"""
+	print("🎯 [GameManager] Scelta lore: %s" % choice_data.get("text", ""))
+
+	var outcome = choice_data.get("outcome", "")
+	if outcome != "":
+		add_log_entry("📝 " + outcome)
+
+## Callback per dialog chiuso
+func _on_lore_dialog_closed():
+	"""Gestisce quando il dialog degli eventi lore viene chiuso"""
+	print("🎭 [GameManager] Dialog eventi lore chiuso")
+
+	is_lore_event_active = false
+	change_state("PLAYING")
+
+## API: Controlla trigger eventi lore (chiamato dal movimento)
+func check_lore_events():
+	"""Controlla se triggerare eventi lore basato sullo stato attuale"""
+	if not event_manager:
+		return
+
+	if is_lore_event_active:
+		return # Eventi già attivi
+
+	# Crea contesto player per trigger
+	var player_context = _build_player_context()
+
+	# Check trigger con protezione extra
+	var triggered_event = event_manager.check_lore_event_triggers(player_context)
+
+	# Verifica che l'evento sia valido prima di triggerarlo
+	if not triggered_event.is_empty() and triggered_event.has("id") and triggered_event.get("id", "") != "":
+		print("🎭 [GameManager] Triggering valid lore event: %s" % triggered_event.get("title", ""))
+		event_manager.trigger_lore_event(triggered_event)
+	elif not triggered_event.is_empty():
+		print("⚠️ [GameManager] Evento lore invalido ricevuto: %s" % str(triggered_event))
+
+## Helper: costruisce contesto player per eventi
+func _build_player_context() -> Dictionary:
+	var context = {
+		"days_survived": days_survived,
+		"is_night": false, # TODO: integrare con sistema tempo
+		"x": 12, # TODO: ottieni da player position reale
+		"y": 8
+	}
+
+	# Aggiungi posizione player se disponibile
+	if player and player.has_method("get_position"):
+		var pos = player.get_position()
+		context.x = int(pos.x)
+		context.y = int(pos.y)
+
+	return context
+
+## API: Incrementa giorni sopravvissuti (chiamato dal sistema tempo)
+func advance_day():
+	"""Incrementa il contatore giorni e controlla eventi"""
+	days_survived += 1
+	print("📅 [GameManager] Nuovo giorno: %d" % days_survived)
+
+	# Check eventi automatici per nuovo giorno
+	check_lore_events()
+
+## API: Trigger manuale eventi lore (per testing)
+func force_trigger_lore_event(event_id: String):
+	"""Forza il trigger di un evento lore specifico per testing"""
+	if not event_manager:
+		print("❌ [GameManager] EventManager non disponibile")
+		return
+
+	# Trova evento
+	for event in event_manager._lore_events:
+		if event.get("id", "") == event_id:
+			print("🎭 [GameManager] Force triggering: %s" % event.get("title", ""))
+			event_manager.trigger_lore_event(event)
+			return
+
+	print("❌ [GameManager] Evento lore non trovato: %s" % event_id)

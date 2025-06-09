@@ -1,728 +1,671 @@
 extends Node
 class_name EventManager
 
-## EventManager per SafePlace
-## Gestisce eventi narrativi, scelte multiple e conseguenze
+## EventManager per SafePlace - Sistema Eventi Narrativi V2
+## Basato su event_database_v2.js (944 righe, ~12 eventi complessi)
+## FASE 3: Eventi Narrativi Multi-Branch con Reputation System
+## + SISTEMA LORE LINEARE: 10 eventi timeline di Ultimo
 
-signal event_started(event_data: Dictionary)
-signal event_ended(event_id: String, result: Dictionary)
-signal choice_presented(choices: Array)
-signal choice_made(choice_index: int, choice_data: Dictionary)
-signal narrative_updated(text: String)
-signal achievement_unlocked(achievement_id: String)  # FUTURE: Sistema achievements Session #009+
+# Database eventi in memoria
+var _events: Dictionary = {}
+var _event_categories: Dictionary = {}
+var _active_events: Array[Dictionary] = []
+var _completed_events: Array[String] = []
 
-## Tipi di eventi
-enum EventType {
-	RANDOM_ENCOUNTER,
-	LOCATION_SPECIFIC,
-	STORY_PROGRESSION,
-	CHARACTER_INTERACTION,
-	SURVIVAL_EVENT,
-	SPECIAL_CONDITION
+# Reputation system per fazioni
+var _faction_reputation: Dictionary = {
+	"scientists": 0,
+	"military": 0,
+	"survivors": 0,
+	"rebels": 0,
+	"traders": 0
 }
 
-## Stati dell'evento
-enum EventState {
-	INACTIVE,
-	PRESENTING,
-	WAITING_CHOICE,
-	PROCESSING,
-	COMPLETED
-}
+# Player flags e world state
+var _player_flags: Array[String] = []
+var _world_state: Dictionary = {}
+var _quest_progress: Dictionary = {}
 
-@export var current_state: EventState = EventState.INACTIVE
-@export var debug_mode: bool = false
+# ===== NUOVO: SISTEMA LORE LINEARE =====
+var _lore_events: Array[Dictionary] = []
+var _seen_lore_events: Array[String] = []
+var _lore_flags: Array[String] = []
+var _current_lore_sequence: int = 1 # Traccia evento corrente 1→10
+var _last_lore_event_time: float = 0.0
 
-# Riferimenti ai sistemi
-var game_manager: GameManager
-var player: Player
-var item_database: ItemDatabase
+# Coordinate Safe Place (E) per calcolo distanza
+const SAFE_PLACE_X = 190
+const SAFE_PLACE_Y = 190
 
-# Evento corrente
-var current_event: Dictionary = {}
-var event_history: Array[String] = []
-var story_flags: Dictionary = {}
+# Segnali per comunicazione
+signal event_triggered(event_data: Dictionary)
+signal choice_made(choice_id: String, outcome: Dictionary)
+signal reputation_changed(faction: String, change: int, new_value: int)
+signal quest_updated(quest_id: String, new_step: int)
+# NUOVO: Segnali lore events
+signal lore_event_triggered(event_data: Dictionary)
+signal lore_choice_made(choice_id: String, outcome: Dictionary)
 
-# Database eventi (semplificato per ora)
-var events_database: Dictionary = {}
+func _init():
+	print("📖 EventManager inizializzato - Sistema Eventi V2 + Lore Linear")
 
-func _ready():
-	print("📖 EventManager inizializzato")
-	_initialize_event_system()
-	_load_events_database()
+## Carica il database eventi da JavaScript
+func load_event_database() -> bool:
+	print("🔥 Caricamento Event Database V2 da JavaScript...")
 
-## Inizializza sistema eventi
-func _initialize_event_system():
-	# Trova riferimenti ai sistemi
-	game_manager = get_node("../GameManager") if get_node_or_null("../GameManager") else null
-	player = get_node("../../WorldContainer/Player") if get_node_or_null("../../WorldContainer/Player") else null
-	
-	if game_manager and game_manager.has_method("get_item_database"):
-		item_database = game_manager.get_item_database()
-	
-	# Connetti segnali
-	if game_manager:
-		game_manager.game_state_changed.connect(_on_game_state_changed)
-	
-	if player:
-		player.stats_changed.connect(_on_player_stats_changed)
-	
-	print("📖 Sistema eventi collegato ai sistemi principali")
+	var js_file_path = "js/events_v2/event_database_v2.js"
+	var file = FileAccess.open(js_file_path, FileAccess.READ)
 
-## Carica database eventi
-func _load_events_database():
-	# Database eventi integrato (in futuro da file JSON)
-	events_database = {
-		"bandito_encounter": {
-			"id": "bandito_encounter",
-			"name": "Incontro con Bandito",
-			"type": EventType.RANDOM_ENCOUNTER,
-			"description": "Un bandito ti blocca la strada, impugnando un coltello arrugginito.",
-			"image": "",
-			"conditions": {},
-			"choices": [
-				{
-					"text": "Attaccalo",
-					"requirements": {},
-					"consequences": {
-						"action": "start_combat",
-						"data": {
-							"enemy": {
-								"name": "Bandito",
-								"max_hp": 40,
-								"attack": 8,
-								"defense": 2,
-								"experience": 12
-							}
-						}
-					}
-				},
-				{
-					"text": "Cerca di persuaderlo",
-					"requirements": {"inf": 12},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "inf",
-						"difficulty": 12,
-						"success": {
-							"text": "Il bandito si convince e se ne va.",
-							"rewards": {"experience": 8}
-						},
-						"failure": {
-							"text": "Il bandito ride e ti attacca!",
-							"action": "start_combat",
-							"data": {
-								"enemy": {
-									"name": "Bandito Arrabbiato",
-									"max_hp": 40,
-									"attack": 10,
-									"defense": 2,
-									"experience": 12
-								}
-							}
-						}
-					}
-				},
-				{
-					"text": "Scappa",
-					"requirements": {"agi": 10},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "agi",
-						"difficulty": 10,
-						"success": {
-							"text": "Riesci a scappare velocemente.",
-							"rewards": {}
-						},
-						"failure": {
-							"text": "Inciampi e il bandito ti raggiunge!",
-							"action": "start_combat",
-							"data": {
-								"enemy": {
-									"name": "Bandito",
-									"max_hp": 40,
-									"attack": 8,
-									"defense": 2,
-									"experience": 12
-								}
-							}
-						}
-					}
-				},
-				{
-					"text": "Offri cibo",
-					"requirements": {"food": 10},
-					"consequences": {
-						"action": "pay_cost",
-						"cost": {"food": 10},
-						"success": {
-							"text": "Il bandito accetta il cibo e se ne va contento.",
-							"rewards": {"experience": 5},
-							"set_flag": "bandito_fed"
-						}
-					}
-				}
-			]
-		},
-		
-		"strange_chest": {
-			"id": "strange_chest",
-			"name": "Cassa Misteriosa",
-			"type": EventType.LOCATION_SPECIFIC,
-			"description": "Trovi una cassa di metallo parzialmente sepolta. Sembra intatta.",
-			"image": "",
-			"conditions": {},
-			"choices": [
-				{
-					"text": "Aprila con cautela",
-					"requirements": {},
-					"consequences": {
-						"action": "random_outcome",
-						"outcomes": [
-							{
-								"chance": 0.4,
-								"text": "Dentro trovi una pozione di cura!",
-								"rewards": {"items": {"health_potion": 1}}
-							},
-							{
-								"chance": 0.3,
-								"text": "La cassa contiene materiali utili.",
-								"rewards": {"items": {"scrap_metal": 2}}
-							},
-							{
-								"chance": 0.2,
-								"text": "È vuota, ma ben conservata.",
-								"rewards": {}
-							},
-							{
-								"chance": 0.1,
-								"text": "Un meccanismo scatta! Perdi HP.",
-								"damage": 10
-							}
-						]
-					}
-				},
-				{
-					"text": "Ignorala e prosegui",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi di non rischiare e prosegui.",
-						"rewards": {}
-					}
-				}
-			]
-		},
-		
-		"water_source": {
-			"id": "water_source",
-			"name": "Fonte d'Acqua",
-			"type": EventType.SURVIVAL_EVENT,
-			"description": "Trovi una piccola fonte d'acqua. L'acqua sembra pulita.",
-			"image": "",
-			"conditions": {},
-			"choices": [
-				{
-					"text": "Bevi e riempi le scorte",
-					"requirements": {},
-					"consequences": {
-						"action": "restore_resource",
-						"resource": "water",
-						"amount": 30,
-						"text": "Ti disseti e riempi le tue scorte d'acqua."
-					}
-				},
-				{
-					"text": "Controlla prima la qualità",
-					"requirements": {"tra": 10},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "tra",
-						"difficulty": 10,
-						"success": {
-							"text": "L'acqua è pulita e sicura. Ti disseti completamente.",
-							"action": "restore_resource",
-							"resource": "water",
-							"amount": 50
-						},
-						"failure": {
-							"text": "Non sei sicuro della qualità, bevi con cautela.",
-							"action": "restore_resource",
-							"resource": "water",
-							"amount": 20
-						}
-					}
-				},
-				{
-					"text": "Non bere, troppo rischioso",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi di non rischiare e prosegui.",
-						"rewards": {}
-					}
-				}
-			]
-		}
-	}
-	
-	print("📖 Database eventi caricato: ", events_database.size(), " eventi")
-
-## Avvia evento per ID
-func start_event(event_id: String) -> bool:
-	if current_state != EventState.INACTIVE:
-		print("❌ Evento già in corso!")
+	if not file:
+		print("❌ ERRORE: Impossibile aprire ", js_file_path)
 		return false
-	
-	if not events_database.has(event_id):
-		print("❌ Evento non trovato: ", event_id)
+
+	var js_content = file.get_as_text()
+	file.close()
+
+	print("📄 File JavaScript letto: ", js_content.length(), " caratteri")
+
+	# Parse database eventi
+	var events_data = _parse_event_database(js_content)
+
+	if events_data.is_empty():
+		print("❌ ERRORE: Nessun evento trovato nel database")
 		return false
-	
-	current_event = events_database[event_id].duplicate(true)
-	
-	# Controlla condizioni evento
-	if not _check_event_conditions(current_event.get("conditions", {})):
-		print("❌ Condizioni evento non soddisfatte")
-		return false
-	
-	current_state = EventState.PRESENTING
-	
-	print("📖 Avviando evento: ", current_event.get("name", event_id))
-	
-	# Notifica inizio evento
-	event_started.emit(current_event)
-	
-	# Aggiorna GameManager
-	if game_manager:
-		game_manager.change_state("EVENT")
-	
-	# Presenta l'evento
-	_present_event()
-	
+
+	_events = events_data
+	_build_category_indexes()
+
+	print("✅ Event Database caricato: ", _events.size(), " eventi")
 	return true
 
-## Presenta evento al player
-func _present_event():
-	current_state = EventState.WAITING_CHOICE
-	
-	var description = current_event.get("description", "Evento senza descrizione")
-	narrative_updated.emit(description)
-	
-	# Prepara scelte disponibili
-	var available_choices = []
-	var choices = current_event.get("choices", [])
-	
-	for i in range(choices.size()):
-		var choice = choices[i]
-		if _check_choice_requirements(choice.get("requirements", {})):
-			available_choices.append({
-				"index": i,
-				"text": choice.get("text", "Scelta senza testo"),
-				"available": true
-			})
+## Parse il database eventi dal JavaScript
+func _parse_event_database(js_content: String) -> Dictionary:
+	print("🔍 Parsing Event Database JavaScript...")
+
+	# Trova EVENT_DATABASE_V2
+	var start_marker = "const EVENT_DATABASE_V2 = {"
+	var start_index = js_content.find(start_marker)
+
+	if start_index == -1:
+		print("❌ ERRORE: EVENT_DATABASE_V2 non trovato")
+		return {}
+
+	# Trova la fine del database (bilancia parentesi)
+	var brace_count = 0
+	var content_start = start_index + start_marker.length() - 1
+	var content_end = -1
+
+	for i in range(content_start, js_content.length()):
+		var char = js_content[i]
+		if char == '{':
+			brace_count += 1
+		elif char == '}':
+			brace_count -= 1
+			if brace_count == 0:
+				content_end = i + 1
+				break
+
+	if content_end == -1:
+		print("❌ ERRORE: Fine EVENT_DATABASE_V2 non trovata")
+		return {}
+
+	var db_block = js_content.substr(content_start, content_end - content_start)
+	print("🎯 Estratto database eventi: ", db_block.length(), " caratteri")
+
+	# Converte JavaScript in Dictionary Godot
+	return _convert_event_database(db_block)
+
+## Converte il database eventi da JavaScript a Godot
+func _convert_event_database(js_db: String) -> Dictionary:
+	print("🔄 Conversione Event Database JavaScript → Godot...")
+
+	var events: Dictionary = {}
+
+	# Parsing per categorie (environmental, character, questlines)
+	var categories = ["environmental", "character", "questlines"]
+
+	for category in categories:
+		var category_events = _parse_event_category(js_db, category)
+		for event_id in category_events:
+			events[event_id] = category_events[event_id]
+
+	print("✅ Convertiti ", events.size(), " eventi")
+	return events
+
+## Parse una categoria specifica di eventi
+func _parse_event_category(js_content: String, category: String) -> Dictionary:
+	var category_events: Dictionary = {}
+
+	# Trova la sezione categoria
+	var category_marker = category + ": {"
+	var category_start = js_content.find(category_marker)
+
+	if category_start == -1:
+		return category_events
+
+	# Pattern regex per trovare eventi individuali
+	var event_pattern = RegEx.new()
+	event_pattern.compile("\"([^\"]+)\"\\s*:\\s*\\{")
+
+	var search_start = category_start
+	var results = event_pattern.search_all(js_content.substr(search_start, 2000))
+
+	for result in results:
+		var event_id = result.get_string(1)
+		if event_id != category: # Skip category name itself
+			var event_data = _parse_individual_event(js_content, event_id, search_start)
+			if not event_data.is_empty():
+				category_events[event_id] = event_data
+
+	print("📊 Categoria '%s': %d eventi" % [category, category_events.size()])
+	return category_events
+
+## Parse un singolo evento dal JavaScript
+func _parse_individual_event(js_content: String, event_id: String, start_pos: int) -> Dictionary:
+	var event_data: Dictionary = {
+		"id": event_id,
+		"title": "",
+		"description": "",
+		"category": "",
+		"tier": 1,
+		"priority": 5,
+		"triggers": {},
+		"branches": {}
+	}
+
+	# Trova il blocco dell'evento specifico
+	var event_start = js_content.find("\"" + event_id + "\":", start_pos)
+	if event_start == -1:
+		return {}
+
+	# Per ora, parsing semplificato - implementazione completa quando necessario
+	event_data.title = _extract_string_value(js_content, "title", event_start)
+	event_data.description = _extract_string_value(js_content, "description", event_start)
+	event_data.category = _extract_string_value(js_content, "category", event_start)
+	event_data.tier = _extract_number_value(js_content, "tier", event_start)
+
+	return event_data
+
+## Helper: estrae valore stringa dal JavaScript
+func _extract_string_value(js_content: String, field: String, start_pos: int) -> String:
+	var pattern = field + ":\\s*[\"']([^\"']+)[\"']"
+	var regex = RegEx.new()
+	regex.compile(pattern)
+
+	var result = regex.search(js_content.substr(start_pos, 500))
+	if result:
+		return result.get_string(1)
+	return ""
+
+## Helper: estrae valore numerico dal JavaScript
+func _extract_number_value(js_content: String, field: String, start_pos: int) -> int:
+	var pattern = field + ":\\s*(\\d+)"
+	var regex = RegEx.new()
+	regex.compile(pattern)
+
+	var result = regex.search(js_content.substr(start_pos, 500))
+	if result:
+		return result.get_string(1).to_int()
+	return 0
+
+## Costruisce indici per categorie
+func _build_category_indexes():
+	_event_categories.clear()
+
+	for event_id in _events:
+		var event = _events[event_id]
+		var category = event.get("category", "misc")
+
+		if not _event_categories.has(category):
+			_event_categories[category] = []
+
+		_event_categories[category].append(event_id)
+
+	print("📂 Categorie indicizzate: ", _event_categories.keys())
+
+## API: Ottieni evento per ID
+func get_event(event_id: String) -> Dictionary:
+	return _events.get(event_id, {})
+
+## API: Ottieni eventi per categoria
+func get_events_by_category(category: String) -> Array:
+	var category_event_ids = _event_categories.get(category, [])
+	var events_list = []
+
+	for event_id in category_event_ids:
+		events_list.append(_events[event_id])
+
+	return events_list
+
+## API: Controlla se evento è disponibile per trigger
+func can_trigger_event(event_id: String, player_context: Dictionary) -> bool:
+	var event = get_event(event_id)
+	if event.is_empty():
+		return false
+
+	var triggers = event.get("triggers", {})
+
+	# Check flags requirements
+	var requires = triggers.get("requires", [])
+	for flag in requires:
+		if flag.begins_with("!"):
+			# Flag negato
+			if has_flag(flag.substr(1)):
+				return false
 		else:
-			available_choices.append({
-				"index": i,
-				"text": choice.get("text", "Scelta senza testo") + " (Requisiti non soddisfatti)",
-				"available": false
-			})
-	
-	choice_presented.emit(available_choices)
-	
-	if debug_mode:
-		print("📖 Evento presentato: ", available_choices.size(), " scelte")
+			# Flag richiesto
+			if not has_flag(flag):
+				return false
 
-## Processa scelta del player
-func make_choice(choice_index: int) -> bool:
-	if current_state != EventState.WAITING_CHOICE:
-		print("❌ Non è il momento di fare una scelta!")
-		return false
-	
-	var choices = current_event.get("choices", [])
-	if choice_index < 0 or choice_index >= choices.size():
-		print("❌ Indice scelta non valido: ", choice_index)
-		return false
-	
-	var choice = choices[choice_index]
-	
-	# Verifica requisiti
-	if not _check_choice_requirements(choice.get("requirements", {})):
-		print("❌ Requisiti per la scelta non soddisfatti")
-		return false
-	
-	current_state = EventState.PROCESSING
-	
-	# Notifica scelta
-	choice_made.emit(choice_index, choice)
-	
-	# Processa conseguenze
-	_process_consequences(choice.get("consequences", {}))
-	
-	return true
+	# Check stats requirements
+	var stats_req = triggers.get("player_stats", {})
+	for stat in stats_req:
+		var requirement = stats_req[stat]
+		var player_stat = player_context.get(stat, 0)
 
-## Processa conseguenze della scelta
-func _process_consequences(consequences: Dictionary):
-	var action = consequences.get("action", "")
-	
-	match action:
-		"start_combat":
-			_start_combat_from_event(consequences.get("data", {}))
-		"skill_check":
-			_process_skill_check(consequences)
-		"pay_cost":
-			_process_pay_cost(consequences)
-		"random_outcome":
-			_process_random_outcome(consequences)
-		"restore_resource":
-			_process_restore_resource(consequences)
-		"simple_result":
-			_process_simple_result(consequences)
-		_:
-			print("❌ Azione sconosciuta: ", action)
-			_end_event({})
-
-## Avvia combattimento da evento
-func _start_combat_from_event(data: Dictionary):
-	if not game_manager or not game_manager.has_method("start_combat"):
-		print("❌ Sistema combattimento non disponibile")
-		_end_event({})
-		return
-	
-	var enemy_data = data.get("enemy", {})
-	
-	# Registra per gestire fine combattimento
-	if game_manager.has_signal("combat_ended"):
-		if not game_manager.combat_ended.is_connected(_on_combat_ended_from_event):
-			game_manager.combat_ended.connect(_on_combat_ended_from_event)
-	
-	# Avvia combattimento tramite GameManager
-	game_manager.start_combat(enemy_data)
-
-## Processa skill check
-func _process_skill_check(consequences: Dictionary):
-	var stat = consequences.get("stat", "")
-	var difficulty = consequences.get("difficulty", 10)
-	
-	if not player:
-		print("❌ Player non disponibile per skill check")
-		_end_event({})
-		return
-	
-	var player_stat = _get_player_stat(stat)
-	var roll = randi_range(1, 20)
-	var total = player_stat + roll
-	var success = total >= difficulty
-	
-	var result_text = ""
-	if success:
-		result_text = "Skill check riuscito! (" + str(total) + " vs " + str(difficulty) + ")"
-		var success_data = consequences.get("success", {})
-		_apply_result(success_data)
-	else:
-		result_text = "Skill check fallito. (" + str(total) + " vs " + str(difficulty) + ")"
-		var failure_data = consequences.get("failure", {})
-		_apply_result(failure_data)
-	
-	narrative_updated.emit(result_text)
-	
-	if debug_mode:
-		print("📖 Skill check: ", stat, " ", total, " vs ", difficulty, " = ", success)
-
-## Processa pagamento costo
-func _process_pay_cost(consequences: Dictionary):
-	var cost = consequences.get("cost", {})
-	
-	if not player:
-		_end_event({})
-		return
-	
-	# Verifica se può pagare
-	var can_pay = true
-	for resource in cost:
-		var required = cost[resource]
-		var current = _get_player_stat(resource)
-		if current < required:
-			can_pay = false
-			break
-	
-	if can_pay:
-		# Paga il costo
-		for resource in cost:
-			var amount = cost[resource]
-			_set_player_stat(resource, _get_player_stat(resource) - amount)
-		
-		var success_data = consequences.get("success", {})
-		_apply_result(success_data)
-	else:
-		narrative_updated.emit("Non hai abbastanza risorse per questa scelta.")
-		_end_event({})
-
-## Processa outcome casuale
-func _process_random_outcome(consequences: Dictionary):
-	var outcomes = consequences.get("outcomes", [])
-	
-	if outcomes.is_empty():
-		_end_event({})
-		return
-	
-	var roll = randf()
-	var cumulative_chance = 0.0
-	
-	for outcome in outcomes:
-		cumulative_chance += outcome.get("chance", 0.0)
-		if roll <= cumulative_chance:
-			_apply_result(outcome)
-			return
-	
-	# Fallback al primo outcome
-	_apply_result(outcomes[0])
-
-## Processa ripristino risorsa
-func _process_restore_resource(consequences: Dictionary):
-	if not player:
-		_end_event({})
-		return
-	
-	var resource = consequences.get("resource", "")
-	var amount = consequences.get("amount", 0)
-	var text = consequences.get("text", "Risorsa ripristinata.")
-	
-	if resource == "water":
-		player.water = min(100, player.water + amount)
-	elif resource == "food":
-		player.food = min(100, player.food + amount)
-	elif resource == "hp":
-		player.heal(amount, "event")
-	
-	narrative_updated.emit(text)
-	_end_event({"resource_restored": resource, "amount": amount})
-
-## Processa risultato semplice
-func _process_simple_result(consequences: Dictionary):
-	var text = consequences.get("text", "Evento completato.")
-	var rewards = consequences.get("rewards", {})
-	
-	narrative_updated.emit(text)
-	_apply_rewards(rewards)
-	_end_event(rewards)
-
-## Applica risultato
-func _apply_result(result_data: Dictionary):
-	var text = result_data.get("text", "")
-	if not text.is_empty():
-		narrative_updated.emit(text)
-	
-	# Applica ricompense
-	var rewards = result_data.get("rewards", {})
-	_apply_rewards(rewards)
-	
-	# Gestisci azioni aggiuntive
-	if result_data.has("action"):
-		_process_consequences(result_data)
-	else:
-		_end_event(rewards)
-
-## Applica ricompense
-func _apply_rewards(rewards: Dictionary):
-	if not player:
-		return
-	
-	# Esperienza
-	if rewards.has("experience"):
-		player.add_experience(rewards["experience"])
-	
-	# Oggetti
-	if rewards.has("items"):
-		var items = rewards["items"]
-		for item_id in items:
-			var quantity = items[item_id]
-			player.add_item_to_inventory(item_id, quantity)
-
-## Verifica condizioni evento
-func _check_event_conditions(conditions: Dictionary) -> bool:
-	if not player:
-		return false
-	
-	for condition in conditions:
-		var required_value = conditions[condition]
-		var current_value = _get_player_stat(condition)
-		
-		if current_value < required_value:
+		if requirement.has("min") and player_stat < requirement.min:
 			return false
-	
-	return true
-
-## Verifica requisiti scelta
-func _check_choice_requirements(requirements: Dictionary) -> bool:
-	if not player:
-		return false
-	
-	for requirement in requirements:
-		var required_value = requirements[requirement]
-		var current_value = _get_player_stat(requirement)
-		
-		if current_value < required_value:
+		if requirement.has("max") and player_stat > requirement.max:
 			return false
-	
+
 	return true
 
-## Termina evento
-func _end_event(result: Dictionary):
-	var event_id = current_event.get("id", "unknown")
-	
-	# Aggiungi alla storia
-	event_history.append(event_id)
-	
-	# Segnale di fine evento
-	event_ended.emit(event_id, result)
-	
-	# Reset stato
-	current_state = EventState.INACTIVE
-	current_event.clear()
-	
-	# Ritorna al GameManager
-	if game_manager:
-		game_manager.change_state("PLAYING")
-	
-	if debug_mode:
-		print("📖 Evento terminato: ", event_id)
+## API: Trigger evento
+func trigger_event(event_id: String, player_context: Dictionary) -> bool:
+	if not can_trigger_event(event_id, player_context):
+		return false
 
-## Signal handlers
-func _on_game_state_changed(new_state):
-	# new_state è GameManager.GameState enum, non string
-	if new_state != GameManager.GameState.EVENT and current_state != EventState.INACTIVE:
-		# Evento interrotto
-		_end_event({})
+	var event = get_event(event_id)
+	_active_events.append(event)
 
-func _on_player_stats_changed(_stat: String, _old_val: int, _new_val: int):
-	# Possibili eventi triggered da cambio stats
-	pass
+	print("🎭 Evento triggered: ", event.title)
+	event_triggered.emit(event)
 
-func _on_combat_ended_from_event(result: String, rewards: Dictionary):
-	# Disconnetti il segnale
-	if game_manager and game_manager.combat_ended.is_connected(_on_combat_ended_from_event):
-		game_manager.combat_ended.disconnect(_on_combat_ended_from_event)
-	
-	# Applica ricompense del combattimento
-	if result == "victory":
-		_apply_rewards(rewards)
-		narrative_updated.emit("Hai vinto il combattimento!")
-	elif result == "defeat":
-		narrative_updated.emit("Sei stato sconfitto...")
-	elif result == "fled":
-		narrative_updated.emit("Sei fuggito dal combattimento.")
-	
-	_end_event(rewards)
+	return true
 
-## Avvia evento casuale
-func trigger_random_event() -> bool:
-	var random_events = ["bandito_encounter", "strange_chest", "water_source"]
-	var random_event = random_events[randi() % random_events.size()]
-	
-	return start_event(random_event)
+## API: Sistema flags
+func has_flag(flag: String) -> bool:
+	return flag in _player_flags
 
-## Ottiene eventi disponibili per location
-func get_location_events(_location_id: String) -> Array:
-	var location_events = []
-	
-	for event_id in events_database:
-		var event_data = events_database[event_id]
-		# Gestione type-safe: il tipo può essere int (enum) o string
-		var event_type = event_data.get("type", EventType.RANDOM_ENCOUNTER)
-		var is_location_specific = false
-		
-		# Confronto type-safe per enum/string
-		if typeof(event_type) == TYPE_INT:
-			is_location_specific = (event_type == EventType.LOCATION_SPECIFIC)
-		elif typeof(event_type) == TYPE_STRING:
-			is_location_specific = (event_type == "LOCATION_SPECIFIC")
-		
-		if is_location_specific:
-			if _check_event_conditions(event_data.get("conditions", {})):
-				location_events.append(event_id)
-	
-	return location_events
+func set_flag(flag: String):
+	if not has_flag(flag):
+		_player_flags.append(flag)
+		print("🏴 Flag impostato: ", flag)
 
-## Stato per debugging
-func get_event_status() -> Dictionary:
+func remove_flag(flag: String):
+	_player_flags.erase(flag)
+	print("🏴 Flag rimosso: ", flag)
+
+## API: Sistema reputation
+func get_reputation(faction: String) -> int:
+	return _faction_reputation.get(faction, 0)
+
+func change_reputation(faction: String, change: int):
+	if not _faction_reputation.has(faction):
+		_faction_reputation[faction] = 0
+
+	var old_value = _faction_reputation[faction]
+	_faction_reputation[faction] += change
+	var new_value = _faction_reputation[faction]
+
+	print("⚖️ Reputation %s: %d → %d (%+d)" % [faction, old_value, new_value, change])
+	reputation_changed.emit(faction, change, new_value)
+
+## API: Quest progress tracking
+func get_quest_progress(quest_id: String) -> int:
+	return _quest_progress.get(quest_id, 0)
+
+func set_quest_progress(quest_id: String, step: int):
+	var old_step = get_quest_progress(quest_id)
+	_quest_progress[quest_id] = step
+
+	if step > old_step:
+		print("📜 Quest '%s' progress: step %d → %d" % [quest_id, old_step, step])
+		quest_updated.emit(quest_id, step)
+
+## API: Statistiche sistema
+func get_stats() -> Dictionary:
 	return {
-		"state": EventState.keys()[current_state],
-		"current_event": current_event.get("id", "none"),
-		"events_in_database": events_database.size(),
-		"events_completed": event_history.size(),
-		"story_flags": story_flags
+		"total_events": _events.size(),
+		"categories": _event_categories.keys(),
+		"active_events": _active_events.size(),
+		"completed_events": _completed_events.size(),
+		"player_flags": _player_flags.size(),
+		"faction_reputation": _faction_reputation,
+		"quest_progress": _quest_progress
 	}
 
-## Helper functions per accesso sicuro alle statistiche del player
-func _get_player_stat(stat: String) -> int:
-	if not player:
-		return 0
-	
-	match stat:
-		"hp":
-			return player.hp
-		"max_hp":
-			return player.max_hp
-		"food":
-			return player.food
-		"water":
-			return player.water
-		"exp":
-			return player.exp
-		"level":
-			return player.level
-		"pts":
-			return player.pts
-		"vig":
-			return player.vig
-		"pot":
-			return player.pot
-		"agi":
-			return player.agi
-		"tra":
-			return player.tra
-		"inf":
-			return player.inf
-		"pre":
-			return player.pre
-		"ada":
-			return player.ada
-		_:
-			print("❌ Stat sconosciuta: ", stat)
-			return 0
+## Debug: Dump del database eventi
+func debug_dump_events():
+	print("🔍 === EVENT DATABASE DUMP ===")
+	for category in _event_categories:
+		print("📂 CATEGORIA: ", category)
+		var events = get_events_by_category(category)
+		for event in events:
+			print("  🎭 %s: %s" % [event.get("id", "N/A"), event.get("title", "N/A")])
+	print("🏁 === END DUMP ===")
 
-func _set_player_stat(stat: String, value: int):
-	if not player:
-		return
-	
-	match stat:
-		"hp":
-			player.hp = max(0, value)
-		"max_hp":
-			player.max_hp = max(1, value)
-		"food":
-			player.food = clamp(value, 0, 100)
-		"water":
-			player.water = clamp(value, 0, 100)
-		"exp":
-			player.exp = max(0, value)
-		"level":
-			player.level = max(1, value)
-		"pts":
-			player.pts = max(0, value)
-		"vig":
-			player.vig = max(0, value)
-		"pot":
-			player.pot = max(0, value)
-		"agi":
-			player.agi = max(0, value)
-		"tra":
-			player.tra = max(0, value)
-		"inf":
-			player.inf = max(0, value)
-		"pre":
-			player.pre = max(0, value)
-		"ada":
-			player.ada = max(0, value)
+## ===== NUOVO: CARICA I 10 EVENTI LORE LINEARI =====
+func load_lore_events() -> bool:
+	print("🎭 Caricamento 10 Eventi Lore Lineari di Ultimo...")
+
+	# I 10 eventi narrativi della timeline principale - ORDINE LINEARE 1→10
+	_lore_events = [
+		{
+			"id": "lore_01_echo_of_departure",
+			"title": "1. L'Eco della Partenza",
+			"description": "Nel rifugio che è stato la tua casa, trovi la lettera che tuo padre ha lasciato per te. La sua calligrafia tremante rivela l'urgenza: 'Ultimo, figlio mio... se stai leggendo queste parole, significa che non sono tornato in tempo. Il Safe Place esiste, l'ho visto nelle mappe militari prima che tutto crollasse. È la nostra unica speranza. Vai verso est, sempre verso est. Ti aspetterò là, o almeno ci proverò. Le scorte che ti ho lasciato stanno per finire. Devi partire. Sii forte, come ti ho insegnato. Con tutto l'amore che un padre può dare, papà.'",
+			"trigger": {"type": "event_sequence", "event_number": 1},
+			"choices": [
+				{
+					"text": "Raccogli le tue cose e parti subito",
+					"outcome": "Non c'è tempo da perdere. Prepari lo zaino con le ultime provviste e ti avvii verso l'ignoto. Il viaggio inizia ora.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "mission_accepted"},
+						{"type": "add_lore_flag", "flag": "hasty_departure"}
+					]
+				},
+				{
+					"text": "Cerca altri indizi nel rifugio",
+					"outcome": "Prima di partire, frugi tra le cose di tuo padre. Trovi una vecchia mappa militare segnata e alcune note sui pericoli del viaggio.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "mission_accepted"},
+						{"type": "add_lore_flag", "flag": "careful_preparation"}
+					]
+				}
+			],
+			"priority": 1
+		},
+		{
+			"id": "lore_02_first_trial_alone",
+			"title": "2. La Prima Prova da Solo",
+			"description": "La notte cade e sei completamente solo per la prima volta. Il freddo morde, la fame graffia, e ogni rumore nell'oscurità potrebbe essere la tua fine. Questa è la realtà che dovrai affrontare ogni giorno.",
+			"trigger": {"type": "event_sequence", "event_number": 2},
+			"requires_flags": ["mission_accepted"],
+			"choices": [
+				{
+					"text": "Impara dai tuoi errori",
+					"outcome": "Ogni difficoltà è una lezione. Domani sarai più forte.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "learned_survival"}
+					]
+				},
+				{
+					"text": "Rimpiangere il passato",
+					"outcome": "I ricordi del mondo perduto sono dolci e amari insieme.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "nostalgic"}
+					]
+				}
+			],
+			"priority": 2
+		},
+		{
+			"id": "lore_03_whispers_from_past",
+			"title": "3. Sussurri dal Passato",
+			"description": "In una casa abbandonata, nascosto sotto le assi del pavimento, trovi un piccolo carillon. È identico a quello che tua madre Lena ti regalò per il tuo decimo compleanno. Quando lo apri, la melodia familiare riempie l'aria, e per un momento il mondo torna com'era.",
+			"trigger": {"type": "event_sequence", "event_number": 3},
+			"requires_flags": ["learned_survival"],
+			"choices": [
+				{
+					"text": "Conserva il carillon come ricordo",
+					"outcome": "Lo stringi al petto. Alcuni ricordi valgono più del cibo o dell'acqua.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "has_mothers_memory"}
+					]
+				}
+			],
+			"priority": 3
+		},
+		{
+			"id": "lore_04_shadow_of_others",
+			"title": "4. L'Ombra degli Altri",
+			"description": "Un gruppo di sopravvissuti ti circonda. Si fanno chiamare 'I Corvi' e vogliono tutto quello che hai. Ma il loro capo ti guarda strano quando vede il carillon. 'Lena...', sussurra. 'Conoscevo una donna con quel nome. Cantava questa melodia ai suoi figli prima della Guerra.'",
+			"trigger": {"type": "event_sequence", "event_number": 4},
+			"requires_flags": ["has_mothers_memory"],
+			"choices": [
+				{
+					"text": "Chiedi del passato di tua madre",
+					"outcome": "Il capo dei Corvi abbassa le armi. 'Sei il figlio di Lena... Vai, ragazzo. Il tuo viaggio è più importante del nostro bottino.'",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "corvi_alliance"}
+					]
+				},
+				{
+					"text": "Fuggi senza parlare",
+					"outcome": "Corri via nella notte. Alcuni misteri è meglio lasciarli sepolti.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "corvi_escaped"}
+					]
+				}
+			],
+			"priority": 4
+		},
+		{
+			"id": "lore_05_wanderer_dilemma",
+			"title": "5. Il Dilemma del Viandante",
+			"description": "Incontri una famiglia - padre, madre e una bambina che ti ricorda te stesso anni fa. Sono affamati, assetati, e la bambina è malata. Hanno sentito parlare del Safe Place ma non ce la faranno mai senza aiuto. Ma tu hai appena abbastanza risorse per te stesso.",
+			"trigger": {"type": "event_sequence", "event_number": 5},
+			"choices": [
+				{
+					"text": "Condividi le tue risorse",
+					"outcome": "La gratitudine nei loro occhi vale più di qualsiasi tesoro. La bambina sorride per la prima volta in giorni.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "helped_family"}
+					]
+				},
+				{
+					"text": "Prosegui da solo",
+					"outcome": "La sopravvivenza richiede scelte difficili. Ti allontani, cercando di non sentire il pianto della bambina.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "chose_survival"}
+					]
+				}
+			],
+			"priority": 5
+		},
+		{
+			"id": "lore_06_echoes_of_inexpressed_war",
+			"title": "6. Echi della Guerra Inespressa",
+			"description": "In un bunker militare abbandonato, trovi documenti classificati. La Guerra Inespressa non fu una guerra normale - fu un esperimento andato male. 'Progetto Chimera: alterazione della realtà su scala continentale'. Tuo padre lavorava al progetto. Il Safe Place era il bunker di emergenza per gli scienziati.",
+			"trigger": {"type": "event_sequence", "event_number": 6},
+			"choices": [
+				{
+					"text": "Studia i documenti",
+					"outcome": "La verità è terrificante ma necessaria. Ora capisci perché tuo padre doveva raggiungere il Safe Place.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "knows_truth"}
+					]
+				}
+			],
+			"priority": 6
+		},
+		{
+			"id": "lore_07_dream_of_green_valley",
+			"title": "7. Il Sogno della Valle Verde",
+			"description": "La febbre ti prende dopo giorni di pioggia. Nel delirio, sogni una valle verde protetta dalle montagne, dove il grano cresce alto e l'acqua scorre pulita. Vedi tuo padre che ti aspetta vicino a una quercia centenaria. 'Non mollare, Ultimo. Siamo così vicini.'",
+			"trigger": {"type": "event_sequence", "event_number": 7},
+			"choices": [
+				{
+					"text": "Trova la forza di continuare",
+					"outcome": "Il sogno ti dà speranza. La febbre passa e ti alzi più determinato che mai.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "prophetic_dream"}
+					]
+				}
+			],
+			"priority": 7
+		},
+		{
+			"id": "lore_08_radio_interception",
+			"title": "8. L'Intercettazione Radio",
+			"description": "Una vecchia radio militare crepita alla vita. '...a tutti i sopravvissuti del Progetto Chimera... il Safe Place è operativo... coordinate confermate... il Guardiano vi aspetta... ripeto, il protocollo Angelo è attivo...' La trasmissione si ripete. È registrata, ma quanto è vecchia?",
+			"trigger": {"type": "event_sequence", "event_number": 8},
+			"requires_flags": ["knows_truth"],
+			"choices": [
+				{
+					"text": "Memorizza le coordinate",
+					"outcome": "Le coordinate confermano che sei sulla strada giusta. Il Safe Place è reale e vicino.",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "has_coordinates"}
+					]
+				}
+			],
+			"priority": 8
+		},
+		{
+			"id": "lore_09_guardian_of_threshold",
+			"title": "9. Il Guardiano della Soglia",
+			"description": "Una figura in tuta antiradioattiva ti blocca il passaggio. 'Identificati', dice con voce metallica. 'Il protocollo richiede conferma genetica per l'accesso al Safe Place.' Quando scannerizza il tuo sangue, la sua postura cambia. 'Benvenuto, figlio del Progetto. Ti stavamo aspettando.'",
+			"trigger": {"type": "event_sequence", "event_number": 9},
+			"requires_flags": ["has_coordinates"],
+			"choices": [
+				{
+					"text": "Chiedi di tuo padre",
+					"outcome": "Il Guardiano esita. 'Tuo padre è arrivato tre mesi fa. È... cambiato. Ma è vivo. Seguimi.'",
+					"effects": [
+						{"type": "add_lore_flag", "flag": "guardian_met"}
+					]
+				}
+			],
+			"priority": 9
+		},
+		{
+			"id": "lore_10_hidden_valley",
+			"title": "10. La Valle Nascosta",
+			"description": "Il Safe Place si apre davanti a te - una valle verdeggiante protetta da un campo di energia. Persone lavorano nei campi, bambini giocano, e l'aria è pulita. Al centro, vicino alla quercia del tuo sogno, vedi una figura familiare. Tuo padre si volta, e nonostante i cambiamenti, il suo sorriso è lo stesso. 'Ce l'hai fatta, Ultimo. Benvenuto a casa.'",
+			"trigger": {"type": "event_sequence", "event_number": 10},
+			"requires_flags": ["guardian_met"],
+			"choices": [
+				{
+					"text": "Corri da tuo padre",
+					"outcome": "L'abbraccio cancella mesi di sofferenza. Il viaggio è finito. Una nuova vita può iniziare nel Safe Place, l'ultimo rifugio dell'umanità.",
+					"effects": [
+						{"type": "end_game", "ending": "reunion"}
+					]
+				}
+			],
+			"priority": 10
+		}
+	]
+
+	print("✅ Caricati %d eventi lore lineari" % _lore_events.size())
+	return _lore_events.size() == 10
+
+## ===== NUOVO: TRIGGER SYSTEM PER LORE EVENTS - ORDINE LINEARE =====
+func check_lore_event_triggers(player_context: Dictionary) -> Dictionary:
+	# ORDINE LINEARE: trova il prossimo evento da triggerare (1→10)
+	for event in _lore_events:
+		var event_id = event.get("id", "")
+
+		# Skip se già visto
+		if event_id in _seen_lore_events:
+			continue
+
+		# Check prerequisiti flags
+		if event.has("requires_flags"):
+			var has_all_flags = true
+			for flag in event.requires_flags:
+				if not flag in _lore_flags:
+					has_all_flags = false
+					break
+			if not has_all_flags:
+				continue
+
+		# Check trigger condition - SOLO IL PRIMO EVENTO NON VISTO
+		if _check_lore_trigger(event.trigger, player_context):
+			print("🎭 Lore event triggered (sequenza %d): %s" % [event.priority, event.title])
+			return event
+		else:
+			# Se questo evento non è triggerable, STOP - ordine lineare
+			break
+
+	return {}
+
+## Helper: controlla trigger specifico lore event
+func _check_lore_trigger(trigger: Dictionary, player_context: Dictionary) -> bool:
+	var trigger_type = trigger.get("type", "")
+
+	match trigger_type:
+		"event_sequence":
+			var event_number = trigger.get("event_number", 0)
+			return _check_event_sequence(event_number, player_context)
+
 		_:
-			print("❌ Impossibile impostare stat sconosciuta: ", stat) 
+			return false
+
+## Helper: controlla sequenza eventi
+func _check_event_sequence(event_number: int, player_context: Dictionary) -> bool:
+	# Deve essere il prossimo evento nella sequenza
+	if event_number != _current_lore_sequence:
+		return false
+
+	var days = player_context.get("days_survived", 0)
+
+	# Sistema compresso 4-5 giorni: eventi distribuiti logicamente
+	match event_number:
+		1: return days >= 1 # Giorno 1 - partenza
+		2: return days >= 1 # Giorno 1 - prima notte
+		3: return days >= 2 # Giorno 2 - primi passi
+		4: return days >= 2 # Giorno 2 - incontri
+		5: return days >= 3 # Giorno 3 - prove morali
+		6: return days >= 3 # Giorno 3 - verità
+		7: return days >= 4 # Giorno 4 - sogni
+		8: return days >= 4 # Giorno 4 - segnali
+		9: return days >= 5 # Giorno 5 - arrivo
+		10: return days >= 5 # Giorno 5 - finale
+		_: return false
+
+## ===== NUOVO: API LORE EVENTS =====
+func trigger_lore_event(event_data: Dictionary) -> bool:
+	var event_id = event_data.get("id", "")
+
+	if event_id in _seen_lore_events:
+		return false
+
+	# Aggiungi ai visti e avanza sequenza lineare
+	_seen_lore_events.append(event_id)
+	_current_lore_sequence += 1
+	_last_lore_event_time = Time.get_ticks_msec() / 1000.0
+
+	print("🎭 Triggering lore event: %s (prossimo: %d)" % [event_data.get("title", ""), _current_lore_sequence])
+	lore_event_triggered.emit(event_data)
+
+	return true
+
+## API: Applica effetti scelta lore
+func apply_lore_choice_effects(effects: Array):
+	for effect in effects:
+		var effect_type = effect.get("type", "")
+
+		match effect_type:
+			"add_lore_flag":
+				var flag = effect.get("flag", "")
+				if flag != "" and not flag in _lore_flags:
+					_lore_flags.append(flag)
+					print("🏴 Lore flag aggiunto: %s" % flag)
+
+			"end_game":
+				var ending = effect.get("ending", "")
+				print("🏁 Fine gioco triggered: %s" % ending)
+				# TODO: Implementare end game logic
+
+## API: Get lore stats
+func get_lore_stats() -> Dictionary:
+	return {
+		"total_lore_events": _lore_events.size(),
+		"seen_events": _seen_lore_events.size(),
+		"current_sequence": _current_lore_sequence,
+		"lore_flags": _lore_flags.size(),
+		"completion_percentage": float(_seen_lore_events.size()) / float(_lore_events.size()) * 100.0,
+		"is_sequence_complete": _current_lore_sequence > 10
+	}
+
+## API: Debug sequenza corrente
+func debug_lore_sequence():
+	print("🔍 === LORE SEQUENCE DEBUG ===")
+	print("Sequenza corrente: %d/10" % _current_lore_sequence)
+	print("Eventi visti: %s" % str(_seen_lore_events))
+	print("Flags lore: %s" % str(_lore_flags))
+	print("Completamento: %.1f%%" % (float(_seen_lore_events.size()) / 10.0 * 100.0))
+	print("🏁 === END DEBUG ===")

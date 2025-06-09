@@ -49,6 +49,20 @@ extends Resource
 # Effects system (serialized as String array, parsed at runtime)
 @export var effects: Array[String] = []
 
+# === LORE SYSTEM (v1.2.0 Narrative Discovery) ===
+@export var lore_text: String = ""
+@export var rarity: String = "common" # common, uncommon, rare, epic, legendary
+@export var special_interaction: bool = false
+@export var unique: bool = false
+@export var combinable: bool = false
+@export var revelation: bool = false # Rivela verità importanti
+@export var playable: bool = false # Oggetti riproducibili (cassette, etc.)
+@export var readable: bool = false # Oggetti leggibili (diari, documenti)
+@export var readable_pages: int = 0
+@export var battery_life: int = 0 # Per oggetti elettronici
+@export var knowledge_gained: String = "" # Tipo di conoscenza sbloccata
+@export var faction_effects: Array[String] = [] # Effetti su reputazione fazioni
+
 # Utility methods
 func is_weapon() -> bool:
 	return type == "weapon"
@@ -91,6 +105,31 @@ func can_stack_with(other_item: Item) -> bool:
 	if not stackable or not other_item.stackable:
 		return false
 	return id == other_item.id and type == other_item.type
+
+# === LORE SYSTEM METHODS ===
+func has_lore() -> bool:
+	return lore_text.length() > 0
+
+func is_lore_item() -> bool:
+	return type == "lore" or has_lore()
+
+func get_rarity_color() -> Color:
+	match rarity:
+		"common": return Color.WHITE
+		"uncommon": return Color.GREEN
+		"rare": return Color.BLUE
+		"epic": return Color.PURPLE
+		"legendary": return Color.ORANGE
+		_: return Color.WHITE
+
+func get_rarity_display() -> String:
+	return rarity.capitalize()
+
+func is_special() -> bool:
+	return special_interaction or unique or revelation
+
+func has_special_effects() -> bool:
+	return faction_effects.size() > 0 or knowledge_gained.length() > 0
 
 # Helper per conversione safe di valori booleani da JS
 static func _safe_bool(value, default: bool = false) -> bool:
@@ -177,5 +216,26 @@ static func from_js_data(item_id: String, data: Dictionary) -> Item:
 	if data.has("effects") and data.effects is Array:
 		for effect in data.effects:
 			item.effects.append(JSON.stringify(effect))
+
+	# === LORE SYSTEM PARSING ===
+	item.lore_text = data.get("loreText", "")
+	item.rarity = data.get("rarity", "common")
+	item.special_interaction = _safe_bool(data.get("specialInteraction", false))
+	item.unique = _safe_bool(data.get("unique", false))
+	item.combinable = _safe_bool(data.get("combinable", false))
+	item.revelation = _safe_bool(data.get("revelation", false))
+	item.playable = _safe_bool(data.get("playable", false))
+	item.readable = _safe_bool(data.get("readablePages", 0) > 0)
+	item.readable_pages = _safe_int(data.get("readablePages", 0))
+	item.battery_life = _safe_int(data.get("batteryLife", 0))
+	item.knowledge_gained = data.get("knowledgeGained", "")
+
+	# Faction effects parsing
+	if data.has("effects") and data.effects is Array:
+		for effect in data.effects:
+			if effect is Dictionary and effect.has("type") and effect.type == "reputation":
+				var faction_name = effect.get("faction", "unknown")
+				var rep_value = effect.get("value", 0)
+				item.faction_effects.append("%s:%d" % [faction_name, rep_value])
 
 	return item

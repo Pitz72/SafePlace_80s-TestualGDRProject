@@ -163,6 +163,10 @@ func _input(event):
 			KEY_R:
 				_handle_character_growth() # NUOVO: Crescita personaggio
 
+			# NUOVO: Testing eventi lore
+			KEY_T:
+				_test_lore_events() # Testa primi eventi lore
+
 ## Movimento player sulla mappa
 func _move_player(direction: Vector2):
 	if ascii_map:
@@ -171,6 +175,10 @@ func _move_player(direction: Vector2):
 			_update_map_panel()
 			_update_info_panel()
 			_pass_time(5) # Movimento costa 5 minuti
+
+			# NUOVO: Check eventi lore dopo movimento
+			if game_manager and game_manager.has_method("check_lore_events"):
+				game_manager.check_lore_events()
 
 			# Possibilità evento casuale durante movimento
 			if randf() < 0.1: # 10% chance
@@ -948,7 +956,7 @@ func _setup_controls_layout():
 	controls_panel.add_child(controls_container)
 
 func _update_inventory_display():
-	"""Aggiorna display inventario con colori per tipologie oggetti."""
+	"""Aggiorna display inventario con lore integration e colori rarità v1.2.0"""
 	if not inventory_content or not player:
 		return
 
@@ -958,15 +966,52 @@ func _update_inventory_display():
 	for item_info in items:
 		var item_name = item_info["name"]
 		var quantity = item_info["quantity"]
-		var item_type = item_info.get("type", "misc")
+		var has_lore = item_info.get("has_lore", false)
+		var rarity = item_info.get("rarity", "common")
+		var is_special = item_info.get("is_special", false)
+		var lore_text = item_info.get("lore_text", "")
 
-		# Colori per tipologie oggetti come nel gioco originale
-		var color_code = _get_item_color_code(item_type)
-
-		if quantity > 1:
-			inventory_text += "%s%s (x%d)[/color]\n" % [color_code, item_name, quantity]
+		# === LORE-BASED COLOR SYSTEM v1.2.0 ===
+		var color_code = ""
+		if has_lore:
+			# Colori basati su rarità
+			match rarity:
+				"legendary":
+					color_code = "[color=orange]" # Arancione per legendary
+				"epic":
+					color_code = "[color=purple]" # Viola per epic
+				"rare":
+					color_code = "[color=cyan]" # Ciano per rare
+				"uncommon":
+					color_code = "[color=green]" # Verde per uncommon
+				_:
+					color_code = "[color=white]" # Bianco per common
 		else:
-			inventory_text += "%s%s[/color]\n" % [color_code, item_name]
+			# Fallback al sistema tipologie originale
+			var item_type = item_info.get("type", "misc")
+			color_code = _get_item_color_code(item_type)
+
+		# Indicatori speciali
+		var special_indicator = ""
+		if is_special:
+			special_indicator = " ✦" # Simbolo per oggetti speciali
+
+		# Formattazione quantità
+		var quantity_text = ""
+		if quantity > 1:
+			quantity_text = " (x%d)" % quantity
+
+		# Display finale con supporto tooltip
+		var display_line = "%s%s%s%s[/color]" % [color_code, item_name, quantity_text, special_indicator]
+
+		# Aggiunge lore come tooltip preview se disponibile
+		if has_lore and not lore_text.is_empty():
+			var lore_preview = lore_text.substr(0, 40)
+			if lore_text.length() > 40:
+				lore_preview += "..."
+			display_line += " [color=gray][i](" + lore_preview + ")[/i][/color]"
+
+		inventory_text += display_line + "\n"
 
 	inventory_content.text = inventory_text
 
@@ -1041,3 +1086,20 @@ func _get_item_color_code(item_type: String) -> String:
 		"material": return "[color=#8B4513]" # Marrone per materiali grezzi
 		"misc": return "[color=#9C88FF]" # Lilla per oggetti vari
 		_: return "[color=#%s]" % _color_to_hex(COLOR_TEXT) # Default verde
+
+## ===== NUOVO: TESTING EVENTI LORE =====
+
+func _test_lore_events():
+	"""Testa manualmente gli eventi lore - Hotkey T"""
+	print("🎭 [MainInterface] Test eventi lore attivato")
+
+	if not game_manager:
+		add_log_entry("❌ GameManager non disponibile")
+		return
+
+	# Force trigger primo evento
+	if game_manager.has_method("force_trigger_lore_event"):
+		game_manager.force_trigger_lore_event("lore_echo_of_departure")
+		add_log_entry("🧪 Test: evento 'L'Eco della Partenza' forzato")
+	else:
+		add_log_entry("❌ Metodo force_trigger_lore_event non trovato")

@@ -3,6 +3,10 @@ extends Node
 
 ## Database degli oggetti per SafePlace Godot Port
 ## Migrazione completa da js/game_data.js ITEM_DATA
+## FASE 2: Integrazione automatica LoreManager per narrative enhancement
+
+# Preload LoreManager per auto-enhancement (v1.2.0)
+const LoreManager = preload("res://scripts/LoreManager.gd")
 
 # Database principale degli oggetti
 var items: Array[Item] = []
@@ -65,7 +69,7 @@ func load_items_from_json(json_data: Dictionary) -> bool:
 ## NUOVE FUNZIONI PER IMPORTAZIONE MASSIVA JAVASCRIPT
 ## =====================================================
 
-## Carica il database completo da file JavaScript
+## Carica il database completo da file JavaScript + LORE AUTO-ENHANCEMENT
 func load_complete_database() -> bool:
 	print("🔥 INIZIO CARICAMENTO DATABASE COMPLETO DA JAVASCRIPT")
 
@@ -91,7 +95,34 @@ func load_complete_database() -> bool:
 	print("📊 Trovati ", item_data.size(), " oggetti nel database JavaScript")
 
 	# Carica usando il sistema esistente
-	return load_items_from_json(item_data)
+	var base_success = load_items_from_json(item_data)
+
+	if not base_success:
+		print("❌ ERRORE: Caricamento base fallito")
+		return false
+
+	# === FASE 2: LORE AUTO-ENHANCEMENT ===
+	print("🏺 INIZIO LORE AUTO-ENHANCEMENT...")
+	var lore_manager = LoreManager.new()
+
+	if lore_manager.load_lore_database():
+		print("✅ Database lore caricato con successo")
+
+		var enhanced_count = 0
+		for item in items:
+			if lore_manager.enrich_item_with_lore(item):
+				enhanced_count += 1
+
+		print("🎨 Lore enhancement completato: ", enhanced_count, " oggetti arricchiti")
+
+		# Statistiche lore
+		var lore_stats = lore_manager.get_lore_stats()
+		print("📊 LORE STATS: ", lore_stats.rare_items, " rare, ", lore_stats.legendary_items, " legendary, ", lore_stats.special_items, " speciali")
+	else:
+		print("⚠️ Database lore non disponibile - continuando senza enhancement")
+
+	print("🎮 DATABASE COMPLETO CARICATO + LORE ENHANCEMENT APPLICATO!")
+	return true
 
 ## Parse JavaScript ITEM_DATA e converte in Dictionary Godot
 func _parse_javascript_item_data(js_content: String) -> Dictionary:
