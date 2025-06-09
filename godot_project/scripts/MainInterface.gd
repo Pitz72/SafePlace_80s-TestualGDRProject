@@ -65,11 +65,18 @@ const SAFEPLACE_GREEN_TEXT = Color("#00B347") # Verde chiaro per il testo
 const SAFEPLACE_GREEN_BRIGHT = Color("#00FF41") # Verde brillante per highlights
 
 func _ready():
+	# Inizializza riferimenti ai sistemi
+	game_manager = get_node("../../GameManager") if get_node_or_null("../../GameManager") else null
+	player = get_node("../../WorldContainer/Player") if get_node_or_null("../../WorldContainer/Player") else null
+
 	_setup_interface()
 	_setup_panels() # Configura i pannelli con colori SafePlace
 	_initialize_ascii_map()
 	_setup_initial_content()
 	_connect_input_signals()
+
+	# DEBUG: Verifica EventManager dopo inizializzazione
+	_debug_event_manager_status()
 
 func _process(delta):
 	# Lampeggio del player @ sulla mappa (stile CRT)
@@ -1090,16 +1097,60 @@ func _get_item_color_code(item_type: String) -> String:
 ## ===== NUOVO: TESTING EVENTI LORE =====
 
 func _test_lore_events():
-	"""Testa manualmente gli eventi lore - Hotkey T"""
-	print("🎭 [MainInterface] Test eventi lore attivato")
+	"""Testa manualmente il sistema eventi lore"""
+	print("🎭 [MainInterface] Test eventi lore manuale attivato!")
+	add_log_entry("🎭 Test eventi lore attivato...")
 
 	if not game_manager:
 		add_log_entry("❌ GameManager non disponibile")
 		return
 
-	# Force trigger primo evento
+	# Forzare avanzamento giorno se necessario
+	if game_manager.has_method("advance_day"):
+		game_manager.advance_day()
+		add_log_entry("📅 Giorno avanzato per testing")
+
+	# Trigger manuale check eventi lore
+	if game_manager.has_method("check_lore_events"):
+		add_log_entry("🔍 Controllo eventi lore...")
+		game_manager.check_lore_events()
+	else:
+		add_log_entry("❌ Metodo check_lore_events non trovato")
+
+	# Se non ci sono eventi, forza trigger del primo
 	if game_manager.has_method("force_trigger_lore_event"):
-		game_manager.force_trigger_lore_event("lore_echo_of_departure")
-		add_log_entry("🧪 Test: evento 'L'Eco della Partenza' forzato")
+		add_log_entry("🎯 Forzare trigger primo evento...")
+		game_manager.force_trigger_lore_event("lore_01_echo_of_departure")
 	else:
 		add_log_entry("❌ Metodo force_trigger_lore_event non trovato")
+
+## DEBUG: Verifica stato EventManager
+func _debug_event_manager_status():
+	"""Verifica che l'EventManager sia disponibile e configurato correttamente"""
+	print("🔍 [MainInterface] Debug EventManager status...")
+
+	if not game_manager:
+		print("❌ GameManager non trovato")
+		return
+
+	var event_manager = game_manager.get_node_or_null("EventManager")
+	if not event_manager:
+		print("❌ EventManager non trovato nel GameManager")
+		return
+
+	print("✅ EventManager trovato: %s" % str(event_manager))
+
+	# Verifica metodi chiave
+	var methods_to_check = ["load_lore_events", "check_lore_event_triggers", "trigger_lore_event"]
+	for method in methods_to_check:
+		if event_manager.has_method(method):
+			print("✅ Metodo %s disponibile" % method)
+		else:
+			print("❌ Metodo %s NON disponibile" % method)
+
+	# Verifica se eventi lore sono caricati
+	if event_manager.has_method("get_lore_stats"):
+		var stats = event_manager.get_lore_stats()
+		print("📊 Statistiche eventi lore: %s" % str(stats))
+	else:
+		print("⚠️ Metodo get_lore_stats non disponibile")

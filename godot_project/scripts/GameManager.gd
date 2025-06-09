@@ -90,6 +90,13 @@ func _process(delta):
 		_update_performance_metrics()
 		last_fps_update = game_time
 
+	# Check eventi lore periodicamente (ogni 3 secondi) se in stato PLAYING
+	if current_state == GameState.PLAYING:
+		lore_check_timer += delta
+		if lore_check_timer >= 3.0:
+			lore_check_timer = 0.0
+			check_lore_events()
+
 	# Update UI if needed
 	_update_ui(delta)
 
@@ -336,7 +343,7 @@ func travel_to_location(location_id: String) -> bool:
 	return false
 
 func get_current_location() -> String:
-	if map_manager and map_manager.has_method("get_location_name"):
+	if map_manager and map_manager.has_signal("location_changed"):
 		return map_manager.get_location_name(map_manager.current_location)
 	return "Unknown"
 
@@ -730,6 +737,7 @@ func reset_game_state():
 var days_survived: int = 1
 var event_dialog: EventDialog
 var is_lore_event_active: bool = false
+var lore_check_timer: float = 0.0
 
 ## Callback per evento lore triggered
 func _on_lore_event_triggered(event_data: Dictionary):
@@ -791,17 +799,27 @@ func _on_lore_dialog_closed():
 ## API: Controlla trigger eventi lore (chiamato dal movimento)
 func check_lore_events():
 	"""Controlla se triggerare eventi lore basato sullo stato attuale"""
+	print("🎮 === CHECK LORE EVENTS CHIAMATO ===")
+
 	if not event_manager:
+		print("❌ [GameManager] EventManager non disponibile")
 		return
 
 	if is_lore_event_active:
+		print("⚠️ [GameManager] Eventi lore già attivi, skip")
 		return # Eventi già attivi
 
 	# Crea contesto player per trigger
 	var player_context = _build_player_context()
+	print("🎮 [GameManager] Player context: %s" % str(player_context))
 
 	# Check trigger con protezione extra
 	var triggered_event = event_manager.check_lore_event_triggers(player_context)
+
+	# Debug: Mostra stato sequenza corrente
+	if event_manager.has_method("debug_lore_sequence"):
+		print("🔍 [GameManager] Debug sequenza lore...")
+		event_manager.debug_lore_sequence()
 
 	# Verifica che l'evento sia valido prima di triggerarlo
 	if not triggered_event.is_empty() and triggered_event.has("id") and triggered_event.get("id", "") != "":
@@ -809,6 +827,10 @@ func check_lore_events():
 		event_manager.trigger_lore_event(triggered_event)
 	elif not triggered_event.is_empty():
 		print("⚠️ [GameManager] Evento lore invalido ricevuto: %s" % str(triggered_event))
+	else:
+		print("📭 [GameManager] Nessun evento lore da triggerare (sequenza %d)" % event_manager._current_lore_sequence)
+
+	print("🎮 === CHECK LORE EVENTS COMPLETATO ===")
 
 ## Helper: costruisce contesto player per eventi
 func _build_player_context() -> Dictionary:

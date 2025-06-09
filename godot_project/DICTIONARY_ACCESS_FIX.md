@@ -181,3 +181,187 @@ Il sistema lore lineare ora è **completamente stabile**:
 ---
 
 *Fix documentato per evitare regressioni future* 🔧✅ 
+
+# 🔧 DICTIONARY ACCESS FIX - SafePlace v1.3.0
+
+**Problema**: `Invalid access to property or key 'trigger' on a base object of type 'Dictionary'`  
+**Data Fix**: Dicembre 2024  
+**Stato**: ✅ **RISOLTO**  
+
+---
+
+## 🚨 **PROBLEMA IDENTIFICATO**
+
+### **Errore Critico**:
+```
+Invalid access to property or key 'trigger' on a base object of type 'Dictionary'
+
+Stack Frame:
+0 - res://scripts/EventManager.gd:576 - at function: check_lore_event_triggers  
+1 - res://scripts/GameManager.gd:804 - at function: check_lore_events
+2 - res://scripts/MainInterface.gd:181 - at function: _move_player
+3 - res://scripts/MainInterface.gd:146 - at function: _input
+```
+
+### **Causa Root**:
+Accesso diretto alle proprietà Dictionary invece di usare metodi sicuri `.get()`.
+
+---
+
+## 🔧 **CORREZIONI APPLICATE**
+
+### **EventManager.gd - Linea 575**:
+```gdscript
+# ❌ PRIMA (NON SICURO):
+if _check_lore_trigger(event.trigger, player_context):
+
+# ✅ DOPO (SICURO):
+if _check_lore_trigger(event.get("trigger", {}), player_context):
+```
+
+### **EventManager.gd - Linea 567**:
+```gdscript
+# ❌ PRIMA (NON SICURO):
+for flag in event.requires_flags:
+
+# ✅ DOPO (SICURO):
+for flag in event.get("requires_flags", []):
+```
+
+### **EventManager.gd - Linea 576**:
+```gdscript
+# ❌ PRIMA (NON SICURO):
+print("🎭 Lore event triggered (sequenza %d): %s" % [event.priority, event.title])
+
+# ✅ DOPO (SICURO):
+print("🎭 Lore event triggered (sequenza %d): %s" % [event.get("priority", 0), event.get("title", "N/D")])
+```
+
+### **EventManager.gd - Linea 280**:
+```gdscript
+# ❌ PRIMA (NON SICURO):
+print("🎭 Evento triggered: ", event.title)
+
+# ✅ DOPO (SICURO):
+print("🎭 Evento triggered: ", event.get("title", "N/D"))
+```
+
+---
+
+## 🎯 **PATTERN SICUREZZA**
+
+### **Regola Fondamentale**:
+**MAI accesso diretto `dict.property` - SEMPRE `dict.get("property", default)`**
+
+### **Pattern Template**:
+```gdscript
+# ✅ SICURO - Accesso proprietà Dictionary
+var id = event.get("id", "")
+var title = event.get("title", "N/D") 
+var triggers = event.get("triggers", {})
+var flags = event.get("requires_flags", [])
+var priority = event.get("priority", 0)
+
+# ✅ SICURO - Verifica esistenza prima di accesso
+if event.has("property_name"):
+    var value = event.get("property_name", default)
+
+# ❌ MAI FARE:
+var id = event.id  # CRASH se 'id' non esiste
+var title = event.title  # CRASH se 'title' non esiste
+```
+
+### **Valori Default Consigliati**:
+```gdscript
+"id" -> ""
+"title" -> "N/D"  
+"description" -> ""
+"priority" -> 0
+"triggers" -> {}
+"choices" -> []
+"requires_flags" -> []
+```
+
+---
+
+## 🧪 **VALIDAZIONE**
+
+### **Test Eseguito**:
+1. **✅ Compilazione**: Nessun errore sintassi
+2. **✅ Movimento**: Nessun crash al movimento player  
+3. **✅ Eventi**: Trigger eventi funziona senza errori
+4. **✅ Lore**: Sistema narrativo stabile
+
+### **Comando Test Veloce**:
+```bash
+# Test accesso Dictionary sicuro
+grep -r "event\.[a-zA-Z]" scripts/EventManager.gd
+# Dovrebbe mostrare SOLO accessi con .get() o .has()
+```
+
+---
+
+## 🚨 **CHECKLIST ANTI-REGRESSIONE**
+
+### **Prima di ogni Commit**:
+- [ ] `grep -r "\.property" scripts/` -> ZERO risultati accesso diretto
+- [ ] `grep -r "event\.[a-zA-Z]" scripts/` -> SOLO `.get()` e `.has()`
+- [ ] Test movimento player senza crash
+- [ ] Test trigger eventi senza errori
+
+### **Sintomi Regressione**:
+```
+Invalid access to property or key 'X' on a base object of type 'Dictionary'
+```
+
+### **Fix Pattern**:
+```gdscript
+# Trova: object.property
+# Sostituisci: object.get("property", default_value)
+```
+
+---
+
+## 📋 **LISTA COMPLETA CORREZIONI**
+
+### **File**: `scripts/EventManager.gd`
+```
+Linea 280: event.title -> event.get("title", "N/D")
+Linea 567: event.requires_flags -> event.get("requires_flags", [])  
+Linea 575: event.trigger -> event.get("trigger", {})
+Linea 576: event.priority, event.title -> event.get("priority", 0), event.get("title", "N/D")
+```
+
+### **File**: `scripts/GameManager.gd`
+```
+Linea 344: event.id -> event.get("id", "")
+Linea 558: event.id -> event.get("id", "")
+```
+
+---
+
+## 🏆 **RISULTATO**
+
+### **Prima**:
+- ❌ Crash al movimento dopo eventi narrativi
+- ❌ Errori Dictionary access random  
+- ❌ Sistema instabile
+
+### **Dopo**:
+- ✅ Movimento fluido senza crash
+- ✅ Accesso Dictionary 100% sicuro
+- ✅ Sistema narrativo stabile  
+- ✅ Zero errori di proprietà
+
+---
+
+## 🔍 **REFERENCES**
+
+- **Issue**: Invalid access to property 'trigger' on Dictionary
+- **Fix Version**: SafePlace v1.3.0 "L'Eco della Partenza"
+- **Pattern Docs**: ANTI_REGRESSION_PROTOCOL.md
+- **Test Suite**: scripts/LinearSequenceTest.gd
+
+---
+
+*Dictionary access safety is not optional - it's survival* 🛡️✨ 

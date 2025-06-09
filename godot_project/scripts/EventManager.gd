@@ -278,7 +278,7 @@ func trigger_event(event_id: String, player_context: Dictionary) -> bool:
 	var event = get_event(event_id)
 	_active_events.append(event)
 
-	print("🎭 Evento triggered: ", event.title)
+	print("🎭 Evento triggered: ", event.get("title", "N/D"))
 	event_triggered.emit(event)
 
 	return true
@@ -347,6 +347,7 @@ func debug_dump_events():
 
 ## ===== NUOVO: CARICA I 10 EVENTI LORE LINEARI =====
 func load_lore_events() -> bool:
+	print("🎭 === CARICAMENTO EVENTI LORE INIZIATO ===")
 	print("🎭 Caricamento 10 Eventi Lore Lineari di Ultimo...")
 
 	# I 10 eventi narrativi della timeline principale - ORDINE LINEARE 1→10
@@ -550,36 +551,72 @@ func load_lore_events() -> bool:
 	]
 
 	print("✅ Caricati %d eventi lore lineari" % _lore_events.size())
+	print("🎭 Lista eventi caricati:")
+	for i in range(_lore_events.size()):
+		var event = _lore_events[i]
+		print("  %d. %s (ID: %s)" % [i + 1, event.get("title", "N/A"), event.get("id", "N/A")])
+
+	print("🎭 Sequenza corrente: %d" % _current_lore_sequence)
+	print("🎭 Eventi già visti: %s" % str(_seen_lore_events))
+	print("🎭 Flags lore: %s" % str(_lore_flags))
+	print("🎭 === CARICAMENTO EVENTI LORE COMPLETATO ===")
+
 	return _lore_events.size() == 10
 
 ## ===== NUOVO: TRIGGER SYSTEM PER LORE EVENTS - ORDINE LINEARE =====
 func check_lore_event_triggers(player_context: Dictionary) -> Dictionary:
+	print("🔍 === CHECK LORE EVENT TRIGGERS INIZIATO ===")
+	print("🔍 Player context: %s" % str(player_context))
+	print("🔍 Sequenza corrente: %d" % _current_lore_sequence)
+	print("🔍 Eventi caricati: %d" % _lore_events.size())
+	print("🔍 Eventi già visti: %s" % str(_seen_lore_events))
+	print("🔍 Flags lore: %s" % str(_lore_flags))
+
 	# ORDINE LINEARE: trova il prossimo evento da triggerare (1→10)
 	for event in _lore_events:
 		var event_id = event.get("id", "")
+		var event_title = event.get("title", "N/A")
+		var event_number = event.get("trigger", {}).get("event_number", 0)
+
+		print("🔍 Controllo evento: %s (numero: %d)" % [event_title, event_number])
 
 		# Skip se già visto
 		if event_id in _seen_lore_events:
+			print("  ⏭️ Evento già visto, skip")
 			continue
 
 		# Check prerequisiti flags
 		if event.has("requires_flags"):
+			var required_flags = event.get("requires_flags", [])
+			print("  🏴 Flags richiesti: %s" % str(required_flags))
 			var has_all_flags = true
-			for flag in event.requires_flags:
+			for flag in required_flags:
 				if not flag in _lore_flags:
+					print("  ❌ Flag mancante: %s" % flag)
 					has_all_flags = false
 					break
+				else:
+					print("  ✅ Flag presente: %s" % flag)
 			if not has_all_flags:
+				print("  ❌ Flags non soddisfatti, skip evento")
 				continue
+		else:
+			print("  ✅ Nessun flag richiesto")
 
 		# Check trigger condition - SOLO IL PRIMO EVENTO NON VISTO
-		if _check_lore_trigger(event.trigger, player_context):
-			print("🎭 Lore event triggered (sequenza %d): %s" % [event.priority, event.title])
+		var trigger_result = _check_lore_trigger(event.get("trigger", {}), player_context)
+		print("  🎯 Risultato trigger: %s" % str(trigger_result))
+
+		if trigger_result:
+			print("🎭 ✅ Evento triggerable trovato: %s" % event_title)
+			print("🔍 === CHECK LORE EVENT TRIGGERS SUCCESSO ===")
 			return event
 		else:
 			# Se questo evento non è triggerable, STOP - ordine lineare
+			print("  ⏹️ Evento non triggerable, STOP ordine lineare")
 			break
 
+	print("🔍 === CHECK LORE EVENT TRIGGERS - NESSUN EVENTO ===")
 	return {}
 
 ## Helper: controlla trigger specifico lore event
@@ -596,25 +633,37 @@ func _check_lore_trigger(trigger: Dictionary, player_context: Dictionary) -> boo
 
 ## Helper: controlla sequenza eventi
 func _check_event_sequence(event_number: int, player_context: Dictionary) -> bool:
+	print("    🔢 Check sequence - Event number: %d, Current sequence: %d" % [event_number, _current_lore_sequence])
+
 	# Deve essere il prossimo evento nella sequenza
 	if event_number != _current_lore_sequence:
+		print("    ❌ Numero evento non corrisponde alla sequenza corrente")
 		return false
 
 	var days = player_context.get("days_survived", 0)
+	print("    📅 Giorni sopravvissuti: %d" % days)
 
 	# Sistema compresso 4-5 giorni: eventi distribuiti logicamente
+	var day_required = 0
 	match event_number:
-		1: return days >= 1 # Giorno 1 - partenza
-		2: return days >= 1 # Giorno 1 - prima notte
-		3: return days >= 2 # Giorno 2 - primi passi
-		4: return days >= 2 # Giorno 2 - incontri
-		5: return days >= 3 # Giorno 3 - prove morali
-		6: return days >= 3 # Giorno 3 - verità
-		7: return days >= 4 # Giorno 4 - sogni
-		8: return days >= 4 # Giorno 4 - segnali
-		9: return days >= 5 # Giorno 5 - arrivo
-		10: return days >= 5 # Giorno 5 - finale
-		_: return false
+		1: day_required = 1 # Giorno 1 - partenza
+		2: day_required = 1 # Giorno 1 - prima notte
+		3: day_required = 2 # Giorno 2 - primi passi
+		4: day_required = 2 # Giorno 2 - incontri
+		5: day_required = 3 # Giorno 3 - prove morali
+		6: day_required = 3 # Giorno 3 - verità
+		7: day_required = 4 # Giorno 4 - sogni
+		8: day_required = 4 # Giorno 4 - segnali
+		9: day_required = 5 # Giorno 5 - arrivo
+		10: day_required = 5 # Giorno 5 - finale
+		_:
+			print("    ❌ Numero evento non valido: %d" % event_number)
+			return false
+
+	print("    🎯 Giorni richiesti: %d, Giorni attuali: %d" % [day_required, days])
+	var result = days >= day_required
+	print("    %s Risultato check giorni: %s" % ["✅" if result else "❌", str(result)])
+	return result
 
 ## ===== NUOVO: API LORE EVENTS =====
 func trigger_lore_event(event_data: Dictionary) -> bool:
