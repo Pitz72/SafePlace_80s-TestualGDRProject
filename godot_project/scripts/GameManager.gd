@@ -205,6 +205,10 @@ func _initialize_systems() -> void:
 		var lore_success = event_manager.load_lore_events()
 		if lore_success:
 			print("✅ Eventi lore caricati con successo")
+
+			# DEBUG: Forza trigger primo evento dopo 3 secondi per testare il sistema
+			print("🧪 [DEBUG] Scheduling automatic first event trigger in 3 seconds...")
+			get_tree().create_timer(3.0).timeout.connect(_debug_trigger_first_event)
 		else:
 			print("⚠️ Errore caricamento eventi lore")
 
@@ -873,3 +877,22 @@ func force_trigger_lore_event(event_id: String):
 			return
 
 	print("❌ [GameManager] Evento lore non trovato: %s" % event_id)
+
+## DEBUG: Trigger automatico primo evento (solo per testing)
+func _debug_trigger_first_event():
+	"""Debug function per triggerare automaticamente il primo evento dopo l'avvio"""
+	print("🧪 [DEBUG] Attempting automatic first event trigger...")
+
+	if not event_manager:
+		print("❌ [DEBUG] EventManager non disponibile")
+		return
+
+	# Prova prima il sistema normale
+	print("🧪 [DEBUG] Tentativo 1: Sistema normale...")
+	check_lore_events()
+
+	# Se non funziona, forza il primo evento
+	print("🧪 [DEBUG] Tentativo 2: Forzare primo evento...")
+	force_trigger_lore_event("lore_01_echo_of_departure")
+
+	print("🧪 [DEBUG] Debug trigger completato")
