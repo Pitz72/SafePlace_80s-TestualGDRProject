@@ -576,9 +576,14 @@ func check_lore_event_triggers(player_context: Dictionary) -> Dictionary:
 	for event in _lore_events:
 		var event_id = event.get("id", "")
 		var event_title = event.get("title", "N/A")
-		var event_number = event.get("trigger", {}).get("event_number", 0)
 
-		print("🔍 Controllo evento: %s (numero: %d)" % [event_title, event_number])
+		# Fix: Parsing sicuro del trigger
+		var trigger = event.get("trigger", {})
+		var event_number = 0
+		if trigger is Dictionary and trigger.has("event_number"):
+			event_number = trigger.get("event_number", 0)
+
+		print("🔍 Controllo evento: %s (numero: %d, sequenza target: %d)" % [event_title, event_number, _current_lore_sequence])
 
 		# Skip se già visto
 		if event_id in _seen_lore_events:
@@ -621,14 +626,19 @@ func check_lore_event_triggers(player_context: Dictionary) -> Dictionary:
 
 ## Helper: controlla trigger specifico lore event
 func _check_lore_trigger(trigger: Dictionary, player_context: Dictionary) -> bool:
+	print("    🔧 Check lore trigger - Input: %s" % str(trigger))
+
 	var trigger_type = trigger.get("type", "")
+	print("    🔧 Trigger type: %s" % trigger_type)
 
 	match trigger_type:
 		"event_sequence":
 			var event_number = trigger.get("event_number", 0)
+			print("    🔧 Event number from trigger: %d" % event_number)
 			return _check_event_sequence(event_number, player_context)
 
 		_:
+			print("    ❌ Trigger type non riconosciuto: %s" % trigger_type)
 			return false
 
 ## Helper: controlla sequenza eventi

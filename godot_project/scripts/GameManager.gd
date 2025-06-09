@@ -205,10 +205,6 @@ func _initialize_systems() -> void:
 		var lore_success = event_manager.load_lore_events()
 		if lore_success:
 			print("✅ Eventi lore caricati con successo")
-
-			# DEBUG: Forza trigger primo evento dopo 3 secondi per testare il sistema
-			print("🧪 [DEBUG] Scheduling automatic first event trigger in 3 seconds...")
-			get_tree().create_timer(3.0).timeout.connect(_debug_trigger_first_event)
 		else:
 			print("⚠️ Errore caricamento eventi lore")
 
