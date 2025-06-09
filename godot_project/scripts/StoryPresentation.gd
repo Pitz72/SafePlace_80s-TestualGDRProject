@@ -17,11 +17,11 @@ const PARAGRAPH_DELAY = 1.2 # Pausa tra paragrafi
 const SCREEN_TRANSITION = 0.5 # Transizione tra schermate
 const BLINK_INTERVAL = 0.8 # Velocità blink cursore
 
-# 📐 LAYOUT
-const MARGIN_X = 60
-const MARGIN_Y = 40
+# 📐 LAYOUT RIDIMENSIONATO
+const MARGIN_X = 40 # Ridotto per il nuovo layout
+const MARGIN_Y = 30 # Ridotto per il nuovo layout
 const LINE_HEIGHT_MULT = 1.4
-const MAX_LINES_PER_PAGE = 15 # Massimo righe per pagina
+const MAX_LINES_PER_PAGE = 8 # Ridotto ulteriormente per il layout fisso
 
 # 🎭 COMPONENTI UI
 @onready var main_container: VBoxContainer
@@ -61,68 +61,101 @@ func _ready():
 	# Il contenuto sarà impostato esternamente chiamando setup_content()
 
 func setup_terminal_ui():
-	"""Crea l'interfaccia in stile terminale retrò"""
+	"""Crea l'interfaccia in stile terminale retrò con layout ridimensionato"""
+	# Layout base a schermo intero per sfondo nero
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	# Sfondo terminale nero
+	# Sfondo terminale nero completo
 	var bg_style = StyleBoxFlat.new()
 	bg_style.bg_color = TERMINAL_BLACK
 	add_theme_stylebox_override("panel", bg_style)
 
-	# Container principale
+	# Container principale centrato - RIDOTTO DI 1/4 (75% schermo)
 	main_container = VBoxContainer.new()
-	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_container.add_theme_constant_override("margin_left", MARGIN_X)
-	main_container.add_theme_constant_override("margin_right", MARGIN_X)
-	main_container.add_theme_constant_override("margin_top", MARGIN_Y)
-	main_container.add_theme_constant_override("margin_bottom", MARGIN_Y)
+	main_container.name = "MainContainer"
+
+	# Calcola dimensioni: schermo ridotto di 1/4
+	var screen_size = get_viewport().get_visible_rect().size
+	var container_width = int(screen_size.x * 0.75) # 75% larghezza
+	var container_height = int(screen_size.y * 0.75) # 75% altezza
+
+	# Posiziona al centro
+	var offset_x = int((screen_size.x - container_width) / 2)
+	var offset_y = int((screen_size.y - container_height) / 2)
+
+	main_container.position = Vector2(offset_x, offset_y)
+	main_container.size = Vector2(container_width, container_height)
+
+	# Margini interni
+	main_container.add_theme_constant_override("margin_left", 40)
+	main_container.add_theme_constant_override("margin_right", 40)
+	main_container.add_theme_constant_override("margin_top", 30)
+	main_container.add_theme_constant_override("margin_bottom", 30)
+
+	# Bordo del riquadro principale
+	var border_style = StyleBoxFlat.new()
+	border_style.bg_color = TERMINAL_BLACK
+	border_style.border_color = TERMINAL_GREEN
+	border_style.border_width_left = 2
+	border_style.border_width_right = 2
+	border_style.border_width_top = 2
+	border_style.border_width_bottom = 2
+	main_container.add_theme_stylebox_override("panel", border_style)
+
 	add_child(main_container)
 
-	# Header terminale
-	create_terminal_header()
+	# Titolo sezione (sopra il riquadro)
+	create_section_title()
 
-	# Area display storia
+	# Area display storia (riquadro centrale)
 	create_story_display()
 
-	# Cursore rimosso per design più pulito
-
-	# Pannello controlli
+	# Pannello controlli (sotto il riquadro)
 	create_controls_panel()
 
-func create_terminal_header():
-	"""Crea l'header in stile terminale"""
+func create_section_title():
+	"""Crea il titolo della sezione sopra il riquadro"""
 	terminal_header = Label.new()
-	terminal_header.text = "SISTEMA NARRATIVO RETROCOMPUTAZIONALE v2.1"
+	terminal_header.name = "SectionTitle"
+	terminal_header.text = "CARICAMENTO CONTENUTO..." # Sarà aggiornato dinamicamente
 	terminal_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	terminal_header.add_theme_font_size_override("font_size", 14)
-	terminal_header.add_theme_color_override("font_color", TERMINAL_GREEN_DIM)
+	terminal_header.add_theme_font_size_override("font_size", 18)
+	terminal_header.add_theme_color_override("font_color", TERMINAL_GREEN_BRIGHT)
+	terminal_header.custom_minimum_size = Vector2(0, 40)
 	main_container.add_child(terminal_header)
 
-	# Separatore
+	# Separatore decorativo
 	var separator = Label.new()
-	separator.text = "═══════════════════════════════════════════════════════════════════════"
+	separator.text = "═══════════════════════════════════════════════════════════════"
 	separator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	separator.add_theme_font_size_override("font_size", 12)
+	separator.add_theme_font_size_override("font_size", 10)
 	separator.add_theme_color_override("font_color", TERMINAL_GREEN_DIM)
 	main_container.add_child(separator)
 
 	# Spazio
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 20)
+	spacer.custom_minimum_size = Vector2(0, 15)
 	main_container.add_child(spacer)
 
 func create_story_display():
-	"""Crea l'area di visualizzazione della storia"""
+	"""Crea l'area di visualizzazione della storia - riquadro centrale"""
 	story_display = RichTextLabel.new()
+	story_display.name = "StoryDisplay"
 	story_display.bbcode_enabled = true
-	story_display.fit_content = true
+	story_display.fit_content = false # Impedisce espansione automatica
 	story_display.scroll_active = false
-	story_display.custom_minimum_size = Vector2(680, 400) # Ridotto 15% (800 * 0.85 = 680)
+
+	# Dimensioni FISSE per controllare esattamente lo spazio
+	# Calcola spazio disponibile: container_height - (titolo + controlli + margini)
+	var available_height = main_container.size.y - 150 # Ridotto margine: più spazio per testo
+	story_display.custom_minimum_size = Vector2(main_container.size.x - 80, available_height)
+	story_display.size = Vector2(main_container.size.x - 80, available_height)
+
 	story_display.add_theme_font_size_override("normal_font_size", 16)
 	story_display.add_theme_color_override("default_color", TERMINAL_GREEN)
-	story_display.add_theme_constant_override("line_separation", 6)
+	story_display.add_theme_constant_override("line_separation", 8)
 
-	# Stile sfondo display con effetto CRT
+	# Stile riquadro di testo con bordo
 	var display_style = StyleBoxFlat.new()
 	display_style.bg_color = Color(0.01, 0.05, 0.02) # Verde molto scuro
 	display_style.border_color = TERMINAL_GREEN_DIM
@@ -130,6 +163,10 @@ func create_story_display():
 	display_style.border_width_right = 1
 	display_style.border_width_top = 1
 	display_style.border_width_bottom = 1
+	display_style.content_margin_left = 15
+	display_style.content_margin_right = 15
+	display_style.content_margin_top = 15
+	display_style.content_margin_bottom = 15
 	story_display.add_theme_stylebox_override("normal", display_style)
 
 	main_container.add_child(story_display)
@@ -137,33 +174,42 @@ func create_story_display():
 # Cursore rimosso - non più necessario
 
 func create_controls_panel():
-	"""Crea il pannello controlli in stile terminale"""
+	"""Crea il pannello controlli sotto il riquadro"""
+	# Spazio sopra i controlli
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 30)
+	spacer.custom_minimum_size = Vector2(0, 20)
 	main_container.add_child(spacer)
 
+	# Container per pulsanti centrati
 	controls_panel = HBoxContainer.new()
+	controls_panel.name = "ControlsPanel"
 	controls_panel.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_container.add_child(controls_panel)
 
-	# Pulsante Continua
+	# Pulsante Continua (nascosto di default)
 	continue_button = create_terminal_button("[ CONTINUA ]")
 	continue_button.pressed.connect(_on_continue_pressed)
 	continue_button.visible = false
 	controls_panel.add_child(continue_button)
 
-	# Spazio
+	# Spazio tra pulsanti
 	var button_spacer = Control.new()
-	button_spacer.custom_minimum_size = Vector2(40, 0)
+	button_spacer.custom_minimum_size = Vector2(30, 0)
 	controls_panel.add_child(button_spacer)
 
-	# Pulsante Indietro
-	back_button = create_terminal_button("[ TORNA AL MENU ]")
+	# Pulsante Indietro (sempre visibile)
+	back_button = create_terminal_button("[ TORNA INDIETRO ]")
 	back_button.pressed.connect(_on_back_pressed)
 	controls_panel.add_child(back_button)
 
-	# Indicatore pagina
+	# Spazio sotto i controlli
+	var bottom_spacer = Control.new()
+	bottom_spacer.custom_minimum_size = Vector2(0, 15)
+	main_container.add_child(bottom_spacer)
+
+	# Indicatore pagina (in fondo)
 	page_indicator = Label.new()
+	page_indicator.name = "PageIndicator"
 	page_indicator.add_theme_font_size_override("font_size", 12)
 	page_indicator.add_theme_color_override("font_color", TERMINAL_GREEN_DIM)
 	page_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -234,17 +280,41 @@ func setup_content(title: String, type: String):
 				content_text = get_fallback_instructions_content()
 		final_message = "═══ FINE CONTENUTO ═══"
 
-	# Dividi in paragrafi
-	var raw_paragraphs = content_text.split("\n\n")
+	# NUOVA LOGICA: Dividi tutto il testo in PAGINE che stanno nel riquadro
+	create_text_pages(content_text)
+
+func create_text_pages(text: String):
+	"""Divide tutto il testo in pagine che stanno nel riquadro"""
 	content_paragraphs.clear()
 
-	for paragraph in raw_paragraphs:
-		var clean_paragraph = paragraph.strip_edges()
-		if not clean_paragraph.is_empty():
-			content_paragraphs.append(clean_paragraph)
+	# Calcola quanti caratteri stanno in una pagina (approssimativo)
+	var chars_per_line = 60 # Stima caratteri per riga nel riquadro
+	var lines_per_page = 12 # Righe che stanno nel riquadro
+	var chars_per_page = chars_per_line * lines_per_page # ~720 caratteri per pagina
 
-	# Calcola pagine necessarie
-	total_pages = (content_paragraphs.size() + MAX_LINES_PER_PAGE - 1) / MAX_LINES_PER_PAGE
+	var total_length = text.length()
+	var current_pos = 0
+
+	while current_pos < total_length:
+		var page_end = min(current_pos + chars_per_page, total_length)
+
+		# Trova un punto di taglio naturale (spazio, punto o fine riga)
+		if page_end < total_length:
+			var best_cut = page_end
+			for i in range(page_end, max(current_pos, page_end - 100), -1):
+				if text[i] in [' ', '.', '\n', '!', '?']:
+					best_cut = i + 1
+					break
+			page_end = best_cut
+
+		var page_text = text.substr(current_pos, page_end - current_pos).strip_edges()
+		if not page_text.is_empty():
+			content_paragraphs.append(page_text)
+
+		current_pos = page_end
+
+	total_pages = content_paragraphs.size()
+	print("📄 Testo diviso in %d pagine di ~%d caratteri ciascuna" % [total_pages, chars_per_page])
 	update_page_indicator()
 
 func setup_input_handling():
@@ -266,7 +336,7 @@ func start_content_presentation():
 	show_next_paragraph()
 
 func show_next_paragraph():
-	"""Mostra il prossimo paragrafo con apparizione immediata"""
+	"""Mostra la prossima PAGINA di testo completa"""
 	if current_paragraph_index >= content_paragraphs.size():
 		# Contenuto completato
 		show_content_completed()
@@ -275,13 +345,23 @@ func show_next_paragraph():
 	is_processing = true
 	continue_button.visible = false
 
-	var paragraph = content_paragraphs[current_paragraph_index]
+	# Prendi la pagina completa (non più singolo paragrafo)
+	var page_text = content_paragraphs[current_paragraph_index]
 
-	# Formatta il paragrafo per evidenziare parole chiave
-	var formatted_paragraph = format_paragraph_for_display(paragraph)
+	# Formatta la pagina per evidenziare parole chiave
+	var formatted_page = format_paragraph_for_display(page_text)
 
-	# Mostra paragrafo completo immediatamente
-	show_paragraph_immediately(formatted_paragraph)
+	# Mostra TUTTA la pagina nel riquadro
+	story_display.text = formatted_page
+
+	# Determina se mostrare CONTINUA
+	current_paragraph_index += 1
+	if current_paragraph_index < content_paragraphs.size():
+		# Ci sono ancora pagine da mostrare
+		show_continue_option()
+	else:
+		# Ultima pagina
+		show_content_completed()
 
 func format_paragraph_for_display(paragraph: String) -> String:
 	"""Formatta il paragrafo per il display terminale con evidenziazioni"""
@@ -299,33 +379,15 @@ func format_paragraph_for_display(paragraph: String) -> String:
 	return formatted
 
 func show_paragraph_immediately(text: String):
-	"""Mostra il paragrafo completo immediatamente"""
-	# Aggiungi il paragrafo completo al display
-	var display_text = story_display.text
-	story_display.text = display_text + "\n\n" + text
-
-	# Breve pausa per permettere la lettura prima di procedere
-	await get_tree().create_timer(0.3).timeout
-	_on_paragraph_completed()
+	"""RIMOSSA - Non più necessaria con la nuova logica pagine"""
+	pass
 
 func _on_paragraph_completed():
-	"""Chiamata quando un paragrafo è completato"""
-	is_processing = false
-	current_paragraph_index += 1
-
-	# Controlla se serve continuare su nuova pagina
-	var lines_used = story_display.text.count("\n") + 2
-
-	if lines_used >= MAX_LINES_PER_PAGE and current_paragraph_index < content_paragraphs.size():
-		# Pagina piena, mostra pulsante continua
-		show_continue_option()
-	else:
-		# Continua con il prossimo paragrafo dopo una pausa
-		await get_tree().create_timer(PARAGRAPH_DELAY).timeout
-		show_next_paragraph()
+	"""RIMOSSA - Non più necessaria con la nuova logica pagine"""
+	pass
 
 func show_continue_option():
-	"""Mostra l'opzione per continuare alla pagina successiva"""
+	"""Mostra l'opzione per continuare con il testo rimanente"""
 	is_waiting_for_continue = true
 	continue_button.visible = true
 	continue_button.grab_focus()
@@ -354,7 +416,7 @@ func _unhandled_input(event: InputEvent):
 				_on_back_pressed()
 
 func _on_continue_pressed():
-	"""Continua alla pagina successiva"""
+	"""Carica la prossima pagina di testo"""
 	if not is_waiting_for_continue:
 		return
 
@@ -362,17 +424,22 @@ func _on_continue_pressed():
 	current_page += 1
 	update_page_indicator()
 
-	# Pulisci display e continua
-	story_display.text = ""
+	# Carica direttamente la prossima pagina
 	continue_button.visible = false
 
-	# Breve transizione
+	# Fade out completo
 	var fade_tween = create_tween()
-	fade_tween.tween_property(story_display, "modulate:a", 0.3, 0.2)
-	fade_tween.tween_property(story_display, "modulate:a", 1.0, 0.2)
+	fade_tween.tween_property(story_display, "modulate:a", 0.0, 0.15)
 
+	# Aspetta che il fade out sia completo
 	await fade_tween.finished
+
+	# CAMBIA IL TESTO MENTRE È INVISIBILE
 	show_next_paragraph()
+
+	# Fade in con nuovo testo
+	var fade_in_tween = create_tween()
+	fade_in_tween.tween_property(story_display, "modulate:a", 1.0, 0.15)
 
 func _on_back_pressed():
 	"""Torna al menu principale"""
@@ -380,9 +447,9 @@ func _on_back_pressed():
 		on_back_pressed.call()
 
 func update_page_indicator():
-	"""Aggiorna l'indicatore di pagina"""
+	"""Aggiorna l'indicatore di sezione"""
 	if total_pages > 1:
-		page_indicator.text = "Pagina %d di %d" % [current_page, total_pages]
+		page_indicator.text = "Sezione %d di %d" % [current_page, total_pages]
 		page_indicator.visible = true
 	else:
 		page_indicator.visible = false
@@ -406,11 +473,11 @@ func update_header_for_content_type(type: String):
 	if terminal_header:
 		match type:
 			"storia":
-				terminal_header.text = "SISTEMA NARRATIVO RETROCOMPUTAZIONALE v2.1 - STORIA"
+				terminal_header.text = "La Storia"
 			"istruzioni":
-				terminal_header.text = "SISTEMA OPERATIVO RETROCOMPUTAZIONALE v2.1 - MANUALI"
+				terminal_header.text = "Istruzioni: Lettera di un Padre"
 			_:
-				terminal_header.text = "SISTEMA RETROCOMPUTAZIONALE v2.1"
+				terminal_header.text = "CONTENUTO SISTEMA"
 
 func get_fallback_story_content() -> String:
 	"""Contenuto fallback per la storia"""

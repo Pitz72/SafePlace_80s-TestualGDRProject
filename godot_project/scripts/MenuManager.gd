@@ -472,9 +472,8 @@ func return_to_main_menu():
 # 🎨 CREAZIONE SCHERMATE SECONDARIE
 func create_story_screen():
 	"""Crea la schermata della storia con presentazione retro"""
-	# Carica la scena ContentPresentation
-	var content_presentation_scene = preload("res://scripts/StoryPresentation.gd")
-	story_screen = content_presentation_scene.new()
+	# Crea istanza diretta della classe ContentPresentation
+	story_screen = ContentPresentation.new()
 	story_screen.name = "StoryScreen"
 	story_screen.visible = false
 	add_child(story_screen)
@@ -486,9 +485,8 @@ func create_story_screen():
 
 func create_instructions_screen():
 	"""Crea la schermata delle istruzioni con presentazione retro"""
-	# Carica la scena ContentPresentation
-	var content_presentation_scene = preload("res://scripts/StoryPresentation.gd")
-	instructions_screen = content_presentation_scene.new()
+	# Crea istanza diretta della classe ContentPresentation
+	instructions_screen = ContentPresentation.new()
 	instructions_screen.name = "InstructionsScreen"
 	instructions_screen.visible = false
 	add_child(instructions_screen)
@@ -499,26 +497,17 @@ func create_instructions_screen():
 	print("📋 Schermata istruzioni retro creata")
 
 func create_settings_screen():
-	"""Crea la schermata delle impostazioni"""
-	settings_screen = Control.new()
+	"""Crea la schermata impostazioni avanzata"""
+	# Crea istanza della SettingsScreen avanzata
+	settings_screen = SettingsScreen.new()
 	settings_screen.name = "SettingsScreen"
-	settings_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	settings_screen.visible = false
 	add_child(settings_screen)
 
-	# TODO: Implementare pannello impostazioni audio/video/accessibilità
-	var label = Label.new()
-	label.text = "🔧 IMPOSTAZIONI\n\n[Pannello impostazioni in sviluppo]\n\nQui saranno disponibili:\n- Impostazioni Audio\n- Impostazioni Video\n- Opzioni Accessibilità"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	label.add_theme_color_override("font_color", PRIMARY_GREEN)
-	settings_screen.add_child(label)
+	# Inizializza con callback per tornare al menu
+	settings_screen.initialize_and_start(return_to_main_menu)
 
-	# Pulsante ritorno
-	add_return_button(settings_screen)
-
-	print("⚙️ Schermata impostazioni creata (placeholder)")
+	print("⚙️ Schermata impostazioni avanzata creata")
 
 func create_content_screen(title: String, content: String) -> Control:
 	"""Crea una schermata di contenuto generica (storia/istruzioni)"""
