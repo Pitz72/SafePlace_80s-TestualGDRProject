@@ -1,0 +1,75 @@
+/* css/utilities.css */
+
+/* Questo file contiene classi di utilità generiche e animazioni di feedback */
+
+/* Classe Helper per nascondere elementi (usata da JS) */
+/* Usa display: none per rimuoverlo completamente dal flusso del documento */
+.hidden {
+    display: none !important; /* Forza a nascondere anche se altri stili potrebbero impostare display */
+    /* Opzionale: se si vuole una transizione di fade, si userebbe visibility: hidden e opacity: 0 */
+    /* visibility: hidden; opacity: 0; */
+}
+
+/* NOTA: La classe 'visible' per l'overlay è definita in events.css */
+
+
+/* --- Animazioni e Classi per Feedback Interattivo (Aggiunte da JS) --- */
+
+/* Animazione per danno subito (classe .flash-damage aggiunta temporaneamente a un elemento, es. main#game-container) */
+/* Questa animazione crea un breve flash rosso sullo sfondo */
+@keyframes flashDamage {
+    0% { background-color: rgba(255, 0, 0, 0); } /* Inizia trasparente */
+    50% { background-color: rgba(255, 0, 0, 0.3); } /* A metà animazione, diventa un rosso semi-trasparente */
+    100% { background-color: rgba(255, 0, 0, 0); } /* Torna trasparente */
+}
+
+/* Animazione per cura/buff ottenuto (classe .flash-heal aggiunta temporaneamente a un elemento, es. main#game-container) */
+/* Questa animazione crea un breve flash verde sullo sfondo */
+@keyframes flashHeal {
+    0% { background-color: rgba(0, 255, 0, 0); } /* Inizia trasparente */
+    50% { background-color: rgba(0, 255, 0, 0.2); } /* A metà animazione, diventa un verde semi-trasparente */
+    100% { background-color: rgba(0, 255, 0, 0); } /* Torna trasparente */
+}
+
+/* Classe da applicare temporaneamente al game-container (o body) per attivare l'animazione di danno */
+/* La durata dell'animazione è specificata qui */
+main#game-container.flash-damage {
+    animation: flashDamage 0.5s ease-out; /* Esegue l'animazione flashDamage per 0.5 secondi con una curva di velocità fluida */
+    /* Opzionale: Potrebbe anche influire sul filtro per un effetto più drammatico */
+    /* filter: brightness(0.8); */
+}
+
+/* Classe da applicare temporaneamente al game-container (o body) per attivare l'animazione di cura */
+main#game-container.flash-heal {
+    animation: flashHeal 0.5s ease-out; /* Esegue l'animazione flashHeal per 0.5 secondi */
+    /* filter: brightness(1.2); */
+}
+
+/* Stile per bottoni disabilitati (classe 'disabled' aggiunta da JS) */
+/* Questo stile può essere usato su qualsiasi bottone che JS disabilita */
+/* Già definito in controls.css e events.css per specificità, ma lo riaffermiamo qui per un fallback generico */
+button:disabled {
+    color: var(--border-dim-color); /* Colore testo spento */
+    border-color: var(--border-dim-color); /* Colore bordo spento */
+    cursor: not-allowed; /* Cursore non permesso */
+    opacity: 0.6; /* Rendi semi-trasparente (leggermente più visibile di 0.5) */
+}
+
+
+/* Classe potenziale per effetto 'typing' su testo (solo cursore lampeggiante) */
+/* (Non usata nell'attuale codice JS, ma può essere aggiunta in futuro) */
+/*
+.typing-effect {
+    display: inline-block; // Per applicare l'effetto su blocchi di testo
+    // Altri stili se necessari
+}
+.typing-effect::after {
+    content: '_'; // Aggiunge un carattere cursore dopo l'elemento
+    animation: blinkCursor 1s infinite step-end; // Animazione lampeggiante
+}
+
+@keyframes blinkCursor {
+    0%, 100% { opacity: 1; } // Cursore visibile
+    50% { opacity: 0; } // Cursore invisibile
+}
+*/

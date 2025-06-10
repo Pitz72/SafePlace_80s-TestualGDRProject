@@ -109,6 +109,10 @@ func _initialize_ascii_map():
 
 ## Setup contenuto iniziale pannelli
 func _setup_initial_content():
+	# Setup titoli e layout prima degli aggiornamenti contenuto
+	_setup_panel_titles()
+	_setup_controls_layout()
+	
 	_update_survival_panel()
 	_update_inventory_panel() 
 	_update_log_panel()
@@ -374,9 +378,9 @@ func _update_legend_panel():
 	content += "[color=#%s]C [/color][color=#%s]Città[/color]\n" % [_color_to_hex(Color.GRAY), _color_to_hex(COLOR_TEXT)]
 	content += "[color=#%s]V [/color][color=#%s]Villaggio[/color]\n" % [_color_to_hex(Color(0.6, 0.4, 0.2)), _color_to_hex(COLOR_TEXT)]
 	content += "[color=#%s]~ [/color][color=#%s]Fiume[/color]\n" % [_color_to_hex(Color.CYAN), _color_to_hex(COLOR_TEXT)]
-	content += "[color=#%s]@ [/color][color=#%s]Giocatore[/color]\n" % [_color_to_hex(Color.YELLOW), _color_to_hex(COLOR_TEXT)]
 	content += "[color=#%s]S [/color][color=#%s]Start[/color]\n" % [_color_to_hex(COLOR_NUMBERS), _color_to_hex(COLOR_TEXT)]
-	content += "[color=#%s]E [/color][color=#%s]Safe Place[/color]" % [_color_to_hex(COLOR_NUMBERS), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]E [/color][color=#%s]Safe Place[/color]\n" % [_color_to_hex(COLOR_NUMBERS), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]@ [/color][color=#%s]Giocatore[/color]" % [_color_to_hex(Color.YELLOW), _color_to_hex(COLOR_TEXT)]
 	
 	legend_content.text = content
 
@@ -662,30 +666,7 @@ func _handle_character_growth():
 	print("[MainInterface] Opening character growth")
 	# TODO: Implementare schermata crescita personaggio
 
-func _setup_panels():
-	"""Setup di tutti i pannelli dell'interfaccia 8-panel con verde scuro."""
-	print("[MainInterface] Setting up panels with dark green SafePlace colors")
-	
-	# Panel styling con colore sfondo specificato dall'utente
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color("#000503")  # Colore sfondo richiesto dall'utente
-	panel_style.border_color = SAFEPLACE_GREEN_TEXT
-	panel_style.border_width_left = 1
-	panel_style.border_width_top = 1
-	panel_style.border_width_right = 1
-	panel_style.border_width_bottom = 1
-	
-	# Applico styling a tutti i pannelli
-	for panel in [survival_panel, inventory_panel, log_panel, map_panel, info_panel, stats_panel, controls_panel, equipment_panel]:
-		if panel:
-			panel.add_theme_stylebox_override("panel", panel_style)
-	
-	# Setup titoli con colore verde chiaro
-	_setup_panel_titles()
-	
-	# Setup layout specifici
-	_setup_controls_layout()
-	_setup_equipment_display()
+
 
 func _setup_panel_titles():
 	"""Setup titoli pannelli con colore verde SafePlace."""

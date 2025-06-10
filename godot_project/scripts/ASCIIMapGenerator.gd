@@ -11,30 +11,31 @@ const SYMBOL_MOUNTAIN = "M"    # Montagne
 const SYMBOL_CITY = "C"        # Città
 const SYMBOL_VILLAGE = "V"     # Villaggi
 const SYMBOL_RIVER = "~"       # Fiumi
+
 const SYMBOL_START = "S"       # Punto di partenza (lampeggiante giallo)
 const SYMBOL_END = "E"         # Punto di arrivo (lampeggiante giallo)
 const SYMBOL_PLAYER = "@"      # Player position (verde brillante lampeggiante)
 
-# Colori autentici SafePlace CRT
-const COLOR_PLAINS = Color(0, 0.7, 0.25, 1)     # Verde base interfaccia
-const COLOR_FOREST = Color(0, 0.4, 0.15, 1)     # Verde scuro
-const COLOR_MOUNTAIN = Color(0.4, 0.25, 0.1, 1) # Marrone scuro
-const COLOR_CITY = Color(0.7, 0.7, 0.7, 1)      # Grigio chiaro
-const COLOR_VILLAGE = Color(0.6, 0.4, 0.2, 1)   # Marrone chiaro  
-const COLOR_RIVER = Color(0.2, 0.6, 0.8, 1)     # Celeste
-const COLOR_START = Color(0, 0.7, 0.25, 1)      # Verde interfaccia (standard)
-const COLOR_START_BLINK = Color(1, 1, 0, 1)     # Giallo lampeggiante
-const COLOR_END = Color(0, 0.7, 0.25, 1)        # Verde interfaccia (standard)
-const COLOR_END_BLINK = Color(1, 1, 0, 1)       # Giallo lampeggiante
-const COLOR_PLAYER = Color(0, 1, 0.4, 1)        # Verde più brillante di interfaccia
-const COLOR_PLAYER_BLINK = Color(0.2, 1, 0.6, 1) # Verde cursore lampeggiante
+# Colori SafePlace CRT autentici - RIPRISTINO PRE-RIFUGI
+const COLOR_PLAINS = Color(0.306, 0.631, 0.384, 1)     # #4EA162 verde base interfaccia
+const COLOR_FOREST = Color(0, 0.4, 0.15, 1)            # Verde scuro foreste
+const COLOR_MOUNTAIN = Color(0.4, 0.25, 0.1, 1)        # Marrone scuro montagne
+const COLOR_CITY = Color(0.7, 0.7, 0.7, 1)             # Grigio chiaro città
+const COLOR_VILLAGE = Color(0.6, 0.4, 0.2, 1)          # Marrone chiaro villaggi  
+const COLOR_RIVER = Color(0.2, 0.6, 0.8, 1)            # Celeste fiumi
+const COLOR_START = Color(0.306, 0.631, 0.384, 1)      # #4EA162 verde standard per S
+const COLOR_START_BLINK = Color(1, 1, 0, 1)            # Giallo acceso lampeggiante S
+const COLOR_END = Color(0.306, 0.631, 0.384, 1)        # #4EA162 verde standard per E  
+const COLOR_END_BLINK = Color(1, 1, 0, 1)              # Giallo acceso lampeggiante E
+const COLOR_PLAYER = Color(0, 1, 0.4, 1)               # Verde brillante player @
+const COLOR_PLAYER_BLINK = Color(0.2, 1, 0.6, 1)       # Verde cursore lampeggiante @
 
 # Dimensioni mappa
 const MAP_WIDTH = 250
 const MAP_HEIGHT = 250
 # Viewport dinamico per riempire ottimalmente il MapPanel
-var viewport_width = 92  # Larghezza viewport (può essere modificata dinamicamente)
-var viewport_height = 27 # Altezza viewport (può essere modificata dinamicamente)
+var viewport_width = 92  # Larghezza viewport (originale)
+var viewport_height = 27 # Altezza viewport (originale)
 
 # Probabilità generazione terreni
 const FOREST_CHANCE = 0.15
@@ -42,6 +43,7 @@ const MOUNTAIN_CHANCE = 0.08
 const RIVER_CHANCE = 0.03
 const CITY_CHANCE = 0.01
 const VILLAGE_CHANCE = 0.03
+
 
 # Cluster settings per città e villaggi
 const MAX_CITY_CLUSTER_SIZE = 8
@@ -171,7 +173,7 @@ func _place_settlement_cluster(center: Vector2, symbol: String, size: int):
 
 ## Aggiunge punti start ed end alla mappa
 func _add_start_and_end_points():
-	# Punto di partenza (S) - angolo in basso a sinistra
+	# Punto di partenza (S) - angolo in basso a sinistra  
 	start_pos = Vector2(randi_range(5, 20), randi_range(MAP_HEIGHT-20, MAP_HEIGHT-5))
 	if _is_valid_position(start_pos):
 		map_data[start_pos.y][start_pos.x] = SYMBOL_START
@@ -298,6 +300,7 @@ func _get_terrain_color(symbol: String) -> Color:
 			return COLOR_VILLAGE
 		SYMBOL_RIVER:
 			return COLOR_RIVER
+
 		SYMBOL_START:
 			return COLOR_START
 		SYMBOL_END:
@@ -324,6 +327,7 @@ func get_terrain_info(pos: Vector2) -> Dictionary:
 			return {"type": "village", "name": "Villaggio"}
 		SYMBOL_RIVER:
 			return {"type": "river", "name": "Fiume"}
+
 		_:
 			return {"type": "unknown", "name": "Sconosciuto"}
 
@@ -385,10 +389,12 @@ func generate_map():
 	# === FASE 5: CLUSTER VILLAGGI (4-6 elementi) ===
 	_generate_authentic_village_clusters()
 	
-	# === FASE 6: PUNTI SPECIALI ===
+	# === FASE 6: (RIFUGI RIMOSSI) ===
+	
+	# === FASE 7: PUNTI SPECIALI ===
 	_add_start_and_end_points()
 	
-	# === FASE 7: POSIZIONAMENTO PLAYER ===
+	# === FASE 8: POSIZIONAMENTO PLAYER ===
 	_position_player_correctly()
 	
 	print("🎯 [ASCIIMapGenerator] MAPPA 250x250 COMPLETATA CON SUCCESSO")
@@ -515,6 +521,8 @@ func _generate_authentic_village_clusters():
 			print("🏘️ Cluster %d: %d villaggi a (%d,%d)" % [i+1, cluster_size, cluster_center.x, cluster_center.y])
 	
 	print("🏘️ Cluster villaggi completati - Totale villaggi: %d" % villages_placed)
+
+# FUNZIONE RIFUGI RIMOSSA - Ripristino estetica pre-rifugi
 
 func _find_safe_cluster_position(min_distance: int) -> Vector2:
 	"""Trova una posizione sicura per un cluster."""
@@ -651,6 +659,7 @@ func _print_generation_summary():
 				SYMBOL_CITY: stats.cities += 1
 				SYMBOL_VILLAGE: stats.villages += 1
 				SYMBOL_RIVER: stats.rivers += 1
+
 	
 	print("📊 STATISTICHE MAPPA 250x250:")
 	print("   Pianure: %d | Foreste: %d | Montagne: %d" % [stats.plains, stats.forests, stats.mountains])
