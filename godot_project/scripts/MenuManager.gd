@@ -5,6 +5,10 @@ class_name MenuManager
 # Gestione completa schermata menu iniziale con autenticità SafePlace
 # Integrazione sicura con sistemi esistenti del gioco
 
+# 📚 PRELOAD CLASSES
+const ContentPresentationClass = preload("res://scripts/ContentPresentation.gd")
+const SettingsScreenClass = preload("res://scripts/SettingsScreen.gd")
+
 # 🎨 COSTANTI DESIGN SAFEPLACE - COLORI AUTENTICI MAPPA
 const PRIMARY_GREEN = Color(0.306, 0.631, 0.384) # #4EA162 - Verde standard mappa
 const SECONDARY_GREEN = Color(0.2, 0.5, 0.3) # Verde scuro per bordi
@@ -47,9 +51,8 @@ const VERSION_DESCRIPTION = "Versione: Ultimo's Journey - Ultimate Edition"
 @onready var settings_screen: Control
 
 # 🔧 SISTEMI
-var transitions: MenuTransitions
 var content_manager: ContentManager
-var game_manager: GameManager
+var game_manager
 
 # 📊 STATI
 enum MenuState {MAIN, STORY, INSTRUCTIONS, SETTINGS, TRANSITIONING}
@@ -65,24 +68,18 @@ func _ready():
 	setup_styling()
 	setup_connections()
 
-	# Avvia sequenza intro dopo setup completo
-	call_deferred("start_intro_sequence")
+	# Avvia inizializzazione semplificata
+	call_deferred("simple_initialization")
 
 func setup_systems():
 	"""Inizializza i sistemi di supporto"""
-	# Sistema transizioni
-	transitions = MenuTransitions.new()
-	add_child(transitions)
-	transitions.setup_target(self)
-
 	# Content manager per testi autentici
 	content_manager = ContentManager.new()
 	add_child(content_manager)
 
-	# Riferimento al GameManager esistente (safe)
-	game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager:
-		push_warning("⚠️ GameManager non trovato, alcune funzioni potrebbero essere limitate")
+	# GameManager non è disponibile dal menu - transizione diretta a scena
+	game_manager = null
+	print("ℹ️ GameManager non disponibile dal menu (normale comportamento)")
 
 	print("✅ Sistemi di supporto inizializzati")
 
@@ -118,10 +115,10 @@ func setup_ui_structure():
 	# Carica immagine SafePlace
 	load_header_image()
 
-	# Titolo principale
+	# Titolo principale - CORRETTO: fallback visibile se animazioni non funzionano
 	title_label = Label.new()
 	title_label.name = "TitleLabel"
-	title_label.text = ""
+	title_label.text = "The Safe Place" # FALLBACK: sempre visibile
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	centered_container.add_child(title_label)
 
@@ -142,7 +139,7 @@ func setup_ui_structure():
 	# Crea i 5 pulsanti menu
 	create_menu_buttons()
 
-	# Footer informazioni
+	# Footer informazioni (riassunto in una riga)
 	footer_label = Label.new()
 	footer_label.name = "FooterLabel"
 	footer_label.text = "GDR testuale retrocomputazionale - sperimentazione cooperazione umano-LLM tramite Cursor"
@@ -197,6 +194,7 @@ func create_menu_buttons():
 		button.text = data[1]
 		button.custom_minimum_size = Vector2(BUTTON_WIDTH, BUTTON_HEIGHT)
 		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
 		menu_buttons_container.add_child(button)
 		
@@ -213,45 +211,82 @@ func create_menu_buttons():
 			"settings_button":
 				settings_button = button
 
-	print("✅ 5 pulsanti menu creati")
+	print("✅ Pulsanti menu creati (5/5)")
 
 func setup_styling():
-	"""Applica lo styling SafePlace a tutti gli elementi"""
-	# Stile titolo principale
-	if title_label:
-		title_label.add_theme_color_override("font_color", PRIMARY_GREEN)
-		title_label.add_theme_font_size_override("font_size", 28)
+	"""Applica lo styling SafePlace a tutti i componenti"""
+	# Sfondo principale
+	var style_bg = StyleBoxFlat.new()
+	style_bg.bg_color = BACKGROUND_BLACK
+	add_theme_stylebox_override("panel", style_bg)
 
-	# Stile sottotitolo
-	if subtitle_label:
-		subtitle_label.add_theme_color_override("font_color", SECONDARY_GREEN)
-		subtitle_label.add_theme_font_size_override("font_size", 16)
+	# Styling titolo principale 
+	title_label.add_theme_font_size_override("font_size", 41)
+	title_label.add_theme_color_override("font_color", PRIMARY_GREEN)
 
-	# Stile footer
-	if footer_label:
-		footer_label.add_theme_color_override("font_color", SECONDARY_GREEN)
-		footer_label.add_theme_font_size_override("font_size", 12)
+	# Styling sottotitolo
+	subtitle_label.add_theme_font_size_override("font_size", 18)
+	subtitle_label.add_theme_color_override("font_color", SECONDARY_GREEN)
 
-	# Stile pulsanti
+	# Styling footer
+	footer_label.add_theme_font_size_override("font_size", 9)
+	footer_label.add_theme_color_override("font_color", DARK_GREEN)
+
+	# Styling pulsanti
+	style_menu_buttons()
+
+	print("✅ Styling SafePlace applicato")
+
+func style_menu_buttons():
+	"""Applica lo styling specifico ai pulsanti menu"""
 	var buttons = [new_game_button, load_game_button, story_button, instructions_button, settings_button]
+
 	for button in buttons:
-		if button:
-			apply_button_style(button)
+		if not button:
+			continue
 
-	print("✅ Styling applicato")
+		# Stile normale
+		var style_normal = StyleBoxFlat.new()
+		style_normal.bg_color = BACKGROUND_BLACK
+		style_normal.border_color = SECONDARY_GREEN
+		style_normal.border_width_top = 2
+		style_normal.border_width_bottom = 2
+		style_normal.border_width_left = 2
+		style_normal.border_width_right = 2
 
-func apply_button_style(button: Button):
-	"""Applica lo stile SafePlace a un pulsante"""
-	# Colori
-	button.add_theme_color_override("font_color", PRIMARY_GREEN)
-	button.add_theme_color_override("font_hover_color", HIGHLIGHT_YELLOW)
-	button.add_theme_color_override("font_pressed_color", PRIMARY_GREEN)
-	
-	# Dimensioni font
-	button.add_theme_font_size_override("font_size", 16)
+		# Stile hover
+		var style_hover = StyleBoxFlat.new()
+		style_hover.bg_color = DARK_GREEN
+		style_hover.border_color = PRIMARY_GREEN
+		style_hover.border_width_top = 2
+		style_hover.border_width_bottom = 2
+		style_hover.border_width_left = 2
+		style_hover.border_width_right = 2
+
+		# Stile pressed
+		var style_pressed = StyleBoxFlat.new()
+		style_pressed.bg_color = SECONDARY_GREEN
+		style_pressed.border_color = HIGHLIGHT_YELLOW
+		style_pressed.border_width_top = 2
+		style_pressed.border_width_bottom = 2
+		style_pressed.border_width_left = 2
+		style_pressed.border_width_right = 2
+
+		# Applica gli stili
+		button.add_theme_stylebox_override("normal", style_normal)
+		button.add_theme_stylebox_override("hover", style_hover)
+		button.add_theme_stylebox_override("pressed", style_pressed)
+
+		# Colori testo
+		button.add_theme_color_override("font_color", PRIMARY_GREEN)
+		button.add_theme_color_override("font_hover_color", PRIMARY_GREEN)
+		button.add_theme_color_override("font_pressed_color", BACKGROUND_BLACK)
+
+		# Font size
+		button.add_theme_font_size_override("font_size", 16)
 
 func setup_connections():
-	"""Connette i segnali dei pulsanti"""
+	"""Configura i collegamenti e segnali"""
 	if new_game_button:
 		new_game_button.pressed.connect(_on_new_game_pressed)
 	if load_game_button:
@@ -263,91 +298,241 @@ func setup_connections():
 	if settings_button:
 		settings_button.pressed.connect(_on_settings_pressed)
 
-	print("✅ Connessioni segnali configurate")
+	# Verifica stato saved games
+	update_load_game_button_state()
 
-func start_intro_sequence():
-	"""Avvia la sequenza di introduzione animata"""
-	if transitions:
-		transitions.start_intro_sequence()
-		is_initialized = true
-		print("🎬 Sequenza intro avviata")
+	print("✅ Connessioni configurate")
 
-# 🎮 GESTORI EVENTI PULSANTI
+func update_load_game_button_state():
+	"""Aggiorna lo stato del pulsante Carica Partita"""
+	if not load_game_button:
+		return
+
+	# Check se esistono salvataggi
+	var has_saves = FileAccess.file_exists("user://safeplace_save.json")
+	load_game_button.disabled = not has_saves
+
+	if has_saves:
+		print("💾 Salvataggi trovati - pulsante Carica Partita abilitato")
+	else:
+		print("📁 Nessun salvataggio trovato - pulsante Carica Partita disabilitato")
+
+# 🎬 EFFETTO CARICAMENTO TERMINALE ANNI 80
+func simple_initialization():
+	"""Inizializzazione con effetto caricamento terminale"""
+	print("🎬 Avvio sequenza caricamento terminale anni 80...")
+	
+	# Nascondi tutti i componenti inizialmente
+	hide_all_components()
+	
+	# Avvia sequenza caricamento
+	start_terminal_loading_sequence()
+	
+	is_initialized = true
+
+func hide_all_components():
+	"""Nasconde tutti i componenti del menu per l'effetto caricamento"""
+	if image_header:
+		image_header.modulate.a = 0.0
+	if title_label:
+		title_label.modulate.a = 0.0
+	if subtitle_label:
+		subtitle_label.modulate.a = 0.0
+	if footer_label:
+		footer_label.modulate.a = 0.0
+	
+	# Nascondi tutti i pulsanti
+	var buttons = [new_game_button, load_game_button, story_button, instructions_button, settings_button]
+	for button in buttons:
+		if button:
+			button.modulate.a = 0.0
+
+func start_terminal_loading_sequence():
+	"""Sequenza di caricamento stile terminale anni 80"""
+	print("💻 Sequenza caricamento terminale iniziata...")
+	
+	# 1. Mezzo secondo di nero
+	await get_tree().create_timer(0.5).timeout
+	
+	# 2. Mostra immagine header (se presente) - fade in veloce
+	if image_header:
+		fade_in_component(image_header, 0.3)
+		await get_tree().create_timer(0.4).timeout
+	
+	# 3. Mostra titolo con effetto typewriter
+	if title_label:
+		fade_in_component(title_label, 0.2)
+		await get_tree().create_timer(0.3).timeout
+	
+	# 4. Mostra sottotitolo
+	if subtitle_label:
+		fade_in_component(subtitle_label, 0.2)
+		await get_tree().create_timer(0.3).timeout
+	
+	# 5. Mostra pulsanti uno per volta (effetto terminale)
+	var buttons = [new_game_button, load_game_button, story_button, instructions_button, settings_button]
+	for button in buttons:
+		if button:
+			fade_in_component(button, 0.15)
+			await get_tree().create_timer(0.12).timeout  # Intervallo breve tra pulsanti
+	
+	# 6. Mostra footer per ultimo
+	if footer_label:
+		fade_in_component(footer_label, 0.2)
+		await get_tree().create_timer(0.2).timeout
+	
+	print("✅ Sequenza caricamento terminale completata")
+
+func fade_in_component(component: Control, duration: float):
+	"""Effetto fade in per un singolo componente"""
+	if not component:
+		return
+	
+	var tween = create_tween()
+	tween.tween_property(component, "modulate:a", 1.0, duration)
+
+# 🎮 CALLBACKS PULSANTI MENU
 func _on_new_game_pressed():
+	"""Callback pulsante Nuova Partita"""
+	print("🆕 Nuova Partita selezionata")
+	
+	if current_state != MenuState.MAIN:
+		return
+	
+	current_state = MenuState.TRANSITIONING
+	_start_new_game()
+
+func _start_new_game():
 	"""Avvia una nuova partita"""
-	print("🎮 Avvio nuova partita...")
-	if current_state != MenuState.TRANSITIONING:
-		start_game_transition()
+	print("🚀 Avvio nuova partita...")
+	
+	# Transizione diretta alla scena principale
+	var error = get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	if error != OK:
+		push_error("❌ Impossibile caricare la scena del gioco: " + str(error))
+	else:
+		print("✅ Transizione a gioco completata")
 
 func _on_load_game_pressed():
-	"""Carica una partita salvata"""
-	print("💾 Caricamento partita...")
-	# TODO: Implementare sistema caricamento
+	"""Callback pulsante Carica Partita"""
+	print("📂 Carica Partita selezionata")
+	
+	if current_state != MenuState.MAIN or load_game_button.disabled:
+		return
+	
+	# TODO: Implementare caricamento
+	_start_new_game() # Fallback temporaneo
 
 func _on_story_pressed():
-	"""Mostra la schermata Storia"""
-	print("📖 Apertura schermata Storia...")
-	if current_state == MenuState.MAIN:
-		show_story_screen()
+	"""Callback pulsante Storia"""
+	print("📖 Storia selezionata")
+	show_story_screen()
 
 func _on_instructions_pressed():
-	"""Mostra la schermata Istruzioni"""
-	print("📋 Apertura schermata Istruzioni...")
-	if current_state == MenuState.MAIN:
-		show_instructions_screen()
+	"""Callback pulsante Istruzioni"""
+	print("📋 Istruzioni selezionate")
+	show_instructions_screen()
 
 func _on_settings_pressed():
-	"""Mostra la schermata Impostazioni"""
-	print("⚙️ Apertura schermata Impostazioni...")
-	if current_state == MenuState.MAIN:
-		show_settings_screen()
-
-# 🎬 TRANSIZIONI SCHERMATE
-func start_game_transition():
-	"""Avvia la transizione verso il gioco"""
-	current_state = MenuState.TRANSITIONING
-	
-	if transitions:
-		transitions.start_shutdown_sequence()
-		# Connetti al completamento
-		if not transitions.shutdown_completed.is_connected(_on_shutdown_completed):
-			transitions.shutdown_completed.connect(_on_shutdown_completed)
-	else:
-		# Fallback diretto
-		_on_shutdown_completed()
-
-func _on_shutdown_completed():
-	"""Chiamato quando l'animazione di spegnimento è completata"""
-	print("✅ Animazione spegnimento completata, avvio gioco...")
-	
-	# Nasconde menu
-	visible = false
-	
-	# Avvia il gioco tramite GameManager
-	if game_manager and game_manager.has_method("start_new_game"):
-		game_manager.start_new_game()
-	else:
-		push_error("❌ GameManager o metodo start_new_game non disponibile")
-
-func show_story_screen():
-	"""Mostra la schermata Storia"""
-	current_state = MenuState.STORY
-	# TODO: Implementare schermata storia
-
-func show_instructions_screen():
-	"""Mostra la schermata Istruzioni"""
-	current_state = MenuState.INSTRUCTIONS
-	# TODO: Implementare schermata istruzioni
+	"""Callback pulsante Impostazioni"""
+	print("⚙️ Impostazioni selezionate")
+	show_settings_screen()
 
 func show_settings_screen():
-	"""Mostra la schermata Impostazioni"""
+	"""Mostra la schermata delle impostazioni"""
 	current_state = MenuState.SETTINGS
-	# TODO: Implementare schermata impostazioni
+
+	# Crea e mostra pannello impostazioni se non esiste
+	if not settings_screen:
+		create_settings_screen()
+
+	# Nascondi menu principale e mostra impostazioni
+	main_container.visible = false
+	settings_screen.visible = true
+
+# 🖼️ GESTIONE SCHERMATE SECONDARIE
+func show_story_screen():
+	"""Mostra la schermata della storia"""
+	current_state = MenuState.STORY
+
+	# Crea e mostra pannello storia se non esiste
+	if not story_screen:
+		create_story_screen()
+
+	# Nascondi menu principale e mostra storia
+	main_container.visible = false
+	story_screen.visible = true
+
+func show_instructions_screen():
+	"""Mostra la schermata delle istruzioni"""
+	current_state = MenuState.INSTRUCTIONS
+
+	# Crea e mostra pannello istruzioni se non esiste
+	if not instructions_screen:
+		create_instructions_screen()
+
+	# Nascondi menu principale e mostra istruzioni
+	main_container.visible = false
+	instructions_screen.visible = true
 
 func return_to_main_menu():
-	"""Ritorna al menu principale"""
+	"""Ritorna al menu principale da una schermata secondaria"""
 	current_state = MenuState.MAIN
-	print("🏠 Ritorno al menu principale")
+
+	# Nascondi tutte le schermate secondarie
+	if story_screen and story_screen.visible:
+		story_screen.visible = false
+
+	if instructions_screen and instructions_screen.visible:
+		instructions_screen.visible = false
+
+	if settings_screen and settings_screen.visible:
+		settings_screen.visible = false
+
+	# Mostra menu principale
+	main_container.visible = true
+
+	print("🔙 Ritorno al menu principale")
+
+# 🎨 CREAZIONE SCHERMATE SECONDARIE
+func create_story_screen():
+	"""Crea la schermata della storia con presentazione retro"""
+	# Crea istanza diretta della classe ContentPresentation
+	story_screen = ContentPresentationClass.new()
+	story_screen.name = "StoryScreen"
+	story_screen.visible = false
+	add_child(story_screen)
+
+	# Inizializza con contenuto Storia
+	story_screen.initialize_and_start("Storia", "storia", return_to_main_menu)
+
+	print("📖 Schermata storia retro creata")
+
+func create_instructions_screen():
+	"""Crea la schermata delle istruzioni con presentazione retro"""
+	# Crea istanza diretta della classe ContentPresentation
+	instructions_screen = ContentPresentationClass.new()
+	instructions_screen.name = "InstructionsScreen"
+	instructions_screen.visible = false
+	add_child(instructions_screen)
+
+	# Inizializza con contenuto Istruzioni
+	instructions_screen.initialize_and_start("Istruzioni", "istruzioni", return_to_main_menu)
+
+	print("📋 Schermata istruzioni retro creata")
+
+func create_settings_screen():
+	"""Crea la schermata delle impostazioni"""
+	# Crea istanza diretta della classe SettingsScreen
+	settings_screen = SettingsScreenClass.new()
+	settings_screen.name = "SettingsScreen"
+	settings_screen.visible = false
+	add_child(settings_screen)
+
+	# Inizializza con callback per tornare al menu
+	settings_screen.initialize_and_start(return_to_main_menu)
+
+	print("⚙️ Schermata impostazioni creata")
 
 # 🔄 GESTIONE STATI
 func get_current_state() -> MenuState:
@@ -356,17 +541,4 @@ func get_current_state() -> MenuState:
 
 func is_menu_active() -> bool:
 	"""Controlla se il menu è attivo"""
-	return visible and current_state != MenuState.TRANSITIONING
-
-# 🎨 UTILITÀ PUBBLICHE
-func show_menu():
-	"""Mostra il menu (da chiamare esternamente)"""
-	visible = true
-	current_state = MenuState.MAIN
-	if transitions and is_initialized:
-		transitions.start_intro_sequence()
-
-func hide_menu():
-	"""Nasconde il menu (da chiamare esternamente)"""
-	visible = false
-	current_state = MenuState.MAIN 
+	return visible and current_state != MenuState.TRANSITIONING 
