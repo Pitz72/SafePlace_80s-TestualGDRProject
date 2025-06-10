@@ -1,0 +1,41 @@
+{
+    "name": "safeplace/backend",
+    "description": "Backend PHP per The Safe Place - GDR Roguelike Post-Apocalittico",
+    "type": "project",
+    "authors": [
+        {
+            "name": "SafePlace Dev",
+            "email": "dev@safeplace.local"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SafePlace\\": "src/",
+            "SafePlace\\Api\\": "api/",
+            "SafePlace\\Models\\": "models/",
+            "SafePlace\\Config\\": "config/",
+            "SafePlace\\Utils\\": "utils/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SafePlace\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "serve": "php -S localhost:8000 -t public"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

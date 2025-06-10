@@ -10,11 +10,14 @@ const INTRO_DELAY = 1.0 # Ritardo iniziale (1 secondo)
 const FADE_DURATION = 0.5 # Durata fade standard
 const TYPEWRITER_SPEED = 0.03 # Velocità effetto macchina da scrivere
 const BUTTON_APPEAR_INTERVAL = 0.1 # Intervallo apparizione pulsanti
-const SHUTDOWN_DURATION = 0.8 # Durata effetto spegnimento CRT
+const SHUTDOWN_DURATION = 1.5 # Durata effetto spegnimento CRT
 
 # 🎭 RIFERIMENTI COMPONENTI
 var target_node: Control
 var tween: Tween
+
+# 📡 SEGNALI
+signal shutdown_completed
 
 # 🚀 INIZIALIZZAZIONE
 func _ready():
@@ -26,17 +29,17 @@ func setup_target(node: Control):
 	print("🎯 MenuTransitions: Target impostato - ", node.name)
 
 # 🎬 SEQUENZA INTRO PRINCIPALE
-func start_intro_sequence(components: Dictionary) -> void:
-	"""
-	Avvia la sequenza intro completa del menu
-	components: {"image": TextureRect, "title": Label, "subtitle": Label, "buttons": Array, "footer": Label}
-	"""
+func start_intro_sequence():
+	"""Avvia la sequenza intro completa del menu"""
 	if not target_node:
 		push_error("❌ MenuTransitions: Target node non impostato!")
 		return
 
 	print("🎬 Avvio sequenza intro SafePlace...")
 
+	# Ottieni i componenti
+	var components = _get_menu_components()
+	
 	# Nascondi tutti i componenti inizialmente
 	_hide_all_components(components)
 
@@ -67,6 +70,30 @@ func start_intro_sequence(components: Dictionary) -> void:
 	_schedule_fade_in(components.get("footer"), timeline, 0.3)
 
 	print("✅ Sequenza intro programmata, durata totale: %.1fs" % (timeline + 0.3))
+
+func _get_menu_components() -> Dictionary:
+	"""Ottiene i componenti del menu dal target node"""
+	var components = {}
+	
+	if not target_node:
+		return components
+	
+	# Cerca componenti per nome
+	components["image"] = target_node.find_child("ImageHeader")
+	components["title"] = target_node.find_child("TitleLabel")
+	components["subtitle"] = target_node.find_child("SubtitleLabel")
+	components["footer"] = target_node.find_child("FooterLabel")
+	
+	# Cerca i pulsanti
+	var buttons = []
+	var button_container = target_node.find_child("MenuButtonsContainer")
+	if button_container:
+		for child in button_container.get_children():
+			if child is Button:
+				buttons.append(child)
+	components["buttons"] = buttons
+	
+	return components
 
 func _hide_all_components(components: Dictionary) -> void:
 	"""Nasconde tutti i componenti del menu"""
@@ -175,157 +202,88 @@ func _animate_button_appear(button: Control) -> void:
 	print("🎮 Pulsante attivato: ", button.name if button.has_method("get_name") else "Pulsante")
 
 # 🔄 TRANSIZIONE SPEGNIMENTO MENU
-func start_shutdown_transition(on_complete: Callable) -> void:
-	"""
-	Avvia l'effetto spegnimento menu - scompare al contrario dell'apparizione
-	on_complete: Callback da chiamare al completamento
-	"""
+func start_shutdown_sequence():
+	"""Avvia l'effetto spegnimento menu - scompare al contrario dell'apparizione"""
 	print("🔌 Avvio transizione spegnimento menu (inverso)...")
 
 	if not target_node:
 		push_error("❌ Target node non disponibile per shutdown!")
-		if on_complete.is_valid():
-			on_complete.call()
+		shutdown_completed.emit()
 		return
+
+	# Ottieni i componenti
+	var components = _get_menu_components()
 
 	# Spegnimento al contrario dell'apparizione
 	var shutdown_tween = create_tween()
 	shutdown_tween.set_parallel(false) # Sequenziale
 
-	# Ottengo i componenti del menu per spegnerli nell'ordine inverso
-	var components = _get_menu_components()
-
-	# Fase 1: Footer scompare per primo
+	# Fase 1: Footer scompare per primo (0.2s)
 	if components.has("footer") and components.footer:
-		shutdown_tween.tween_property(components.footer, "modulate:a", 0.0, 0.15)
+		shutdown_tween.tween_property(components.footer, "modulate:a", 0.0, 0.2)
 
-	# Fase 2: Pulsanti scompaiono in ordine inverso (dall'ultimo al primo)
-	if components.has("buttons"):
-		for i in range(components.buttons.size() - 1, -1, -1):
-			var button = components.buttons[i]
-			if button:
-				shutdown_tween.tween_property(button, "modulate:a", 0.0, 0.1)
-				shutdown_tween.tween_property(button, "scale", Vector2(0.8, 0.8), 0.1)
+	# Fase 2: Pulsanti scompaiono in ordine inverso (0.5s)
+	shutdown_tween.tween_callback(_animate_buttons_shutdown.bind(components.get("buttons", [])))
 
-	# Fase 3: Sottotitolo scompare
+	# Fase 3: Sottotitolo scompare (0.2s) - uso set_delay per ritardare
 	if components.has("subtitle") and components.subtitle:
-		shutdown_tween.tween_property(components.subtitle, "modulate:a", 0.0, 0.1)
+		shutdown_tween.tween_property(components.subtitle, "modulate:a", 0.0, 0.2).set_delay(0.5)
 
-	# Fase 4: Titolo scompare con effetto typewriter inverso
+	# Fase 4: Titolo scompare con effetto typewriter inverso (0.4s)
 	if components.has("title") and components.title:
-		shutdown_tween.tween_callback(_reverse_typewriter.bind(components.title))
-		shutdown_tween.tween_interval(0.4) # Tempo per completare reverse typewriter
+		shutdown_tween.tween_callback(_animate_typewriter_reverse.bind(components.title)).set_delay(0.7)
 
-	# Fase 5: Immagine scompare per ultima
+	# Fase 5: Immagine scompare con effetto CRT (0.2s)
 	if components.has("image") and components.image:
-		shutdown_tween.tween_property(components.image, "modulate:a", 0.0, 0.3)
+		shutdown_tween.tween_callback(_animate_image_shutdown.bind(components.image)).set_delay(1.1)
 
-	# Callback al completamento
-	if on_complete.is_valid():
-		shutdown_tween.tween_callback(on_complete)
+	# Emetti segnale completamento
+	shutdown_tween.tween_callback(func(): shutdown_completed.emit())
 
-	print("✅ Shutdown menu programmato, durata: ~1.5s")
+	print("✅ Sequenza shutdown programmata, durata: %.1fs" % SHUTDOWN_DURATION)
 
-func _get_menu_components() -> Dictionary:
-	"""Recupera i componenti del menu per le transizioni"""
-	var components = {}
+func _animate_buttons_shutdown(buttons: Array) -> void:
+	"""Anima la scomparsa dei pulsanti in ordine inverso"""
+	if not buttons or buttons.is_empty():
+		return
 
-	if not target_node:
-		return components
+	var button_tween = create_tween()
+	button_tween.set_parallel(true)
 
-	# Cerca i componenti nella struttura del menu
-	var centered_container = target_node.get_node_or_null("MainContainer/CenteredContainer")
-	if centered_container:
-		components["image"] = centered_container.get_node_or_null("ImageHeader")
-		components["title"] = centered_container.get_node_or_null("TitleLabel")
-		components["subtitle"] = centered_container.get_node_or_null("SubtitleLabel")
-		components["footer"] = centered_container.get_node_or_null("FooterLabel")
+	# Scomparsa inversa - dall'ultimo al primo
+	for i in range(buttons.size()):
+		var button = buttons[buttons.size() - 1 - i]
+		if button:
+			var delay = i * 0.1
+			button_tween.tween_property(button, "modulate:a", 0.0, 0.15).set_delay(delay)
 
-		# Recupera i pulsanti
-		var buttons_container = centered_container.get_node_or_null("MenuButtonsContainer")
-		if buttons_container:
-			var buttons = []
-			for child in buttons_container.get_children():
-				if child is Button:
-					buttons.append(child)
-			components["buttons"] = buttons
+	print("🎮 Spegnimento pulsanti avviato")
 
-	return components
-
-func _reverse_typewriter(label: Label) -> void:
-	"""Effetto typewriter inverso - rimuove caratteri uno per volta"""
+func _animate_typewriter_reverse(label: Label) -> void:
+	"""Anima l'effetto typewriter inverso (cancellazione caratteri)"""
 	if not label or label.text.is_empty():
 		return
 
-	var original_text = label.text
+	var current_text = label.text
 	var typewriter_tween = create_tween()
 
-	# Rimuove caratteri dal fondo verso l'inizio
-	for i in range(original_text.length(), -1, -1):
-		var partial_text = original_text.substr(0, i)
+	for i in range(current_text.length(), -1, -1):
+		var partial_text = current_text.substr(0, i)
 		typewriter_tween.tween_callback(
 			func(): label.text = partial_text
-		).set_delay((original_text.length() - i) * TYPEWRITER_SPEED)
+		).set_delay((current_text.length() - i) * TYPEWRITER_SPEED)
 
-	print("⌨️ Reverse typewriter avviato per: '%s'" % original_text)
+	print("⌨️ Typewriter reverse avviato")
 
-func _create_crt_shutdown_effect() -> void:
-	"""Crea l'effetto visivo di spegnimento CRT (linea orizzontale che si chiude) - NON PIÙ USATO"""
-	# Questa funzione è mantenuta per compatibilità ma non è più utilizzata
-	# La nuova transizione usa lo spegnimento progressivo inverso
-	print("📺 Effetto CRT shutdown (legacy) - non utilizzato")
+func _animate_image_shutdown(image: TextureRect) -> void:
+	"""Anima la scomparsa dell'immagine con effetto CRT spegnimento"""
+	if not image:
+		return
 
-# 🎭 TRANSIZIONI SPECIALI
-func quick_fade_transition(node: Control, target_alpha: float, duration: float = 0.3) -> Tween:
-	"""Crea una transizione fade veloce per cambio schermata"""
-	var quick_tween = create_tween()
-	quick_tween.tween_property(node, "modulate:a", target_alpha, duration)
-	return quick_tween
+	var image_tween = create_tween()
+	
+	# Effetto "spegnimento monitor" - prima si riduce, poi scompare
+	image_tween.tween_property(image, "modulate:a", 0.3, 0.1)
+	image_tween.tween_property(image, "modulate:a", 0.0, 0.1)
 
-func typewriter_effect(label: Label, text: String, speed: float = TYPEWRITER_SPEED) -> Tween:
-	"""Effetto typewriter generico utilizzabile ovunque"""
-	var typewriter_tween = create_tween()
-
-	if not label:
-		push_error("❌ Label non valida per typewriter effect!")
-		return typewriter_tween
-
-	label.text = ""
-	var char_count = text.length()
-
-	for i in range(char_count + 1):
-		var partial_text = text.substr(0, i)
-		typewriter_tween.tween_callback(
-			func(): label.text = partial_text
-		).set_delay(i * speed)
-
-	return typewriter_tween
-
-# 🧪 UTILITY E DEBUG
-func test_intro_sequence() -> void:
-	"""Funzione di test per la sequenza intro"""
-	print("🧪 Test sequenza intro MenuTransitions...")
-
-	# Crea componenti mock per test
-	var mock_components = {
-		"image": null,
-		"title": Label.new(),
-		"subtitle": Label.new(),
-		"buttons": [Button.new(), Button.new(), Button.new()],
-		"footer": Label.new()
-	}
-
-	start_intro_sequence(mock_components)
-
-func cleanup() -> void:
-	"""Pulisce le risorse utilizzate"""
-	if tween:
-		tween.kill()
-		tween = null
-
-	target_node = null
-	print("🧹 MenuTransitions: Risorse pulite")
-
-func _exit_tree():
-	"""Cleanup automatico quando il nodo viene rimosso"""
-	cleanup()
+	print("📺 Spegnimento immagine CRT avviato") 

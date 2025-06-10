@@ -1,0 +1,333 @@
+/* css/panels.css */
+
+/* Questo file contiene stili specifici per i diversi pannelli (Survival, Condition, Inventory, Messages, Stats, Legend, Game Info) */
+/* Si basa sulla struttura definita in layout.css e sui colori in base.css */
+
+/* Log Eventi specifico */
+#messages-panel {
+    flex-grow: 1; /* Permette al log di crescere verticalmente per riempire lo spazio nel #left-panel */
+    min-height: 100px; /* Altezza minima */
+    overflow-y: auto; /* Abilita scroll verticale se i messaggi superano l'altezza */
+    display: flex; /* Usa flexbox per layout interno (titolo e lista) */
+    flex-direction: column; /* Stack verticale */
+}
+
+#messages-panel h2 {
+    margin-bottom: 5px; /* Spazio sotto titolo del log */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi quando la lista cresce */
+}
+
+#messages {
+    list-style: none; /* Rimuove i pallini */
+    padding: 0 5px; /* Padding interno */
+    margin: 0; /* Rimuove margini */
+    font-size: 0.8em; /* Font leggermente più piccolo per il log */
+    flex-grow: 1; /* Fa espandere la lista per occupare lo spazio rimanente */
+    overflow-y: auto; /* Scroll interno per la lista dei messaggi */
+    display: flex; /* Necessario per overflow-y e flex-grow */
+    flex-direction: column; /* Ordine degli elementi nella colonna */
+    /* Stili per la scrollbar (personalizzazione, solo per browser che la supportano) */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
+}
+
+#messages li {
+    margin-bottom: 3px; /* Spazio tra i messaggi */
+    word-break: break-word; /* Permette al testo lungo di andare a capo */
+    /* Stili specifici per i tipi di messaggio (classi aggiunte da JS) */
+}
+
+/* Stili per i tipi di messaggio (classi aggiunte da JS in addMessage) */
+.log-normal { color: var(--fg-color); } /* Messaggio normale (default) */
+.log-info { color: var(--fg-dim-color); } /* Messaggio informativo */
+.log-warning { color: var(--warning-color); font-weight: bold;} /* Messaggio di avviso */
+.log-danger { color: var(--danger-color); font-weight: bold;} /* Messaggio di pericolo/critico */
+.log-success { color: lightgreen; } /* Messaggio di successo */
+.log-lore { color: var(--fg-dim-color); font-style: italic; } /* Messaggio di lore */
+
+/* Stili per i prefissi dei messaggi (aggiunti da JS in addMessage) */
+.msg-info { color: var(--accent-color); } /* Prefisso [*] */
+.msg-warning { color: var(--danger-color); } /* Prefisso [!] */
+.msg-danger { color: var(--danger-color); } /* Prefisso [X] */
+.msg-success { color: lightgreen; } /* Prefisso [+] */
+.msg-lore { color: var(--accent-color); } /* Prefisso [?] */
+
+
+/* Stili per il pannello Inventario */
+#inventory-panel ul#inventory { /* Selettore più specifico per la ul dell'inventario */
+    padding-left: 5px;
+    min-height: 150px; /* Altezza minima per 7 slot (circa 7 * (13px testo + 2px padding + 2px margin) + margine) */
+    height: 150px;     /* Altezza fissa */
+    max-height: 150px; /* Altezza massima */
+    overflow-y: auto;  /* Scrollbar se necessario, ma non dovrebbe con slot fissi */
+    display: flex;
+    flex-direction: column;
+    /* justify-content: flex-start; */ /* Opzionale: allinea i li all'inizio se c'è spazio extra */
+}
+
+/* Stili per gli elementi lista dell'inventario (aggiunti da JS) */
+#inventory li {
+    padding: 1px 0; /* Ridotto leggermente il padding verticale */
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    font-size: 0.8em; /* <-- RIDOTTO FONT SIZE */
+    margin-bottom: 2px; /* Ridotto margin-bottom per far stare gli elementi nell'altezza fissa */
+    flex-shrink: 0;    /* Impedisce ai li di restringersi */
+    /* Stili specifici per categoria item (classi aggiunte da JS) */
+}
+
+/* Stili per i tipi di item (classi aggiunte da JS in renderInventory) */
+/* Basati sul 'type' definito in ITEM_DATA */
+.item-type-food { color: hsl(135, 49%, 65%); } /* Schiarito da 56% (era --plains-color) */
+.item-type-water { color: hsl(180, 100%, 40%); } /* Schiarito da 27% (era --water-color) */
+.item-type-medicine { color: var(--highlight-bg); } /* Già chiaro, mantenuto var */
+.item-type-resource { color: hsl(133, 37%, 45%); } /* Schiarito da 30% (era --fg-dim-color) */
+.item-type-tool { color: hsl(60, 100%, 45%); } /* Schiarito da 33% (era --special-color) */
+.item-type-weapon { color: var(--danger-color); } /* Già chiaro, mantenuto var */
+.item-type-armor { color: hsl(137, 17%, 50%); } /* Schiarito da 38% (era --mountain-color) */
+.item-type-ammo { color: hsl(40, 100%, 60%); } /* Schiarito da 50% (era --warning-color) */
+/* .item-type-lore { color: hsl(133, 37%, 45%); font-style: italic;} */ /* Esempio per Lore, schiarito come resource */
+.item-unknown { color: #777; font-style: italic;} /* Grigio per Sconosciuto, schiarito leggermente da #555 */
+
+/* Stile per la quantità degli oggetti nell'inventario */
+#inventory li .item-quantity {
+    font-size: 0.9em; /* Font più piccolo per la quantità */
+    color: var(--fg-dim-color); /* Colore dimmerato per la quantità */
+    margin-left: 5px; /* Spazio dal nome item */
+    text-shadow: -1px -1px 0 var(--bg-color), 1px -1px 0 var(--bg-color), -1px 1px 0 var(--bg-color), 1px 1px 0 var(--bg-color);
+}
+
+/* Stile su hover per gli elementi dell'inventario (esclusi i placeholder) */
+#inventory li:hover:not(.empty-inventory) {
+    background-color: #111; /* Sfondo leggermente più scuro su hover */
+    color: var(--highlight-fg); /* Testo nero (simulazione) - potrebbe essere solo colore fg */
+}
+/* Stile per l'elemento "Inventario Vuoto" */
+#inventory li.empty-inventory {
+    text-align: center;
+    color: var(--fg-dim-color);
+    cursor: default; /* Cursore normale, non cliccabile */
+}
+
+
+/* Area Status (Risorse, Condizione, Stats) */
+/* Stili per i valori delle risorse quando sono bassi */
+#stat-food.low-resource,
+#stat-water.low-resource {
+    color: var(--danger-color); /* Rosso */
+    font-weight: bold; /* Grassetto */
+    animation: blink-warning 1.2s infinite step-end; /* Animazione lampeggiante */
+}
+/* Stili per i valori delle risorse quando sono a zero */
+#stat-food.zero-resource,
+#stat-water.zero-resource {
+    color: var(--danger-color); /* Rosso */
+    font-weight: bold; /* Grassetto */
+    text-decoration: line-through; /* Barrato */
+}
+
+/* Animazione per risorse basse */
+@keyframes blink-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Stili per lo stato Condizione del giocatore (classe sul tag span) */
+.status-normal { color: var(--fg-color); } /* Normale (verde brillante) */
+.status-warning { color: var(--warning-color); font-weight: bold; } /* Es. Ferito o Malato */
+.status-danger { color: var(--danger-color); font-weight: bold; } /* Es. Ferito E Malato */
+.status-sick { color: orange; font-weight: bold; } /* Solo Malato (arancione) */
+.status-injured { color: yellow; font-weight: bold; } /* Solo Ferito (giallo) */
+.status-hungry { color: orangered; font-weight: bold; } /* Solo Affamato */
+.status-thirsty { color: cornflowerblue; font-weight: bold; } /* Solo Assetato */
+.status-poisoned { color: purple; font-weight: bold; } /* Avvelenato (viola) */
+.status-dying { color: red; font-weight: bold; animation: blink-danger 1s infinite step-end; } /* HP bassi o a 0 (rosso lampeggiante) */
+.status-critical { color: darkred; font-weight: bold; animation: blink-danger 1s infinite step-end;} /* Stato critico combinato */
+
+/* Animazione per stati gravi (morente, critico) */
+@keyframes blink-danger {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Stili per le statistiche armi/armature nel tooltip (utilizzati in conjunction con tooltip.css) */
+/* NOTA: Questi stili erano nel vecchio style.css e sono stati spostati qui in panels.css o tooltip.css */
+
+/* Stile per il container delle statistiche/dettagli specifici (arma, armatura, effetti) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Se il container item-stats-container è GENERATO anche nel popup action (showItemActionPopup), allora va qui. */
+/* Nel dubbio, lo definiamo qui per il pannello generale, e useremo un selettore specifico nel tooltip.css */
+/* Selezioniamo #item-tooltip .item-stats-container in tooltip.css */
+
+
+/* Stile per ogni riga di statistica (NomeStat: Valore) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Selezioniamo #item-tooltip .item-stat in tooltip.css */
+
+
+/* Stile per il valore della statistica (numeri, Sì/No) */
+/* (Questo blocco dovrebbe essere definito in tooltip.css se il container è dentro il tooltip) */
+/* Selezioniamo #item-tooltip .stat-value in tooltip.css */
+
+
+/* Stili specifici per i colori dello stato Durabilità nel tooltip (classi o stili inline da JS) */
+/* Queste classi o stili INLINE VENGONO GENERATI DAL JS (getItemDetailsHTML in ui.js) */
+/* I colori sono definiti in base.css. Le classi sono per riferimento o per applicazione manuale */
+/* .durability-good { color: #00DD00; } */
+/* .durability-worn { color: #FFFF00; } */
+/* .durability-damaged { color: #FFAA00; } */
+/* .durability-critical { color: var(--danger-color); } */
+/* .durability-broken { color: #FF0000; } */
+
+/* Stili specifici per la lista delle statistiche nel pannello destro */
+#stats-list {
+    list-style-type: none; /* Rimuove i bullet points */
+    padding-left: 0; /* Rimuove il padding di default della lista */
+    margin-top: 5px; /* Spazio sopra la lista */
+    margin-bottom: 0; /* Nessuno spazio extra sotto la lista */
+}
+
+#stats-list li {
+    margin-bottom: 2px; /* Riduci lo spazio verticale tra le statistiche */
+    word-break: break-all; /* Assicura che testi lunghi vadano a capo */
+    /* Potrebbero esserci altri stili qui, come font-size */
+}
+
+#stats-list li span {
+    /* Stili per i valori delle statistiche, se necessario */
+    font-weight: bold;
+    color: #ddd; /* Esempio di colore per i valori */
+}
+
+/* Assicurati che lo stile per li.separator abbia margini adeguati */
+#stats-list li.separator {
+    text-align: center;
+    color: #888; /* Colore grigio per il separatore */
+    margin-top: 5px; /* Spazio sopra il separatore (leggermente ridotto) */
+    margin-bottom: 5px; /* Spazio sotto il separatore (leggermente ridotto) */
+    font-size: 0.8em; /* Separatore più piccolo */
+    letter-spacing: 2px; /* Aumenta la spaziatura tra i trattini */
+}
+
+/* Stili per gli elementi dell'inventario quando selezionati */
+#inventory li.selected {
+    background-color: #111; /* Sfondo leggermente più scuro su hover */
+    color: var(--highlight-fg); /* Testo nero (simulazione) - potrebbe essere solo colore fg */
+}
+
+/* Riduci font per Arma/Armatura nel pannello stats */
+#stats-list li #stat-weapon,
+#stats-list li #stat-armor {
+    font-size: 0.9em; /* <-- RIDOTTO FONT SIZE (relativo al li) */
+    font-weight: normal; /* Assicura che non sia bold */
+}
+
+/* Stili per il pannello Log Messaggi */
+#log-panel {
+    flex-grow: 1; /* Permette al log di crescere verticalmente per riempire lo spazio nel #left-panel */
+    min-height: 100px; /* Altezza minima */
+    overflow-y: auto; /* Abilita scroll verticale se i messaggi superano l'altezza */
+    display: flex; /* Usa flexbox per layout interno (titolo e lista) */
+    flex-direction: column; /* Stack verticale */
+}
+
+#log-panel h2 {
+    margin-bottom: 5px; /* Spazio sotto titolo del log */
+    flex-shrink: 0; /* Impedisce al titolo di restringersi quando la lista cresce */
+}
+
+#log-messages {
+    list-style: none; /* Rimuove i pallini */
+    padding: 0 5px; /* Padding interno */
+    margin: 0; /* Rimuove margini */
+    font-size: 0.8em; /* Font leggermente più piccolo per il log */
+    flex-grow: 1; /* Fa espandere la lista per occupare lo spazio rimanente */
+    overflow-y: auto; /* Scroll interno per la lista dei messaggi */
+    display: flex; /* Necessario per overflow-y e flex-grow */
+    flex-direction: column; /* Ordine degli elementi nella colonna */
+    /* Stili per la scrollbar (personalizzazione, solo per browser che la supportano) */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
+}
+
+#log-messages li {
+    margin-bottom: 3px; /* Spazio tra i messaggi */
+    word-break: break-word; /* Permette al testo lungo di andare a capo */
+    /* Stili specifici per i tipi di messaggio (classi aggiunte da JS) */
+}
+
+/* Stili per i tipi di messaggio (classi aggiunte da JS in addMessage) */
+#log-messages .log-normal { color: var(--fg-color); } /* Messaggio normale (default) */
+#log-messages .log-info { color: var(--fg-dim-color); } /* Messaggio informativo */
+#log-messages .log-warning { color: var(--warning-color); font-weight: bold;} /* Messaggio di avviso */
+#log-messages .log-danger { color: var(--danger-color); font-weight: bold;} /* Messaggio di pericolo/critico */
+#log-messages .log-success { color: lightgreen; } /* Messaggio di successo */
+#log-messages .log-lore { color: var(--fg-dim-color); font-style: italic; } /* Messaggio di lore */
+
+/* Stili per i prefissi dei messaggi (aggiunti da JS in addMessage) */
+#log-messages .msg-info { color: var(--accent-color); } /* Prefisso [*] */
+#log-messages .msg-warning { color: var(--danger-color); } /* Prefisso [!] */
+#log-messages .msg-danger { color: var(--danger-color); } /* Prefisso [X] */
+#log-messages .msg-success { color: lightgreen; } /* Prefisso [+] */
+#log-messages .msg-lore { color: var(--accent-color); } /* Prefisso [?] */
+
+/* Stile per il pulsante Salva Partita nel pannello messaggi */
+/* RIMOSSI GLI STILI PER #save-game-button DA QUI PERCHÉ È STATO SPOSTATO */
+/* E ORA EREDITERÀ GLI STILI DA #controls button IN css/controls.css */
+/*
+#save-game-button {
+    background-color: #111;
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 15px; 
+    font-family: inherit;
+    font-size: 0.9em; 
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    display: block; 
+    width: auto; 
+    min-width: 150px; 
+    margin: 10px auto 5px auto; 
+    text-align: center;
+}
+
+#save-game-button:hover:not(:disabled) {
+    background-color: var(--fg-color);
+    color: var(--highlight-fg);
+    border-color: var(--fg-color);
+}
+
+#save-game-button:disabled {
+    color: var(--border-dim-color);
+    border-color: var(--border-dim-color);
+    cursor: not-allowed;
+    opacity: 0.5;
+    background-color: #111;
+}
+*/
+
+/* Stili per il pannello statistiche a due colonne */
+#stats-list.two-column-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Due colonne di uguale larghezza */
+    gap: 0px 10px; /* Spazio tra righe (0px) e colonne (10px) */
+    padding-left: 0; /* Rimuove padding di default di ul */
+}
+
+#stats-list.two-column-stats li {
+    list-style-type: none; /* Rimuove i bullet point */
+    /* padding: 2px 0; */ /* Padding verticale per ogni riga di statistica */
+    /* Il testo della statistica è già gestito dallo span e dal testo del li */
+}
+
+/* Stile per gli elementi che devono occupare l'intera larghezza */
+#stats-list.two-column-stats li.full-width-stat,
+#stats-list.two-column-stats li.full-width-separator {
+    grid-column: span 2; /* Occupa entrambe le colonne */
+    text-align: center; /* Centra il testo per separatori e bottoni */
+}
+
+#stats-list.two-column-stats li.full-width-separator {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}

@@ -17,18 +17,9 @@ run/main_scene="res://scenes/MenuScreen.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
-[autoload]
-
-ThemeManager="*res://scripts/ThemeManager.gd"
-
 [debug]
 
 gdscript/warnings/treat_warnings_as_errors=false
-
-[display]
-
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
 
 [input]
 

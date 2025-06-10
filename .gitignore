@@ -1,0 +1,73 @@
+# SafePlace Project - .gitignore
+
+# Archives e backup temporanei
+archives/temp_files/
+archives/backup_*/
+*.backup
+*.bak
+
+# File temporanei sistema
+*.tmp
+*.log
+*.temp
+*.cache
+
+# Godot specifico (già presente in godot_project/.gitignore)
+.godot/
+.import/
+*.uid
+
+# File sviluppo
+.vscode/settings.json
+cursor_chat_history.json
+
+# File sistema Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# File sistema Mac  
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# File temporanei editor
+*~
+*.swp
+*.swo
+
+# Output build
+build/
+dist/
+*.exe
+*.pdb
+
+# Dipendenze PHP (se presente)
+vendor/
+composer.lock
+.env.local
+
+# Node modules (se presente)
+node_modules/
+package-lock.json
+
+# Database temporanei
+*.sqlite
+*.db3
+
+# File di configurazione locale
+config.local.*
+settings.local.*
+
+# Log files specifici progetto
+docs_final/logs/
+testing_results/
+performance_reports/
+
+# Backup automatici
+*.orig
+*_backup_*
+*_old.*
+
+# File temporanei PowerShell
+*.ps1.log 
