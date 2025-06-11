@@ -1,7 +1,147 @@
+# 🛡️ ANTI-REGRESSIONE SafePlace v1.8.2 "Inventory Systems Complete"
+
+## 🎒 NUOVO: PROTEZIONI SISTEMA INVENTARIO v1.8.2
+**AGGIUNTO**: Sistema completo anti-regressione per inventory system!
+
+### ⚡ Test Sistema Inventario OBBLIGATORIO (60 secondi)
+1. **Apri Godot Editor**
+2. **Play Scene** (main.gd)
+3. **Testa hotkeys inventario**:
+   - **Ctrl+Enter**: Test completo inventario con diagnostica
+   - **Spacebar**: Test consumo notturno forzato  
+   - **Home**: Validazione inventario con report errori
+   - **End**: Suite test completa v1.8.2 (tutti i sistemi)
+4. **Verifica risultati**:
+   - ✅ **Uso oggetti SUCCESSO** = Inventory system OK
+   - ✅ **Consumo notturno SUCCESSO** = Night consumption OK
+   - ✅ **Validazione PULITA** = Database integrity OK
+   - ❌ **ERRORI** = **STOP! Correggere prima di procedere**
+
+### 🎯 Nuove Validazioni Automatiche Inventory
+- **GameManager Connection** (path corretto `../../GameManager`)
+- **Item Class Compatibility** (accesso proprietà dirette vs Dictionary)
+- **Database Integrity** (tutti oggetti esistenti nel database)
+- **Night Consumption** (sistema automatico 20:00-6:00)
+- **Error Handling** (graceful fallback per tutti gli scenari)
+- **User Experience** (hotkeys, feedback, messaging)
+
+---
+
+## 🚨 NUOVI PROBLEMI CRITICI RISOLTI v1.8.2
+
+### ❌ **PROBLEMA 10: GameManager Path Errato**
+**Sintomo**: "❌ GameManager non trovato" durante uso oggetti
+**Causa**: Path `/root/GameManager` errato per struttura scena
+**Soluzione**: ✅ Corretto a `../../GameManager` per gerarchia Main/GameManager
+
+**PREVENZIONE**:
+```gdscript
+# ❌ MAI più usare:
+var game_manager = get_node("/root/GameManager")
+
+# ✅ SEMPRE usare path relativo corretto:
+var game_manager = get_node("../../GameManager")
+```
+
+### ❌ **PROBLEMA 11: Item Class Compatibility**
+**Sintomo**: "Invalid call 'has' in base Resource (Item)"
+**Causa**: Uso metodi Dictionary (.has(), .get()) su oggetti Item
+**Soluzione**: ✅ Accesso diretto alle proprietà della classe Item
+
+**PREVENZIONE**:
+```gdscript
+# ❌ MAI usare metodi Dictionary su Item:
+var effects = item_data.get("effects", [])
+if item_data.has("max_portions"):
+
+# ✅ SEMPRE accesso diretto proprietà:
+var effects = item_data.effects
+var portions = item_data.max_portions
+```
+
+### ❌ **PROBLEMA 12: Mixed Demo/Database Objects**
+**Sintomo**: Oggetti inventario non collegati al database
+**Causa**: Metodi legacy che aggiungevano oggetti non-database
+**Soluzione**: ✅ Refactor `_add_test_safeplace_objects()` con validazione database
+
+**PREVENZIONE**:
+```gdscript
+# ✅ SEMPRE validare oggetti prima dell'aggiunta:
+func _validate_item_exists(item_id: String) -> bool:
+    var game_manager = get_node("../../GameManager")
+    var item_db = game_manager.get_item_database()
+    return item_db.get_item(item_id) != null
+```
+
+### ❌ **PROBLEMA 13: Cache Corruption Paths**
+**Sintomo**: Percorsi malformati 'file:res:/res:/res:/c:res:/...'
+**Causa**: Cache Godot corrotta con riferimenti file eliminati
+**Soluzione**: ✅ Pulizia completa `.godot/` directory
+
+**PREVENZIONE**:
+```bash
+# ✅ Cleanup cache dopo eliminazione file di test:
+Remove-Item ".godot" -Recurse -Force
+# Poi riapri Godot per rigenerare cache pulita
+```
+
+---
+
+## 🔧 CHECKLIST SVILUPPO INVENTARIO FUTURO
+
+### **Prima di Modificare Player.gd**:
+- [ ] GameManager path usa `../../GameManager`?
+- [ ] Accesso Item properties usa sintassi diretta?
+- [ ] Validazione database implementata per nuovi oggetti?
+- [ ] Error handling graceful per tutti i path?
+
+### **Prima di Aggiungere Nuovi Oggetti**:
+- [ ] Oggetto aggiunto a ItemDatabase prima del Player?
+- [ ] Effects format consistente con oggetti esistenti?
+- [ ] Sistema porzioni implementato se necessario?
+- [ ] Test uso oggetto con hotkeys funzionante?
+
+### **Prima di Modificare GameManager**:
+- [ ] Night consumption time window corretto (20:00-6:00)?
+- [ ] Flag `night_consumption_applied` tracked correttamente?
+- [ ] Damage values bilanciati (8 HP fame, 12 HP sete)?
+- [ ] Test methods implementati per debug?
+
+### **Prima di Release**:
+- [ ] Test End key esegue suite completa senza errori
+- [ ] Uso oggetti 1-8 funziona per tutti i tipi
+- [ ] Consumo notturno automatico attivo e funzionante
+- [ ] Inventario validation report pulito
+- [ ] Zero errori "database not implemented"
+
+---
+
+## 📋 FILE CRITICI INVENTARIO v1.8.2
+
+### **File Core Inventory** (Modificare con cautela):
+- `scripts/Player.gd` - Sistema uso oggetti, validazione, error handling
+- `scripts/GameManager.gd` - Night consumption, time tracking  
+- `scripts/ItemDatabase.gd` - Database oggetti, popolamento
+- `main.gd` - Sistema test integrato, hotkeys diagnostica
+
+### **Modifiche Safe**:
+- Aggiungere nuovi oggetti in ItemDatabase
+- Estendere effects system per nuovi tipi
+- Aggiungere nuovi test hotkeys per debug
+- Migliorare messaging sistema uso oggetti
+
+### **Modifiche Rischiose** (Test obbligatorio):
+- Cambiare path GameManager references
+- Modificare Item class structure
+- Alterare night consumption timing/values
+- Refactoring error handling patterns
+
+---
+
 # 🛡️ ANTI-REGRESSIONE SafePlace v1.4.3.1
 
 ## 🔬 SISTEMA TEST AUTOMATICO ATTIVO
-**NUOVO**: Sistema di test validazione automatico implementato!
+**PRECEDENTE**: Sistema di test validazione automatico implementato!
 
 ### ⚡ Test Pre-Modifica OBBLIGATORIO (30 secondi)
 1. **Apri Godot Editor**

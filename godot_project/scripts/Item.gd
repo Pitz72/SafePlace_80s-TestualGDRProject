@@ -46,8 +46,15 @@ extends Resource
 # Ammo specifics  
 @export var quantityPerStack: int = 1
 
-# Effects system (serialized as String array, parsed at runtime)
-@export var effects: Array[String] = []
+# Effects system (Array di Dictionary per effetti complessi)
+@export var effects: Array = []
+
+# Portion system per oggetti consumabili
+@export var current_portions: int = 1
+
+# Durability tracking
+@export var current_durability: int = 100
+@export var max_durability: int = 100
 
 # Utility methods
 func is_weapon() -> bool:

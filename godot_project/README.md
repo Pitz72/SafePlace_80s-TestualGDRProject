@@ -1,10 +1,14 @@
-# 🎮 SafePlace - Roguelike Post-Apocalittico v1.4.3
+# 🎮 SafePlace - Roguelike Post-Apocalittico v1.8.2 "Inventory Systems Complete"
 
 ## 🎯 Panoramica Progetto
 
-**SafePlace** è un roguelike testuale post-apocalittico in sviluppo, che combina narrativa immersiva, gameplay di sopravvivenza e un'estetica autentica anni '80. Il progetto è attualmente in **PRODUCTION READY** (v1.4.3) e in fase di espansione massiccio verso la v1.5.0.
+**SafePlace** è un roguelike testuale post-apocalittico in sviluppo, che combina narrativa immersiva, gameplay di sopravvivenza e un'estetica autentica anni '80. Il progetto è attualmente in **PRODUCTION READY** (v1.8.2) con **SISTEMA INVENTARIO COMPLETO E FUNZIONANTE**.
 
-### 🏆 **Stato Attuale**: PRODUCTION READY - Fase 1 Master Plan Completata
+### 🏆 **Stato Attuale**: PRODUCTION READY - v1.8.2 "Inventory Systems Complete"
+- **✅ SISTEMA INVENTARIO COMPLETO** - Uso oggetti, consumo automatico, error handling robusto
+- **✅ INTEGRAZIONE OGGETTI ORIGINALI** - 76% oggetti SafePlace originale (32/42 items) implementati
+- **✅ CONSUMO NOTTURNO AUTOMATICO** - Sistema sopravvivenza attivo (-5 cibo, -8 acqua durante notte)
+- **✅ ARCHITETTURA ROBUSTA** - Error handling graceful, validazione inventario, fallback automatici
 - **9/9 test automatici superati** ✅
 - **Sistema temi completo** con effetto CRT autentico ✅  
 - **Architettura 9-panel stabile** per espansione contenuti ✅
@@ -171,3 +175,30 @@ get_tree().change_scene_to_file("res://scenes/CRTTestScene.tscn")
 ---
 
 **🎯 SafePlace: Pronto per l'espansione massiccio! Destinazione v1.5.0! 🚀** 
+
+## 🎮 **NOVITÀ v1.8.2 "Inventory Systems Complete"**
+
+### **🎒 Sistema Inventario Rivoluzionato**:
+- **Uso Oggetti**: Hotkeys numerici 1-8 per uso diretto oggetti inventario
+- **Database Verificato**: Tutti gli oggetti collegati al database ItemDatabase
+- **Sistema Porzioni**: Cibo e acqua con porzioni multiple (es. "3 porzioni rimaste")
+- **Effetti Realistici**: +Cibo, +Acqua, +HP con messaggi dettagliati
+
+### **🌙 Meccaniche Sopravvivenza Automatiche**:
+- **Consumo Notturno**: Durante 20:00-6:00 consumo automatico -5 cibo, -8 acqua
+- **Danno Sopravvivenza**: 8 HP per fame, 12 HP per disidratazione
+- **Test Hotkeys**: Spacebar per test consumo, Home per validazione inventario
+
+### **🛡️ Sistema Robusto Error Handling**:
+- **Validazione Completa**: Controllo GameManager, ItemDatabase, inventario
+- **Fallback Graceful**: Messaggi utente chiari invece di crash
+- **Cleanup Automatico**: Rimozione oggetti corrotti, rigenerazione cache
+- **Diagnostica Avanzata**: Hotkey End per test completo sistema
+
+### **📦 Oggetti SafePlace Originali Integrati**:
+```
+CIBO: canned_food, ration_pack, berries, protein_bar_old, meat_raw, chips_stale
+ACQUA: water_bottle, water_purified_small, rainwater_collected, water_dirty  
+MEDICINE: first_aid_kit, bandages_clean, antidote, vitamins, painkillers
+RISORSE: scrap_metal, cloth_rags, rope, mechanical_parts, wood_planks
+``` 

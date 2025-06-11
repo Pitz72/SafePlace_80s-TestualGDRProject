@@ -213,6 +213,24 @@ func _input(event):
 			KEY_SPACE:
 				_pass_time()
 
+			# Uso oggetti inventario 1-8
+			KEY_1:
+				_use_inventory_item(1)
+			KEY_2:
+				_use_inventory_item(2)
+			KEY_3:
+				_use_inventory_item(3)
+			KEY_4:
+				_use_inventory_item(4)
+			KEY_5:
+				_use_inventory_item(5)
+			KEY_6:
+				_use_inventory_item(6)
+			KEY_7:
+				_use_inventory_item(7)
+			KEY_8:
+				_use_inventory_item(8)
+
 			# Salvataggio F5/F6/F7
 			KEY_F5:
 				_save_game()
@@ -378,18 +396,40 @@ func _update_inventory_panel():
 
 	var inventory = player.get_inventory_display()
 	if inventory.is_empty():
-		content += "[color=#%s]Vuoto[/color]" % _color_to_hex(get_text_color())
+		content += "[color=#%s]Vuoto[/color]\n\n" % _color_to_hex(get_text_color())
 	else:
+		var item_index = 1
 		for item in inventory:
 			var item_name = item.get("name", "Sconosciuto")
 			var quantity = item.get("quantity", 1)
-			var item_type = _get_item_type_from_name(item_name) # Determina tipo da nome
+			var item_id = item.get("id", "")
+			var item_type = _get_item_type_from_name(item_name)
 			var color_code = _get_item_color_code(item_type)
 
+			# Numero oggetto per uso rapido
+			var prefix = "[color=#%s][%d][/color] " % [_color_to_hex(get_numbers_color()), item_index]
+			
 			if quantity > 1:
-				content += "%s%s[/color] [color=#%s](x%d)[/color]\n" % [color_code, item_name, _color_to_hex(get_numbers_color()), quantity]
+				content += "%s%s%s[/color] [color=#%s](x%d)[/color]" % [prefix, color_code, item_name, _color_to_hex(get_numbers_color()), quantity]
 			else:
-				content += "%s%s[/color]\n" % [color_code, item_name]
+				content += "%s%s%s[/color]" % [prefix, color_code, item_name]
+			
+			# Mostra info uso se oggetto usabile
+			if player.can_use_item(item_id):
+				var use_info = player.get_item_use_info(item_id)
+				content += "[color=#%s] (%s)[/color]" % [_color_to_hex(get_primary_color()), use_info]
+			
+			content += "\n"
+			item_index += 1
+			
+			# Massimo 8 oggetti per spazio
+			if item_index > 8:
+				break
+	
+	# Controlli inventario
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
+	content += "[color=#%s][1-8] Usa oggetto[/color]\n" % _color_to_hex(get_primary_color())
+	content += "[color=#%s][E] Equipaggia[/color]" % _color_to_hex(get_primary_color())
 
 	inventory_content.text = content
 
@@ -1110,3 +1150,45 @@ func _get_item_color_code(item_type: String) -> String:
 		"material": return "[color=#8B4513]" # Marrone per materiali grezzi
 		"misc": return "[color=#9C88FF]" # Lilla per oggetti vari
 		_: return "[color=#%s]" % _color_to_hex(get_text_color()) # Default verde
+
+## Usa oggetto dall'inventario per indice
+func _use_inventory_item(item_index: int):
+	"""Usa oggetto dall'inventario tramite indice numerico (1-8)"""
+	if not player:
+		add_log_entry("❌ Player non disponibile")
+		return
+	
+	var inventory = player.get_inventory_display()
+	if inventory.is_empty():
+		add_log_entry("❌ Inventario vuoto")
+		return
+	
+	if item_index < 1 or item_index > inventory.size() or item_index > 8:
+		add_log_entry("❌ Oggetto non disponibile")
+		return
+	
+	# Ottieni oggetto (indice base-0)
+	var item = inventory[item_index - 1]
+	var item_id = item.get("id", "")
+	
+	if item_id.is_empty():
+		add_log_entry("❌ ID oggetto non valido")
+		return
+	
+	# Usa l'oggetto
+	var result = player.use_item(item_id)
+	
+	if result.success:
+		add_log_entry("✅ " + result.message)
+		
+		# Aggiorna pannelli se oggetto consumato
+		if result.consumed:
+			_update_inventory_panel()
+			_update_survival_panel()
+			_update_stats_panel()
+			
+		# Emetti segnale per sistema eventi
+		if player.has_signal("item_used"):
+			player.item_used.emit(item_id, result)
+	else:
+		add_log_entry("❌ " + result.message)

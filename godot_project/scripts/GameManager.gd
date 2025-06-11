@@ -66,6 +66,10 @@ var frame_count: int = 0
 var performance_samples: Array[float] = []
 var last_fps_update: float = 0.0
 
+# Sistema consumo notturno (v1.8.2)
+var last_night_check_hour: int = -1
+var night_consumption_applied: bool = false
+
 func _init():
 	print("🎮 GameManager inizializzato - Session #006 UI Integration")
 	session_start_time = Time.get_time_dict_from_system().hour * 3600 + Time.get_time_dict_from_system().minute * 60 + Time.get_time_dict_from_system().second
@@ -99,6 +103,9 @@ func _process(delta):
 	if game_time - last_fps_update > 1.0:
 		_update_performance_metrics()
 		last_fps_update = game_time
+	
+	# NUOVO: Sistema consumo automatico notturno (v1.8.2)
+	_check_night_consumption()
 	
 	# Update UI if needed
 	_update_ui(delta)
@@ -172,7 +179,12 @@ func _initialize_systems() -> void:
 	print("🔧 Inizializzazione sistemi Session #005...")
 	
 	# Initialize ItemDatabase
-	if item_database and item_database.has_method("load_items_from_json"):
+	if item_database and item_database.has_method("populate_with_original_items"):
+		print("📦 Popolamento ItemDatabase con oggetti originali SafePlace...")
+		item_database.populate_with_original_items()
+		print("✅ ItemDatabase popolato con oggetti originali")
+		database_ready.emit()
+	elif item_database and item_database.has_method("load_items_from_json"):
 		print("📦 Caricamento ItemDatabase...")
 		var test_data = _create_basic_test_data()
 		var success = item_database.load_items_from_json(test_data)
@@ -556,9 +568,14 @@ func _setup_ui_system():
 
 ## Metodi per MainInterface integration (Session #008)
 func get_current_time() -> Dictionary:
-	"""Ottieni tempo di gioco attuale per MainInterface"""
-	# TODO: Implementare sistema tempo reale
-	return {"hour": 6, "minute": 0, "is_night": false}
+	"""Ottieni tempo di gioco attuale per MainInterface (v1.8.2 con consumo notturno)"""
+	# Sistema tempo semplificato basato su game_time
+	var total_minutes = int(game_time / 60.0) % (24 * 60)  # Ciclo 24 ore
+	var hour = total_minutes / 60
+	var minute = total_minutes % 60
+	var is_night = hour < 6 or hour >= 20
+	
+	return {"hour": hour, "minute": minute, "is_night": is_night}
 
 func add_log_entry(message: String):
 	"""Aggiungi entry al log eventi (forwarded to MainInterface)"""
@@ -726,3 +743,78 @@ func reset_game_state():
 			manager.reset_for_new_game()
 
 	print("✅ [GameManager] Stato di gioco resettato") 
+
+## NUOVO: Sistema consumo automatico notturno (v1.8.2)
+func _check_night_consumption():
+	"""Controlla e applica consumo automatico cibo/acqua durante la notte"""
+	if not player:
+		return
+	
+	var time_data = get_current_time()
+	var current_hour = time_data.hour
+	var is_night = time_data.is_night
+	
+	# Reset flag quando arriva il giorno
+	if not is_night and night_consumption_applied:
+		night_consumption_applied = false
+		last_night_check_hour = -1
+		return
+	
+	# Applica consumo solo se è notte e non è ancora stato applicato
+	if is_night and not night_consumption_applied:
+		_apply_night_consumption()
+		night_consumption_applied = true
+		last_night_check_hour = current_hour
+
+func _apply_night_consumption():
+	"""Applica il consumo notturno basato sulle regole SafePlace originali"""
+	if not player:
+		return
+	
+	# Regole originali SafePlace: consumo maggiore durante la notte
+	var food_consumption = 5  # Più del consumo normale
+	var water_consumption = 8  # Più del consumo normale
+	
+	var old_food = player.food
+	var old_water = player.water
+	
+	# Applica consumo
+	player.food = max(0, player.food - food_consumption)
+	player.water = max(0, player.water - water_consumption)
+	
+	# Notifica UI e log
+	var message = "🌙 Consumo notturno: -%d cibo, -%d acqua" % [food_consumption, water_consumption]
+	add_log_entry(message)
+	
+	# Applica danno aggiuntivo se risorse esaurite
+	var night_damage = 0
+	if player.food == 0:
+		night_damage += 8  # Danno da fame notturna
+		add_log_entry("💀 Soffri la fame durante la notte...")
+	
+	if player.water == 0:
+		night_damage += 12  # Danno da sete notturna  
+		add_log_entry("💀 La sete ti tormenta nella notte...")
+	
+	if night_damage > 0:
+		player.take_damage(night_damage, "night_survival")
+		add_log_entry("💔 Hai subito %d danni dalla notte all'aperto" % night_damage)
+	
+	# Emetti segnali per aggiornamento UI
+	if old_food != player.food:
+		player.stats_changed.emit("food", old_food, player.food)
+	if old_water != player.water:
+		player.stats_changed.emit("water", old_water, player.water)
+	
+	print("🌙 Consumo notturno applicato: Food %d→%d, Water %d→%d" % [old_food, player.food, old_water, player.water])
+
+## Metodi per controllo manuale tempo (per testing e UI)
+func force_night_time():
+	"""Forza il tempo alla notte per testing"""
+	game_time = 22 * 3600  # 22:00
+	add_log_entry("🌙 Tempo forzato alla notte per test")
+
+func advance_time_by_hours(hours: int):
+	"""Avanza il tempo di un numero specifico di ore"""
+	game_time += hours * 3600
+	add_log_entry("⏰ Tempo avanzato di %d ore" % hours) 

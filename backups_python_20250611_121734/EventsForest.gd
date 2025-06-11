@@ -502,5 +502,5 @@ static func get_events_database() -> Dictionary:
 					}
 				}
 			]
-		},
-	}
+		}
+	} 

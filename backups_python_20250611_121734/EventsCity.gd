@@ -498,7 +498,6 @@ static func get_events_database() -> Dictionary:
 			]
 		}
 	} 
-
 func city_patrol_1():
 	var event = {
 		"id": "city_patrol_1",
@@ -1262,7 +1261,7 @@ func rest_stop_old_camp():
 	var event = {
 		"id": "rest_stop_old_camp",
 		"text": "Vecchio Accampamento - I resti di un accampamento frettolosamente abbandonato. Ceneri fredde di un falò, una tenda strappata che sventola al vento. Chissà cosa è successo.",
-		"location": "rest_stop",
+		"location": "{ text",
 		"choices": [
 			"Ispeziona i resti del fuoco (Tracce)"
 		]
@@ -1273,7 +1272,7 @@ func rest_stop_hidden_stash():
 	var event = {
 		"id": "rest_stop_hidden_stash",
 		"text": "Scorta Nascosta - Sembra che qualcuno abbia usato questo posto come nascondiglio temporaneo. Forse hanno lasciato qualcosa di utile.",
-		"location": "rest_stop",
+		"location": "{ text",
 		"choices": [
 			"Cerca attentamente (Presagio)"
 		]

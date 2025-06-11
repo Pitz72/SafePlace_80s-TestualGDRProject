@@ -17,7 +17,7 @@ var config = {
 	"max_batch_size": 500,          # Limite sicurezza
 	"validate_events": true,        # Validazione eventi
 	"create_backups": true,         # Backup prima modifica
-	"safe_mode": true,              # Modalità sicurezza attiva
+	"safe_mode": false,             # Modalità sicurezza DISATTIVATA per import reale
 	"target_event_files": {
 		"city": "scripts/events/EventsCity.gd",
 		"village": "scripts/events/EventsVillage.gd", 
