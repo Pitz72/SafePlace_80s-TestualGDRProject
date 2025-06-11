@@ -1,5 +1,5 @@
+class_name MainInterface
 extends Control
-# 🧪 TEST: Rimossa dichiarazione class_name MainInterface per evitare conflitti globali
 
 ## MainInterface per SafePlace - Interfaccia Terminale Completa
 ## Replica esatta dell'interfaccia originale con tutti i pannelli sempre visibili
@@ -44,90 +44,25 @@ const MAX_LOG_ENTRIES = 15
 enum PlayerStatus {NORMALE, MALATO, INFETTO, FERITO, AFFAMATO, ASSETATO}
 var current_status: Array[PlayerStatus] = [PlayerStatus.NORMALE]
 
-# 🎨 THEME INTEGRATION v1.4.3 - Sostituiti colori hardcodati con ThemeManager
-# I colori vengono ora gestiti dinamicamente dal ThemeManager
+# Colori CRT autentici SafePlace
+const COLOR_INTERFACE = Color(0, 0.7, 0.25, 1) # Verde base interfaccia
+const COLOR_TEXT = Color(0, 0.7, 0.25, 1) # Verde standard testi
+const COLOR_NUMBERS = Color(0, 0.9, 0.4, 1) # Verde più chiaro per numeri
+const COLOR_NORMAL = Color(0, 0.7, 0.25, 1) # Verde normale
+const COLOR_SICK = Color(0.8, 0.6, 0, 1) # Giallo malato
+const COLOR_INFECTED = Color(0.8, 0.2, 0.8, 1) # Magenta infetto
+const COLOR_WOUNDED = Color(0.8, 0.2, 0.2, 1) # Rosso ferito
+const COLOR_HUNGRY = Color(0.9, 0.5, 0, 1) # Arancione affamato
+const COLOR_THIRSTY = Color(0.6, 0.8, 1, 1) # Azzurro assetato
+const COLOR_NIGHT = Color(0.2, 0.4, 1, 1) # Blu acceso per notte
+const COLOR_WARNING = Color(0.8, 0.6, 0, 1) # Giallo per avvisi
+const COLOR_ERROR = Color(0.8, 0.2, 0.2, 1) # Rosso per errori
+const COLOR_INFO = Color(0, 0.5, 0.2, 1) # Verde scuro per info
 
-# Funzioni getter per accesso dinamico ai colori del tema
-func get_interface_color() -> Color:
-	return ThemeManager.get_color("primary")
-
-func get_text_color() -> Color:
-	return ThemeManager.get_color("text")
-
-func get_numbers_color() -> Color:
-	return ThemeManager.get_color("bright")
-
-func get_normal_color() -> Color:
-	return ThemeManager.get_color("text")
-
-# 🎨 Colori di stato dinamici - si adattano al tema corrente
-# Per tema CRT = gradazioni di verde, per altri temi = colori distintivi
-
-func get_sick_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("bright")  # Verde brillante per malato
-	else:
-		return Color(0.8, 0.6, 0, 1)  # Giallo per altri temi
-
-func get_infected_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("dim")  # Verde scuro per infetto
-	else:
-		return Color(0.8, 0.2, 0.8, 1)  # Magenta per altri temi
-
-func get_wounded_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("secondary")  # Verde medio per ferito
-	else:
-		return Color(0.8, 0.2, 0.2, 1)  # Rosso per altri temi
-
-func get_hungry_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("bright")  # Verde brillante per affamato
-	else:
-		return Color(0.9, 0.5, 0, 1)  # Arancione per altri temi
-
-func get_thirsty_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("hover")  # Verde glow per assetato
-	else:
-		return Color(0.6, 0.8, 1, 1)  # Azzurro per altri temi
-
-func get_warning_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("accent")  # Verde accent per warning
-	else:
-		return Color(0.8, 0.6, 0, 1)  # Giallo per altri temi
-
-func get_error_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("dim")  # Verde scuro per errori
-	else:
-		return Color(0.8, 0.2, 0.2, 1)  # Rosso per altri temi
-
-func get_info_color() -> Color:
-	var theme_type = ThemeManager.get_current_theme_type()
-	if theme_type == ThemeManager.ThemeType.CRT_GREEN:
-		return ThemeManager.get_color("secondary")  # Verde secondario per info
-	else:
-		return Color(0, 0.5, 0.2, 1)  # Verde scuro per altri temi
-
-# Funzioni getter per accesso dinamico ai colori principali SafePlace  
-func get_background_color() -> Color:
-	return ThemeManager.get_color("background")
-
-func get_primary_color() -> Color:
-	return ThemeManager.get_color("primary")
-
-func get_bright_color() -> Color:
-	return ThemeManager.get_color("bright")
+# Colori SafePlace autentici - VERDE ESTREMAMENTE SCURO
+const SAFEPLACE_GREEN = Color("#001A0D") # Verde ESTREMAMENTE scuro per i box
+const SAFEPLACE_GREEN_TEXT = Color("#00B347") # Verde chiaro per il testo
+const SAFEPLACE_GREEN_BRIGHT = Color("#00FF41") # Verde brillante per highlights
 
 func _ready():
 	_setup_interface()
@@ -155,11 +90,10 @@ func _setup_interface():
 	# Applica sfondo nero completo
 	modulate = Color.WHITE
 
-	# 🧪 TEST: Applica tema CRT autentico - COMMENTATO PER TEST THEMEMANAGER
-	# if ResourceLoader.exists("res://themes/SafePlaceTheme.tres"):
-	#	var safeplace_theme = load("res://themes/SafePlaceTheme.tres")
-	#	theme = safeplace_theme
-	print("🧪 TEST: SafePlaceTheme.tres DISABILITATO - Testing ThemeManager integration")
+	# Applica tema CRT autentico
+	if ResourceLoader.exists("res://themes/SafePlaceTheme.tres"):
+		var safeplace_theme = load("res://themes/SafePlaceTheme.tres")
+		theme = safeplace_theme
 
 	# FORZA font monospace su TUTTI i pannelli (CRITICO per mappa ASCII)
 	_force_monospace_font_on_all_panels()
@@ -315,27 +249,27 @@ func _update_survival_panel():
 	if not survival_content or not player:
 		return
 
-	var content = "[color=#%s]SOPRAVVIVENZA[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
+	var content = "[color=#%s]SOPRAVVIVENZA[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
 
 	# Colori speciali per valori critici (0 = rosso lampeggiante)
-	var food_color = get_numbers_color()
-	var water_color = get_numbers_color()
+	var food_color = COLOR_NUMBERS
+	var water_color = COLOR_NUMBERS
 
 	if player.food == 0:
-		food_color = get_error_color() if player_visible else get_bright_color() # Emergenza lampeggiante
+		food_color = Color("#CC0000") if player_visible else Color("#FF4444") # Rosso lampeggiante
 	if player.water == 0:
-		water_color = get_error_color() if player_visible else get_bright_color() # Emergenza lampeggiante
+		water_color = Color("#CC0000") if player_visible else Color("#FF4444") # Rosso lampeggiante
 
-	content += "[color=#%s]Sazietà: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(food_color), player.food]
-	content += "[color=#%s]Idratazione: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(water_color), player.water]
-	content += "[color=#%s]Status: [/color]%s" % [_color_to_hex(get_text_color()), _get_status_display()]
+	content += "[color=#%s]Sazietà: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(food_color), player.food]
+	content += "[color=#%s]Idratazione: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(water_color), player.water]
+	content += "[color=#%s]Status: [/color]%s" % [_color_to_hex(COLOR_TEXT), _get_status_display()]
 
 	survival_content.text = content
 
 func _get_status_display() -> String:
 	if current_status.is_empty():
-		return "[color=#%s]Normale[/color]" % _color_to_hex(get_normal_color())
+		return "[color=#%s]Normale[/color]" % _color_to_hex(COLOR_NORMAL)
 
 	var status_text = ""
 	for i in range(current_status.size()):
@@ -351,13 +285,13 @@ func _get_status_display() -> String:
 
 func _get_status_color(status: PlayerStatus) -> Color:
 	match status:
-		PlayerStatus.NORMALE: return get_normal_color()
-		PlayerStatus.MALATO: return get_sick_color()
-		PlayerStatus.INFETTO: return get_infected_color()
-		PlayerStatus.FERITO: return get_wounded_color()
-		PlayerStatus.AFFAMATO: return get_hungry_color()
-		PlayerStatus.ASSETATO: return get_thirsty_color()
-		_: return get_normal_color()
+		PlayerStatus.NORMALE: return COLOR_NORMAL
+		PlayerStatus.MALATO: return COLOR_SICK
+		PlayerStatus.INFETTO: return COLOR_INFECTED
+		PlayerStatus.FERITO: return COLOR_WOUNDED
+		PlayerStatus.AFFAMATO: return COLOR_HUNGRY
+		PlayerStatus.ASSETATO: return COLOR_THIRSTY
+		_: return COLOR_NORMAL
 
 func _get_status_name(status: PlayerStatus) -> String:
 	match status:
@@ -373,12 +307,12 @@ func _update_inventory_panel():
 	if not inventory_content or not player:
 		return
 
-	var content = "[color=#%s]INVENTARIO[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
+	var content = "[color=#%s]INVENTARIO[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
 
 	var inventory = player.get_inventory_display()
 	if inventory.is_empty():
-		content += "[color=#%s]Vuoto[/color]" % _color_to_hex(get_text_color())
+		content += "[color=#%s]Vuoto[/color]" % _color_to_hex(COLOR_TEXT)
 	else:
 		for item in inventory:
 			var item_name = item.get("name", "Sconosciuto")
@@ -387,7 +321,7 @@ func _update_inventory_panel():
 			var color_code = _get_item_color_code(item_type)
 
 			if quantity > 1:
-				content += "%s%s[/color] [color=#%s](x%d)[/color]\n" % [color_code, item_name, _color_to_hex(get_numbers_color()), quantity]
+				content += "%s%s[/color] [color=#%s](x%d)[/color]\n" % [color_code, item_name, _color_to_hex(COLOR_NUMBERS), quantity]
 			else:
 				content += "%s%s[/color]\n" % [color_code, item_name]
 
@@ -397,8 +331,8 @@ func _update_log_panel():
 	if not log_content:
 		return
 
-	var content = "[color=#%s]DIARIO DI VIAGGIO[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
+	var content = "[color=#%s]DIARIO DI VIAGGIO[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
 
 	# RIEMPI TUTTO LO SPAZIO DISPONIBILE - calcola quanti eventi ci stanno
 	if event_log.size() > 0:
@@ -412,7 +346,7 @@ func _update_log_panel():
 			content += colored_entry + "\n"
 	else:
 		# Se non ci sono eventi, mostra messaggio temporaneo
-		content += "[color=#%s]In attesa di eventi...[/color]" % _color_to_hex(get_text_color())
+		content += "[color=#%s]In attesa di eventi...[/color]" % _color_to_hex(COLOR_TEXT)
 
 	log_content.text = content
 
@@ -437,30 +371,29 @@ func _calculate_max_log_entries() -> int:
 func _colorize_log_entry(entry: String) -> String:
 	# Colora il log in base al contenuto
 	if entry.begins_with("[*]") or entry.begins_with("Benvenuto"):
-		return "[color=#%s]%s[/color]" % [_color_to_hex(get_info_color()), entry]
+		return "[color=#%s]%s[/color]" % [_color_to_hex(COLOR_INFO), entry]
 	elif entry.contains("errore") or entry.contains("pericolo") or entry.contains("danno"):
-		return "[color=#%s]%s[/color]" % [_color_to_hex(get_error_color()), entry]
+		return "[color=#%s]%s[/color]" % [_color_to_hex(COLOR_ERROR), entry]
 	elif entry.contains("attenzione") or entry.contains("avviso") or entry.contains("Non puoi"):
-		return "[color=#%s]%s[/color]" % [_color_to_hex(get_warning_color()), entry]
+		return "[color=#%s]%s[/color]" % [_color_to_hex(COLOR_WARNING), entry]
 	else:
-		return "[color=#%s]%s[/color]" % [_color_to_hex(get_text_color()), entry]
+		return "[color=#%s]%s[/color]" % [_color_to_hex(COLOR_TEXT), entry]
 
 func _update_legend_panel():
 	if not legend_content:
 		return
 
-	var content = "[color=#%s]LEGGENDA[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
-	content += "[color=#%s]. [/color][color=#%s]Pianura[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]F [/color][color=#%s]Foresta[/color]\n" % [_color_to_hex(get_primary_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]M [/color][color=#%s]Montagna[/color]\n" % [_color_to_hex(get_numbers_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]C [/color][color=#%s]Città[/color]\n" % [_color_to_hex(get_bright_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]V [/color][color=#%s]Villaggio[/color]\n" % [_color_to_hex(get_primary_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]~ [/color][color=#%s]Fiume[/color]\n" % [_color_to_hex(get_bright_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]R [/color][color=#%s]Ristoro[/color]\n" % [_color_to_hex(get_primary_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]@ [/color][color=#%s]Giocatore[/color]\n" % [_color_to_hex(get_numbers_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]S [/color][color=#%s]Start[/color]\n" % [_color_to_hex(get_numbers_color()), _color_to_hex(get_text_color())]
-	content += "[color=#%s]E [/color][color=#%s]Safe Place[/color]" % [_color_to_hex(get_numbers_color()), _color_to_hex(get_text_color())]
+	var content = "[color=#%s]LEGGENDA[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
+	content += "[color=#%s]. [/color][color=#%s]Pianura[/color]\n" % [_color_to_hex(Color.GREEN), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]F [/color][color=#%s]Foresta[/color]\n" % [_color_to_hex(Color(0, 0.4, 0.15)), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]M [/color][color=#%s]Montagna[/color]\n" % [_color_to_hex(Color(0.4, 0.25, 0.1)), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]C [/color][color=#%s]Città[/color]\n" % [_color_to_hex(Color.GRAY), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]V [/color][color=#%s]Villaggio[/color]\n" % [_color_to_hex(Color(0.6, 0.4, 0.2)), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]~ [/color][color=#%s]Fiume[/color]\n" % [_color_to_hex(Color.CYAN), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]@ [/color][color=#%s]Giocatore[/color]\n" % [_color_to_hex(Color.YELLOW), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]S [/color][color=#%s]Start[/color]\n" % [_color_to_hex(COLOR_NUMBERS), _color_to_hex(COLOR_TEXT)]
+	content += "[color=#%s]E [/color][color=#%s]Safe Place[/color]" % [_color_to_hex(COLOR_NUMBERS), _color_to_hex(COLOR_TEXT)]
 
 	legend_content.text = content
 
@@ -468,8 +401,8 @@ func _update_map_panel():
 	if not map_content or not ascii_map:
 		return
 
-	var content = "[color=#%s]MAPPA[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
+	var content = "[color=#%s]MAPPA[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
 
 	# Ottieni display della mappa con lampeggio del player
 	var map_display = ascii_map.get_colored_map_display_with_blink(player_visible)
@@ -484,16 +417,16 @@ func _update_info_panel():
 	var player_pos = ascii_map.get_player_position()
 	var terrain_info = ascii_map.get_terrain_info(player_pos)
 
-	var content = "[color=#%s]INFO GIOCO[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
-	content += "[color=#%s]Pos: [/color][color=#%s](%d, %d)[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player_pos.x, player_pos.y]
-	content += "[color=#%s]Luogo: [/color][color=#%s]%s[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_text_color()), terrain_info.name]
+	var content = "[color=#%s]INFO GIOCO[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
+	content += "[color=#%s]Pos: [/color][color=#%s](%d, %d)[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player_pos.x, player_pos.y]
+	content += "[color=#%s]Luogo: [/color][color=#%s]%s[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_TEXT), terrain_info.name]
 
 	# Orario o Notte
 	if current_time.is_night:
 		content += "[color=#44AAFF]Notte[/color]" # Blu acceso per la notte
 	else:
-		content += "[color=#%s]Ora: [/color][color=#%s]%02d:%02d[/color]" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), current_time.hour, current_time.minute]
+		content += "[color=#%s]Ora: [/color][color=#%s]%02d:%02d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), current_time.hour, current_time.minute]
 
 	info_content.text = content
 
@@ -501,14 +434,14 @@ func _update_stats_panel():
 	if not stats_content or not player:
 		return
 
-	var content = "[color=#%s]STATISTICHE[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
-	content += "[color=#%s]HP: [/color][color=#%s]%d[/color][color=#%s]/[/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.hp, _color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.max_hp]
-	content += "[color=#%s]VIG: [/color][color=#%s]%d[/color]    [color=#%s]POT: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.vig, _color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.pot]
-	content += "[color=#%s]AGI: [/color][color=#%s]%d[/color]    [color=#%s]TRA: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.agi, _color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.tra]
-	content += "[color=#%s]INF: [/color][color=#%s]%d[/color]    [color=#%s]PRE: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.inf, _color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.pre]
-	content += "[color=#%s]ADA: [/color][color=#%s]%d[/color]    [color=#%s]EXP: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.ada, _color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.exp]
-	content += "[color=#%s]PTS: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), player.pts]
+	var content = "[color=#%s]STATISTICHE[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
+	content += "[color=#%s]HP: [/color][color=#%s]%d[/color][color=#%s]/[/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.hp, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.max_hp]
+	content += "[color=#%s]VIG: [/color][color=#%s]%d[/color]    [color=#%s]POT: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.vig, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pot]
+	content += "[color=#%s]AGI: [/color][color=#%s]%d[/color]    [color=#%s]TRA: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.agi, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.tra]
+	content += "[color=#%s]INF: [/color][color=#%s]%d[/color]    [color=#%s]PRE: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.inf, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pre]
+	content += "[color=#%s]ADA: [/color][color=#%s]%d[/color]    [color=#%s]EXP: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.ada, _color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.exp]
+	content += "[color=#%s]PTS: [/color][color=#%s]%d[/color]\n" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), player.pts]
 
 	# NUOVO: Equipment Bonus Display - FASE 2
 	var attack_bonus = player.get_equipment_bonus("attack")
@@ -516,15 +449,15 @@ func _update_stats_panel():
 	var total_attack = player.get_attack_power()
 	var total_defense = player.get_defense_power()
 
-	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
-	content += "[color=#%s]ATK: [/color][color=#%s]%d[/color]" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), total_attack]
+	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(COLOR_TEXT)
+	content += "[color=#%s]ATK: [/color][color=#%s]%d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), total_attack]
 	if attack_bonus > 0:
-		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(get_primary_color()), attack_bonus]
+		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(SAFEPLACE_GREEN_TEXT), attack_bonus]
 	content += "\n"
 
-	content += "[color=#%s]DEF: [/color][color=#%s]%d[/color]" % [_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), total_defense]
+	content += "[color=#%s]DEF: [/color][color=#%s]%d[/color]" % [_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), total_defense]
 	if defense_bonus > 0:
-		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(get_primary_color()), defense_bonus]
+		content += "[color=#%s](+%d)[/color]" % [_color_to_hex(SAFEPLACE_GREEN_TEXT), defense_bonus]
 
 	stats_content.text = content
 
@@ -534,13 +467,13 @@ func _update_controls_panel():
 		return
 
 	# Layout controlli centrato PERFETTAMENTE verticalmente
-	var content = "[color=#%s]CONTROLLI[/color]\n" % _color_to_hex(get_interface_color())
-	content += "[color=#%s]═══════════════[/color]\n\n\n" % _color_to_hex(get_text_color()) # Spazio extra
-	content += "[color=#%s]        [W][/color]\n" % _color_to_hex(get_primary_color())
-	content += "[color=#%s]    [A][SPC][D][/color]\n" % _color_to_hex(get_primary_color())
-	content += "[color=#%s]        [S][/color]\n\n" % _color_to_hex(get_primary_color())
-	content += "[color=#%s][F5] Salva [F6] Carica[/color]\n" % _color_to_hex(get_primary_color())
-	content += "[color=#%s][L] Leggenda[/color]\n\n" % _color_to_hex(get_primary_color()) # Spazio finale
+	var content = "[color=#%s]CONTROLLI[/color]\n" % _color_to_hex(COLOR_INTERFACE)
+	content += "[color=#%s]═══════════════[/color]\n\n\n" % _color_to_hex(COLOR_TEXT) # Spazio extra
+	content += "[color=#%s]        [W][/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
+	content += "[color=#%s]    [A][SPC][D][/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
+	content += "[color=#%s]        [S][/color]\n\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
+	content += "[color=#%s][F5] Salva [F6] Carica[/color]\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT)
+	content += "[color=#%s][L] Leggenda[/color]\n\n" % _color_to_hex(SAFEPLACE_GREEN_TEXT) # Spazio finale
 
 	controls_content.text = content
 
@@ -611,12 +544,11 @@ func _color_to_hex(color: Color) -> String:
 
 ## FORZA font monospace su TUTTI i controlli (ESSENZIALE per mappa ASCII)
 func _force_monospace_font_on_all_panels():
-	# Crea font monospace con priorità Perfect DOS VGA 437 e supporto UTF-8
+	# Crea font monospace con priorità Fixedsys Excelsior
 	var monospace_font = SystemFont.new()
-	monospace_font.font_names = ["Perfect DOS VGA 437", "Fixedsys Excelsior", "Fixedsys", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace"]
-	# 🔤 Configurazione UTF-8 esplicita per lettere accentate
-	monospace_font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
-	monospace_font.multichannel_signed_distance_field = false
+	monospace_font.font_names = ["Fixedsys Excelsior", "Fixedsys", "Perfect DOS VGA 437", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace"]
+	# Note: In Godot 4.5, SystemFont font size is handled differently
+	# We'll use the theme-based approach for size control
 
 	# Lista di TUTTI i RichTextLabel (specialmente MapContent!)
 	var rich_text_labels = [
@@ -700,10 +632,10 @@ func _setup_equipment_display():
 [L] Leggenda
 [F5] Salva
 [F6] Carica[/color]""" % [
-				_color_to_hex(get_interface_color()), _color_to_hex(get_text_color()),
-				_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()),
-				_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()),
-				_color_to_hex(get_text_color()), _color_to_hex(get_primary_color())
+				_color_to_hex(COLOR_INTERFACE), _color_to_hex(COLOR_TEXT),
+				_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS),
+				_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS),
+				_color_to_hex(COLOR_TEXT), _color_to_hex(SAFEPLACE_GREEN_TEXT)
 			]
 			return
 
@@ -726,10 +658,10 @@ func _setup_equipment_display():
 [L] Leggenda
 [F5] Salva
 [F6] Carica[/color]""" % [
-			_color_to_hex(get_interface_color()), _color_to_hex(get_text_color()),
-			_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), weapon_name,
-			_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), armor_name,
-			_color_to_hex(get_text_color()), _color_to_hex(get_primary_color())
+			_color_to_hex(COLOR_INTERFACE), _color_to_hex(COLOR_TEXT),
+			_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), weapon_name,
+			_color_to_hex(COLOR_TEXT), _color_to_hex(COLOR_NUMBERS), armor_name,
+			_color_to_hex(COLOR_TEXT), _color_to_hex(SAFEPLACE_GREEN_TEXT)
 		]
 
 var legend_popup_active: bool = false
@@ -751,17 +683,16 @@ M Montagna
 C Città
 V Villaggio
 ~ Fiume
-R Ristoro
 @ Giocatore"""
 
 	# Styling popup completo SafePlace
-	popup.add_theme_color_override("font_color", get_primary_color())
-	popup.add_theme_color_override("title_color", get_bright_color())
+	popup.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
+	popup.add_theme_color_override("title_color", SAFEPLACE_GREEN_BRIGHT)
 
 	# Stile pannello popup
 	var popup_style = StyleBoxFlat.new()
-	popup_style.bg_color = get_background_color() # Stesso sfondo dell'interfaccia
-	popup_style.border_color = get_primary_color()
+	popup_style.bg_color = Color("#000503") # Stesso sfondo dell'interfaccia
+	popup_style.border_color = SAFEPLACE_GREEN_TEXT
 	popup_style.border_width_left = 2
 	popup_style.border_width_top = 2
 	popup_style.border_width_right = 2
@@ -807,14 +738,14 @@ func _create_movement_button(text: String, direction: Vector2) -> Button:
 
 	# Styling bottone
 	var button_style = StyleBoxFlat.new()
-	button_style.bg_color = get_background_color()
-	button_style.border_color = get_primary_color()
+	button_style.bg_color = Color("#001A0D")
+	button_style.border_color = SAFEPLACE_GREEN_TEXT
 	button_style.border_width_left = 1
 	button_style.border_width_top = 1
 	button_style.border_width_right = 1
 	button_style.border_width_bottom = 1
 
-	button.add_theme_color_override("font_color", get_primary_color())
+	button.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
 	button.add_theme_stylebox_override("normal", button_style)
 	button.add_theme_stylebox_override("hover", button_style.duplicate())
 	button.add_theme_stylebox_override("pressed", button_style.duplicate())
@@ -832,14 +763,14 @@ func _create_special_button(text: String, method_name: String) -> Button:
 
 	# Styling bottone
 	var button_style = StyleBoxFlat.new()
-	button_style.bg_color = get_background_color()
-	button_style.border_color = get_primary_color()
+	button_style.bg_color = Color("#001A0D")
+	button_style.border_color = SAFEPLACE_GREEN_TEXT
 	button_style.border_width_left = 1
 	button_style.border_width_top = 1
 	button_style.border_width_right = 1
 	button_style.border_width_bottom = 1
 
-	button.add_theme_color_override("font_color", get_primary_color())
+	button.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
 	button.add_theme_stylebox_override("normal", button_style)
 	button.add_theme_stylebox_override("hover", button_style.duplicate())
 	button.add_theme_stylebox_override("pressed", button_style.duplicate())
@@ -878,8 +809,8 @@ func _setup_panels():
 
 	# Panel styling con colore sfondo specificato dall'utente
 	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = get_background_color() # Colore sfondo richiesto dall'utente
-	panel_style.border_color = get_primary_color()
+	panel_style.bg_color = Color("#000503") # Colore sfondo richiesto dall'utente
+	panel_style.border_color = SAFEPLACE_GREEN_TEXT
 	panel_style.border_width_left = 1
 	panel_style.border_width_top = 1
 	panel_style.border_width_right = 1
@@ -892,7 +823,7 @@ func _setup_panels():
 
 	# Applica sfondo anche ai contenuti dei pannelli (RichTextLabel)
 	var content_style = StyleBoxFlat.new()
-	content_style.bg_color = get_background_color() # Stesso colore per i container interni
+	content_style.bg_color = Color("#000503") # Stesso colore per i container interni
 	content_style.border_width_left = 0
 	content_style.border_width_top = 0
 	content_style.border_width_right = 0
@@ -928,7 +859,7 @@ func _setup_panel_titles():
 		var title_label = get_node_or_null("*/" + title_node)
 		if title_label:
 			title_label.text = titles[title_node]
-			title_label.add_theme_color_override("font_color", get_primary_color())
+			title_label.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
 
 func _setup_controls_layout():
 	"""Setup layout controlli interattivi con bottoni cliccabili."""
@@ -946,14 +877,14 @@ func _setup_controls_layout():
 	# Titolo controlli
 	var title_label = Label.new()
 	title_label.text = "COMANDI"
-	title_label.add_theme_color_override("font_color", get_primary_color())
+	title_label.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	controls_container.add_child(title_label)
 
 	# Separatore
 	var separator1 = Label.new()
 	separator1.text = "═══════════════"
-	separator1.add_theme_color_override("font_color", get_primary_color())
+	separator1.add_theme_color_override("font_color", SAFEPLACE_GREEN_TEXT)
 	separator1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	controls_container.add_child(separator1)
 
@@ -1109,4 +1040,4 @@ func _get_item_color_code(item_type: String) -> String:
 		"key": return "[color=#FFD700]" # Oro per chiavi/oggetti speciali
 		"material": return "[color=#8B4513]" # Marrone per materiali grezzi
 		"misc": return "[color=#9C88FF]" # Lilla per oggetti vari
-		_: return "[color=#%s]" % _color_to_hex(get_text_color()) # Default verde
+		_: return "[color=#%s]" % _color_to_hex(COLOR_TEXT) # Default verde

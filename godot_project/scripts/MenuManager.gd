@@ -9,12 +9,27 @@ class_name MenuManager
 const ContentPresentationClass = preload("res://scripts/ContentPresentation.gd")
 const SettingsScreenClass = preload("res://scripts/SettingsScreen.gd")
 
-# 🎨 COSTANTI DESIGN SAFEPLACE - COLORI AUTENTICI MAPPA
-const PRIMARY_GREEN = Color(0.306, 0.631, 0.384) # #4EA162 - Verde standard mappa
-const SECONDARY_GREEN = Color(0.2, 0.5, 0.3) # Verde scuro per bordi
-const DARK_GREEN = Color(0.1, 0.3, 0.15) # Verde molto scuro per sfondo elementi
-const BACKGROUND_BLACK = Color(0.02, 0.02, 0.02) # #050505 - Nero
-const HIGHLIGHT_YELLOW = Color(1, 1, 0.4) # #ffff66 - Evidenziazione
+# 🎨 INTEGRAZIONE THEMEMANAGER v1.4.3 - Colori dinamici dal tema corrente
+# Sostituiti colori hardcodati con funzioni getter del ThemeManager
+
+# Funzioni getter per colori dinamici del tema corrente
+func get_primary_color() -> Color:
+	return ThemeManager.get_color("primary")
+
+func get_secondary_color() -> Color:
+	return ThemeManager.get_color("secondary")
+
+func get_background_color() -> Color:
+	return ThemeManager.get_color("background")
+
+func get_text_color() -> Color:
+	return ThemeManager.get_color("text")
+
+func get_accent_color() -> Color:
+	return ThemeManager.get_color("accent")
+
+func get_hover_color() -> Color:
+	return ThemeManager.get_color("hover")
 
 # 📐 LAYOUT CONFIGURATION
 const MENU_MAX_WIDTH = 600 # Ridotto per non riempire tutto lo schermo
@@ -67,6 +82,9 @@ func _ready():
 	setup_ui_structure()
 	setup_styling()
 	setup_connections()
+	
+	# 🎨 CONNETTI AI SEGNALI THEMEMANAGER per aggiornamenti automatici
+	_connect_theme_signals()
 
 	# Avvia inizializzazione semplificata
 	call_deferred("simple_initialization")
@@ -171,7 +189,7 @@ func create_placeholder_image():
 	"""Crea un'immagine placeholder se quella originale non è disponibile"""
 	var placeholder = ImageTexture.new()
 	var image = Image.create(400, 200, false, Image.FORMAT_RGB8)
-	image.fill(DARK_GREEN)
+	image.fill(get_secondary_color())
 	placeholder.set_image(image)
 	image_header.texture = placeholder
 	image_header.custom_minimum_size = Vector2(400, 200)
@@ -215,27 +233,52 @@ func create_menu_buttons():
 
 func setup_styling():
 	"""Applica lo styling SafePlace a tutti i componenti"""
+	# 🔤 APPLICA FONT PERFECT DOS VGA 437 A TUTTO IL MENU
+	_apply_perfect_dos_font()
+	
 	# Sfondo principale
 	var style_bg = StyleBoxFlat.new()
-	style_bg.bg_color = BACKGROUND_BLACK
+	style_bg.bg_color = get_background_color()
 	add_theme_stylebox_override("panel", style_bg)
 
 	# Styling titolo principale 
 	title_label.add_theme_font_size_override("font_size", 41)
-	title_label.add_theme_color_override("font_color", PRIMARY_GREEN)
+	title_label.add_theme_color_override("font_color", get_primary_color())
 
 	# Styling sottotitolo
 	subtitle_label.add_theme_font_size_override("font_size", 18)
-	subtitle_label.add_theme_color_override("font_color", SECONDARY_GREEN)
+	subtitle_label.add_theme_color_override("font_color", get_secondary_color())
 
 	# Styling footer
 	footer_label.add_theme_font_size_override("font_size", 9)
-	footer_label.add_theme_color_override("font_color", DARK_GREEN)
+	footer_label.add_theme_color_override("font_color", get_secondary_color())
 
 	# Styling pulsanti
 	style_menu_buttons()
 
 	print("✅ Styling SafePlace applicato")
+
+func _apply_perfect_dos_font():
+	"""Applica font Perfect DOS VGA 437 a tutti i componenti del menu"""
+	# Crea font monospace con priorità Perfect DOS VGA 437
+	var perfect_dos_font = SystemFont.new()
+	perfect_dos_font.font_names = ["Perfect DOS VGA 437", "Fixedsys Excelsior", "Fixedsys", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace"]
+	perfect_dos_font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
+	perfect_dos_font.multichannel_signed_distance_field = false
+	
+	# Applica a tutti i Label del menu
+	var labels = [title_label, subtitle_label, footer_label]
+	for label in labels:
+		if label:
+			label.add_theme_font_override("font", perfect_dos_font)
+	
+	# Applica a tutti i bottoni del menu
+	var buttons = [new_game_button, load_game_button, story_button, instructions_button, settings_button]
+	for button in buttons:
+		if button:
+			button.add_theme_font_override("font", perfect_dos_font)
+	
+	print("🔤 [MenuManager] Font Perfect DOS VGA 437 applicato a tutto il menu")
 
 func style_menu_buttons():
 	"""Applica lo styling specifico ai pulsanti menu"""
@@ -247,26 +290,26 @@ func style_menu_buttons():
 
 		# Stile normale
 		var style_normal = StyleBoxFlat.new()
-		style_normal.bg_color = BACKGROUND_BLACK
-		style_normal.border_color = SECONDARY_GREEN
+		style_normal.bg_color = get_background_color()
+		style_normal.border_color = get_secondary_color()
 		style_normal.border_width_top = 2
 		style_normal.border_width_bottom = 2
 		style_normal.border_width_left = 2
 		style_normal.border_width_right = 2
 
-		# Stile hover
+		# Stile hover - EFFETTO NEGATIVO: sfondo chiaro, testo scuro
 		var style_hover = StyleBoxFlat.new()
-		style_hover.bg_color = DARK_GREEN
-		style_hover.border_color = PRIMARY_GREEN
+		style_hover.bg_color = get_primary_color()
+		style_hover.border_color = get_primary_color()
 		style_hover.border_width_top = 2
 		style_hover.border_width_bottom = 2
 		style_hover.border_width_left = 2
 		style_hover.border_width_right = 2
 
-		# Stile pressed
+		# Stile pressed - EFFETTO NEGATIVO: sfondo accent, testo scuro
 		var style_pressed = StyleBoxFlat.new()
-		style_pressed.bg_color = SECONDARY_GREEN
-		style_pressed.border_color = HIGHLIGHT_YELLOW
+		style_pressed.bg_color = get_accent_color()
+		style_pressed.border_color = get_accent_color()
 		style_pressed.border_width_top = 2
 		style_pressed.border_width_bottom = 2
 		style_pressed.border_width_left = 2
@@ -277,10 +320,10 @@ func style_menu_buttons():
 		button.add_theme_stylebox_override("hover", style_hover)
 		button.add_theme_stylebox_override("pressed", style_pressed)
 
-		# Colori testo
-		button.add_theme_color_override("font_color", PRIMARY_GREEN)
-		button.add_theme_color_override("font_hover_color", PRIMARY_GREEN)
-		button.add_theme_color_override("font_pressed_color", BACKGROUND_BLACK)
+		# Colori testo - EFFETTO NEGATIVO
+		button.add_theme_color_override("font_color", get_primary_color())
+		button.add_theme_color_override("font_hover_color", get_background_color())  # TESTO SCURO SU SFONDO CHIARO
+		button.add_theme_color_override("font_pressed_color", get_background_color())  # TESTO SCURO SU SFONDO ACCENT
 
 		# Font size
 		button.add_theme_font_size_override("font_size", 16)
@@ -302,6 +345,23 @@ func setup_connections():
 	update_load_game_button_state()
 
 	print("✅ Connessioni configurate")
+
+func _connect_theme_signals():
+	"""Connette ai segnali del ThemeManager per aggiornamenti automatici"""
+	if ThemeManager.theme_changed.connect(_on_theme_changed_signal) == OK:
+		print("🎨 MenuManager collegato ai segnali ThemeManager")
+	else:
+		print("⚠️ Errore collegamento segnali ThemeManager")
+
+func _on_theme_changed_signal(theme_type):
+	"""Callback quando il tema cambia - aggiorna tutto il menu"""
+	print("🎨 MenuManager: Aggiornamento tema %s" % ThemeManager.ThemeType.keys()[theme_type])
+	
+	# Riapplica styling con i nuovi colori
+	setup_styling()
+	
+	# Forza aggiornamento visivo
+	queue_redraw()
 
 func update_load_game_button_state():
 	"""Aggiorna lo stato del pulsante Carica Partita"""

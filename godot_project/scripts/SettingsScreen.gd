@@ -46,6 +46,9 @@ func _ready():
 	create_settings_content()
 	setup_connections()
 	load_current_settings()
+	
+	# 🎨 CONNETTI AI SEGNALI THEMEMANAGER per aggiornamenti automatici
+	_connect_theme_signals()
 
 func setup_terminal_ui():
 	"""Crea l'interfaccia in stile terminale retrò"""
@@ -358,10 +361,10 @@ func create_terminal_button(text: String) -> Button:
 	style_normal.border_width_top = 2
 	style_normal.border_width_bottom = 2
 
-	# Stile hover
+	# Stile hover - EFFETTO NEGATIVO: sfondo chiaro, testo scuro
 	var style_hover = StyleBoxFlat.new()
-	style_hover.bg_color = ThemeManager.get_color("hover")
-	style_hover.border_color = ThemeManager.get_color("bright")
+	style_hover.bg_color = ThemeManager.get_color("primary")
+	style_hover.border_color = ThemeManager.get_color("primary")
 	style_hover.border_width_left = 2
 	style_hover.border_width_right = 2
 	style_hover.border_width_top = 2
@@ -371,7 +374,7 @@ func create_terminal_button(text: String) -> Button:
 	button.add_theme_stylebox_override("hover", style_hover)
 	button.add_theme_stylebox_override("pressed", style_hover)
 	button.add_theme_color_override("font_color", ThemeManager.get_color("text"))
-	button.add_theme_color_override("font_hover_color", ThemeManager.get_color("bright"))
+	button.add_theme_color_override("font_hover_color", ThemeManager.get_color("background"))  # TESTO SCURO SU SFONDO CHIARO
 	button.add_theme_font_size_override("font_size", 14)
 
 	return button
@@ -392,6 +395,23 @@ func setup_connections():
 		crt_theme_radio.toggled.connect(_on_theme_changed.bind(ThemeManager.ThemeType.CRT_GREEN))
 	if contrast_theme_radio:
 		contrast_theme_radio.toggled.connect(_on_theme_changed.bind(ThemeManager.ThemeType.HIGH_CONTRAST))
+
+func _connect_theme_signals():
+	"""Connette ai segnali del ThemeManager per aggiornamenti automatici"""
+	if ThemeManager.theme_changed.connect(_on_theme_changed_signal) == OK:
+		print("🎨 SettingsScreen collegato ai segnali ThemeManager")
+	else:
+		print("⚠️ Errore collegamento segnali ThemeManager")
+
+func _on_theme_changed_signal(theme_type):
+	"""Callback quando il tema cambia - aggiorna interfaccia impostazioni"""
+	print("🎨 SettingsScreen: Aggiornamento tema %s" % ThemeManager.ThemeType.keys()[theme_type])
+	
+	# Riapplica styling con i nuovi colori
+	setup_terminal_ui()
+	
+	# Forza aggiornamento visivo
+	queue_redraw()
 
 func load_current_settings():
 	"""Carica le impostazioni correnti"""

@@ -24,7 +24,7 @@ var current_state: UIState = UIState.MAIN_INTERFACE
 var previous_state: UIState = UIState.MAIN_INTERFACE
 
 # References to UI components (will be set from GameManager)
-var main_interface: MainInterface
+var main_interface
 var hud: Control
 
 # References to game systems

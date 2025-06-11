@@ -19,7 +19,7 @@ const DEFAULT_THEME = {
 	"secondary": Color("#3D8A52"),      # Verde più scuro (-20%)
 	"bright": Color("#5FB874"),         # Verde più chiaro (+20%)
 	"dim": Color("#2D6642"),            # Verde scuro (-40%)
-	"background": Color("#001A0D"),     # Verde molto scuro per sfondi
+	"background": Color("#000503"),     # Verde ESTREMAMENTE scuro per sfondi
 	"text": Color("#4EA162"),           # Testo principale
 	"accent": Color("#FFB000"),         # Accent giallo per evidenziazioni
 	"border": Color("#3D8A52"),         # Bordi
@@ -27,18 +27,18 @@ const DEFAULT_THEME = {
 	"disabled": Color("#2D6642")        # Elementi disabilitati
 }
 
-# 📺 TEMA CRT FOSFORI VERDI - Solo #4EA162 con effetti
+# 📺 TEMA CRT FOSFORI VERDI - Autentico Monitor Terminale Anni 80
 const CRT_THEME = {
-	"primary": Color("#4EA162"),        # Solo il colore base
-	"secondary": Color("#4EA162"),      # Stesso colore
-	"bright": Color("#4EA162"),         # Stesso colore
-	"dim": Color("#2D4D35"),            # Più scuro per profondità
-	"background": Color("#000000"),     # Nero puro CRT
-	"text": Color("#4EA162"),           # Testo verde fosforoso
-	"accent": Color("#4EA162"),         # Accent stesso verde
-	"border": Color("#4EA162"),         # Bordi verdi
-	"hover": Color("#6BC47E"),          # Leggero glow su hover
-	"disabled": Color("#2D4D35")        # Disabilitato scuro
+	"primary": Color("#00FF41"),        # Verde fosforoso brillante CRT
+	"secondary": Color("#00CC33"),      # Verde fosforoso medio
+	"bright": Color("#66FF66"),         # Verde fosforoso super brillante (glow)
+	"dim": Color("#004411"),            # Verde fosforoso scuro 
+	"background": Color("#000000"),     # Nero assoluto CRT
+	"text": Color("#00FF41"),           # Testo verde fosforoso
+	"accent": Color("#66FF66"),         # Accent ultra brillante
+	"border": Color("#00FF41"),         # Bordi verdi fosforosi
+	"hover": Color("#66FF66"),          # Glow intenso su hover
+	"disabled": Color("#004411")        # Disabilitato molto scuro
 }
 
 # ⚫ TEMA ALTO CONTRASTO - Solo bianco e nero
@@ -67,10 +67,11 @@ signal colors_updated(colors: Dictionary)
 # 🚀 INIZIALIZZAZIONE
 func _ready():
 	print("🎨 ThemeManager inizializzato - Tema: DEFAULT")
-	# Carica tema salvato o usa DEFAULT come fallback
+	
+	# ✅ RIPRISTINATO: Carica tema salvato o usa DEFAULT come fallback
 	load_theme_settings()
 	
-	# Se non c'è un tema salvato, forza DEFAULT
+	# Se non c'è un tema salvato, forza DEFAULT  
 	if current_theme_type != ThemeType.DEFAULT and not FileAccess.file_exists("user://theme_settings.cfg"):
 		print("🔧 Nessun tema salvato, forzo DEFAULT")
 		set_theme(ThemeType.DEFAULT)
