@@ -605,25 +605,3 @@ func village_ruins():
 		]
 	}
 	return event
-
-func village_heavy_silence():
-	var event = {
-		"id": "village_heavy_silence",
-		"text": "Silenzio Innaturale - Un silenzio opprimente grava su questo luogo. Non si sente il vento, né il verso di animali. Un brutto presentimento ti attanaglia.",
-		"location": "village",
-		"choices": [
-			"Ascolta l'istinto (Presagio)"
-		]
-	}
-	return event
-
-func village_school_ruins():
-	var event = {
-		"id": "village_school_ruins",
-		"text": "Rovine della Scuola - I resti di una piccola scuola si ergono tra le case abbandonate. Graffiti sbiaditi e poster educativi si aggrappano ancora alle pareti crepate. Un luogo che un tempo era pieno di ragazzi come te, ora solo un guscio vuoto.",
-		"location": "village",
-		"choices": [
-			"Cercare nella biblioteca (Adattamento)"
-		]
-	}
-	return event

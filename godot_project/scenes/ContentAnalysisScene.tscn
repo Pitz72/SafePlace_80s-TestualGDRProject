@@ -1,13 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://b8q7xvwxkqn2p"]
+[gd_scene load_steps=2 format=3 uid="uid://bfx8q4h2xgn7c"]
 
-[ext_resource type="Script" path="res://scripts/AutomaticTestRunner.gd" id="1_0x8k4"]
+[ext_resource type="Script" path="res://scripts/ContentAnalysisRunner.gd" id="1_8x9k4"]
 
-[node name="TestScene" type="Control"]
+[node name="ContentAnalysisScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource("1_0x8k4")
+script = ExtResource("1_8x9k4")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -26,18 +26,20 @@ offset_top = 20.0
 offset_right = -20.0
 offset_bottom = -20.0
 
-[node name="TestOutput" type="RichTextLabel" parent="ScrollContainer"]
+[node name="AnalysisOutput" type="RichTextLabel" parent="ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 bbcode_enabled = true
-text = "[center][color=yellow]SISTEMA TEST VALIDAZIONE SAFEPLACE v1.4.3[/color][/center]
+text = "[center][color=yellow]ANALISI CONTENUTI SAFEPLACE v1.4.3 → v1.5.0[/color][/center]
 
-[color=cyan]Inizializzazione test automatici in corso...[/color]"
+[color=cyan]FASE 1 MASTER PLAN: Analisi Source Content[/color]
+
+[color=lightblue]Inizializzazione sistema analisi...[/color]"
 
 [node name="Timer" type="Timer" parent="."]
-wait_time = 1.0
+wait_time = 2.0
 one_shot = true
 autostart = true
 
-[connection signal="timeout" from="Timer" to="." method="_start_tests"] 
+[connection signal="timeout" from="Timer" to="." method="_start_analysis"] 

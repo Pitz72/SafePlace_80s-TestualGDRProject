@@ -1,4 +1,28 @@
-# 🛡️ ANTI-REGRESSIONE SafePlace v1.4.3
+# 🛡️ ANTI-REGRESSIONE SafePlace v1.4.3.1
+
+## 🔬 SISTEMA TEST AUTOMATICO ATTIVO
+**NUOVO**: Sistema di test validazione automatico implementato!
+
+### ⚡ Test Pre-Modifica OBBLIGATORIO (30 secondi)
+1. **Apri Godot Editor**
+2. **Doppio-click** su `scenes/TestScene.tscn`
+3. **Click Play Scene** → Test automatici partono
+4. **Verifica risultato**: 
+   - ✅ **9/9 PASS** = PRODUCTION READY → Puoi procedere
+   - ❌ **X/9 FAIL** = NECESSITA CORREZIONI → **STOP! Correggere errori**
+
+### 🎯 Test Validati Automaticamente
+- **Autoload Systems** (ThemeManager ✓, GameManager NON autoload)
+- **Theme Manager** (3 temi, colori SafePlace #4EA162)
+- **Main Interface** (43KB, funzioni critiche)
+- **Settings Screen** (integrazione ThemeManager)
+- **Menu System** (MenuScreen.tscn, MenuManager.gd)
+- **Core Scripts** (GameManager, EventManager, MapManager, Player, ContentManager)
+- **Save/Load System** (SaveManager.gd)
+- **Events System** (5 script territoriali, 113KB contenuti)
+- **File Integrity** (project.godot, struttura completa)
+
+---
 
 ## 🎯 Documento di Protezione contro Regressioni
 
