@@ -199,18 +199,29 @@ func _input(event):
 	if not visible:
 		return
 
-	if event is InputEventKey and event.pressed:
+	# 🎮 POINT 3: Keyboard-Only Experience per autenticità retro
+	# Blocca TUTTI gli input non-tastiera (mouse, touch, joypad, etc.)
+	# Solo la tastiera è permessa per coerenza con l'esperienza DOS autentica
+	if not event is InputEventKey:
+		return  # Ignora completamente eventi mouse, touch, joystick, etc.
+
+	if event.pressed:
 		match event.keycode:
-			# Navigazione WASD
+			# Navigazione WASD + POINT 5: Animazione feedback pulsanti
 			KEY_W, KEY_UP:
+				_animate_button_feedback("up")  # POINT 5: Feedback visivo
 				_move_player(Vector2(0, -1)) # Nord
 			KEY_A, KEY_LEFT:
+				_animate_button_feedback("left")  # POINT 5: Feedback visivo
 				_move_player(Vector2(-1, 0)) # Ovest
 			KEY_S, KEY_DOWN:
+				_animate_button_feedback("down")  # POINT 5: Feedback visivo
 				_move_player(Vector2(0, 1)) # Sud
 			KEY_D, KEY_RIGHT:
+				_animate_button_feedback("right")  # POINT 5: Feedback visivo
 				_move_player(Vector2(1, 0)) # Est
 			KEY_SPACE:
+				_animate_button_feedback("space")  # POINT 5: Feedback visivo
 				_pass_time()
 
 			# Uso oggetti inventario 1-8 (numeri riga principale + tastierino)
@@ -239,7 +250,15 @@ func _input(event):
 			KEY_F7:
 				_load_file()
 			KEY_L:
-				_show_legend_popup() # NUOVO: Mostra leggenda popup
+				# ✅ FIX: Gestisce apertura/chiusura popup leggenda
+				if legend_popup_active and current_legend_popup:
+					# Chiude popup se già aperto
+					legend_popup_active = false
+					current_legend_popup.queue_free()
+					current_legend_popup = null
+				else:
+					# Apre popup se non attivo
+					_show_legend_popup()
 			KEY_C:
 				_handle_crafting() # NUOVO: Apri crafting
 			KEY_I:
@@ -767,6 +786,14 @@ func _setup_equipment_display():
 		]
 
 var legend_popup_active: bool = false
+var current_legend_popup: AcceptDialog = null  # ✅ FIX: Riferimento al popup per chiusura con L
+
+# 🎮 POINT 5: Riferimenti pulsanti per animazione feedback
+var button_up: Button = null
+var button_left: Button = null
+var button_down: Button = null
+var button_right: Button = null
+var button_space: Button = null
 
 func _show_legend_popup():
 	"""Mostra popup leggenda simboli mappa con stile SafePlace e controllo da tastiera."""
@@ -778,6 +805,7 @@ func _show_legend_popup():
 
 	# Creo popup leggenda con stile SafePlace
 	var popup = AcceptDialog.new()
+	current_legend_popup = popup  # ✅ FIX: Memorizza riferimento per chiusura con L
 	popup.title = "LEGGENDA MAPPA"
 	popup.dialog_text = """. Pianura
 F Foresta
@@ -808,18 +836,15 @@ R Ristoro
 	# Setup chiusura con L dalla tastiera
 	var close_popup = func():
 		legend_popup_active = false
+		current_legend_popup = null  # ✅ FIX: Pulisce riferimento
 		popup.queue_free()
 
 	popup.confirmed.connect(close_popup)
 	# Nota: AcceptDialog non ha segnale 'cancelled', solo 'confirmed'
 
-	# Input handler per chiusura con L
-	var input_handler = func(event: InputEvent):
-		if event is InputEventKey and event.pressed and event.keycode == KEY_L:
-			close_popup.call()
-			get_viewport().set_input_as_handled()
-
-	popup.gui_input.connect(input_handler)
+	# ✅ FIX: AcceptDialog non ha gui_input - usa approccio global input handler
+	# Input handler per chiusura con L rimosso - gestito dal global _input()
+	# popup.gui_input.connect(input_handler)  # RIMOSSO - causava errore AcceptDialog
 
 	get_tree().current_scene.add_child(popup)
 	popup.popup_centered()
@@ -834,62 +859,127 @@ func _create_empty_spacer() -> Control:
 	return spacer
 
 func _create_movement_button(text: String, direction: Vector2) -> Button:
-	"""Crea un bottone per il movimento."""
+	"""🎮 POINT 3: Pulsanti visibili ma keyboard-only (non-clickabili, ma normalmente colorati)."""
 	var button = Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(25, 20)
+	button.disabled = true  # DISABILITATO per Point 3 - keyboard-only experience
 
-	# Styling bottone
+	# Styling bottone NORMALE (non scuro) ma disabilitato
 	var button_style = StyleBoxFlat.new()
 	button_style.bg_color = get_background_color()
-	button_style.border_color = get_primary_color()
+	button_style.border_color = get_primary_color()  # Bordo normale (non scuro)
 	button_style.border_width_left = 1
 	button_style.border_width_top = 1
 	button_style.border_width_right = 1
 	button_style.border_width_bottom = 1
 
-	button.add_theme_color_override("font_color", get_primary_color())
+	button.add_theme_color_override("font_color", get_primary_color())  # Testo normale (non scuro)
+	button.add_theme_color_override("font_disabled_color", get_primary_color())  # Anche quando disabled
 	button.add_theme_stylebox_override("normal", button_style)
 	button.add_theme_stylebox_override("hover", button_style.duplicate())
 	button.add_theme_stylebox_override("pressed", button_style.duplicate())
+	button.add_theme_stylebox_override("disabled", button_style.duplicate())
 
-	# Connetti segnale
-	button.pressed.connect(func(): _move_player(direction))
+	# NESSUNA CONNESSIONE - Solo tastiera permessa (Point 3)
+	# button.pressed.connect(func(): _move_player(direction))  # COMMENTATO per Point 3
 
 	return button
 
 func _create_special_button(text: String, method_name: String) -> Button:
-	"""Crea un bottone per funzioni speciali."""
+	"""🎮 POINT 3: Pulsanti speciali visibili ma keyboard-only (non-clickabili, ma normalmente colorati)."""
 	var button = Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(70, 18)
+	button.disabled = true  # DISABILITATO per Point 3 - keyboard-only experience
 
-	# Styling bottone
+	# Styling bottone NORMALE (non scuro) ma disabilitato
 	var button_style = StyleBoxFlat.new()
 	button_style.bg_color = get_background_color()
-	button_style.border_color = get_primary_color()
+	button_style.border_color = get_primary_color()  # Bordo normale (non scuro)
 	button_style.border_width_left = 1
 	button_style.border_width_top = 1
 	button_style.border_width_right = 1
 	button_style.border_width_bottom = 1
 
-	button.add_theme_color_override("font_color", get_primary_color())
+	button.add_theme_color_override("font_color", get_primary_color())  # Testo normale (non scuro)
+	button.add_theme_color_override("font_disabled_color", get_primary_color())  # Anche quando disabled
 	button.add_theme_stylebox_override("normal", button_style)
 	button.add_theme_stylebox_override("hover", button_style.duplicate())
 	button.add_theme_stylebox_override("pressed", button_style.duplicate())
+	button.add_theme_stylebox_override("disabled", button_style.duplicate())
 
-	# Connetti segnale basato sul nome metodo
-	match method_name:
-		"_pass_time":
-			button.pressed.connect(func(): _pass_time())
-		"_save_game":
-			button.pressed.connect(func(): _save_game())
-		"_load_game":
-			button.pressed.connect(func(): _load_game())
-		"_show_legend_popup":
-			button.pressed.connect(func(): _show_legend_popup())
+	# NESSUNA CONNESSIONE - Solo tastiera permessa (Point 3)
+	# Connetti segnale basato sul nome metodo - COMMENTATO per Point 3
+	# match method_name:
+	#	"_pass_time":
+	#		button.pressed.connect(func(): _pass_time())
+	#	"_save_game":
+	#		button.pressed.connect(func(): _save_game())
+	#	"_load_game":
+	#		button.pressed.connect(func(): _load_game())
+	#	"_show_legend_popup":
+	#		button.pressed.connect(func(): _show_legend_popup())
 
 	return button
+
+# 🎮 POINT 5: Animazione feedback pulsanti quando premuti da tastiera
+func _animate_button_feedback(button_name: String):
+	"""Anima il pulsante corrispondente con highlight temporaneo quando premuto da tastiera."""
+	var target_button: Button = null
+	
+	# Trova il pulsante target
+	match button_name:
+		"up":
+			target_button = button_up
+		"left":
+			target_button = button_left
+		"down":
+			target_button = button_down
+		"right":
+			target_button = button_right
+		"space":
+			target_button = button_space
+	
+	if not target_button:
+		return  # Pulsante non trovato
+	
+	# Crea animazione highlight temporaneo
+	var tween = create_tween()
+	
+	# Colore highlight (più brillante del normale)
+	var highlight_color = get_bright_color()
+	var normal_color = get_primary_color()
+	
+	# Sequenza animazione: normale → highlight → normale
+	tween.tween_method(
+		func(color: Color): target_button.add_theme_color_override("font_disabled_color", color),
+		normal_color,
+		highlight_color,
+		0.1  # 100ms per illuminare
+	)
+	tween.tween_method(
+		func(color: Color): target_button.add_theme_color_override("font_disabled_color", color),
+		highlight_color,
+		normal_color,
+		0.2  # 200ms per tornare normale
+	)
+	
+	# Anima anche il bordo per effetto più visibile
+	var original_style = target_button.get_theme_stylebox("disabled")
+	if original_style:
+		var highlight_style = original_style.duplicate() as StyleBoxFlat
+		highlight_style.border_color = highlight_color
+		
+		# Applica stile highlight temporaneo
+		target_button.add_theme_stylebox_override("disabled", highlight_style)
+		
+		# Ripristina stile normale dopo 300ms
+		tween.tween_callback(func(): 
+			var normal_style = original_style.duplicate() as StyleBoxFlat
+			normal_style.border_color = normal_color
+			target_button.add_theme_stylebox_override("disabled", normal_style)
+		).set_delay(0.3)
 
 func _handle_crafting():
 	"""Gestisce apertura interfaccia crafting."""
@@ -991,62 +1081,52 @@ func _setup_controls_layout():
 	separator1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	controls_container.add_child(separator1)
 
-	# Controlli movimento in griglia
+	# Controlli movimento in griglia - POINT 4: Solo frecce direzionali (WASD rimangono funzionali da tastiera)
+	# Container centrato per la griglia di movimento
+	var movement_container = CenterContainer.new()
 	var movement_grid = GridContainer.new()
 	movement_grid.columns = 3
 
-	# Prima riga: W (↑)
+	# Prima riga: ↑ (solo freccia, WASD funziona comunque da tastiera)
 	movement_grid.add_child(_create_empty_spacer())
-	var btn_w = _create_movement_button("W", Vector2(0, -1))
-	var btn_up = _create_movement_button("↑", Vector2(0, -1))
-	var combined_w = HBoxContainer.new()
-	combined_w.add_child(btn_w)
-	combined_w.add_child(btn_up)
-	movement_grid.add_child(combined_w)
+	button_up = _create_movement_button("↑", Vector2(0, -1))  # POINT 5: Memorizza riferimento
+	movement_grid.add_child(button_up)
 	movement_grid.add_child(_create_empty_spacer())
 
-	# Seconda riga: A (←) SPACE D (→)
-	var btn_a = _create_movement_button("A", Vector2(-1, 0))
-	var btn_left = _create_movement_button("←", Vector2(-1, 0))
-	var combined_a = HBoxContainer.new()
-	combined_a.add_child(btn_a)
-	combined_a.add_child(btn_left)
-	movement_grid.add_child(combined_a)
+	# Seconda riga: ← SPACE → (solo frecce, WASD funziona comunque da tastiera)
+	button_left = _create_movement_button("←", Vector2(-1, 0))  # POINT 5: Memorizza riferimento
+	movement_grid.add_child(button_left)
 
-	var btn_space = _create_special_button("SPC", "_pass_time")
-	movement_grid.add_child(btn_space)
+	button_space = _create_special_button("SPC", "_pass_time")  # POINT 5: Memorizza riferimento
+	movement_grid.add_child(button_space)
 
-	var btn_d = _create_movement_button("D", Vector2(1, 0))
-	var btn_right = _create_movement_button("→", Vector2(1, 0))
-	var combined_d = HBoxContainer.new()
-	combined_d.add_child(btn_d)
-	combined_d.add_child(btn_right)
-	movement_grid.add_child(combined_d)
+	button_right = _create_movement_button("→", Vector2(1, 0))  # POINT 5: Memorizza riferimento
+	movement_grid.add_child(button_right)
 
-	# Terza riga: S (↓)
+	# Terza riga: ↓ (solo freccia, WASD funziona comunque da tastiera)
 	movement_grid.add_child(_create_empty_spacer())
-	var btn_s = _create_movement_button("S", Vector2(0, 1))
-	var btn_down = _create_movement_button("↓", Vector2(0, 1))
-	var combined_s = HBoxContainer.new()
-	combined_s.add_child(btn_s)
-	combined_s.add_child(btn_down)
-	movement_grid.add_child(combined_s)
+	button_down = _create_movement_button("↓", Vector2(0, 1))  # POINT 5: Memorizza riferimento
+	movement_grid.add_child(button_down)
 	movement_grid.add_child(_create_empty_spacer())
 
-	controls_container.add_child(movement_grid)
+	movement_container.add_child(movement_grid)
+	controls_container.add_child(movement_container)
 
-	# Comandi funzioni (incolonnati) - rimossa barra separazione per spazio
+	# Comandi funzioni centrati - POINT 6: Rimosso pulsante L (Leggenda rimane attiva da tastiera)
 	var functions_container = VBoxContainer.new()
+	functions_container.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	var btn_save = _create_special_button("F5 Salva", "_save_game")
 	var btn_load = _create_special_button("F6 Carica", "_load_game")
-	var btn_legend = _create_special_button("L Leggenda", "_show_legend_popup")
+	# var btn_legend = _create_special_button("L Leggenda", "_show_legend_popup")  # POINT 6: RIMOSSO
 
 	functions_container.add_child(btn_save)
 	functions_container.add_child(btn_load)
-	functions_container.add_child(btn_legend)
+	# functions_container.add_child(btn_legend)  # POINT 6: RIMOSSO
 
-	controls_container.add_child(functions_container)
+	var functions_center = CenterContainer.new()
+	functions_center.add_child(functions_container)
+	controls_container.add_child(functions_center)
 
 	controls_panel.add_child(controls_container)
 
@@ -1268,21 +1348,24 @@ func _force_monospace_font_on_label(label: RichTextLabel):
 		label.add_theme_font_size_override("normal_font_size", 16)
 		label.add_theme_font_size_override("bold_font_size", 16)
 
-## Crea pulsante con stile IDENTICO all'interfaccia principale
+## 🎮 POINT 3: Pulsanti popup disabilitati per esperienza keyboard-only autentica
 func _create_crt_button(text: String) -> Button:
 	var button = Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(100, 35)  # Ripristinati valori originali
+	button.disabled = true  # DISABILITATO per Point 3 - keyboard-only experience
 	
-	# Stili IDENTICI ai pannelli
-	button.add_theme_color_override("font_color", get_text_color())
-	button.add_theme_color_override("font_hover_color", get_bright_color())
-	button.add_theme_color_override("font_pressed_color", get_primary_color())
+	# Stili IDENTICI ai pannelli ma disabilitati
+	button.add_theme_color_override("font_color", get_text_color().darkened(0.5))
+	button.add_theme_color_override("font_hover_color", get_bright_color().darkened(0.5))
+	button.add_theme_color_override("font_pressed_color", get_primary_color().darkened(0.5))
+	button.add_theme_color_override("font_disabled_color", get_text_color().darkened(0.5))
 	
-	# Background IDENTICO
+	# Background IDENTICO ma disabilitato
 	button.add_theme_color_override("color", get_background_color())
-	button.add_theme_color_override("color_hover", get_primary_color())
-	button.add_theme_color_override("color_pressed", get_bright_color())
+	button.add_theme_color_override("color_hover", get_primary_color().darkened(0.5))
+	button.add_theme_color_override("color_pressed", get_bright_color().darkened(0.5))
+	button.add_theme_color_override("color_disabled", get_background_color())
 	
 	# Font IDENTICO ai pannelli (Godot 4.5 dev: limitazioni theming note)
 	if ResourceLoader.exists("res://themes/Perfect DOS VGA 437.ttf"):
@@ -1410,55 +1493,55 @@ func _format_popup_content_like_panels(item: Item) -> String:
 	
 	return content
 
-## Crea pulsanti popup con stile CRT minimale
+## 🎮 POINT 3: Pulsanti popup DISABILITATI per esperienza keyboard-only autentica
 func _create_popup_buttons_crt_style(item: Item, popup: AcceptDialog) -> Array:
 	var buttons = []
 	
-	# Pulsanti per cibo/acqua
+	# Pulsanti per cibo/acqua (DISABILITATI - solo keyboard)
 	if item.is_consumable() and (item.type == "food" or item.type == "water"):
 		var use_btn = _create_crt_button("Usa")
-		use_btn.pressed.connect(_popup_use_item_portion.bind(item.id, popup))
+		# use_btn.pressed.connect(_popup_use_item_portion.bind(item.id, popup))  # COMMENTATO per Point 3
 		buttons.append(use_btn)
 		
 		var throw_btn = _create_crt_button("Getta")
-		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		# throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))  # COMMENTATO per Point 3
 		buttons.append(throw_btn)
 	
-	# Pulsanti per armi/armature
+	# Pulsanti per armi/armature (DISABILITATI - solo keyboard)
 	elif item.is_weapon() or item.is_armor():
 		var is_equipped = _is_item_equipped(item.id)
 		
 		if is_equipped:
 			var unequip_btn = _create_crt_button("Rimuovi")
-			unequip_btn.pressed.connect(_popup_unequip_item.bind(item.id, popup))
+			# unequip_btn.pressed.connect(_popup_unequip_item.bind(item.id, popup))  # COMMENTATO per Point 3
 			buttons.append(unequip_btn)
 		else:
 			var equip_btn = _create_crt_button("Equipaggia")
-			equip_btn.pressed.connect(_popup_equip_item.bind(item.id, popup))
+			# equip_btn.pressed.connect(_popup_equip_item.bind(item.id, popup))  # COMMENTATO per Point 3
 			buttons.append(equip_btn)
 		
 		if item.has_durability() and item.current_durability < item.max_durability:
 			var repair_btn = _create_crt_button("Ripara")
-			repair_btn.pressed.connect(_popup_repair_item.bind(item.id, popup))
+			# repair_btn.pressed.connect(_popup_repair_item.bind(item.id, popup))  # COMMENTATO per Point 3
 			buttons.append(repair_btn)
 		
 		var throw_btn = _create_crt_button("Getta")
-		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		# throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))  # COMMENTATO per Point 3
 		buttons.append(throw_btn)
 	
-	# Pulsanti per medicine
+	# Pulsanti per medicine (DISABILITATI - solo keyboard)
 	elif item.type == "medicine":
 		var use_btn = _create_crt_button("Usa")
-		use_btn.pressed.connect(_popup_use_item_single.bind(item.id, popup))
+		# use_btn.pressed.connect(_popup_use_item_single.bind(item.id, popup))  # COMMENTATO per Point 3
 		buttons.append(use_btn)
 		
 		var throw_btn = _create_crt_button("Getta")
-		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		# throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))  # COMMENTATO per Point 3
 		buttons.append(throw_btn)
 	
-	# Pulsante chiudi sempre presente
+	# Pulsante chiudi sempre presente (DISABILITATO - solo keyboard)
 	var close_btn = _create_crt_button("Chiudi")
-	close_btn.pressed.connect(popup.queue_free)
+	# close_btn.pressed.connect(popup.queue_free)  # COMMENTATO per Point 3
 	buttons.append(close_btn)
 	
 	return buttons

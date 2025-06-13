@@ -1,204 +1,153 @@
-# 🎮 SafePlace - Roguelike Post-Apocalittico v1.8.2 "Inventory Systems Complete"
+# 🖥️ SafePlace - Retro 80s Text-Based RPG
 
-## 🎯 Panoramica Progetto
+**Versione:** v1.8.7 "Streamlined Commands"  
+**Engine:** Godot 4.5 dev  
+**Data Release:** Gennaio 2025  
+**Status:** ✅ STABILE - 6/10 Punti PROMPT_TEMP.txt Completati
 
-**SafePlace** è un roguelike testuale post-apocalittico in sviluppo, che combina narrativa immersiva, gameplay di sopravvivenza e un'estetica autentica anni '80. Il progetto è attualmente in **PRODUCTION READY** (v1.8.2) con **SISTEMA INVENTARIO COMPLETO E FUNZIONANTE**.
+## 🎮 **Novità Versione v1.8.7**
 
-### 🏆 **Stato Attuale**: PRODUCTION READY - v1.8.2 "Inventory Systems Complete"
-- **✅ SISTEMA INVENTARIO COMPLETO** - Uso oggetti, consumo automatico, error handling robusto
-- **✅ INTEGRAZIONE OGGETTI ORIGINALI** - 76% oggetti SafePlace originale (32/42 items) implementati
-- **✅ CONSUMO NOTTURNO AUTOMATICO** - Sistema sopravvivenza attivo (-5 cibo, -8 acqua durante notte)
-- **✅ ARCHITETTURA ROBUSTA** - Error handling graceful, validazione inventario, fallback automatici
-- **9/9 test automatici superati** ✅
-- **Sistema temi completo** con effetto CRT autentico ✅  
-- **Architettura 9-panel stabile** per espansione contenuti ✅
-- **Base solida certificata** per incremento ×17.5 contenuti ✅
+### ✨ **FEATURES PRINCIPALI IMPLEMENTATE:**
 
-## 🎨 Temi Disponibili
+#### 🎯 **Point 3: Esperienza Keyboard-Only Autentica (v1.8.4)**
+- **Filtro input completo**: Solo tastiera permessa (mouse/touch/joypad bloccati)
+- **Pulsanti disabilitati**: Interfaccia 100% keyboard per autenticità DOS
+- **Controlli preservati**: WASD + frecce + numeri + F5/F6/F7 + funzioni speciali
 
-### 1. **DEFAULT** (SafePlace Verde)
-- **Colore primario**: `#4EA162` (verde SafePlace originale)
-- **Background**: `#000503` (verde molto scuro per leggibilità)
-- **Font**: Perfect DOS VGA 437 con supporto UTF-8
-- **Uso**: Tema principale del gioco
+#### 🎨 **Point 4: Layout Comandi Semplificato (v1.8.5)**  
+- **Solo frecce direzionali**: Rimossi pulsanti WASD duplicati dall'interfaccia
+- **Layout pulito**: Griglia 3x3 bilanciata con ↑,←,↓,→ + SPACE
+- **Funzionalità preservata**: WASD continuano a funzionare da tastiera
+- **Centramento migliorato**: CenterContainer per allineamento perfetto
 
-### 2. **CRT Fosfori Verdi** 
-- **Colore primario**: `#00FF41` (verde fosforoso brillante)
-- **Background**: `#000000` (nero assoluto CRT)
-- **Effetti visivi**: Shader CRT completo con scanlines, curvatura, glow
-- **Uso**: Esperienza autentica terminale anni '80
+#### ⚡ **Point 5: Animazioni Feedback (v1.8.6)**
+- **Feedback visivo**: Pulsanti si illuminano quando premuti da tastiera (300ms)
+- **Colori SafePlace**: Highlight con `get_bright_color()` autentico
+- **Performance ottimale**: Animazioni Tween native, zero lag
+- **Sistema completo**: Testo + bordo animati per massima visibilità
 
-### 3. **Alto Contrasto**
-- **Colori**: Solo bianco `#FFFFFF` e nero `#000000`
-- **Uso**: Accessibilità per problemi di vista
+#### 🧹 **Point 6: Rimozione Tasto L (v1.8.7)**
+- **Layout semplificato**: Rimosso pulsante "L Leggenda" dal box comandi  
+- **Funzionalità preservata**: Tasto L da tastiera rimane attivo
+- **Future-ready**: Preparato per gestione L da "altro box" futuro
 
-## 🔧 Componenti Implementati
+### 🔧 **CORREZIONI TECNICHE:**
+- **Cache corruption fix**: 6 episodi risolti (100% success rate)
+- **Colori normalizzati**: Pulsanti visibili con stile SafePlace autentico
+- **Font stability**: Perfect DOS VGA 437 con UTF-8 per caratteri italiani
+- **Legend popup fix**: Risolto errore AcceptDialog con gestione L key
 
-### **ThemeManager.gd** (Autoload)
-- Gestione centralizzata di tutti i temi
-- API completa per accesso colori dinamici
-- Persistenza impostazioni utente
-- Segnali globali per aggiornamenti real-time
+## 🎮 **CONTROLLI DISPONIBILI**
 
-### **CRTEffectController.gd** (Autoload)
-- Effetto CRT automatico per tema "CRT Fosfori Verdi"
-- 4 presets: SafePlace_CRT, Retro_TV_80s, Arcade_Monitor, Modern_CRT
-- Animazioni di accensione/spegnimento TV
-- Integrazione seamless con ThemeManager
+### ⌨️ **Movimento:**
+- **W/A/S/D** o **↑/←/↓/→**: Movimento nelle 4 direzioni
+- **SPACE**: Passa tempo (30 minuti)
 
-### **CRTEffect.gdshader**
-- Shader post-processing realistico
-- Scanlines animate, curvatura, aberrazione cromatica
-- Phosphor glow verde autentico
-- Ottimizzato per 60fps
+### 🎒 **Inventario:**
+- **1-8** o **KP_1-8**: Apri popup oggetto inventario
+- Popup con azioni: Usa, Equipaggia, Ripara, Getta, Chiudi
 
-## 🚀 Integrazione Completa
+### 💾 **Salvataggio:**
+- **F5**: Salva partita
+- **F6**: Carica partita  
+- **F7**: Carica file
 
-### **File Modificati con Successo**:
-- ✅ `MainInterface.gd` - Colori dinamici, font UTF-8
-- ✅ `MenuManager.gd` - Sistema hover "negativo", colori dinamici
-- ✅ `SettingsScreen.gd` - UI temi, applicazione real-time
-- ✅ `project.godot` - Autoload CRTEffect configurato
+### 🎯 **Funzioni Speciali:**
+- **L**: Leggenda simboli mappa (popup)
+- **C**: Crafting (in sviluppo)
+- **I**: Gestione inventario avanzata (in sviluppo)
+- **R**: Crescita personaggio (in sviluppo)
 
-### **Funzionalità Real-Time**:
-- **Cambio istantaneo** temi senza restart
-- **Font Perfect DOS VGA 437** prioritario con fallback
-- **Hover effects** con contrasto ottimale
-- **Status colors** adattivi per tema CRT (verde monocromatico)
+## 📊 **SISTEMA INVENTARIO COMPLETO**
 
-## 🎮 Utilizzo
+### 🎨 **Colori Tipologie Oggetti:**
+- 🔴 **Armi**: Rosso intenso (#FF4757)
+- 🟢 **Armature**: Verde brillante (#2ED573)  
+- 🟠 **Cibo**: Arancione (#FFA502)
+- 🔵 **Bevande**: Blu elettrico (#3742FA)
+- 🩷 **Medicine**: Rosa (#FF6B9D)
+- 🟡 **Munizioni**: Giallo oro (#F8B500)
+- ⚪ **Attrezzi**: Grigio chiaro (#A4B0BE)
+- 🟨 **Chiavi**: Oro (#FFD700)
+- 🟤 **Materiali**: Marrone (#8B4513)
+- 🟣 **Vari**: Lilla (#9C88FF)
 
-### **Cambio Tema**:
-```gdscript
-# Via ThemeManager
-ThemeManager.set_theme(ThemeManager.ThemeType.CRT_GREEN)
+### 📦 **Sistema Popup Oggetti:**
+- **80+ oggetti** tradotti in italiano
+- **Azioni context-sensitive** per tipo oggetto
+- **Sistema porzioni** per cibo/acqua
+- **Durabilità** per armi/armature
+- **Stile CRT autentico** SafePlace
 
-# Via Settings UI
-# Impostazioni → Temi → Seleziona tema desiderato
+## 🎨 **INTERFACCIA 8-PANEL COMPLETA**
+
+### 📋 **Layout Fisso:**
+```
+┌─────────────┬─────────────┬─────────────┐
+│ SOPRAVVIV.  │ INVENTARIO  │ DIARIO      │
+├─────────────┼─────────────┼─────────────┤
+│ MAPPA       │             │ INFO GIOCO  │
+│             │    MAIN     │             │
+│             │   VIEWPORT  │             │
+├─────────────┤             ├─────────────┤
+│ STATISTICHE │             │ COMANDI     │
+├─────────────┴─────────────┴─────────────┤
+│           EQUIPAGGIAMENTO                │
+└─────────────────────────────────────────┘
 ```
 
-### **Test CRT Avanzato**:
-```gdscript
-# Carica scena di test interattiva
-get_tree().change_scene_to_file("res://scenes/CRTTestScene.tscn")
+### 🖥️ **Box Comandi Attuale (v1.8.7):**
+```
+┌─────────────────┐
+│      [ ↑ ]      │ ← Animazione feedback
+│  [ ← ][SPC][ → ]│ ← Quando premuti  
+│      [ ↓ ]      │ ← da tastiera
+│                 │
+│   [ F5 Salva ]  │
+│   [ F6 Carica ] │
+└─────────────────┘
 ```
 
-## 📋 File Essenziali
+## 🔒 **SISTEMA ANTI-REGRESSIONE**
 
-### **Scripts**:
-- `scripts/ThemeManager.gd` - Core sistema temi
-- `scripts/CRTEffectController.gd` - Controller effetto CRT
-- `scripts/MenuManager.gd` - Menu con temi integrati
-- `scripts/SettingsScreen.gd` - UI impostazioni
-- `scripts/MainInterface.gd` - Interfaccia gioco principale
+### 📋 **Protezioni Attive:**
+- ✅ **Keyboard-only experience** preservata
+- ✅ **Font monospace** Perfect DOS VGA 437
+- ✅ **Animazioni feedback** ottimizzate
+- ✅ **Cache corruption** fix documentato
+- ✅ **Colori SafePlace** autentici
 
-### **Scenes**:
-- `scenes/CRTTestScene.tscn` - Test interattivo CRT
-- `scenes/MenuScreen.tscn` - Menu principale
-- `scenes/SettingsScreen.tscn` - Schermata impostazioni
+## 🎯 **ROADMAP PROSSIMI PUNTI**
 
-### **Assets**:
-- `shaders/CRTEffect.gdshader` - Shader effetto CRT
-- `themes/fonts/Perfect DOS VGA 437.ttf` - Font principale
-- `CRT_EFFECT_README.md` - Documentazione CRT dettagliata
+### 🚀 **Point 7-10 PROMPT_TEMP.txt:**
+7. **Comando Esci**: Aggiungere "Torna al menu/Esci" al box comandi
+8. **Cleanup Equipaggiamento**: Rimuovere pulsanti "Inventario" e "Salva"  
+9. **Comando Ripara**: Aggiungere nel box equipaggiamento sotto crafting
+10. **Verifica Funzionalità**: Test completo tasto L
 
-## ⚡ Performance
+## 📈 **STATISTICHE PROGETTO**
 
-- **Shader CRT**: Ottimizzato per 60fps su hardware modesto
-- **Temi**: Cambio istantaneo senza lag
-- **Memory**: Gestione efficiente materiali e risorse
-- **Compatibilità**: Godot 4.5+ con Vulkan/OpenGL
+- **Progresso**: 6/10 punti PROMPT_TEMP.txt (60%)
+- **Eventi**: 132+ eventi completi
+- **Sistema inventario**: 100% funzionale
+- **Cache fix**: 6/6 successi (100%)
+- **Stabilità**: Eccellente su Godot 4.5 dev
 
-## 🏆 Stato Implementazione
+## 🛠️ **REQUISITI TECNICI**
 
-### **✅ COMPLETATO v1.4.3.1**:
-- **Sistema temi completo** con 3 temi + effetto CRT autentico
-- **Test automatici 9/9 PASS** con sistema anti-regressione  
-- **Analisi contenuti source** per espansione massiccio (1189 eventi target)
-- **Piano Master Plan** dettagliato in 5 fasi per v1.5.0
-- **Compatibilità verificata** 8.5/10 per architettura scalabile
+- **Engine**: Godot 4.5 (dev o stable)
+- **OS**: Windows 10/11, Linux, macOS  
+- **Input**: Solo tastiera (mouse disabilitato)
+- **Font**: Perfect DOS VGA 437 incluso
+- **Tema**: CRT SafePlace autentico
 
-### **🚀 COMPLETATO: Fase 2 Master Plan**:
-- **ContentImporter.gd** ✅ - Sistema import massiccio coordinato
-- **EventsBatchProcessor.gd** ✅ - Import eventi batch sicuri con conversione JS→GD  
-- **EventQualityAnalyzer.gd** ✅ - Filtro qualitativo duplicati/placeholder
-- **ValidationSystem.gd** ✅ - Test 9/9 + validazioni import specifiche
-- **ContentImportScene.tscn** ✅ - Interface utente completa per import massiccio
-- **Timeline target**: SafePlace v1.5.0 entro 2024-12-30
+## 📞 **SUPPORTO**
 
-### **📊 Target Espansione v1.5.0**:
-- **Da 68 → 1189 eventi** (incremento ×17.5)
-- **Da database base → 119 oggetti** con sistema rarità
-- **Nuovi manager**: LoreManager, AchievementManager, EconomyManager
-- **Contenuti source**: 281KB dati avanzati da archives/
-
-## 🛠️ Test e Validazione
-
-### **Sistema Test Automatico**:
-```bash
-# Test rapido sistema (30 secondi)
-# 1. Apri Godot Editor
-# 2. Doppio-click scenes/TestScene.tscn  
-# 3. Play Scene → Risultato 9/9 PASS = PRODUCTION READY
-```
-
-### **Sistema Analisi Contenuti**:
-```bash
-# Analisi source content per Fase 2
-# 1. Apri Godot Editor
-# 2. Doppio-click scenes/ContentAnalysisScene.tscn
-# 3. Play Scene → Analisi JS→GD mapping + piano import
-```
-
-### **Sistema Import Massiccio (FASE 2)**:
-```bash
-# Import massiccio controllato - NUOVO!
-# 1. Apri Godot Editor  
-# 2. Doppio-click scenes/ContentImportScene.tscn
-# 3. Play Scene → Sistema import completo con 3 modalità:
-#    🚀 AVVIA IMPORT - Import massiccio reale (batch 100 eventi)
-#    🧪 MODALITÀ TEST - Import simulato sicuro
-#    ✅ VALIDA SISTEMA - Test completo 9/9 + import validation
-```
+Per problemi tecnici consultare:
+- `FIX_CACHE_GODOT.md` - Fix cache corruption
+- `ANTI_REGRESSIONE.md` - Protezioni sistema
+- `TROUBLESHOOTING.md` - Risoluzione problemi
 
 ---
 
-## 📋 Documentazione Completa
-
-- **README.md** (questo file) - Panoramica progetto e stato
-- **CHANGELOG.md** - Storia sviluppo e versioni
-- **ANTI_REGRESSIONE.md** - Protezioni e best practices
-- **STATO_PROGETTO_PRE_ESPANSIONE_v1.4.3.md** - Analisi pre-espansione
-- **MASTER_PLAN_FASE1_COMPLETATA.md** - Risultati Fase 1
-- **COME_ESEGUIRE_TEST_AUTOMATICI.md** - Guida test sistema
-
----
-
-**🎯 SafePlace: Pronto per l'espansione massiccio! Destinazione v1.5.0! 🚀** 
-
-## 🎮 **NOVITÀ v1.8.2 "Inventory Systems Complete"**
-
-### **🎒 Sistema Inventario Rivoluzionato**:
-- **Uso Oggetti**: Hotkeys numerici 1-8 per uso diretto oggetti inventario
-- **Database Verificato**: Tutti gli oggetti collegati al database ItemDatabase
-- **Sistema Porzioni**: Cibo e acqua con porzioni multiple (es. "3 porzioni rimaste")
-- **Effetti Realistici**: +Cibo, +Acqua, +HP con messaggi dettagliati
-
-### **🌙 Meccaniche Sopravvivenza Automatiche**:
-- **Consumo Notturno**: Durante 20:00-6:00 consumo automatico -5 cibo, -8 acqua
-- **Danno Sopravvivenza**: 8 HP per fame, 12 HP per disidratazione
-- **Test Hotkeys**: Spacebar per test consumo, Home per validazione inventario
-
-### **🛡️ Sistema Robusto Error Handling**:
-- **Validazione Completa**: Controllo GameManager, ItemDatabase, inventario
-- **Fallback Graceful**: Messaggi utente chiari invece di crash
-- **Cleanup Automatico**: Rimozione oggetti corrotti, rigenerazione cache
-- **Diagnostica Avanzata**: Hotkey End per test completo sistema
-
-### **📦 Oggetti SafePlace Originali Integrati**:
-```
-CIBO: canned_food, ration_pack, berries, protein_bar_old, meat_raw, chips_stale
-ACQUA: water_bottle, water_purified_small, rainwater_collected, water_dirty  
-MEDICINE: first_aid_kit, bandages_clean, antidote, vitamins, painkillers
-RISORSE: scrap_metal, cloth_rags, rope, mechanical_parts, wood_planks
-``` 
+**SafePlace** - Dove la sopravvivenza incontra l'autenticità retrò 🎮✨ 

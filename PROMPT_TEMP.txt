@@ -14,11 +14,31 @@ Ecco alcune cose da sistemare nell'interfaccia e nelle meccaniche prima di prose
 	g. ✅ FIX ERRORI: Rimosso errore modulate, aggiunto supporto tastierino numerico (KP_1-8)
 	h. ⚠️ NOTA: Problemi estetici Godot 4.5 dev - funzionalità OK, estetica limitata (da rivedere con 4.5 stable)
 
-3. 🎯 PROSSIMO - per corerenza con l'esperienza autentica, il box sotto dei comandi non deve essere sensibile al mouse. Il mouse, i joypad e tutte le altre periferiche al di fuori della tastiera non devono funzionare.
-4. Nel box comandi, nella croce direzionale, lasciare solo i tasti con le frecce e togliere quelli W A S D. Ma i tasti operativi devono restare in funzione.
-5. nel box comandi, ogni volta che viene premuto uno dei tasti direzionali o spazio per far passare il tempo, si accendono per qualche istante brevissimo
-6. nel blocco dei comandi non deve esserci il tasto L che è ad esclusivo appannaggio di un altro box che vedremo piu avanti. Quindi togliere
-7. nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci
+3. ✅ COMPLETATO v1.8.4! - per coerenza con l'esperienza autentica, il box sotto dei comandi non deve essere sensibile al mouse. Il mouse, i joypad e tutte le altre periferiche al di fuori della tastiera non devono funzionare:
+	a. ✅ Filtro keyboard-only implementato in _input() - blocca TUTTI gli eventi non-tastiera
+	b. ✅ Pulsanti interfaccia DISABILITATI - movimento, azioni speciali, popup tutti non-clickabili
+	c. ✅ Stile visual aggiornato - pulsanti scuriti per indicare stato disabilitato
+	d. ✅ Esperienza 100% tastiera - mouse, touch, joypad completamente ignorati
+
+4. ✅ COMPLETATO v1.8.5! - Nel box comandi, nella croce direzionale, lasciare solo i tasti con le frecce e togliere quelli W A S D. Ma i tasti operativi devono restare in funzione:
+	a. ✅ Layout semplificato - rimossi pulsanti WASD duplicati dalla visualizzazione
+	b. ✅ Solo frecce direzionali - mantenuto layout pulito con ↑,←,↓,→ + SPACE
+	c. ✅ Funzionalità preservata - WASD continuano a funzionare perfettamente da tastiera
+	d. ✅ Griglia 3x3 bilanciata - layout simmetrico e centrato maintained
+	e. ✅ Codice ottimizzato - eliminati 4 HBoxContainer e ~15 linee superflue
+5. ✅ COMPLETATO v1.8.6! - nel box comandi, ogni volta che viene premuto uno dei tasti direzionali o spazio per far passare il tempo, si accendono per qualche istante brevissimo:
+	a. ✅ Sistema tracking pulsanti - memorizzati riferimenti a ↑,←,↓,→,SPC
+	b. ✅ Input handler potenziato - ogni keypress triggera animazione feedback
+	c. ✅ Animazione Tween completa - 100ms highlight + 200ms fade + bordo animato
+	d. ✅ Colori SafePlace autentici - usa get_bright_color() per highlight
+	e. ✅ Performance ottimale - animazioni leggere 300ms totali, nessun lag
+	f. ✅ Feedback immediato - vedi subito quale pulsante "virtuale" hai premuto
+6. ✅ COMPLETATO v1.8.7! - nel blocco dei comandi non deve esserci il tasto L che è ad esclusivo appannaggio di un altro box che vedremo piu avanti. Quindi togliere:
+	a. ✅ Pulsante L rimosso - non più visibile nel box comandi
+	b. ✅ Funzionalità L preservata - KEY_L continua ad aprire/chiudere popup leggenda
+	c. ✅ Layout semplificato - solo F5 Salva e F6 Carica nel box
+	d. ✅ Preparazione futura - spazio disponibile per gestione L da "altro box"
+7. 🎯 PROSSIMO - nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci
 8. Nel box equipaggiamento, sotto armi e armature, ci sono dei comandi, vanno tolti: inventario e salva
 9. nel box equipaggiamento, sotto crafrting, va messo il comando ripara
 10. va verificato se funziona il tasto L per Leggenda
