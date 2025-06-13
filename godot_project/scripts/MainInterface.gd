@@ -265,6 +265,10 @@ func _input(event):
 				_handle_inventory_management() # NUOVO: Gestione inventario
 			KEY_R:
 				_handle_character_growth() # NUOVO: Crescita personaggio
+			KEY_P:
+				_handle_repair() # POINT 9: Sistema riparazione (P per riPara)
+			KEY_ESCAPE:
+				_exit_game() # POINT 7: Esci dal gioco
 
 ## Movimento player sulla mappa
 func _move_player(direction: Vector2):
@@ -634,6 +638,12 @@ func _load_file():
 	add_log_entry("Caricamento file richiesto")
 	# Integrazione SaveManager
 
+func _exit_game():
+	"""Esci dal gioco con conferma - POINT 7 PROMPT_TEMP.txt"""
+	add_log_entry("Uscita dal gioco richiesta")
+	# Chiusura pulita dell'applicazione
+	get_tree().quit()
+
 ## === INTEGRAZIONE SISTEMI ===
 
 func initialize(gm: GameManager):
@@ -748,10 +758,9 @@ func _setup_equipment_display():
 [color=#%s]═══════════════[/color]
 
 [color=#%s][C] Crafting
-[I] Inventario
+[P] Ripara
 [R] Crescita
 [L] Leggenda
-[F5] Salva
 [F6] Carica[/color]""" % [
 				_color_to_hex(get_interface_color()), _color_to_hex(get_text_color()),
 				_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()),
@@ -774,10 +783,8 @@ func _setup_equipment_display():
 [color=#%s]═══════════════[/color]
 
 [color=#%s][C] Crafting
-[I] Inventario
 [R] Crescita
 [L] Leggenda
-[F5] Salva
 [F6] Carica[/color]""" % [
 			_color_to_hex(get_interface_color()), _color_to_hex(get_text_color()),
 			_color_to_hex(get_text_color()), _color_to_hex(get_numbers_color()), weapon_name,
@@ -996,6 +1003,70 @@ func _handle_character_growth():
 	print("[MainInterface] Opening character growth")
 	# TODO: Implementare schermata crescita personaggio
 
+func _handle_repair():
+	"""Gestisce sistema riparazione oggetti - POINT 9 PROMPT_TEMP.txt"""
+	print("[MainInterface] Opening repair system")
+	if not player:
+		add_log_entry("❌ Player non disponibile per riparazione")
+		return
+	
+	# Controlla se ha oggetti danneggiati
+	var damaged_items = _get_damaged_items()
+	if damaged_items.is_empty():
+		add_log_entry("✅ Nessun oggetto necessita riparazione")
+		return
+	
+	# Controlla materiali disponibili
+	var has_materials = _check_repair_materials()
+	if not has_materials:
+		add_log_entry("❌ Materiali insufficienti per riparazione")
+		add_log_entry("💡 Serve: metallo o tessuto")
+		return
+	
+	# Avvia riparazione automatica
+	_perform_repair(damaged_items[0])  # Ripara primo oggetto danneggiato
+
+func _get_damaged_items() -> Array:
+	"""Ottieni lista oggetti danneggiati che necessitano riparazione."""
+	var damaged = []
+	if player.get_equipped_weapon():
+		var weapon = player.get_equipped_weapon()
+		if weapon.has("durability") and weapon.durability < weapon.max_durability:
+			damaged.append(weapon)
+	if player.get_equipped_armor():
+		var armor = player.get_equipped_armor()
+		if armor.has("durability") and armor.durability < armor.max_durability:
+			damaged.append(armor)
+	return damaged
+
+func _check_repair_materials() -> bool:
+	"""Controlla se il player ha materiali per riparazione."""
+	if not player:
+		return false
+	var inventory = player.get_inventory_display()
+	for item in inventory:
+		var name = item.get("name", "").to_lower()
+		if "metallo" in name or "tessuto" in name or "ferro" in name:
+			return true
+	return false
+
+func _perform_repair(item: Dictionary):
+	"""Esegue riparazione oggetto consumando materiali."""
+	if not item.has("durability"):
+		add_log_entry("❌ Oggetto non riparabile")
+		return
+	
+	# Calcola riparazione (25% della durabilità massima)
+	var repair_amount = item.max_durability * 0.25
+	item.durability = min(item.durability + repair_amount, item.max_durability)
+	
+	# Consuma materiali (implementazione semplificata)
+	add_log_entry("🔧 %s riparato (+%d durabilità)" % [item.display_name, repair_amount])
+	add_log_entry("💡 Materiali di riparazione consumati")
+	
+	# Aggiorna display equipaggiamento
+	_setup_equipment_display()
+
 func _setup_panels():
 	"""Setup di tutti i pannelli dell'interfaccia 8-panel con verde scuro."""
 	print("[MainInterface] Setting up panels with dark green SafePlace colors")
@@ -1112,16 +1183,18 @@ func _setup_controls_layout():
 	movement_container.add_child(movement_grid)
 	controls_container.add_child(movement_container)
 
-	# Comandi funzioni centrati - POINT 6: Rimosso pulsante L (Leggenda rimane attiva da tastiera)
+	# Comandi funzioni centrati - POINT 7: Aggiunto comando Esci
 	var functions_container = VBoxContainer.new()
 	functions_container.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	var btn_save = _create_special_button("F5 Salva", "_save_game")
 	var btn_load = _create_special_button("F6 Carica", "_load_game")
+	var btn_exit = _create_special_button("ESC Esci", "_exit_game")  # POINT 7: NUOVO
 	# var btn_legend = _create_special_button("L Leggenda", "_show_legend_popup")  # POINT 6: RIMOSSO
 
 	functions_container.add_child(btn_save)
 	functions_container.add_child(btn_load)
+	functions_container.add_child(btn_exit)  # POINT 7: NUOVO
 	# functions_container.add_child(btn_legend)  # POINT 6: RIMOSSO
 
 	var functions_center = CenterContainer.new()

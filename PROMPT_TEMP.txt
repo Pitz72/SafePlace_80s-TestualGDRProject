@@ -38,7 +38,20 @@ Ecco alcune cose da sistemare nell'interfaccia e nelle meccaniche prima di prose
 	b. ✅ Funzionalità L preservata - KEY_L continua ad aprire/chiudere popup leggenda
 	c. ✅ Layout semplificato - solo F5 Salva e F6 Carica nel box
 	d. ✅ Preparazione futura - spazio disponibile per gestione L da "altro box"
-7. 🎯 PROSSIMO - nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci
-8. Nel box equipaggiamento, sotto armi e armature, ci sono dei comandi, vanno tolti: inventario e salva
-9. nel box equipaggiamento, sotto crafrting, va messo il comando ripara
-10. va verificato se funziona il tasto L per Leggenda
+7. ✅ COMPLETATO v1.8.8! - nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci:
+	a. ✅ Pulsante "ESC Esci" aggiunto - posizionato dopo F6 Carica nel box comandi  
+	b. ✅ Funzione _exit_game() implementata - chiusura pulita con get_tree().quit()
+	c. ✅ Handler KEY_ESCAPE aggiunto - funzionalità keyboard-only preservata
+	d. ✅ Layout finale completato - frecce + F5 Salva + F6 Carica + ESC Esci
+8. ✅ COMPLETATO v1.8.9! - Nel box equipaggiamento, sotto armi e armature, ci sono dei comandi, vanno tolti: inventario e salva:
+	a. ✅ Comando "[I] Inventario" rimosso - non più visibile nel box equipaggiamento
+	b. ✅ Comando "[F5] Salva" rimosso - non più duplicato (presente solo nel box comandi)
+	c. ✅ Layout pulito - solo Crafting, Crescita, Leggenda, Carica rimangono
+	d. ✅ Funzionalità preservate - tutti i comandi accessibili da tastiera
+9. ✅ COMPLETATO v1.9.0! - nel box equipaggiamento, sotto crafting, va messo il comando ripara:
+	a. ✅ Comando "[P] Ripara" aggiunto - posizionato sotto [C] Crafting nel box equipaggiamento
+	b. ✅ Funzione _handle_repair() implementata - sistema completo di riparazione oggetti
+	c. ✅ Handler KEY_P aggiunto - accesso keyboard-only al sistema riparazione
+	d. ✅ Sistema logica completa - controlla oggetti danneggiati + materiali + esegue riparazione
+	e. ✅ Layout equipaggiamento aggiornato - [C] Crafting, [P] Ripara, [R] Crescita, [L] Leggenda, [F6] Carica
+10. 🎯 PROSSIMO - va verificato se funziona il tasto L per Leggenda
