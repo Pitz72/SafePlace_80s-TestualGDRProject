@@ -1059,8 +1059,93 @@ func get_inventory_display() -> Array[Dictionary]:
 	return display_array
 
 func _get_item_display_name(item_id: String) -> String:
-	"""Converte l'ID oggetto in nome visualizzabile SafePlace style"""
+	"""Converte l'ID oggetto in nome visualizzabile SafePlace style - ESTESO v1.8.3"""
 	var name_mapping = {
+		# CIBO - Traduzione completa italiana
+		"canned_food": "Cibo in Scatola",
+		"ration_pack": "Razione K",
+		"mre_pack": "Razione MRE",
+		"berries": "Bacche Comuni",
+		"berries_suspicious": "Bacche Sospette",
+		"chocolate_bar": "Barretta Cioccolato",
+		"protein_bar_old": "Barretta Proteica Vecchia",
+		"prewar_dry_biscuits": "Biscotti Secchi Prebellici",
+		"canned_beans": "Fagioli in Scatola",
+		"meat_raw": "Carne Cruda",
+		"meat_cooked": "Carne Cotta",
+		"chips_stale": "Patatine Stantie",
+		"dried_fruit": "Frutta Secca",
+		
+		# ACQUA - Traduzione completa italiana
+		"water_bottle": "Bottiglia Acqua",
+		"water_purified_small": "Acqua Purificata",
+		"water_purified": "Acqua Pura",
+		"water_contaminated": "Acqua Contaminata",
+		"water_dirty": "Acqua Sporca",
+		"rainwater_collected": "Acqua Piovana",
+		"river_water": "Acqua di Fiume",
+		"herbal_tea_crude": "Tè Grezzo",
+		"soda_flat": "Soda Sgasata",
+		"energy_drink_old": "Energy Drink Vecchio",
+		
+		# MEDICINE - Traduzione completa italiana
+		"first_aid_kit": "Kit Pronto Soccorso",
+		"bandages_clean": "Bende Pulite",
+		"bandages_dirty": "Bende Sporche",
+		"antidote": "Antidoto",
+		"vitamins": "Vitamine",
+		"painkillers": "Antidolorifici",
+		"medicine_generic": "Medicina Generica",
+		"health_potion": "Pozione Cura",
+		
+		# RISORSE - Traduzione completa italiana  
+		"scrap_metal": "Metallo Rottame",
+		"cloth_rags": "Stracci di Stoffa",
+		"rope": "Corda",
+		"mechanical_parts": "Parti Meccaniche",
+		"wood_planks": "Assi di Legno",
+		"plastic_sheets": "Fogli Plastica",
+		"electronic_parts": "Parti Elettroniche",
+		"glass_shards": "Frammenti Vetro",
+		
+		# ARMI - Traduzione italiana
+		"knife_rusty": "Coltello Arrugginito",
+		"pistol_old": "Pistola Vecchia",
+		"rifle_hunting": "Fucile da Caccia",
+		"axe_fire": "Ascia da Pompiere",
+		"crowbar": "Piede di Porco",
+		"machete": "Machete",
+		"baseball_bat": "Mazza da Baseball",
+		
+		# ARMATURE - Traduzione italiana
+		"vest_tactical": "Giubbotto Tattico",
+		"helmet_military": "Casco Militare",
+		"boots_combat": "Stivali da Combattimento",
+		"gloves_work": "Guanti da Lavoro",
+		"jacket_leather": "Giacca di Pelle",
+		
+		# MUNIZIONI - Traduzione italiana
+		"ammo_9mm": "Munizioni 9mm",
+		"ammo_rifle": "Munizioni Fucile",
+		"ammo_shotgun": "Cartucce Fucile",
+		"bullets_handmade": "Proiettili Artigianali",
+		
+		# ATTREZZI - Traduzione italiana
+		"hammer": "Martello",
+		"screwdriver": "Cacciavite",
+		"wrench": "Chiave Inglese",
+		"saw": "Sega",
+		"drill_hand": "Trapano a Mano",
+		"wire_cutters": "Tronchesi",
+		
+		# OGGETTI SPECIALI - Traduzione italiana
+		"key_master": "Chiave Principale",
+		"keycard_security": "Tessera Sicurezza",
+		"battery_car": "Batteria Auto",
+		"fuel_canister": "Tanica Carburante",
+		"radio_portable": "Radio Portatile",
+		
+		# LEGACY COMPATIBILITY
 		"bende_sporche": "Bende Sporche",
 		"acqua_bottiglia": "Bott. Acqua G.",
 		"cibo_scatola": "Cibo in Scatola",
@@ -1069,9 +1154,7 @@ func _get_item_display_name(item_id: String) -> String:
 		"stracci_stoffa": "Stracci di Stoffa",
 		"carbone": "Carbone",
 		"latta_cibo": "Lattina Cibo",
-		"health_potion": "Pozione Cura",
-		"food_can": "Cibo in Scatola",
-		"water_bottle": "Bottiglia Acqua"
+		"food_can": "Cibo in Scatola"
 	}
 
 	return name_mapping.get(item_id, item_id.capitalize().replace("_", " "))

@@ -213,22 +213,22 @@ func _input(event):
 			KEY_SPACE:
 				_pass_time()
 
-			# Uso oggetti inventario 1-8
-			KEY_1:
+			# Uso oggetti inventario 1-8 (numeri riga principale + tastierino)
+			KEY_1, KEY_KP_1:
 				_use_inventory_item(1)
-			KEY_2:
+			KEY_2, KEY_KP_2:
 				_use_inventory_item(2)
-			KEY_3:
+			KEY_3, KEY_KP_3:
 				_use_inventory_item(3)
-			KEY_4:
+			KEY_4, KEY_KP_4:
 				_use_inventory_item(4)
-			KEY_5:
+			KEY_5, KEY_KP_5:
 				_use_inventory_item(5)
-			KEY_6:
+			KEY_6, KEY_KP_6:
 				_use_inventory_item(6)
-			KEY_7:
+			KEY_7, KEY_KP_7:
 				_use_inventory_item(7)
-			KEY_8:
+			KEY_8, KEY_KP_8:
 				_use_inventory_item(8)
 
 			# Salvataggio F5/F6/F7
@@ -402,22 +402,16 @@ func _update_inventory_panel():
 		for item in inventory:
 			var item_name = item.get("name", "Sconosciuto")
 			var quantity = item.get("quantity", 1)
-			var item_id = item.get("id", "")
 			var item_type = _get_item_type_from_name(item_name)
 			var color_code = _get_item_color_code(item_type)
 
-			# Numero oggetto per uso rapido
+			# Numero oggetto per uso rapido + solo nome e quantità (info dettagliate nel popup)
 			var prefix = "[color=#%s][%d][/color] " % [_color_to_hex(get_numbers_color()), item_index]
 			
 			if quantity > 1:
 				content += "%s%s%s[/color] [color=#%s](x%d)[/color]" % [prefix, color_code, item_name, _color_to_hex(get_numbers_color()), quantity]
 			else:
 				content += "%s%s%s[/color]" % [prefix, color_code, item_name]
-			
-			# Mostra info uso se oggetto usabile
-			if player.can_use_item(item_id):
-				var use_info = player.get_item_use_info(item_id)
-				content += "[color=#%s] (%s)[/color]" % [_color_to_hex(get_primary_color()), use_info]
 			
 			content += "\n"
 			item_index += 1
@@ -428,7 +422,7 @@ func _update_inventory_panel():
 	
 	# Controlli inventario
 	content += "[color=#%s]═══════════════[/color]\n" % _color_to_hex(get_text_color())
-	content += "[color=#%s][1-8] Usa oggetto[/color]\n" % _color_to_hex(get_primary_color())
+	content += "[color=#%s][1-8] Dettagli oggetto[/color]\n" % _color_to_hex(get_primary_color())
 	content += "[color=#%s][E] Equipaggia[/color]" % _color_to_hex(get_primary_color())
 
 	inventory_content.text = content
@@ -1153,7 +1147,7 @@ func _get_item_color_code(item_type: String) -> String:
 
 ## Usa oggetto dall'inventario per indice
 func _use_inventory_item(item_index: int):
-	"""Usa oggetto dall'inventario tramite indice numerico (1-8)"""
+	"""Apre popup oggetto inventario tramite indice numerico (1-8) - PUNTO 2 PROMPT_TEMP.txt"""
 	if not player:
 		add_log_entry("❌ Player non disponibile")
 		return
@@ -1175,20 +1169,422 @@ func _use_inventory_item(item_index: int):
 		add_log_entry("❌ ID oggetto non valido")
 		return
 	
-	# Usa l'oggetto
+	# Apri popup oggetto (NUOVO SISTEMA)
+	_show_item_popup(item_id)
+
+## NUOVO: Mostra popup per oggetto inventario con descrizione e azioni
+func _show_item_popup(item_id: String):
+	"""Crea popup oggetto con stile IDENTICO interfaccia principale"""
+	if not game_manager:
+		add_log_entry("❌ GameManager non disponibile")
+		return
+		
+	var item_db = game_manager.get_item_database()
+	if not item_db:
+		add_log_entry("❌ Database oggetti non disponibile")
+		return
+		
+	var item = item_db.get_item(item_id)
+	if not item:
+		add_log_entry("❌ Oggetto non trovato: " + item_id)
+		return
+	
+	# Crea popup IDENTICO ai pannelli
+	var popup = AcceptDialog.new()
+	popup.title = ""  # Rimosso indicatore temporaneo
+	popup.size = Vector2(650, 550)
+	popup.position = Vector2(get_viewport().size.x/2 - 325, get_viewport().size.y/2 - 275)
+	
+	# Background IDENTICO ai pannelli (SENZA modulate che causa errore)
+	popup.add_theme_color_override("base_color", get_background_color())
+	
+	# Panel principale IDENTICO ai pannelli del gioco
+	var main_panel = Panel.new()
+	main_panel.size = Vector2(630, 520)
+	main_panel.position = Vector2(10, 10)
+	
+	# Background ESATTO dei pannelli
+	main_panel.add_theme_color_override("bg_color", get_background_color())
+	main_panel.modulate = Color.WHITE
+	
+	# RichTextLabel IDENTICO ai pannelli principali
+	var content_label = RichTextLabel.new()
+	content_label.size = Vector2(610, 450)
+	content_label.position = Vector2(10, 10)
+	content_label.bbcode_enabled = true
+	content_label.fit_content = false
+	content_label.scroll_active = true
+	
+	# Font monospace IDENTICO ai pannelli
+	_force_monospace_font_on_label(content_label)
+	
+	# Colori IDENTICI ai pannelli
+	content_label.add_theme_color_override("default_color", get_text_color())
+	content_label.add_theme_color_override("font_color", get_text_color())
+	content_label.add_theme_color_override("selection_color", get_primary_color())
+	content_label.add_theme_color_override("background_color", get_background_color())
+	
+	# Contenuto formattato IDENTICO ai pannelli
+	var content_text = _format_popup_content_like_panels(item)
+	content_label.text = content_text
+	
+	# Container pulsanti con SPACING CORRETTO
+	var buttons_container = HBoxContainer.new()
+	buttons_container.position = Vector2(10, 470)
+	buttons_container.size = Vector2(610, 40)
+	buttons_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	
+	# SPACING TRA PULSANTI CORRETTO (Godot 4.5 dev: limitazioni visive note)
+	buttons_container.add_theme_constant_override("separation", 15)
+	
+	var action_buttons = _create_popup_buttons_crt_style(item, popup)
+	for button in action_buttons:
+		buttons_container.add_child(button)
+	
+	# Assembla popup
+	main_panel.add_child(content_label)
+	main_panel.add_child(buttons_container)
+	popup.add_child(main_panel)
+	
+	# Mostra popup
+	add_child(popup)
+	popup.popup_centered()
+	
+	# Focus primo pulsante
+	if action_buttons.size() > 0:
+		action_buttons[0].grab_focus()
+
+## Forza font monospace IDENTICO ai pannelli
+func _force_monospace_font_on_label(label: RichTextLabel):
+	"""Applica font monospace Perfect DOS VGA 437 IDENTICO ai pannelli"""
+	if ResourceLoader.exists("res://themes/Perfect DOS VGA 437.ttf"):
+		var font = load("res://themes/Perfect DOS VGA 437.ttf")
+		label.add_theme_font_override("normal_font", font)
+		label.add_theme_font_override("bold_font", font)
+		label.add_theme_font_override("italics_font", font)
+		label.add_theme_font_override("mono_font", font)
+		
+		# Font size IDENTICO ai pannelli
+		label.add_theme_font_size_override("normal_font_size", 16)
+		label.add_theme_font_size_override("bold_font_size", 16)
+
+## Crea pulsante con stile IDENTICO all'interfaccia principale
+func _create_crt_button(text: String) -> Button:
+	var button = Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(100, 35)  # Ripristinati valori originali
+	
+	# Stili IDENTICI ai pannelli
+	button.add_theme_color_override("font_color", get_text_color())
+	button.add_theme_color_override("font_hover_color", get_bright_color())
+	button.add_theme_color_override("font_pressed_color", get_primary_color())
+	
+	# Background IDENTICO
+	button.add_theme_color_override("color", get_background_color())
+	button.add_theme_color_override("color_hover", get_primary_color())
+	button.add_theme_color_override("color_pressed", get_bright_color())
+	
+	# Font IDENTICO ai pannelli (Godot 4.5 dev: limitazioni theming note)
+	if ResourceLoader.exists("res://themes/Perfect DOS VGA 437.ttf"):
+		var font = load("res://themes/Perfect DOS VGA 437.ttf")
+		button.add_theme_font_override("font", font)
+		button.add_theme_font_size_override("font_size", 14)  # Ripristinato valore originale
+	
+	return button
+
+## Formatta contenuto popup IDENTICO ai pannelli principali
+func _format_popup_content_like_panels(item: Item) -> String:
+	var content = ""
+	
+	# Header con stile IDENTICO ai pannelli
+	var item_color = _get_item_color_code(item.type)
+	content += "[color=#%s]OGGETTO: %s%s[/color][/color]\n" % [_color_to_hex(get_interface_color()), item_color, item.name]
+	content += "[color=#%s]═══════════════════════════════[/color]\n\n" % _color_to_hex(get_text_color())
+	
+	# Descrizione base
+	content += "[color=#%s]%s[/color]\n\n" % [_color_to_hex(get_text_color()), item.description]
+	
+	# Specifiche IDENTICHE al layout pannelli
+	content += "[color=#%s]SPECIFICHE:[/color]\n" % _color_to_hex(get_interface_color())
+	content += "[color=#%s]═══════════════════════════════[/color]\n" % _color_to_hex(get_text_color())
+	
+	# Tipo e peso
+	content += "[color=#%s]Tipo: [/color][color=#%s]%s[/color]\n" % [
+		_color_to_hex(get_text_color()), 
+		_color_to_hex(get_numbers_color()), 
+		_translate_item_type(item.type)
+	]
+	content += "[color=#%s]Peso: [/color][color=#%s]%s[/color]\n" % [
+		_color_to_hex(get_text_color()), 
+		_color_to_hex(get_numbers_color()), 
+		item.get_weight_display()
+	]
+	
+	# Caratteristiche specifiche per tipo
+	if item.is_consumable():
+		content += "[color=#%s]Porzioni: [/color][color=#%s]%d/%d[/color]\n" % [
+			_color_to_hex(get_text_color()),
+			_color_to_hex(get_numbers_color()),
+			item.current_portions,
+			item.max_portions
+		]
+		
+		# Info utilizzo con stile pannelli
+		var use_info = player.get_item_use_info(item.id)
+		if not use_info.is_empty():
+			content += "[color=#%s]Effetto: [/color][color=#%s]%s[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_primary_color()),
+				use_info
+			]
+	
+	elif item.is_weapon():
+		content += "[color=#%s]Danno: [/color][color=#%s]%d-%d[/color]\n" % [
+			_color_to_hex(get_text_color()),
+			_color_to_hex(get_numbers_color()),
+			item.damage_min,
+			item.damage_max
+		]
+		
+		if item.has_durability():
+			content += "[color=#%s]Durabilità: [/color][color=#%s]%d/%d[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_numbers_color()),
+				item.current_durability,
+				item.max_durability
+			]
+		
+		content += "[color=#%s]Tipo arma: [/color][color=#%s]%s[/color]\n" % [
+			_color_to_hex(get_text_color()),
+			_color_to_hex(get_numbers_color()),
+			item.weaponType
+		]
+	
+	elif item.is_armor():
+		content += "[color=#%s]Protezione: [/color][color=#%s]%d[/color]\n" % [
+			_color_to_hex(get_text_color()),
+			_color_to_hex(get_numbers_color()),
+			item.armorValue
+		]
+		
+		if item.has_durability():
+			content += "[color=#%s]Durabilità: [/color][color=#%s]%d/%d[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_numbers_color()),
+				item.current_durability,
+				item.max_durability
+			]
+		
+		content += "[color=#%s]Slot: [/color][color=#%s]%s[/color]\n" % [
+			_color_to_hex(get_text_color()),
+			_color_to_hex(get_numbers_color()),
+			item.slot
+		]
+	
+	elif item.type == "medicine":
+		if item.max_portions == 1:
+			content += "[color=#%s]Tipo: [/color][color=#%s]Uso singolo[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_numbers_color())
+			]
+		else:
+			content += "[color=#%s]Usi rimanenti: [/color][color=#%s]%d[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_numbers_color()),
+				item.current_portions
+			]
+		
+		# Info utilizzo medicine
+		var use_info = player.get_item_use_info(item.id)
+		if not use_info.is_empty():
+			content += "[color=#%s]Effetto: [/color][color=#%s]%s[/color]\n" % [
+				_color_to_hex(get_text_color()),
+				_color_to_hex(get_primary_color()),
+				use_info
+			]
+	
+	# Sezione azioni con stile pannelli
+	content += "\n[color=#%s]AZIONI DISPONIBILI:[/color]\n" % _color_to_hex(get_interface_color())
+	content += "[color=#%s]═══════════════════════════════[/color]\n" % _color_to_hex(get_text_color())
+	content += "[color=#%s]Usa i pulsanti sotto per interagire[/color]" % _color_to_hex(get_text_color())
+	
+	return content
+
+## Crea pulsanti popup con stile CRT minimale
+func _create_popup_buttons_crt_style(item: Item, popup: AcceptDialog) -> Array:
+	var buttons = []
+	
+	# Pulsanti per cibo/acqua
+	if item.is_consumable() and (item.type == "food" or item.type == "water"):
+		var use_btn = _create_crt_button("Usa")
+		use_btn.pressed.connect(_popup_use_item_portion.bind(item.id, popup))
+		buttons.append(use_btn)
+		
+		var throw_btn = _create_crt_button("Getta")
+		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		buttons.append(throw_btn)
+	
+	# Pulsanti per armi/armature
+	elif item.is_weapon() or item.is_armor():
+		var is_equipped = _is_item_equipped(item.id)
+		
+		if is_equipped:
+			var unequip_btn = _create_crt_button("Rimuovi")
+			unequip_btn.pressed.connect(_popup_unequip_item.bind(item.id, popup))
+			buttons.append(unequip_btn)
+		else:
+			var equip_btn = _create_crt_button("Equipaggia")
+			equip_btn.pressed.connect(_popup_equip_item.bind(item.id, popup))
+			buttons.append(equip_btn)
+		
+		if item.has_durability() and item.current_durability < item.max_durability:
+			var repair_btn = _create_crt_button("Ripara")
+			repair_btn.pressed.connect(_popup_repair_item.bind(item.id, popup))
+			buttons.append(repair_btn)
+		
+		var throw_btn = _create_crt_button("Getta")
+		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		buttons.append(throw_btn)
+	
+	# Pulsanti per medicine
+	elif item.type == "medicine":
+		var use_btn = _create_crt_button("Usa")
+		use_btn.pressed.connect(_popup_use_item_single.bind(item.id, popup))
+		buttons.append(use_btn)
+		
+		var throw_btn = _create_crt_button("Getta")
+		throw_btn.pressed.connect(_popup_throw_item.bind(item.id, popup))
+		buttons.append(throw_btn)
+	
+	# Pulsante chiudi sempre presente
+	var close_btn = _create_crt_button("Chiudi")
+	close_btn.pressed.connect(popup.queue_free)
+	buttons.append(close_btn)
+	
+	return buttons
+
+## Verifica se oggetto è equipaggiato
+func _is_item_equipped(item_id: String) -> bool:
+	if not player:
+		return false
+	
+	for slot in player.equipped.values():
+		if slot == item_id:
+			return true
+	return false
+
+## Traduce tipo oggetto in italiano
+func _translate_item_type(type: String) -> String:
+	match type:
+		"food": return "Cibo"
+		"water": return "Acqua"
+		"medicine": return "Medicina"
+		"weapon": return "Arma"
+		"armor": return "Armatura"
+		"tool": return "Attrezzo"
+		"resource": return "Risorsa"
+		"ammo": return "Munizioni"
+		_: return type.capitalize()
+
+# === AZIONI POPUP OGGETTI ===
+
+## Usa oggetto (porzione singola)
+func _popup_use_item_portion(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
 	var result = player.use_item(item_id)
 	
 	if result.success:
 		add_log_entry("✅ " + result.message)
 		
-		# Aggiorna pannelli se oggetto consumato
 		if result.consumed:
 			_update_inventory_panel()
 			_update_survival_panel()
 			_update_stats_panel()
-			
-		# Emetti segnale per sistema eventi
-		if player.has_signal("item_used"):
-			player.item_used.emit(item_id, result)
 	else:
 		add_log_entry("❌ " + result.message)
+
+## Usa oggetto (uso singolo)
+func _popup_use_item_single(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
+	var result = player.use_item(item_id)
+	
+	if result.success:
+		add_log_entry("✅ " + result.message)
+		
+		if result.consumed:
+			_update_inventory_panel()
+			_update_survival_panel()
+			_update_stats_panel()
+	else:
+		add_log_entry("❌ " + result.message)
+
+## Equipaggia oggetto
+func _popup_equip_item(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
+	if not player:
+		add_log_entry("❌ Player non disponibile")
+		return
+	
+	var success = player.equip_item(item_id)
+	
+	if success:
+		add_log_entry("⚔️ Oggetto equipaggiato")
+		_update_stats_panel()
+		_setup_equipment_display()
+	else:
+		add_log_entry("❌ Impossibile equipaggiare oggetto")
+
+## Rimuovi equipaggiamento
+func _popup_unequip_item(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
+	if not player:
+		add_log_entry("❌ Player non disponibile")
+		return
+	
+	# Trova slot dell'oggetto
+	var slot = ""
+	for slot_name in player.equipped.keys():
+		if player.equipped[slot_name] == item_id:
+			slot = slot_name
+			break
+	
+	if slot.is_empty():
+		add_log_entry("❌ Oggetto non equipaggiato")
+		return
+	
+	var success = player.unequip_item(slot)
+	
+	if success:
+		add_log_entry("✅ Oggetto rimosso")
+		_update_inventory_panel()
+		_update_stats_panel()
+		_setup_equipment_display()
+	else:
+		add_log_entry("❌ Impossibile rimuovere oggetto")
+
+## Ripara oggetto
+func _popup_repair_item(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
+	# TODO: Implementare sistema riparazione
+	add_log_entry("🔧 Sistema riparazione in sviluppo")
+
+## Getta oggetto
+func _popup_throw_item(item_id: String, popup: AcceptDialog):
+	popup.queue_free()
+	
+	if not player:
+		add_log_entry("❌ Player non disponibile")
+		return
+	
+	var success = player.remove_item(item_id, 1)
+	
+	if success:
+		add_log_entry("🗑️ Oggetto gettato")
+		_update_inventory_panel()
+	else:
+		add_log_entry("❌ Impossibile gettare oggetto")
