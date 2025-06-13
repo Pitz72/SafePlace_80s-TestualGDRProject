@@ -1,0 +1,57 @@
+ATTENZIONE! Questo file temporaneo va considerato come una sorta di prompt di comando esteso su una serie di situazioni da fare e sistemare. Si prega però di svolgere le funzioni una per volta a piccoli passi, aggiornare la documentazione, proteggere tutto dall'anti regresso, aggiornare questo prompt per definire cosa è stato fatto e cosa va ancora fatto. INOLTRE, queste prime righe di istruzioni NON VANNO TOCCATE PER NESSUNA RAGIONE, perchè sono i dettami guida di questa fase. Al termine di ogni operazione, aggiorna i documenti e chiedi conferma se andare avanti. Quando TUTTE le operazioni saranno terminate, chiedi conferma per cancellare il presente file.
+
+Ecco alcune cose da sistemare nell'interfaccia e nelle meccaniche prima di proseguire con quello che stavamo facendo, in particolare integrazione oggetti e prossimi passi. Le modifiche che dobbiamo fare NON devono danneggiare o creare regressioni nel codice e devono adeguarsi in modo perfetto al layout e allo stile cromatico del gioco
+
+1. ANNULLATO! - sistemato il problema delle lettere accentate della lingua italiana nel font. Perfect DOS VGA 437 impostato come priorità nel SystemFont con supporto UTF-8 completo. Funzione _force_monospace_font_on_all_panels() ripristinata e attiva. Caratteri ù à ò è é ora visualizzati correttamente.
+
+2. ✅ COMPLETATO v1.8.3d! - nel box inventario gli oggetti vengono chiamati con i numeri per richiamare l'esperienza retrò. Sistema popup implementato con:
+	a. ✅ pressione numero oggetto apre popup con descrizione e caratteristiche specifiche
+	b. ✅ oggetti cibo/acqua: popup con "Usa (1 porzione)", "Getta", "Chiudi" - sistema porzioni funzionante
+	c. ✅ armi/armature: popup con descrizione, durabilità, "Equipaggia"/"Rimuovi", "Ripara", "Getta", "Chiudi"
+	d. ✅ medicine: popup con "Usa" (singolo utilizzo), "Getta", "Chiudi"
+	e. ✅ popup con tema CRT autentico, colori SafePlace, font monospace Perfect DOS VGA 437
+	f. ✅ CORREZIONI FINALI: 80+ oggetti tradotti in italiano, pulsanti spaziati 15px, stile IDENTICO pannelli
+	g. ✅ FIX ERRORI: Rimosso errore modulate, aggiunto supporto tastierino numerico (KP_1-8)
+	h. ⚠️ NOTA: Problemi estetici Godot 4.5 dev - funzionalità OK, estetica limitata (da rivedere con 4.5 stable)
+
+3. ✅ COMPLETATO v1.8.4! - per coerenza con l'esperienza autentica, il box sotto dei comandi non deve essere sensibile al mouse. Il mouse, i joypad e tutte le altre periferiche al di fuori della tastiera non devono funzionare:
+	a. ✅ Filtro keyboard-only implementato in _input() - blocca TUTTI gli eventi non-tastiera
+	b. ✅ Pulsanti interfaccia DISABILITATI - movimento, azioni speciali, popup tutti non-clickabili
+	c. ✅ Stile visual aggiornato - pulsanti scuriti per indicare stato disabilitato
+	d. ✅ Esperienza 100% tastiera - mouse, touch, joypad completamente ignorati
+
+4. ✅ COMPLETATO v1.8.5! - Nel box comandi, nella croce direzionale, lasciare solo i tasti con le frecce e togliere quelli W A S D. Ma i tasti operativi devono restare in funzione:
+	a. ✅ Layout semplificato - rimossi pulsanti WASD duplicati dalla visualizzazione
+	b. ✅ Solo frecce direzionali - mantenuto layout pulito con ↑,←,↓,→ + SPACE
+	c. ✅ Funzionalità preservata - WASD continuano a funzionare perfettamente da tastiera
+	d. ✅ Griglia 3x3 bilanciata - layout simmetrico e centrato maintained
+	e. ✅ Codice ottimizzato - eliminati 4 HBoxContainer e ~15 linee superflue
+5. ✅ COMPLETATO v1.8.6! - nel box comandi, ogni volta che viene premuto uno dei tasti direzionali o spazio per far passare il tempo, si accendono per qualche istante brevissimo:
+	a. ✅ Sistema tracking pulsanti - memorizzati riferimenti a ↑,←,↓,→,SPC
+	b. ✅ Input handler potenziato - ogni keypress triggera animazione feedback
+	c. ✅ Animazione Tween completa - 100ms highlight + 200ms fade + bordo animato
+	d. ✅ Colori SafePlace autentici - usa get_bright_color() per highlight
+	e. ✅ Performance ottimale - animazioni leggere 300ms totali, nessun lag
+	f. ✅ Feedback immediato - vedi subito quale pulsante "virtuale" hai premuto
+6. ✅ COMPLETATO v1.8.7! - nel blocco dei comandi non deve esserci il tasto L che è ad esclusivo appannaggio di un altro box che vedremo piu avanti. Quindi togliere:
+	a. ✅ Pulsante L rimosso - non più visibile nel box comandi
+	b. ✅ Funzionalità L preservata - KEY_L continua ad aprire/chiudere popup leggenda
+	c. ✅ Layout semplificato - solo F5 Salva e F6 Carica nel box
+	d. ✅ Preparazione futura - spazio disponibile per gestione L da "altro box"
+7. ✅ COMPLETATO v1.8.8! - nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci:
+	a. ✅ Pulsante "ESC Esci" aggiunto - posizionato dopo F6 Carica nel box comandi  
+	b. ✅ Funzione _exit_game() implementata - chiusura pulita con get_tree().quit()
+	c. ✅ Handler KEY_ESCAPE aggiunto - funzionalità keyboard-only preservata
+	d. ✅ Layout finale completato - frecce + F5 Salva + F6 Carica + ESC Esci
+8. ✅ COMPLETATO v1.8.9! - Nel box equipaggiamento, sotto armi e armature, ci sono dei comandi, vanno tolti: inventario e salva:
+	a. ✅ Comando "[I] Inventario" rimosso - non più visibile nel box equipaggiamento
+	b. ✅ Comando "[F5] Salva" rimosso - non più duplicato (presente solo nel box comandi)
+	c. ✅ Layout pulito - solo Crafting, Crescita, Leggenda, Carica rimangono
+	d. ✅ Funzionalità preservate - tutti i comandi accessibili da tastiera
+9. ✅ COMPLETATO v1.9.0! - nel box equipaggiamento, sotto crafting, va messo il comando ripara:
+	a. ✅ Comando "[P] Ripara" aggiunto - posizionato sotto [C] Crafting nel box equipaggiamento
+	b. ✅ Funzione _handle_repair() implementata - sistema completo di riparazione oggetti
+	c. ✅ Handler KEY_P aggiunto - accesso keyboard-only al sistema riparazione
+	d. ✅ Sistema logica completa - controlla oggetti danneggiati + materiali + esegue riparazione
+	e. ✅ Layout equipaggiamento aggiornato - [C] Crafting, [P] Ripara, [R] Crescita, [L] Leggenda, [F6] Carica
+10. 🎯 PROSSIMO - va verificato se funziona il tasto L per Leggenda

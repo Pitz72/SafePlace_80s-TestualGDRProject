@@ -594,4 +594,167 @@ static func get_events_database() -> Dictionary:
 				}
 			]
 		}
-	} 
+	}
+
+func village_ruins():
+	var event = {
+		"id": "village_ruins",
+		"text": "Villaggio Fantasma - Le rovine silenziose di un piccolo insediamento. Tende strappate e baracche vuote gemono al vento. Cosa è successo qui? Forse è rimasto qualcosa tra le macerie.",
+		"location": "village",
+		"choices": [
+			"Cerca tra le macerie (Tracce)"
+		]
+	}
+	return event
+
+func village_heavy_silence():
+	var event = {
+		"id": "village_heavy_silence",
+		"text": "Silenzio Innaturale - Un silenzio opprimente grava su questo luogo. Non si sente il vento, né il verso di animali. Un brutto presentimento ti attanaglia.",
+		"location": "village",
+		"choices": [
+			"Ascolta l'istinto (Presagio)"
+		]
+	}
+	return event
+
+func village_school_ruins():
+	var event = {
+		"id": "village_school_ruins",
+		"text": "Rovine della Scuola - I resti di una piccola scuola si ergono tra le case abbandonate. Graffiti sbiaditi e poster educativi si aggrappano ancora alle pareti crepate. Un luogo che un tempo era pieno di ragazzi come te, ora solo un guscio vuoto.",
+		"location": "village",
+		"choices": [
+			"Cercare nella biblioteca (Adattamento)"
+		]
+	}
+	return event
+
+func village_forgotten_altar():
+	var event = {
+		"id": "village_forgotten_altar",
+		"text": "Altare Dimenticato - In una delle baracche meno diroccate, trovi un piccolo altare improvvisato con oggetti strani e simboli scarabocchiati. Sembra un tentativo di placare qualche divinità sconosciuta.",
+		"location": "village",
+		"choices": [
+			"Lasciare un'offerta",
+			"Profanare l'altare (Potenza)",
+			"Studiare i simboli (Presagio)"
+		]
+	}
+	return event
+
+func village_lonely_toy():
+	var event = {
+		"id": "village_lonely_toy",
+		"text": "Giocattolo Solitario - Un giocattolo rotto e sporco – una bambola senza un occhio, un soldatino di piombo – giace abbandonato in mezzo alla polvere di una soglia. Un triste promemoria dei bambini che un tempo vivevano qui.",
+		"location": "village",
+		"choices": [
+			"Raccogliere il giocattolo",
+			"Seppellire il giocattolo",
+			"Lasciarlo dov'è"
+		]
+	}
+	return event
+
+func village_empty_square():
+	var event = {
+		"id": "village_empty_square",
+		"text": "Il Silenzio della Piazza - Raggiungi quella che un tempo doveva essere la piazza del villaggio. Ora è vuota, con solo il vento che solleva foglie secche. Un silenzio carico di attesa grava sul luogo.",
+		"location": "village",
+		"choices": [
+			"Attraversare rapidamente",
+			"Cercare tra i detriti (Tracce)",
+			"Aspettare nascosto"
+		]
+	}
+	return event
+
+func village_last_message():
+	var event = {
+		"id": "village_last_message",
+		"text": "L'Ultimo Messaggio - Su un muro sbrecciato, qualcuno ha scritto un breve messaggio con del carbone o vernice sbiadita: un nome, un avvertimento, una preghiera.",
+		"location": "village",
+		"choices": [
+			"Decifrare il messaggio (Adattamento)",
+			"Aggiungere il proprio messaggio",
+			"Ignorare il graffito"
+		]
+	}
+	return event
+
+func village_rancid_smell():
+	var event = {
+		"id": "village_rancid_smell",
+		"text": "Odore di Cibo Rancido - Un debole odore di cibo andato a male proviene da una delle abitazioni. Potrebbe esserci qualcosa di commestibile rimasto, o solo parassiti.",
+		"location": "village",
+		"choices": [
+			"Investigare la fonte (Adattamento)",
+			"Evitare la baracca",
+			"Attirare creature fuori"
+		]
+	}
+	return event
+
+func village_rusty_tools():
+	var event = {
+		"id": "village_rusty_tools",
+		"text": "Strumenti Agricoli Rugginiti - Appoggiati a un muro crollato, trovi vecchi attrezzi agricoli: una zappa, una falce, un forcone, tutti consumati dalla ruggine.",
+		"location": "village",
+		"choices": [
+			"Riparare uno strumento (Adattamento)",
+			"Recuperare il metallo",
+			"Lasciarli lì"
+		]
+	}
+	return event
+
+func village_well():
+	var event = {
+		"id": "village_well",
+		"text": "Il Pozzo del Villaggio - Al centro del villaggio si trova un pozzo di pietra. Sembra profondo, e non sai se l'acqua sul fondo sia potabile o se ci sia ancora acqua.",
+		"location": "village",
+		"choices": [
+			"Calare un secchio (Adattamento)",
+			"Lanciare un sasso",
+			"Cercare contaminazione (Presagio)"
+		]
+	}
+	return event
+
+func village_hanging_clothes():
+	var event = {
+		"id": "village_hanging_clothes",
+		"text": "Vestiti Stesi - Sorprendentemente, su un filo teso tra due pali, ci sono dei vestiti logori stesi ad asciugare. Qualcuno è stato qui di recente, o li ha dimenticati.",
+		"location": "village",
+		"choices": [
+			"Prendere i vestiti",
+			"Nascondersi e osservare",
+			"Lasciare un segno"
+		]
+	}
+	return event
+
+func village_scarecrow():
+	var event = {
+		"id": "village_scarecrow",
+		"text": "Il Guardiano Silenzioso - Uno spaventapasseri sbrindellato se ne sta ancora in piedi in quello che un tempo era un orto. I suoi occhi di bottone sembrano seguirti.",
+		"location": "village",
+		"choices": [
+			"Ispezionare lo spaventapasseri (Tracce)",
+			"Usare come riferimento",
+			"Abbatterlo"
+		]
+	}
+	return event
+
+func village_echo_laughter():
+	var event = {
+		"id": "village_echo_laughter",
+		"text": "Eco di Risate - Per un fugace istante, ti sembra di sentire l'eco di risate infantili provenire da una delle case vuote. Un brivido ti corre lungo la schiena.",
+		"location": "village",
+		"choices": [
+			"Investigare la casa (Presagio)",
+			"Gridare per rispondere",
+			"Allontanarsi rapidamente"
+		]
+	}
+	return event

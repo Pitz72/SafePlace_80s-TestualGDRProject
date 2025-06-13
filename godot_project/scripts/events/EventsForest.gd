@@ -226,53 +226,27 @@ static func get_events_database() -> Dictionary:
 		# 🌲 NUOVI EVENTI FOREST AGGIUNTI - MIGRATION SESSIONE #011
 		"forest_sacrificial_tree": {
 			"id": "forest_sacrificial_tree",
-			"name": "Albero Sacrificale",
-			"type": 0,
-			"description": "Un albero antico e imponente si erge al centro di una piccola radura. Attorno al suo tronco sono legati strani feticci fatti di ossa, stracci e metallo arrugginito. Emana un'aura inquietante.",
+			"name": "Albero del Sacrificio",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Un grande albero con strani segni incisi nella corteccia. Alla base, resti di un rituale dimenticato.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Esaminare i feticci (Presagio)",
+					"text": "Esaminare i segni (Presagio)",
 					"requirements": {"presagio": 12},
 					"consequences": {
 						"action": "skill_check",
 						"stat": "presagio",
 						"difficulty": 12,
 						"success": {
-							"text": "I feticci nascondono piccoli oggetti di valore, forse offerte. Trovi medicine e materiali utili.",
-							"rewards": {"items": {"medicine_crude": 1, "cloth_rags": 2, "scrap_metal": 1}}
+							"text": "I simboli rivelano la posizione di un antico nascondiglio druidico.",
+							"rewards": {"items": {"lore_fragment": 2, "medicine_crude": 1}}
 						},
 						"failure": {
-							"text": "I feticci emanano un'energia malvagia. Ti allontani rapidamente, sentendoti osservato.",
+							"text": "I segni sono troppo antichi e criptici per essere compresi.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Danneggiare l'albero (Potenza)",
-					"requirements": {"potenza": 14},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "potenza",
-						"difficulty": 14,
-						"success": {
-							"text": "Con forza, strappi alcuni feticci e danneggi la corteccia. Trovi oggetti nascosti nelle cavità.",
-							"rewards": {"items": {"vitamins": 1, "weapon_improvised": 1}}
-						},
-						"failure": {
-							"text": "L'albero sembra resistere ai tuoi sforzi. I feticci si muovono da soli nel vento.",
-							"rewards": {}
-						}
-					}
-				},
-				{
-					"text": "Lasciare la radura",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi che questo luogo è troppo inquietante. Ti allontani rapidamente, sentendo gli occhi invisibili seguirti.",
-						"rewards": {}
 					}
 				}
 			]
@@ -280,45 +254,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_distant_songs": {
 			"id": "forest_distant_songs",
-			"name": "Eco di Canti Lontani",
-			"type": 0,
-			"description": "Tra il fruscio delle foglie, ti sembra di udire l'eco sommesso di un canto o una melodia malinconica provenire dalle profondità della foresta.",
+			"name": "Canti Lontani",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Melodie inquietanti fluttuano tra gli alberi, portate dal vento. Potrebbero essere umane... o qualcos'altro.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Seguire il suono (Tracce)",
-					"requirements": {"tracce": 11},
+					"text": "Seguire i canti (Presagio)",
+					"requirements": {"presagio": 13},
 					"consequences": {
 						"action": "skill_check",
-						"stat": "tracce",
-						"difficulty": 11,
+						"stat": "presagio",
+						"difficulty": 13,
 						"success": {
-							"text": "Il canto ti guida verso una piccola grotta nascosta. All'interno trovi i resti di un accampamento e provviste.",
-							"rewards": {"items": {"ration_pack": 1, "bandages_clean": 1, "map_fragment": 1}}
+							"text": "I canti ti guidano verso una radura nascosta con provviste abbandonate.",
+							"rewards": {"items": {"berries": 3, "water_bottle": 1}}
 						},
 						"failure": {
-							"text": "Il suono si allontana sempre di più, portandoti in circolo. Ti ritrovi dove hai iniziato.",
+							"text": "I canti sembrano condurti in cerchio. Meglio non seguirli oltre.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Ignorare il canto",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi che è meglio non farsi attirare da suoni misteriosi nella foresta. Continui per il sentiero principale.",
-						"rewards": {}
-					}
-				},
-				{
-					"text": "Gridare per rispondere",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Gridi verso la fonte del canto. Il suono si interrompe bruscamente, lasciando solo un silenzio inquietante.",
-						"rewards": {}
 					}
 				}
 			]
@@ -326,53 +282,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_hunter_trap": {
 			"id": "forest_hunter_trap",
-			"name": "Trappola del Cacciatore Dimenticata",
-			"type": 0,
-			"description": "Scorgi una vecchia trappola per animali, forse un grosso tagliola o un laccio, parzialmente nascosta dalle foglie. Sembra ancora armata.",
+			"name": "Trappola da Cacciatore",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Una trappola per animali abbandonata, ancora funzionante. Potrebbero esserci altre trappole nascoste nella zona.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Disarmare la trappola (Adattamento)",
-					"requirements": {"adattamento": 13},
+					"text": "Disarmare la trappola (Tracce)",
+					"requirements": {"tracce": 11},
 					"consequences": {
 						"action": "skill_check",
-						"stat": "adattamento",
-						"difficulty": 13,
-						"success": {
-							"text": "Con attenzione, riesci a disarmare la trappola e recuperare il metallo e i meccanismi.",
-							"rewards": {"items": {"scrap_metal": 2, "mechanical_parts": 1, "rope": 1}}
-						},
-						"failure": {
-							"text": "La trappola scatta mentre cerchi di disarmarla. Per fortuna non ti ferisce, ma è inutilizzabile.",
-							"rewards": {}
-						}
-					}
-				},
-				{
-					"text": "Usare come esca (Presagio)",
-					"requirements": {"presagio": 11},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "presagio",
+						"stat": "tracce",
 						"difficulty": 11,
 						"success": {
-							"text": "Attiri un piccolo animale nella trappola. Carne fresca per cena.",
-							"rewards": {"items": {"meat_raw": 1, "cloth_rags": 1}}
+							"text": "Recuperi materiali metallici dalla trappola e trovi altre trappole nascoste.",
+							"rewards": {"items": {"scrap_metal": 2, "rope": 1}}
 						},
 						"failure": {
-							"text": "Nessun animale si avvicina alla trappola. Forse sanno che è pericolosa.",
+							"text": "La trappola scatta, per fortuna senza colpirti. Meglio evitare questa zona.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Segnalare e aggirare",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Segni la trappola con un ramo per evitarla e la aggiri con cautela. Meglio non rischiare.",
-						"rewards": {}
 					}
 				}
 			]
@@ -380,53 +310,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_symbiotic_plant": {
 			"id": "forest_symbiotic_plant",
-			"name": "Simbionte Vegetale",
-			"type": 0,
-			"description": "Un cadavere di animale è completamente avvolto da una strana muffa o fungo luminescente che pulsa debolmente. La pianta sembra aver consumato e integrato la creatura.",
+			"name": "Pianta Simbiotica",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Una pianta dall'aspetto alieno che sembra reagire alla tua presenza. I suoi frutti brillano debolmente.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Prelevare un campione (Adattamento)",
-					"requirements": {"adattamento": 12},
+					"text": "Raccogliere i frutti (Adattamento)",
+					"requirements": {"adattamento": 13},
 					"consequences": {
 						"action": "skill_check",
 						"stat": "adattamento",
-						"difficulty": 12,
+						"difficulty": 13,
 						"success": {
-							"text": "Con cautela, prelevi parte del fungo. Potrebbe essere utile per medicine o come fonte di luce.",
-							"rewards": {"items": {"medicine_crude": 2, "vitamins": 1}}
+							"text": "I frutti sono nutrienti e hanno proprietà curative sorprendenti.",
+							"rewards": {"items": {"vitamins": 2, "medicine_crude": 1}}
 						},
 						"failure": {
-							"text": "Il fungo rilascia spore tossiche quando lo tocchi. Ti allontani tossendo.",
+							"text": "I frutti sembrano troppo rischiosi da toccare. Potrebbero essere velenosi.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Distruggere con il fuoco (Potenza)",
-					"requirements": {"potenza": 10},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "potenza",
-						"difficulty": 10,
-						"success": {
-							"text": "Bruci la simbiosi. Tra le ceneri trovi ossa e oggetti dell'animale originale.",
-							"rewards": {"items": {"charcoal": 2, "scrap_metal": 1}}
-						},
-						"failure": {
-							"text": "Il fuoco si spegne rapidamente. Il fungo sembra resistente alle fiamme.",
-							"rewards": {}
-						}
-					}
-				},
-				{
-					"text": "Osservare da lontano",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi che è troppo pericoloso avvicinarsi. Osservi il fenomeno da distanza di sicurezza e prosegui.",
-						"rewards": {}
 					}
 				}
 			]
@@ -435,8 +339,8 @@ static func get_events_database() -> Dictionary:
 		"forest_hidden_path": {
 			"id": "forest_hidden_path",
 			"name": "Sentiero Nascosto",
-			"type": 0,
-			"description": "Noti un sentiero appena percettibile che si inoltra nel fitto della boscaglia, quasi invisibile a un occhio inesperto. Chissà dove conduce.",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Un sentiero quasi invisibile si snoda tra la vegetazione fitta. Qualcuno lo ha percorso di recente.",
 			"image": "",
 			"conditions": {},
 			"choices": [
@@ -448,31 +352,13 @@ static func get_events_database() -> Dictionary:
 						"stat": "tracce",
 						"difficulty": 12,
 						"success": {
-							"text": "Il sentiero ti conduce a una radura segreta con un piccolo rifugio abbandonato pieno di provviste.",
-							"rewards": {"items": {"ration_pack": 2, "water_bottle": 1, "weapon_improvised": 1}}
+							"text": "Il sentiero conduce a un accampamento abbandonato con provviste.",
+							"rewards": {"items": {"ration_pack": 1, "bandages_clean": 1, "rope": 1}}
 						},
 						"failure": {
-							"text": "Il sentiero si perde nel fitto del bosco. Ti ritrovi più confuso di prima.",
+							"text": "Perdi il sentiero nella vegetazione fitta e devi tornare indietro.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Segnare sulla mappa",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Segni la posizione del sentiero sulla tua mappa per esplorarlo in futuro. Potrebbe essere utile.",
-						"rewards": {"items": {"map_fragment": 1}}
-					}
-				},
-				{
-					"text": "Ignorare il sentiero",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi di rimanere sui sentieri conosciuti. I percorsi nascosti possono nascondere pericoli.",
-						"rewards": {}
 					}
 				}
 			]
@@ -480,45 +366,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_whispering_tree": {
 			"id": "forest_whispering_tree",
-			"name": "L'Albero dei Sussurri",
-			"type": 0,
-			"description": "Un albero cavo e contorto sembra emettere strani sussurri quando il vento ci passa attraverso. Alcuni dicono che questi alberi custodiscano segreti o attirino spiriti.",
+			"name": "Albero Sussurrante",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Un albero antico sembra sussurrare segreti quando il vento lo attraversa. La sua corteccia porta strani segni.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
 					"text": "Ascoltare i sussurri (Presagio)",
-					"requirements": {"presagio": 13},
+					"requirements": {"presagio": 14},
 					"consequences": {
 						"action": "skill_check",
 						"stat": "presagio",
-						"difficulty": 13,
+						"difficulty": 14,
 						"success": {
-							"text": "I sussurri ti rivelano la posizione di un tesoro nascosto nelle radici dell'albero.",
-							"rewards": {"items": {"vitamins": 1, "lore_fragment": 1, "rare_resource": 1}}
+							"text": "I sussurri rivelano la posizione di una cache nascosta tra le radici.",
+							"rewards": {"items": {"lore_fragment": 1, "berries": 2, "medicine_crude": 1}}
 						},
 						"failure": {
-							"text": "I sussurri diventano un ronzio assordante. Ti allontani con un forte mal di testa.",
+							"text": "I sussurri si trasformano in un rumore inquietante. Ti allontani rapidamente.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Lasciare un'offerta",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Lasci un piccolo oggetto alla base dell'albero come offerta. I sussurri sembrano placarsi.",
-						"rewards": {"items": {"cloth_rags": 1}}
-					}
-				},
-				{
-					"text": "Ignorare l'albero",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi di non avere nulla a che fare con alberi che sussurrano. Prosegui rapidamente.",
-						"rewards": {}
 					}
 				}
 			]
@@ -527,52 +395,26 @@ static func get_events_database() -> Dictionary:
 		"forest_camouflaged_predator": {
 			"id": "forest_camouflaged_predator",
 			"name": "Predatore Mimetizzato",
-			"type": 0,
-			"description": "Hai la netta sensazione di essere osservato. Tra il fogliame, qualcosa si muove, perfettamente mimetizzato con l'ambiente.",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Qualcosa si muove tra gli alberi, perfettamente mimetizzato. Solo un lampo di occhi tradisce la sua presenza.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Attacco preventivo (Potenza)",
-					"requirements": {"potenza": 14},
+					"text": "Rimanere immobile (Presagio)",
+					"requirements": {"presagio": 12},
 					"consequences": {
 						"action": "skill_check",
-						"stat": "potenza",
-						"difficulty": 14,
+						"stat": "presagio",
+						"difficulty": 12,
 						"success": {
-							"text": "Il tuo attacco colpisce nel segno. La creatura ferita fugge, lasciando cadere qualcosa.",
+							"text": "Il predatore ti ignora e si allontana, lasciando tracce di una preda recente.",
 							"rewards": {"items": {"meat_raw": 1, "cloth_rags": 1}}
 						},
 						"failure": {
-							"text": "Il tuo attacco colpisce solo rami e foglie. Qualunque cosa fosse, è fuggita.",
+							"text": "Il movimento attira l'attenzione del predatore. Devi fuggire velocemente.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Allontanarsi silenziosamente (Agilità)",
-					"requirements": {"agilità": 12},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "agilità",
-						"difficulty": 12,
-						"success": {
-							"text": "Ti allontani senza essere notato. Nella fuga, trovi un piccolo nascondiglio con provviste.",
-							"rewards": {"items": {"bandages_dirty": 1, "canned_food": 1}}
-						},
-						"failure": {
-							"text": "Pesti un ramo secco. Qualunque cosa ti stesse osservando ora sa dove sei.",
-							"rewards": {}
-						}
-					}
-				},
-				{
-					"text": "Rimanere immobile",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Ti congeli sul posto, sperando di non essere visto. Dopo lunghi minuti, la sensazione di essere osservato svanisce.",
-						"rewards": {}
 					}
 				}
 			]
@@ -580,53 +422,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_contaminated_spring": {
 			"id": "forest_contaminated_spring",
-			"name": "Fonte Contaminata",
-			"type": 0,
-			"description": "Trovi una piccola sorgente d'acqua cristallina, un vero miraggio. Tuttavia, le piante intorno ad essa sono stranamente ingiallite e malate.",
+			"name": "Sorgente Contaminata",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Una sorgente d'acqua ha un colore innaturale e un odore pungente. Potrebbe essere contaminata da sostanze chimiche.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Raccogliere l'acqua (Adattamento)",
-					"requirements": {"adattamento": 11},
+					"text": "Purificare l'acqua (Adattamento)",
+					"requirements": {"adattamento": 15},
 					"consequences": {
 						"action": "skill_check",
 						"stat": "adattamento",
-						"difficulty": 11,
+						"difficulty": 15,
 						"success": {
-							"text": "Raccogli l'acqua con cautela. Sembra pulita, ma meglio purificarla prima di berla.",
-							"rewards": {"items": {"water_dirty": 2}}
+							"text": "Con tecniche improvvisate riesci a rendere l'acqua potabile.",
+							"rewards": {"items": {"water_purified": 2}}
 						},
 						"failure": {
-							"text": "L'acqua ha un odore strano. Meglio non rischiare.",
+							"text": "L'acqua è troppo contaminata per essere purificata con mezzi rudimentali.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Investigare la contaminazione (Presagio)",
-					"requirements": {"presagio": 12},
-					"consequences": {
-						"action": "skill_check",
-						"stat": "presagio",
-						"difficulty": 12,
-						"success": {
-							"text": "Scopri che la contaminazione proviene da minerali radioattivi. Trovi alcuni cristalli utili.",
-							"rewards": {"items": {"mechanical_parts": 1, "rare_resource": 1}}
-						},
-						"failure": {
-							"text": "Non riesci a capire la causa della contaminazione. Meglio allontanarsi.",
-							"rewards": {}
-						}
-					}
-				},
-				{
-					"text": "Evitare la fonte",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Decidi che l'acqua contaminata non vale il rischio. Continui la ricerca di una fonte più sicura.",
-						"rewards": {}
 					}
 				}
 			]
@@ -634,45 +450,27 @@ static func get_events_database() -> Dictionary:
 		
 		"forest_silent_grove": {
 			"id": "forest_silent_grove",
-			"name": "Il Bosco Silenzioso",
-			"type": 0,
-			"description": "Entri in una parte della foresta dove ogni suono sembra attutito. Non ci sono canti di uccelli, né il ronzio di insetti. Solo un silenzio innaturale e pesante.",
+			"name": "Radura Silenziosa",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Una radura dove nessun suono sembra penetrare. Il silenzio è assoluto e innaturale.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Procedere con cautela (Tracce)",
-					"requirements": {"tracce": 11},
+					"text": "Investigare il silenzio (Presagio)",
+					"requirements": {"presagio": 11},
 					"consequences": {
 						"action": "skill_check",
-						"stat": "tracce",
+						"stat": "presagio",
 						"difficulty": 11,
 						"success": {
-							"text": "La tua cautela è premiata. Trovi segni di un vecchio accampamento e alcune provviste nascoste.",
-							"rewards": {"items": {"ration_pack": 1, "bandages_clean": 1}}
+							"text": "Il silenzio nasconde una cache sepolta al centro della radura.",
+							"rewards": {"items": {"ration_pack": 1, "bandages_sterile": 1}}
 						},
 						"failure": {
-							"text": "Il silenzio ti mette a disagio. Non trovi nulla e ti allontani rapidamente.",
+							"text": "Il silenzio diventa opprimente. Devi lasciare la radura rapidamente.",
 							"rewards": {}
 						}
-					}
-				},
-				{
-					"text": "Fare rumore",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Gridi e fai rumore per rompere il silenzio. L'eco della tua voce suona strano e distorto.",
-						"rewards": {}
-					}
-				},
-				{
-					"text": "Tornare indietro",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Il silenzio innaturale ti spaventa. Torni sui tuoi passi verso una parte più normale della foresta.",
-						"rewards": {}
 					}
 				}
 			]
@@ -681,46 +479,28 @@ static func get_events_database() -> Dictionary:
 		"forest_exposed_roots": {
 			"id": "forest_exposed_roots",
 			"name": "Radici Esposte",
-			"type": 0,
-			"description": "Un grosso albero è caduto, esponendo un intricato sistema di radici. Tra di esse, potresti trovare qualcosa di interessante o rimanere intrappolato.",
+			"type": 0,  # LOCATION_SPECIFIC
+			"description": "Enormi radici emergono dal terreno creando un labirinto naturale. Tra di esse si nascondono piccoli tesori.",
 			"image": "",
 			"conditions": {},
 			"choices": [
 				{
-					"text": "Frugare tra le radici (Adattamento)",
-					"requirements": {"adattamento": 10},
+					"text": "Esplorare tra le radici (Tracce)",
+					"requirements": {"tracce": 10},
 					"consequences": {
 						"action": "skill_check",
-						"stat": "adattamento",
+						"stat": "tracce",
 						"difficulty": 10,
 						"success": {
-							"text": "Tra le radici intricate trovi oggetti sepolti da tempo e materiali utili.",
-							"rewards": {"items": {"scrap_metal": 1, "cloth_rags": 2, "common_resource": 1}}
+							"text": "Nascoste tra le radici trovi provviste lasciate da altri viaggiatori.",
+							"rewards": {"items": {"berries": 2, "rope": 1, "cloth_rags": 1}}
 						},
 						"failure": {
-							"text": "Ti incastri tra le radici e devi lottare per liberarti. Nessun tesoro, solo graffi.",
+							"text": "Le radici formano un labirinto confuso. Meglio non rischiare di perdersi.",
 							"rewards": {}
 						}
 					}
-				},
-				{
-					"text": "Usare come riparo",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Le radici esposte formano un riparo naturale. Ti riposi brevemente al sicuro.",
-						"rewards": {}
-					}
-				},
-				{
-					"text": "Evitare la zona",
-					"requirements": {},
-					"consequences": {
-						"action": "simple_result",
-						"text": "Le radici sembrano instabili. Meglio non rischiare di rimanere intrappolato.",
-						"rewards": {}
-					}
 				}
 			]
-		}
-	} 
+		},
+	}

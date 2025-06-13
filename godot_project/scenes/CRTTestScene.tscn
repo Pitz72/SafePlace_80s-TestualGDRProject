@@ -1,0 +1,255 @@
+[gd_scene load_steps=3 format=3 uid="uid://cig7o3mqfyqm4"]
+
+[ext_resource type="Script" path="res://scripts/CRTTestController.gd" id="1_0d8qm"]
+[ext_resource type="FontFile" path="res://themes/fonts/Perfect DOS VGA 437.ttf" id="2_5p3xk"]
+
+[node name="CRTTestScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_0d8qm")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0.1, 0.05, 1)
+
+[node name="TestContent" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+
+[node name="Title" type="Label" parent="TestContent"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 32
+text = "🖥️ SAFEZONE TERMINAL 📺"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="TestContent"]
+layout_mode = 2
+
+[node name="SystemInfo" type="Label" parent="TestContent"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 16
+text = "SISTEMA: SafePlace OS v1.4.3
+STATO: OPERATIVO
+CONNESSIONE: SICURA"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="TestContent"]
+layout_mode = 2
+
+[node name="MenuItems" type="VBoxContainer" parent="TestContent"]
+layout_mode = 2
+
+[node name="NewGame" type="Button" parent="TestContent/MenuItems"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 18
+text = "▶ INIZIA NUOVA MISSIONE"
+
+[node name="LoadGame" type="Button" parent="TestContent/MenuItems"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 18
+text = "💾 CARICA SALVATAGGIO"
+
+[node name="Settings" type="Button" parent="TestContent/MenuItems"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 18
+text = "⚙️ CONFIGURAZIONE SISTEMA"
+
+[node name="Exit" type="Button" parent="TestContent/MenuItems"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 18
+text = "🚪 DISCONNETTI"
+
+[node name="HSeparator3" type="HSeparator" parent="TestContent"]
+layout_mode = 2
+
+[node name="StatusBar" type="Label" parent="TestContent"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 12
+text = "PREMI [F1] PER CONTROLLI CRT | [ESC] PER MENU"
+horizontal_alignment = 1
+
+[node name="ControlPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 16
+text = "🎛️ CONTROLLI CRT"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EffectToggle" type="CheckBox" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "Abilita Effetto CRT"
+button_pressed = true
+
+[node name="HSeparator2" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="PresetLabel" type="Label" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "Presets:"
+
+[node name="PresetButtons" type="HBoxContainer" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SafePlace" type="Button" parent="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 10
+text = "SafePlace"
+
+[node name="Retro" type="Button" parent="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 10
+text = "Retro 80s"
+
+[node name="Arcade" type="Button" parent="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 10
+text = "Arcade"
+
+[node name="Modern" type="Button" parent="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+theme_override_font_sizes/font_size = 10
+text = "Modern"
+
+[node name="HSeparator3" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScanlinesLabel" type="Label" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "Scanlines:"
+
+[node name="ScanlinesIntensity" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.7
+
+[node name="ScanlinesSpeed" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 5.0
+step = 0.1
+value = 2.0
+
+[node name="HSeparator4" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CurvatureLabel" type="Label" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "Curvatura:"
+
+[node name="CurvatureX" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.15
+
+[node name="CurvatureY" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.15
+
+[node name="HSeparator5" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EffectsLabel" type="Label" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "Effetti:"
+
+[node name="PhosphorGlow" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 2.0
+step = 0.01
+value = 1.2
+
+[node name="GreenTint" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 2.0
+step = 0.01
+value = 1.8
+
+[node name="Brightness" type="HSlider" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 2.0
+step = 0.01
+value = 1.1
+
+[node name="HSeparator6" type="HSeparator" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="ControlPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_5p3xk")
+text = "🔙 TORNA AL MENU"
+
+[connection signal="pressed" from="TestContent/MenuItems/Settings" to="." method="_on_settings_pressed"]
+[connection signal="toggled" from="ControlPanel/ScrollContainer/VBoxContainer/EffectToggle" to="." method="_on_effect_toggle_toggled"]
+[connection signal="pressed" from="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons/SafePlace" to="." method="_on_safe_place_pressed"]
+[connection signal="pressed" from="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons/Retro" to="." method="_on_retro_pressed"]
+[connection signal="pressed" from="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons/Arcade" to="." method="_on_arcade_pressed"]
+[connection signal="pressed" from="ControlPanel/ScrollContainer/VBoxContainer/PresetButtons/Modern" to="." method="_on_modern_pressed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/ScanlinesIntensity" to="." method="_on_scanlines_intensity_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/ScanlinesSpeed" to="." method="_on_scanlines_speed_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/CurvatureX" to="." method="_on_curvature_x_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/CurvatureY" to="." method="_on_curvature_y_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/PhosphorGlow" to="." method="_on_phosphor_glow_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/GreenTint" to="." method="_on_green_tint_value_changed"]
+[connection signal="value_changed" from="ControlPanel/ScrollContainer/VBoxContainer/Brightness" to="." method="_on_brightness_value_changed"]
+[connection signal="pressed" from="ControlPanel/ScrollContainer/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"] 

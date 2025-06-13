@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://scripts/ItemDatabase.gd" id="3_itemdb"]
 [ext_resource type="Script" path="res://scripts/CombatManager.gd" id="4_combat"]
-[ext_resource type="Script" path="res://scripts/EventManagerModular.gd" id="5_event"]
+[ext_resource type="Script" path="res://scripts/EventManager.gd" id="5_event"]
 [ext_resource type="Script" path="res://scripts/MapManager.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/SaveManager.gd" id="7_save"]
 
@@ -27,7 +27,7 @@ script = ExtResource("3_itemdb")
 [node name="CombatManager" type="Node" parent="GameManager"]
 script = ExtResource("4_combat")
 
-[node name="EventManagerModular" type="Node" parent="GameManager"]
+[node name="EventManager" type="Node" parent="GameManager"]
 script = ExtResource("5_event")
 
 [node name="MapManager" type="Node" parent="GameManager"]
@@ -66,7 +66,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme = ExtResource("17_safeplacebeme")
+; 🧪 TEST: Tema fisso commentato per test ThemeManager
+; theme = ExtResource("17_safeplacebeme")
 script = ExtResource("15_maininterface")
 
 [node name="SurvivalPanel" type="Panel" parent="UIContainer/MainInterface"]
@@ -286,11 +287,7 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
-text = "[color=yellow]DEBUG INFO[/color]
-Session #004 Active
-Core Systems: ✅ ItemDatabase
-Main Scene: ✅ Loaded
-Player: ⏳ Loading..."
+text = ""
 
 [node name="WorldContainer" type="Node2D" parent="."]
 
@@ -303,34 +300,7 @@ script = ExtResource("2_player")
 
 [node name="AudioManager" type="Node" parent="."]
 
-[node name="DebugContainer" type="CanvasLayer" parent="."]
-layer = 100
 
-[node name="DebugPanel" type="Panel" parent="DebugContainer"]
-layout_mode = 0
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -150.0
-offset_right = 0.0
-offset_bottom = 0.0
-
-[node name="DebugLabel" type="RichTextLabel" parent="DebugContainer/DebugPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-text = "[color=yellow]DEBUG INFO[/color]
-Session #004 Active
-Core Systems: ✅ ItemDatabase
-Main Scene: ✅ Loaded
-Player: ⏳ Loading..."
 
 [node name="MenuUI" type="Control" parent="UIContainer"]
 visible = false

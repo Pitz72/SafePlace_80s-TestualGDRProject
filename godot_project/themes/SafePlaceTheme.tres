@@ -25,10 +25,16 @@ border_width_bottom = 1
 border_color = Color(0, 1, 0.4, 1)
 
 [sub_resource type="SystemFont" id="monospace_font"]
-font_names = PackedStringArray("Fixedsys Excelsior", "Fixedsys", "Perfect DOS VGA 437", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace")
+font_names = PackedStringArray("Consolas", "Liberation Mono", "DejaVu Sans Mono", "Courier New", "Lucida Console", "Fixedsys Excelsior", "Fixedsys", "Perfect DOS VGA 437", "MS DOS", "monospace")
+subpixel_positioning = 1
+hinting = 1
 
 [sub_resource type="StyleBoxFlat" id="background_style"]
 bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="DynamicFont" id="dosvga_font"]
+font_data = ExtResource( "Perfect_DOS_VGA_437_Win.ttf" )
+size = 16
 
 [resource]
 default_font = SubResource("monospace_font")

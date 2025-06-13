@@ -14,6 +14,7 @@ const SYMBOL_RIVER = "~"       # Fiumi
 
 const SYMBOL_START = "S"       # Punto di partenza (lampeggiante giallo)
 const SYMBOL_END = "E"         # Punto di arrivo (lampeggiante giallo)
+const SYMBOL_REST_STOP = "R"   # Ristori (verde standard)
 const SYMBOL_PLAYER = "@"      # Player position (verde brillante lampeggiante)
 
 # Colori SafePlace CRT autentici - RIPRISTINO PRE-RIFUGI
@@ -27,6 +28,7 @@ const COLOR_START = Color(0.306, 0.631, 0.384, 1)      # #4EA162 verde standard 
 const COLOR_START_BLINK = Color(1, 1, 0, 1)            # Giallo acceso lampeggiante S
 const COLOR_END = Color(0.306, 0.631, 0.384, 1)        # #4EA162 verde standard per E  
 const COLOR_END_BLINK = Color(1, 1, 0, 1)              # Giallo acceso lampeggiante E
+const COLOR_REST_STOP = Color(1, 1, 0, 1)              # GIALLO BRILLANTE per ristori R (più visibili)
 const COLOR_PLAYER = Color(0, 1, 0.4, 1)               # Verde brillante player @
 const COLOR_PLAYER_BLINK = Color(0.2, 1, 0.6, 1)       # Verde cursore lampeggiante @
 
@@ -173,23 +175,30 @@ func _place_settlement_cluster(center: Vector2, symbol: String, size: int):
 
 ## Aggiunge punti start ed end alla mappa
 func _add_start_and_end_points():
-	# Punto di partenza (S) - angolo in basso a sinistra  
-	start_pos = Vector2(randi_range(5, 20), randi_range(MAP_HEIGHT-20, MAP_HEIGHT-5))
+	# Punto di partenza (S) - NORD OVEST come richiesto
+	start_pos = Vector2(randi_range(5, 20), randi_range(5, 20))
 	if _is_valid_position(start_pos):
 		map_data[start_pos.y][start_pos.x] = SYMBOL_START
 	
-	# Punto di arrivo (E) - SafePlace a (190, 190) come nell'originale
-	end_pos = Vector2(190, 190)
+	# Punto di arrivo (E) - SUD EST come richiesto
+	end_pos = Vector2(randi_range(MAP_WIDTH-20, MAP_WIDTH-5), randi_range(MAP_HEIGHT-20, MAP_HEIGHT-5))
 	if _is_valid_position(end_pos):
 		map_data[end_pos.y][end_pos.x] = SYMBOL_END
 
 ## Imposta posizione iniziale player
 func _add_player_starting_position():
-	# Trova una posizione di pianura vicino al centro (125, 125 per mappa 250x250)
+	# Player parte dalla posizione di START (S) come richiesto
+	if start_pos != Vector2(-1, -1):
+		player_pos = start_pos
+		discovered_areas.append(player_pos)
+		print("👤 Player posizionato al punto START (%d,%d)" % [start_pos.x, start_pos.y])
+		return
+	
+	# Fallback: centro mappa se START non definito
 	for radius in range(1, 20):
 		for dx in range(-radius, radius + 1):
 			for dy in range(-radius, radius + 1):
-				var pos = Vector2(125 + dx, 125 + dy)  # Cerca dal centro della mappa 250x250
+				var pos = Vector2(125 + dx, 125 + dy)
 				if _is_valid_position(pos):
 					var terrain = map_data[pos.y][pos.x]
 					if terrain == SYMBOL_PLAINS:
@@ -300,7 +309,8 @@ func _get_terrain_color(symbol: String) -> Color:
 			return COLOR_VILLAGE
 		SYMBOL_RIVER:
 			return COLOR_RIVER
-
+		SYMBOL_REST_STOP:
+			return COLOR_REST_STOP
 		SYMBOL_START:
 			return COLOR_START
 		SYMBOL_END:
@@ -327,7 +337,8 @@ func get_terrain_info(pos: Vector2) -> Dictionary:
 			return {"type": "village", "name": "Villaggio"}
 		SYMBOL_RIVER:
 			return {"type": "river", "name": "Fiume"}
-
+		SYMBOL_REST_STOP:
+			return {"type": "rest_stop", "name": "Ristoro"}
 		_:
 			return {"type": "unknown", "name": "Sconosciuto"}
 
@@ -389,13 +400,14 @@ func generate_map():
 	# === FASE 5: CLUSTER VILLAGGI (4-6 elementi) ===
 	_generate_authentic_village_clusters()
 	
-	# === FASE 6: (RIFUGI RIMOSSI) ===
+	# === FASE 6: RISTORI SPARSI ===
+	_add_rest_stops()
 	
 	# === FASE 7: PUNTI SPECIALI ===
 	_add_start_and_end_points()
 	
 	# === FASE 8: POSIZIONAMENTO PLAYER ===
-	_position_player_correctly()
+	_add_player_starting_position()
 	
 	print("🎯 [ASCIIMapGenerator] MAPPA 250x250 COMPLETATA CON SUCCESSO")
 	_print_generation_summary()
@@ -522,6 +534,40 @@ func _generate_authentic_village_clusters():
 	
 	print("🏘️ Cluster villaggi completati - Totale villaggi: %d" % villages_placed)
 
+func _add_rest_stops():
+	"""Aggiunge ristori (R) sparsi per la mappa."""
+	print("🏪 Generazione ristori sparsi...")
+	
+	var rest_stops_count = randi_range(25, 40)  # AUMENTATO da 8-15 a 25-40 ristori sparsi
+	var placed = 0
+	
+	for i in range(rest_stops_count * 5):  # AUMENTATO tentativi da 3x a 5x
+		var x = randi_range(5, MAP_WIDTH - 5)   # RIDOTTO margine da 10 a 5
+		var y = randi_range(5, MAP_HEIGHT - 5)  # RIDOTTO margine da 10 a 5
+		var pos = Vector2(x, y)
+		
+		# Piazza solo su pianure, mantenendo distanza da insediamenti
+		if _is_valid_position(pos) and map_data[y][x] == SYMBOL_PLAINS:
+			if _is_position_clear_for_rest_stop(pos):
+				map_data[y][x] = SYMBOL_REST_STOP
+				placed += 1
+				
+				if placed >= rest_stops_count:
+					break
+	
+	print("🏪 Ristori generati: %d" % placed)
+
+func _is_position_clear_for_rest_stop(pos: Vector2) -> bool:
+	"""Verifica che un ristoro non sia troppo vicino ad altri insediamenti."""
+	var min_distance = 2  # ULTERIORMENTE RIDOTTO da 4 a 2 per molti più posizionamenti
+	
+	for y in range(max(0, pos.y - min_distance), min(MAP_HEIGHT, pos.y + min_distance)):
+		for x in range(max(0, pos.x - min_distance), min(MAP_WIDTH, pos.x + min_distance)):
+			var terrain = map_data[y][x]
+			if terrain == SYMBOL_CITY or terrain == SYMBOL_VILLAGE or terrain == SYMBOL_REST_STOP:
+				return false
+	return true
+
 # FUNZIONE RIFUGI RIMOSSA - Ripristino estetica pre-rifugi
 
 func _find_safe_cluster_position(min_distance: int) -> Vector2:
@@ -647,7 +693,7 @@ func _print_generation_summary():
 	"""Stampa riassunto generazione per debug."""
 	var stats = {
 		"plains": 0, "forests": 0, "mountains": 0,
-		"cities": 0, "villages": 0, "rivers": 0
+		"cities": 0, "villages": 0, "rivers": 0, "rest_stops": 0
 	}
 	
 	for y in range(MAP_HEIGHT):
@@ -659,9 +705,10 @@ func _print_generation_summary():
 				SYMBOL_CITY: stats.cities += 1
 				SYMBOL_VILLAGE: stats.villages += 1
 				SYMBOL_RIVER: stats.rivers += 1
+				SYMBOL_REST_STOP: stats.rest_stops += 1
 
 	
 	print("📊 STATISTICHE MAPPA 250x250:")
 	print("   Pianure: %d | Foreste: %d | Montagne: %d" % [stats.plains, stats.forests, stats.mountains])
-	print("   Città: %d | Villaggi: %d | Fiumi: %d" % [stats.cities, stats.villages, stats.rivers])
+	print("   Città: %d | Villaggi: %d | Fiumi: %d | Ristori: %d" % [stats.cities, stats.villages, stats.rivers, stats.rest_stops])
 	print("   Player: (%d,%d)" % [player_pos.x, player_pos.y]) 
