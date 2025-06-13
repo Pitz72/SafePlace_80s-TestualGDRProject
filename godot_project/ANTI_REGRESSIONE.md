@@ -76,13 +76,35 @@ func _validate_item_exists(item_id: String) -> bool:
 ### ❌ **PROBLEMA 13: Cache Corruption Paths**
 **Sintomo**: Percorsi malformati 'file:res:/res:/res:/c:res:/...'
 **Causa**: Cache Godot corrotta con riferimenti file eliminati
-**Soluzione**: ✅ Pulizia completa `.godot/` directory
+**Soluzione**: ✅ Pulizia completa `.godot/` directory - **RISOLTO DEFINITIVAMENTE v1.8.1**
+
+**PROCEDURA STANDARDIZZATA v1.8.1**:
+```bash
+# ✅ Fix cache corruption (documentato in FIX_CACHE_GODOT.md):
+1. Chiudere completamente Godot Editor
+2. Remove-Item ".godot" -Recurse -Force (da PowerShell)
+3. Riaprire progetto in Godot (rigenerazione automatica)
+4. Attendere importazione completa risorse
+```
+
+### ❌ **PROBLEMA 14: Font Monospace Perduto**
+**Sintomo**: Mappa ASCII non allineata, caratteri accentati italiani rotti
+**Causa**: Funzione `_force_monospace_font_on_all_panels()` commentata/rimossa
+**Soluzione**: ✅ Ripristino completo da backup - **RISOLTO v1.8.1**
 
 **PREVENZIONE**:
-```bash
-# ✅ Cleanup cache dopo eliminazione file di test:
-Remove-Item ".godot" -Recurse -Force
-# Poi riapri Godot per rigenerare cache pulita
+```gdscript
+# ✅ SEMPRE mantenere attiva la funzione font in _setup_interface():
+func _setup_interface():
+    print("🖥️ [MainInterface] Inizializzazione interfaccia terminale SafePlace...")
+    modulate = Color.WHITE
+    # CRITICO: NON commentare mai questa riga
+    _force_monospace_font_on_all_panels()  # ← ESSENZIALE per mappa ASCII
+
+# ✅ Configurazione font Perfect DOS VGA 437 (v1.8.1):
+var monospace_font = SystemFont.new()
+monospace_font.font_names = ["Perfect DOS VGA 437", "Fixedsys Excelsior", "Consolas", "monospace"]
+monospace_font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
 ```
 
 ---

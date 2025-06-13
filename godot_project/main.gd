@@ -105,6 +105,10 @@ func _input(event):
 	# Test completo v1.8.2 con F12
 	if Input.is_action_just_pressed("ui_end"):  # End key
 		_run_safeplace_v1_8_2_tests()
+	
+	# NUOVO: Test caratteri accentati con T
+	if event is InputEventKey and event.pressed and event.keycode == KEY_T:
+		_test_caratteri_accentati()
 
 ## NUOVO: Test sistema consumo notturno
 func _test_night_consumption():
@@ -293,4 +297,40 @@ func _print_test_results(all_passed: bool):
 		print("❌ ALCUNI TEST FALLITI!")
 		print("⚠️ Rivedere implementazione prima di procedere")
 	
-	print("============================================================") 
+	print("============================================================")
+
+## NUOVO: Test caratteri accentati italiani
+func _test_caratteri_accentati():
+	print("\n🔤 === TEST CARATTERI ACCENTATI ITALIANI ===")
+	print("🎯 Test per risolvere problema visualizzazione 'Sazietà' → 'Sazietò'")
+	print("")
+	
+	var test_strings = [
+		"Sazietà",
+		"Qualità", 
+		"Città",
+		"Velocità",
+		"È importante",
+		"Più facile",
+		"Così",
+		"Perché"
+	]
+	
+	for i in range(test_strings.size()):
+		var test_string = test_strings[i]
+		print("Test %d: '%s'" % [i+1, test_string])
+		
+		# Analisi carattere per carattere
+		for j in range(test_string.length()):
+			var char = test_string[j]
+			var unicode_val = char.unicode_at(0)
+			if unicode_val > 127:  # Carattere accentato
+				print("  → Carattere '%s' = Unicode %d (0x%X)" % [char, unicode_val, unicode_val])
+	
+	print("")
+	print("✅ Se i caratteri sopra sono mostrati correttamente,")
+	print("   il fix per 'Sazietà' dovrebbe funzionare!")
+	print("")
+	print("🎮 Avvia il gioco e controlla il pannello SOPRAVVIVENZA")
+	print("📝 Font prioritario ora: Consolas → Liberation Mono → DejaVu Sans Mono")
+	print("🌍 Locale configurato: it_IT.UTF-8") 

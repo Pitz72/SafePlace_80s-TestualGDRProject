@@ -120,7 +120,7 @@ func _add_starting_items():
 	# Starting healing item - SOLO se esiste nel database
 	if _validate_item_exists("first_aid_kit"):
 		add_item_to_inventory("first_aid_kit", 1)
-	
+
 	# Starting resources - sempre disponibili nel database
 	add_item_to_inventory("scrap_metal", 2)
 	add_item_to_inventory("cloth_rags", 3)
@@ -430,18 +430,18 @@ func _consume_food_item(item_slot: Dictionary, item_data) -> Dictionary:
 				"add_resource_poisonable":
 					if effect_dict.get("resource_type") == "food":
 						food_gained += effect_dict.get("amount", 0)
-						# Check poison chance
-						var poison_chance = effect_dict.get("poison_chance", 0.0)
-						if randf() < poison_chance:
-							_apply_poison_effect()
-							message += " (Ti senti male...)"
+					# Check poison chance
+					var poison_chance = effect_dict.get("poison_chance", 0.0)
+					if randf() < poison_chance:
+						_apply_poison_effect()
+						message += " (Ti senti male...)"
 				"add_resource_sickness":
 					if effect_dict.get("resource_type") == "food":
 						food_gained += effect_dict.get("amount", 0)
-						var sickness_chance = effect_dict.get("sickness_chance", 0.0)
-						if randf() < sickness_chance:
-							_apply_sickness_effect()
-							message += " (Qualcosa non va...)"
+					var sickness_chance = effect_dict.get("sickness_chance", 0.0)
+					if randf() < sickness_chance:
+						_apply_sickness_effect()
+						message += " (Qualcosa non va...)"
 	
 	# Applica cambiamenti
 	food = min(100, food + food_gained)
@@ -492,10 +492,10 @@ func _consume_water_item(item_slot: Dictionary, item_data) -> Dictionary:
 				"add_resource_sickness":
 					if effect_dict.get("resource_type") == "water":
 						water_gained += effect_dict.get("amount", 0)
-						var sickness_chance = effect_dict.get("sickness_chance", 0.0)
-						if randf() < sickness_chance:
-							_apply_sickness_effect()
-							message += " (L'acqua aveva un sapore strano...)"
+					var sickness_chance = effect_dict.get("sickness_chance", 0.0)
+					if randf() < sickness_chance:
+						_apply_sickness_effect()
+						message += " (L'acqua aveva un sapore strano...)"
 	
 	# Applica cambiamenti
 	water = min(100, water + water_gained)

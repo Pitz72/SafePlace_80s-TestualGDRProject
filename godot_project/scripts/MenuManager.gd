@@ -234,7 +234,8 @@ func create_menu_buttons():
 func setup_styling():
 	"""Applica lo styling SafePlace a tutti i componenti"""
 	# 🔤 APPLICA FONT PERFECT DOS VGA 437 A TUTTO IL MENU
-	_apply_perfect_dos_font()
+	# La funzione _apply_perfect_dos_font viene rimossa perché l'override via script non è affidabile in Godot 4.5
+	# e causa errori. Si torna al font di default del tema o di sistema.
 	
 	# Sfondo principale
 	var style_bg = StyleBoxFlat.new()
@@ -257,28 +258,6 @@ func setup_styling():
 	style_menu_buttons()
 
 	print("✅ Styling SafePlace applicato")
-
-func _apply_perfect_dos_font():
-	"""Applica font Perfect DOS VGA 437 a tutti i componenti del menu"""
-	# Crea font monospace con priorità Perfect DOS VGA 437
-	var perfect_dos_font = SystemFont.new()
-	perfect_dos_font.font_names = ["Perfect DOS VGA 437", "Fixedsys Excelsior", "Fixedsys", "MS DOS", "Courier New", "Lucida Console", "Consolas", "monospace"]
-	perfect_dos_font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
-	perfect_dos_font.multichannel_signed_distance_field = false
-	
-	# Applica a tutti i Label del menu
-	var labels = [title_label, subtitle_label, footer_label]
-	for label in labels:
-		if label:
-			label.add_theme_font_override("font", perfect_dos_font)
-	
-	# Applica a tutti i bottoni del menu
-	var buttons = [new_game_button, load_game_button, story_button, instructions_button, settings_button]
-	for button in buttons:
-		if button:
-			button.add_theme_font_override("font", perfect_dos_font)
-	
-	print("🔤 [MenuManager] Font Perfect DOS VGA 437 applicato a tutto il menu")
 
 func style_menu_buttons():
 	"""Applica lo styling specifico ai pulsanti menu"""
