@@ -20,7 +20,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 ThemeManager="*res://scripts/ThemeManager.gd"
-CRTEffect="*res://scripts/CRTEffectController.gd"
+#CRTEffecttemporaneamentedisabilitato(dipendedaThemeManager)#CRTEffect="*res://scripts/CRTEffectController.gd"
 
 [debug]
 

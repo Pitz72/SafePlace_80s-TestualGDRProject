@@ -1211,7 +1211,18 @@ func _add_test_safeplace_objects():
 	add_item_to_inventory("mechanical_parts", 3)   # ✅ Verificato: Parti Meccaniche
 	add_item_to_inventory("wood_planks", 2)        # ✅ Verificato: Assi di Legno
 	
-	print("✅ Oggetti SafePlace DATABASE-VERIFIED aggiunti (v1.8.2 clean compatibility)")
+	# ARMI - POINT 7 v1.9.2: Test durabilità e riparazione
+	add_item_to_inventory("combat_knife", 1)       # ✅ NUOVO: Coltello da Combattimento (25/25 durabilità)
+	add_item_to_inventory("baseball_bat", 1)       # ✅ NUOVO: Mazza da Baseball (30/30 durabilità)
+	
+	# ARMATURE - POINT 7 v1.9.2: Test durabilità e riparazione  
+	add_item_to_inventory("leather_jacket_worn", 1) # ✅ NUOVO: Giacca di Pelle Logora (40/40 durabilità)
+	add_item_to_inventory("hard_hat", 1)           # ✅ NUOVO: Casco da Cantiere (25/25 durabilità)
+	
+	# KIT RIPARAZIONE - POINT 7 v1.9.2: Test sistema riparazione
+	add_item_to_inventory("repair_kit", 2)         # ✅ NUOVO: Kit di Riparazione (per testare comando [P])
+	
+	print("✅ Oggetti SafePlace DATABASE-VERIFIED aggiunti (v1.9.2 con armi/armature)")
 
 ## NUOVO SISTEMA EQUIPMENT BONUS - FASE 2
 func get_equipment_bonus(bonus_type: String) -> int:

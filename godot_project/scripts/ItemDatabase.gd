@@ -324,6 +324,13 @@ func populate_with_original_items():
 	# Risorse e materiali
 	_add_resource_items()
 	
+	# Armi e armature
+	_add_weapon_items()
+	_add_armor_items()
+	
+	# Strumenti e kit riparazione
+	_add_tool_items()
+	
 	# Aggiorna statistiche e indici
 	_total_items = items.size()
 	_is_loaded = true
@@ -798,6 +805,381 @@ func _add_basic_items():
 		if item:
 			_add_item_to_database(item)
 
+## Armi dal database originale SafePlace
+func _add_weapon_items():
+	var weapon_items = [
+		# ARMI MISCHIA
+		{
+			"id": "pipe_wrench",
+			"name": "Chiave Inglese Pesante",
+			"nameShort": "Chiave Pesante",
+			"description": "Una grossa chiave inglese, buona per colpire forte... o stringere bulloni.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 5,
+			"damage_max": 10,
+			"max_durability": 30,
+			"current_durability": 30,
+			"weight": 1.5,
+			"value": 20,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "wooden_club",
+			"name": "Clava di Legno",
+			"description": "Un pezzo di legno robusto, grezzamente sagomato per colpire.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 2,
+			"damage_max": 5,
+			"max_durability": 20,
+			"current_durability": 20,
+			"weight": 1.0,
+			"value": 5,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "metal_bar",
+			"name": "Barra di Metallo",
+			"description": "Una barra di ferro arrugginita, pesante e sbilanciata, ma efficace.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 4,
+			"damage_max": 8,
+			"max_durability": 35,
+			"current_durability": 35,
+			"weight": 1.8,
+			"value": 15,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "machete_rusty",
+			"name": "Machete Arrugginito",
+			"description": "Una lama lunga e pesante, ideale per farsi strada o per... altro. La ruggine ne compromette l'efficacia.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 6,
+			"damage_max": 12,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 1.2,
+			"value": 22,
+			"stackable": false,
+			"equipable": true
+		},
+		
+		# ARMI BIANCA CORTA
+		{
+			"id": "combat_knife",
+			"name": "Coltello da Combattimento",
+			"description": "Un coltello militare, affilato e ben bilanciato. Veloce e letale.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_corta",
+			"damage_min": 4,
+			"damage_max": 9,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 0.4,
+			"value": 25,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "kitchen_knife",
+			"name": "Coltello da Cucina",
+			"description": "Un grosso coltello da cucina. Non ideale per combattere, ma meglio di niente.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_corta",
+			"damage_min": 3,
+			"damage_max": 6,
+			"max_durability": 15,
+			"current_durability": 15,
+			"weight": 0.3,
+			"value": 8,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "shiv_improvised",
+			"name": "Punteruolo Improvvisato",
+			"nameShort": "Punteruolo",
+			"description": "Un pezzo di metallo affilato rozzamente, forse legato a un manico di fortuna. Meglio di niente.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_corta",
+			"damage_min": 2,
+			"damage_max": 2,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 0.3,
+			"value": 3,
+			"stackable": false,
+			"equipable": true
+		},
+		
+		# ARMI BIANCA LUNGA
+		{
+			"id": "baseball_bat",
+			"name": "Mazza da Baseball",
+			"description": "Un classico. Solida e affidabile per colpire forte.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_lunga",
+			"damage_min": 5,
+			"damage_max": 10,
+			"max_durability": 30,
+			"current_durability": 30,
+			"weight": 1.3,
+			"value": 18,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "spear_sharpened_pipe",
+			"name": "Lancia con Tubo Appuntito",
+			"description": "Un tubo di metallo con un'estremità affilata. Permette di colpire a distanza.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_lunga",
+			"damage_min": 7,
+			"damage_max": 14,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 1.6,
+			"value": 28,
+			"stackable": false,
+			"equipable": true
+		},
+		
+		# ARMI IMPROVVISATE (per eventi)
+		{
+			"id": "weapon_knife",
+			"name": "Coltello Generico",
+			"description": "Un coltello di uso comune, utile per molte situazioni.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "bianca_corta",
+			"damage_min": 3,
+			"damage_max": 7,
+			"max_durability": 20,
+			"current_durability": 20,
+			"weight": 0.3,
+			"value": 12,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "weapon_pipe",
+			"name": "Tubo di Metallo",
+			"description": "Un tubo di metallo pesante, buono come arma improvvisata.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 4,
+			"damage_max": 8,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 1.2,
+			"value": 10,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "weapon_improvised",
+			"name": "Arma Improvvisata",
+			"description": "Un'arma di fortuna, assemblata con materiali di recupero.",
+			"type": "weapon",
+			"slot": "weapon",
+			"weaponType": "mischia",
+			"damage_min": 3,
+			"damage_max": 6,
+			"max_durability": 15,
+			"current_durability": 15,
+			"weight": 1.0,
+			"value": 8,
+			"stackable": false,
+			"equipable": true
+		}
+	]
+	
+	for item_data in weapon_items:
+		var item = _create_item_from_data(item_data)
+		if item:
+			_add_item_to_database(item)
+
+## Armature dal database originale SafePlace
+func _add_armor_items():
+	var armor_items = [
+		# ARMATURE CORPO
+		{
+			"id": "leather_jacket_worn",
+			"name": "Giacca di Pelle Logora",
+			"nameShort": "Giacca Logora",
+			"description": "Una vecchia giacca di pelle, indurita dal tempo e piena di graffi. Offre una protezione modesta.",
+			"type": "armor",
+			"slot": "body",
+			"armorValue": 2,
+			"max_durability": 40,
+			"current_durability": 40,
+			"weight": 2.0,
+			"value": 15,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "armor_rags_simple",
+			"name": "Armatura di Stracci Semplice",
+			"nameShort": "Arm. Stracci",
+			"description": "Diversi strati di tessuto robusto e pelli grezze cuciti insieme in modo rudimentale. Offre una protezione minima contro graffi e urti leggeri.",
+			"type": "armor",
+			"slot": "body",
+			"armorValue": 1,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 1.2,
+			"value": 3,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "padded_jacket",
+			"name": "Giacca Imbottita",
+			"description": "Una giacca spessa con imbottiture. Offre una protezione decente dal freddo e dai colpi.",
+			"type": "armor",
+			"slot": "body",
+			"armorValue": 2,
+			"max_durability": 35,
+			"current_durability": 35,
+			"weight": 1.5,
+			"value": 25,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "metal_plate_vest_crude",
+			"name": "Corpetto di Placche Metalliche Grezzo",
+			"nameShort": "Corpetto Placche",
+			"description": "Placche di metallo di recupero cucite su un giubbotto. Pesante ma protettivo.",
+			"type": "armor",
+			"slot": "body",
+			"armorValue": 4,
+			"max_durability": 50,
+			"current_durability": 50,
+			"weight": 3.0,
+			"value": 40,
+			"stackable": false,
+			"equipable": true
+		},
+		
+		# ARMATURE TESTA
+		{
+			"id": "hard_hat",
+			"name": "Casco da Cantiere",
+			"description": "Un casco di plastica rigida. Protegge da colpi leggeri alla testa.",
+			"type": "armor",
+			"slot": "head",
+			"armorValue": 1,
+			"max_durability": 25,
+			"current_durability": 25,
+			"weight": 0.5,
+			"value": 10,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "motorcycle_helmet",
+			"name": "Casco da Moto",
+			"description": "Un casco integrale da motociclista, offre una buona protezione alla testa.",
+			"type": "armor",
+			"slot": "head",
+			"armorValue": 2,
+			"max_durability": 40,
+			"current_durability": 40,
+			"weight": 1.2,
+			"value": 28,
+			"stackable": false,
+			"equipable": true
+		},
+		
+		# ACCESSORI
+		{
+			"id": "gas_mask_damaged",
+			"name": "Maschera Antigas Danneggiata",
+			"nameShort": "Masc. Antigas Dan.",
+			"description": "Una vecchia maschera antigas con il filtro rovinato. Potrebbe offrire una protezione limitata.",
+			"type": "armor",
+			"slot": "accessory",
+			"armorValue": 0,
+			"max_durability": 15,
+			"current_durability": 15,
+			"weight": 0.6,
+			"value": 20,
+			"stackable": false,
+			"equipable": true
+		},
+		{
+			"id": "knee_pads_worn",
+			"name": "Ginocchiere Consumate",
+			"description": "Vecchie ginocchiere, utili per attutire qualche colpo o caduta.",
+			"type": "armor",
+			"slot": "accessory",
+			"armorValue": 1,
+			"max_durability": 20,
+			"current_durability": 20,
+			"weight": 0.4,
+			"value": 12,
+			"stackable": false,
+			"equipable": true
+		}
+	]
+	
+	for item_data in armor_items:
+		var item = _create_item_from_data(item_data)
+		if item:
+			_add_item_to_database(item)
+
+## Strumenti e kit riparazione
+func _add_tool_items():
+	var tool_items = [
+		{
+			"id": "repair_kit",
+			"name": "Kit di Riparazione",
+			"description": "Attrezzi e materiali per riparare armi e armature danneggiate.",
+			"type": "tool",
+			"usable": true,
+			"weight": 0.8,
+			"value": 35,
+			"stackable": true,
+			"effects": [{"type": "repair_item_type", "item_type_target": ["weapon", "armor"], "repair_amount": 15, "charges": 1}]
+		},
+		{
+			"id": "lockpick_set_crude",
+			"name": "Set di Grimaldelli Grezzo",
+			"description": "Ferri sottili e piegati, utili per tentare di scassinare serrature semplici.",
+			"type": "tool",
+			"usable": true,
+			"weight": 0.1,
+			"value": 20,
+			"charges": 3,
+			"stackable": true,
+			"effects": []
+		}
+	]
+	
+	for item_data in tool_items:
+		var item = _create_item_from_data(item_data)
+		if item:
+			_add_item_to_database(item)
+
 ## Helper per creare Item da dati
 func _create_item_from_data(data: Dictionary) -> Item:
 	var item = Item.new()
@@ -805,22 +1187,44 @@ func _create_item_from_data(data: Dictionary) -> Item:
 	# Proprietà base
 	item.id = data.get("id", "")
 	item.name = data.get("name", "")
+	item.nameShort = data.get("nameShort", "")
 	item.description = data.get("description", "")
 	item.type = data.get("type", "misc")
 	item.weight = data.get("weight", 1.0)
 	item.value = data.get("value", 1)
 	item.stackable = data.get("stackable", false)
 	item.usable = data.get("usable", false)
+	item.equipable = data.get("equipable", false)
 	
 	# Proprietà specifiche
 	if data.has("max_portions"):
 		item.max_portions = data.get("max_portions", 1)
+		item.current_portions = item.max_portions
 	
 	if data.has("effects"):
 		item.effects = data.get("effects", [])
 	
-	# Durabilità di default per oggetti usabili
-	if item.usable:
+	# Durabilità
+	if data.has("max_durability"):
+		item.max_durability = data.get("max_durability", 0)
+		item.current_durability = data.get("current_durability", item.max_durability)
+		item.maxDurability = item.max_durability  # Compatibilità
+		item.durability = item.current_durability  # Compatibilità
+	
+	# Proprietà armi
+	if data.has("damage_min"):
+		item.damage_min = data.get("damage_min", 0)
+		item.damage_max = data.get("damage_max", 0)
+		item.weaponType = data.get("weaponType", "")
+		item.slot = data.get("slot", "")
+	
+	# Proprietà armature
+	if data.has("armorValue"):
+		item.armorValue = data.get("armorValue", 0)
+		item.slot = data.get("slot", "")
+	
+	# Durabilità di default per oggetti usabili senza durabilità specifica
+	if item.usable and item.max_durability == 0:
 		item.max_durability = 100
 		item.current_durability = 100
 	

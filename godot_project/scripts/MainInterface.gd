@@ -9,6 +9,7 @@ var game_manager: GameManager
 var player: Player
 var ascii_map: ASCIIMapGenerator
 var current_time: Dictionary = {"hour": 6, "minute": 0, "is_night": false}
+var was_night_last_check: bool = false  # POINT 1: Tracking per consumo extra notturno
 
 # Player blink timer per effetto CRT autentico
 var player_blink_timer: float = 0.0
@@ -315,6 +316,7 @@ func _pass_time(minutes: int = 30):
 	# Degrado sopravvivenza nel tempo
 	if player:
 		_apply_survival_decay()
+		_apply_nightfall_consumption()  # POINT 1: Consumo extra notturno
 
 ## Applica degrado sazietà/idratazione
 func _apply_survival_decay():
@@ -330,6 +332,29 @@ func _apply_survival_decay():
 
 		_update_survival_status()
 		_update_survival_panel()
+
+## POINT 1: Applica consumo extra all'arrivo della notte
+func _apply_nightfall_consumption():
+	if not player:
+		return
+	
+	# Verifica se è appena diventata notte (transizione giorno→notte)
+	var is_becoming_night = current_time.is_night and not was_night_last_check
+	
+	if is_becoming_night:
+		# Consumo extra notturno: -5 food, -7 water (oltre al consumo orario normale)
+		if player.food > 0:
+			player.food = max(0, player.food - 5)
+			add_log_entry("Il calar della notte ti fa sentire affamato")
+		if player.water > 0:
+			player.water = max(0, player.water - 7)
+			add_log_entry("La sete si fa sentire con l'arrivo del buio")
+		
+		_update_survival_status()
+		_update_survival_panel()
+	
+	# Aggiorna il tracking per il prossimo check
+	was_night_last_check = current_time.is_night
 
 ## Aggiorna status sopravvivenza
 func _update_survival_status():

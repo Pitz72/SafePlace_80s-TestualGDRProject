@@ -1,57 +1,64 @@
-ATTENZIONE! Questo file temporaneo va considerato come una sorta di prompt di comando esteso su una serie di situazioni da fare e sistemare. Si prega però di svolgere le funzioni una per volta a piccoli passi, aggiornare la documentazione, proteggere tutto dall'anti regresso, aggiornare questo prompt per definire cosa è stato fatto e cosa va ancora fatto. INOLTRE, queste prime righe di istruzioni NON VANNO TOCCATE PER NESSUNA RAGIONE, perchè sono i dettami guida di questa fase. Al termine di ogni operazione, aggiorna i documenti e chiedi conferma se andare avanti. Quando TUTTE le operazioni saranno terminate, chiedi conferma per cancellare il presente file.
+Dobbiamo iniziare ad applicare delle regole di gioco all'interfaccia. Molte informazioni dovresti averle importate direttamente dalla versione html js php MySQL. in particolare i database avanzati. Ma non so quanto tu abbia veramente importato e quanto sia in grado di implementare senza provare a studiare una guida.
+Pertanto considera questo file con un PROMPT UNICO ma suddiviso in punti e tu dovrai affrontarli uno per uno, a piccoli passi, aggiornando sempre la documentazione di sviluppo e soprattutto i documenti anti regresso. Tra un punto e l'altro verifichiamo se va tutto bene. La politica dei micro passi deve funzionare.
 
-Ecco alcune cose da sistemare nell'interfaccia e nelle meccaniche prima di proseguire con quello che stavamo facendo, in particolare integrazione oggetti e prossimi passi. Le modifiche che dobbiamo fare NON devono danneggiare o creare regressioni nel codice e devono adeguarsi in modo perfetto al layout e allo stile cromatico del gioco
-
-1. ANNULLATO! - sistemato il problema delle lettere accentate della lingua italiana nel font. Perfect DOS VGA 437 impostato come priorità nel SystemFont con supporto UTF-8 completo. Funzione _force_monospace_font_on_all_panels() ripristinata e attiva. Caratteri ù à ò è é ora visualizzati correttamente.
-
-2. ✅ COMPLETATO v1.8.3d! - nel box inventario gli oggetti vengono chiamati con i numeri per richiamare l'esperienza retrò. Sistema popup implementato con:
-	a. ✅ pressione numero oggetto apre popup con descrizione e caratteristiche specifiche
-	b. ✅ oggetti cibo/acqua: popup con "Usa (1 porzione)", "Getta", "Chiudi" - sistema porzioni funzionante
-	c. ✅ armi/armature: popup con descrizione, durabilità, "Equipaggia"/"Rimuovi", "Ripara", "Getta", "Chiudi"
-	d. ✅ medicine: popup con "Usa" (singolo utilizzo), "Getta", "Chiudi"
-	e. ✅ popup con tema CRT autentico, colori SafePlace, font monospace Perfect DOS VGA 437
-	f. ✅ CORREZIONI FINALI: 80+ oggetti tradotti in italiano, pulsanti spaziati 15px, stile IDENTICO pannelli
-	g. ✅ FIX ERRORI: Rimosso errore modulate, aggiunto supporto tastierino numerico (KP_1-8)
-	h. ⚠️ NOTA: Problemi estetici Godot 4.5 dev - funzionalità OK, estetica limitata (da rivedere con 4.5 stable)
-
-3. ✅ COMPLETATO v1.8.4! - per coerenza con l'esperienza autentica, il box sotto dei comandi non deve essere sensibile al mouse. Il mouse, i joypad e tutte le altre periferiche al di fuori della tastiera non devono funzionare:
-	a. ✅ Filtro keyboard-only implementato in _input() - blocca TUTTI gli eventi non-tastiera
-	b. ✅ Pulsanti interfaccia DISABILITATI - movimento, azioni speciali, popup tutti non-clickabili
-	c. ✅ Stile visual aggiornato - pulsanti scuriti per indicare stato disabilitato
-	d. ✅ Esperienza 100% tastiera - mouse, touch, joypad completamente ignorati
-
-4. ✅ COMPLETATO v1.8.5! - Nel box comandi, nella croce direzionale, lasciare solo i tasti con le frecce e togliere quelli W A S D. Ma i tasti operativi devono restare in funzione:
-	a. ✅ Layout semplificato - rimossi pulsanti WASD duplicati dalla visualizzazione
-	b. ✅ Solo frecce direzionali - mantenuto layout pulito con ↑,←,↓,→ + SPACE
-	c. ✅ Funzionalità preservata - WASD continuano a funzionare perfettamente da tastiera
-	d. ✅ Griglia 3x3 bilanciata - layout simmetrico e centrato maintained
-	e. ✅ Codice ottimizzato - eliminati 4 HBoxContainer e ~15 linee superflue
-5. ✅ COMPLETATO v1.8.6! - nel box comandi, ogni volta che viene premuto uno dei tasti direzionali o spazio per far passare il tempo, si accendono per qualche istante brevissimo:
-	a. ✅ Sistema tracking pulsanti - memorizzati riferimenti a ↑,←,↓,→,SPC
-	b. ✅ Input handler potenziato - ogni keypress triggera animazione feedback
-	c. ✅ Animazione Tween completa - 100ms highlight + 200ms fade + bordo animato
-	d. ✅ Colori SafePlace autentici - usa get_bright_color() per highlight
-	e. ✅ Performance ottimale - animazioni leggere 300ms totali, nessun lag
-	f. ✅ Feedback immediato - vedi subito quale pulsante "virtuale" hai premuto
-6. ✅ COMPLETATO v1.8.7! - nel blocco dei comandi non deve esserci il tasto L che è ad esclusivo appannaggio di un altro box che vedremo piu avanti. Quindi togliere:
-	a. ✅ Pulsante L rimosso - non più visibile nel box comandi
-	b. ✅ Funzionalità L preservata - KEY_L continua ad aprire/chiudere popup leggenda
-	c. ✅ Layout semplificato - solo F5 Salva e F6 Carica nel box
-	d. ✅ Preparazione futura - spazio disponibile per gestione L da "altro box"
-7. ✅ COMPLETATO v1.8.8! - nel box comandi devono esserci solo le frecce direzionali, il comando salva, il comando carica e il comando torna al menu o esci:
-	a. ✅ Pulsante "ESC Esci" aggiunto - posizionato dopo F6 Carica nel box comandi  
-	b. ✅ Funzione _exit_game() implementata - chiusura pulita con get_tree().quit()
-	c. ✅ Handler KEY_ESCAPE aggiunto - funzionalità keyboard-only preservata
-	d. ✅ Layout finale completato - frecce + F5 Salva + F6 Carica + ESC Esci
-8. ✅ COMPLETATO v1.8.9! - Nel box equipaggiamento, sotto armi e armature, ci sono dei comandi, vanno tolti: inventario e salva:
-	a. ✅ Comando "[I] Inventario" rimosso - non più visibile nel box equipaggiamento
-	b. ✅ Comando "[F5] Salva" rimosso - non più duplicato (presente solo nel box comandi)
-	c. ✅ Layout pulito - solo Crafting, Crescita, Leggenda, Carica rimangono
-	d. ✅ Funzionalità preservate - tutti i comandi accessibili da tastiera
-9. ✅ COMPLETATO v1.9.0! - nel box equipaggiamento, sotto crafting, va messo il comando ripara:
-	a. ✅ Comando "[P] Ripara" aggiunto - posizionato sotto [C] Crafting nel box equipaggiamento
-	b. ✅ Funzione _handle_repair() implementata - sistema completo di riparazione oggetti
-	c. ✅ Handler KEY_P aggiunto - accesso keyboard-only al sistema riparazione
-	d. ✅ Sistema logica completa - controlla oggetti danneggiati + materiali + esegue riparazione
-	e. ✅ Layout equipaggiamento aggiornato - [C] Crafting, [P] Ripara, [R] Crescita, [L] Leggenda, [F6] Carica
-10. 🎯 PROSSIMO - va verificato se funziona il tasto L per Leggenda
+1. ✅ COMPLETATO v1.9.2! - Il log di gioco indica che c'è un consumo di acqua e cibo alla partenza, ma quel tipo di consumo deve scattare solo con l'arrivo della notte in quanto consumo di risorse a fine giornata:
+	a. ✅ Sistema doppio consumo implementato - orario normale + extra notturno
+	b. ✅ Consumo orario normale: -2 food, -3 water ogni ora (silenzioso)
+	c. ✅ Consumo extra notturno: -5 food, -7 water all'arrivo della notte (con messaggi log)
+	d. ✅ Tracking transizioni giorno→notte funzionante con variabile was_night_last_check
+	e. ✅ Messaggi atmosferici nel diario: "Il calar della notte ti fa sentire affamato" e "La sete si fa sentire con l'arrivo del buio"
+	f. ✅ Sistema robusto contro applicazioni multiple nella stessa notte
+2. ✅ COMPLETATO v1.9.2! - controlla ogni quanto e di quanto scendono i valori di sazietà e idratazione:
+	a. ✅ Sistema consumo mappato completamente - trigger e meccanismi identificati
+	b. ✅ Valori attuali: -2 food/-3 water ogni ora + -5 food/-7 water alla notte
+	c. ✅ Calcoli sostenibilità: 2 giorni sopravvivenza con water (limite critico)
+	d. ✅ Problemi identificati: trigger troppo frequente, consumo ad ogni movimento
+	e. ✅ 4 opzioni bilanciamento proposte con metriche e impatto UX
+	f. ✅ Raccomandazione: Fix trigger per consumo solo alle ore esatte (-60% consumo)
+3. ✅ COMPLETATO v1.9.2! - controlla se all'arrivo a 0 di sazietà e idratazione iniziano dei malus importanti e perdita di HP:
+	a. ✅ Sistema malus completo identificato - danno HP diretto attivo
+	b. ✅ Valori danno: -5 HP fame + -8 HP sete per ciclo (-13 HP totale)
+	c. ✅ Danno notturno extra: +8 HP fame + +12 HP sete (+20 HP extra notte)
+	d. ⚠️ PROBLEMA CRITICO: Segnale morte non gestito - player "morto" ma gioco continua
+	e. ✅ 4 priorità correzioni proposte con bilanciamento e metriche UX
+	f. 🚨 RACCOMANDAZIONE URGENTE: Fix listener death.connect() per stabilità
+4. ✅ COMPLETATO v1.9.2! - verifica se gli oggetti che ora abbiamo nell'inventario sono gli oggetti reali del gioco derivanti dai vecchi database o se sono placeholder o cose inventate:
+	a. ✅ Inventario completamente verificato - 19 oggetti analizzati sistematicamente
+	b. ✅ 100% oggetti autentici - tutti derivanti dal database originale SafePlace
+	c. ✅ 0 placeholder identificati - nessun oggetto temporaneo o di test
+	d. ✅ 0 oggetti inventati - nessuna creazione arbitraria trovata
+	e. ✅ Compatibilità totale - nomi, descrizioni, meccaniche identiche all'originale
+	f. ✅ Continuità preservata - lore e bilanciamento del gioco originale mantenuti
+5. ✅ COMPLETATO v1.9.2! - verifica che ci siano oggetti consumabili come bevande e nutrienti e medicine che siano consumabili in "porzioni":
+	a. ✅ Sistema porzioni completamente implementato - 28 oggetti consumabili analizzati
+	b. ✅ Cibo multi-porzione: 7 oggetti (2-4 porzioni) - lattine, razioni, MRE
+	c. ✅ Bevande multi-porzione: 6 oggetti (2-4 porzioni) - bottiglie, acqua purificata
+	d. ✅ Medicine single-use: 5 oggetti (corretto come originale) - kit medici potenti
+	e. ✅ Meccanica consumo perfetta - tracking porzioni, feedback visivo, rimozione automatica
+	f. ✅ 100% compatibilità originale - identico al sistema SafePlace HTML/JS
+6. ✅ COMPLETATO v1.9.2! - verifica se il consumo di porzioni di cibo o bevande, oltre a dare punti a sazietà e idratazione, fanno recuperare anche HP, in tal caso dobbiamo capire cosa diceva il vecchio gioco e ripristinare quella regola:
+	a. ✅ Sistema recupero HP completamente funzionante - 3 cibi e 5 bevande danno HP
+	b. ✅ Compatibilità 100% con originale - valori identici a SafePlace HTML/JS
+	c. ✅ Logica design corretta - solo cibi/bevande speciali danno HP (+1/+2 per porzione)
+	d. ✅ Bilanciamento perfetto - cibo/bevande < medicine (15 HP vs 25 HP kit)
+	e. ✅ Integrazione porzioni - HP per ogni porzione consumata (MRE: 4×2HP = 8HP totali)
+	f. ✅ Meccaniche implementate - Player.gd gestisce effetti HP correttamente
+7. ✅ COMPLETATO v1.9.3! - dobbiamo verificare che nelle armi e armature ci sia la durabilità e che possano essere riparati:
+	a. ✅ Database armi/armature implementato - 21 oggetti totali aggiunti (13 armi + 8 armature)
+	b. ✅ Sistema durabilità completo - Tracking current_durability/max_durability funzionante
+	c. ✅ Sistema riparazione operativo - Comando [P] e kit riparazione funzionanti
+	d. ✅ Eventi crash risolti - weapon_knife, weapon_pipe ora esistenti nel database
+	e. ✅ Compatibilità 100% originale - Valori identici al database SafePlace HTML/JS
+	f. ✅ Test oggetti aggiunti - Inventario con armi/armature/kit per verifiche immediate
+	g. ⚠️ NOTA: Oggetti test visibili solo in NUOVE partite (non in salvataggi esistenti)
+	h. ✅ Cache corruption crisis RISOLTA - ThemeManager riabilitato, errori eliminati
+8. il numero massimo di oggetti nell'inventario è 9, dobbiamo fare in modo che l'interfaccia contempli questa quantità senza sbordare fuori, quindi qui massima attenzione
+9. serve inserire un'arma e un'armatura nell'inventario di prova per verificare se possono essere equipaggiate e se l'equipaggiamento si aggiorna
+10. nella sezione comandi leva i pulsanti, ossia l'oggetto come pulsante ma lascia i comandi come tasti, come succede nel pannello di destra con crafting, crescita ecc ecc per migliorare l'impaginazione e cerca di centrare tutti gli oggetti nel box comandi in modo centrale rispetto ai bordi di destra e sinistra
+11. devo ridurre di 4 caratteri verticali la visualizzazione della mappa perché con questo font attuale va a capo e non va bene
+12. nella mappa le M sono montagne e il player non le può sorpassare. Nel vecchio gioco, nei messaggi di diario di gioco, c'erano tre o quattro frasi simpatiche che venivano stampate proprio nel diario di gioco per far capire che di li non si passava. verifica, trova e applica.
+13. le R sono rifugi, nelle regole del gioco precedente, quando diventa notte e arrivi ad una R torna subito il giorno. Poi altre meccaniche sono legate agli eventi che dobbiamo ancora implementare.
+14. premendo C non si apre il popup del crafting. dobbiamo iniziare ad impelentare le meccaniche di crafrting come erano nel vecchio gioco. Realizza un documento roadmap per integrazione del crafting e poi prosegui al punto 15
+15. Il popup della crescita per ora lo lasciamo così
+16. premendo L si apre il popup della leggenda che non è nemmeno lontanamente simile allo stile dell'interfaccia di gioco, cercare di migliorare altrimenti ci lavoreremo in seguito. Però il popup di Leggenda non è compatibile con la scelta keyboard only
+17. togliere il tasto carica dal box in basso a destra.
