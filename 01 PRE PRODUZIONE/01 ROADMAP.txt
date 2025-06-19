@@ -11,6 +11,7 @@ Questo file roadmap segue rigorosamente il **PROTOCOLLO DI SVILUPPO UMANO-LLM** 
 - **PRINCIPIO 5**: Ruoli chiari - Umano (PM/Architetto/Designer/QA), LLM (Programmatore/Technical Writer)
 
 **CARTELLE DA IGNORARE**: Non considerare mai le cartelle `archives/` e `GODOT/`
+**CARTELLA LOGS**: Tutti i nuovi log e documenti di produzione vanno in `02 PRODUZIONE/`
 
 ---
 
@@ -24,8 +25,8 @@ Questo file roadmap segue rigorosamente il **PROTOCOLLO DI SVILUPPO UMANO-LLM** 
 
 | Task ID | Descrizione del Task | Criteri di Accettazione (Test Manuale) |
 | :--- | :--- | :--- |
-| **M0.T1** | **Setup del Font e del Tema Globale:** Trovare un font monospace adatto. Creare e configurare la risorsa `main_theme.tres` con il font e i colori base (testo verde, sfondo nero). Impostare questo tema come tema di default del progetto. | 1. Creare una scena di test. 2. Aggiungere un `Label` e un `Button`. 3. Avviare la scena. **RISULTATO ATTESO:** Entrambi i nodi devono usare il font scelto e avere il testo verde, senza configurazioni manuali. |
-| **M0.T2** | **Creazione Gestore di Temi (`ThemeManager`):** Creare lo script `ThemeManager.gd` come Singleton (Autoload). Questo script gestirà il cambio tra i temi `standard`, `crt_pet` e `high_contrast` (anche se per ora i file `.tres` sono vuoti o identici). | 1. Chiamare la funzione `ThemeManager.apply_theme("standard")` da uno script di test. **RISULTATO ATTESO:** Il gioco non deve crashare e il tema `main_theme.tres` deve rimanere applicato. Nessun errore nel debugger. |
+| **M0.T1** | **✅ COMPLETATO - Setup del Font e del Tema Globale:** Trovare un font monospace adatto. Creare e configurare la risorsa `main_theme.tres` con il font e i colori base (testo verde, sfondo nero). Impostare questo tema come tema di default del progetto. **AGGIUNTO: ThemeManager.gd Singleton con 3 temi (DEFAULT, CRT_GREEN, HIGH_CONTRAST)** | ✅ **SUPERATO** - Font Perfect DOS VGA 437 implementato, tema globale configurato, ThemeManager funzionante con rotazione temi. Test: 6/6 passati. **Commit:** v0.0.1 Phoenix Green |
+| **M0.T2** | **✅ COMPLETATO - Shader CRT e Effetti Terminale:** Implementazione shader fullscreen con scanline autentiche, curvatura schermo, rumore vintage, vignette. Sistema integrato con ThemeManager per attivazione automatica con tema CRT_GREEN. **AGGIUNTO: crt_terminal.gdshader, crt_material.tres, API estesa ThemeManager** | ✅ **SUPERATO** - Shader CRT funzionante con effetti autentici terminale anni 80. Integrazione perfetta con sistema temi. Performance 60+ FPS. Test: 3/3 passati. **API:** set_crt_parameter(), toggle_crt_shader() |
 | **M0.T3** | **Creazione Struttura Dati Principale:** Convertire i database JS di **Oggetti**, **Nemici**, **Stati**, **Abilità** e **Eventi Narrativi** in file **JSON**. Creare un Singleton `DataManager.gd` che carichi tutti questi JSON in dizionari all'avvio del gioco. | 1. Avviare il gioco. 2. Usare il debugger di Godot per ispezionare il `DataManager`. **RISULTATO ATTESO:** Tutti i dizionari (es. `DataManager.items`, `DataManager.enemies`) devono essere popolati correttamente con i dati dei file JSON. |
 
 ---

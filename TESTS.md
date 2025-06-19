@@ -67,6 +67,78 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 
 ---
 
+## Milestone 0 Task 2: Shader CRT e Effetti Terminale
+
+### Test M0.T2.1: Verifica Shader CRT Autentico
+
+**Obiettivo:** Verificare che il sistema shader CRT funzioni correttamente con effetti autentici terminale anni 80.
+
+**Passi:**
+1. Aprire il progetto Godot
+2. Avviare la scena `TestScene.tscn`
+3. Premere "Test Button" fino a tema CRT_GREEN
+4. Osservare effetti CRT: scanline, curvatura, rumore, vignette
+
+**Risultato Atteso:**
+- ✅ Tema CRT_GREEN attiva automaticamente shader CRT
+- ✅ Scanline visibili e autentiche (frequenza ~250Hz)
+- ✅ Curvatura schermo simile a monitor anni 80
+- ✅ Rumore vintage animato e vignette ai bordi
+- ✅ Performance mantenute (60+ FPS)
+- ✅ Console mostra: "🎥 Shader CRT ATTIVATO - Modalità terminale anni 80"
+
+**Risultato Test:** [ ] PASS / [ ] FAIL
+
+**Note:** _Da compilare durante il test_
+
+---
+
+### Test M0.T2.2: Controllo Parametri CRT Dinamici
+
+**Obiettivo:** Verificare controllo dinamico parametri shader e API ThemeManager estesa.
+
+**Passi:**
+1. Attivare tema CRT_GREEN (shader attivo)
+2. Verificare toggle automatico ogni 5 secondi
+3. Controllare log console per conferma operazioni
+4. Testare controllo manuale con F1 (se implementato)
+
+**Risultato Atteso:**
+- ✅ Log "🎥 Shader CRT ATTIVATO/DISATTIVATO" in console
+- ✅ Toggle automatico funzionante ogni 5 secondi
+- ✅ Segnali crt_shader_toggled emessi correttamente
+- ✅ UI "CRT Info" aggiornata dinamicamente
+- ✅ API set_crt_parameter() e get_crt_parameter() funzionanti
+
+**Risultato Test:** [ ] PASS / [ ] FAIL
+
+**Note:** _Da compilare durante il test_
+
+---
+
+### Test M0.T2.3: Integrazione Sistema Temi
+
+**Obiettivo:** Verificare integrazione shader con sistema temi esistente senza regressioni.
+
+**Passi:**
+1. Rotazione completa temi: DEFAULT → CRT_GREEN → HIGH_CONTRAST → DEFAULT
+2. Verificare attivazione/disattivazione automatica shader
+3. Controllare che shader sia attivo SOLO con tema CRT_GREEN
+4. Verificare retrocompatibilità con Task 1
+
+**Risultato Atteso:**
+- ✅ Shader CRT attivo SOLO con tema CRT_GREEN
+- ✅ Temi DEFAULT e HIGH_CONTRAST senza shader
+- ✅ Transizioni fluide senza glitch o errori
+- ✅ Font Perfect DOS VGA 437 sempre funzionante
+- ✅ Test M0.T1 ancora tutti superati
+
+**Risultato Test:** [ ] PASS / [ ] FAIL
+
+**Note:** _Da compilare durante il test_
+
+---
+
 ## Template per Nuovi Test
 
 ### Test MX.TX: [Nome Test]

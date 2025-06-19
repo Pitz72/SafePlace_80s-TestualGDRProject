@@ -38,7 +38,7 @@ grow_vertical = 2
 
 [node name="Title" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "TEST SCENE - MILESTONE 0 TASK 1"
+text = "TEST SCENE - MILESTONE 0 TASK 1+2"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
@@ -68,11 +68,17 @@ text = "Tema Corrente: DEFAULT
 Colore Principale: #4EA162"
 horizontal_alignment = 1
 
+[node name="CRTInfo" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "CRT Shader: DISATTIVO
+Tema CRT: NO"
+horizontal_alignment = 1
+
 [node name="HSeparator4" type="HSeparator" parent="VBoxContainer"]
 layout_mode = 2
 
 [node name="Instructions" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "Verifica che il font sia Perfect DOS VGA 437
-e che il testo sia verde (#4EA162)"
+text = "Verifica che il font sia Perfect DOS VGA 437,
+testo verde (#4EA162) e effetti CRT funzionanti"
 horizontal_alignment = 1
