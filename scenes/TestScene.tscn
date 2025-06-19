@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bkd8mxkmq2r1d"]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Theme" path="res://themes/main_theme.tres" id="1"]
-[ext_resource type="Script" uid="uid://buxvsbikulu2k" path="res://scenes/TestScene.gd" id="2"]
+[ext_resource type="Script" path="res://scenes/TestScene.gd" id="2"]
 
 [node name="TestScene" type="Control"]
 layout_mode = 3

@@ -48,42 +48,43 @@ float vignette(vec2 uv) {
 void fragment() {
     vec2 curved_uv = curve_screen(UV);
     
-    // Controlla se siamo fuori dallo schermo curvato
-    if (curved_uv.x < 0.0 || curved_uv.x > 1.0 || curved_uv.y < 0.0 || curved_uv.y > 1.0) {
+    // Controlla se siamo fuori dallo schermo curvato - usa conditional invece di return
+    bool is_out_of_bounds = (curved_uv.x < 0.0 || curved_uv.x > 1.0 || curved_uv.y < 0.0 || curved_uv.y > 1.0);
+    
+    if (is_out_of_bounds) {
         COLOR = vec4(0.0, 0.0, 0.0, 1.0); // Nero ai bordi
-        return;
+    } else {
+        // Campiona texture originale
+        vec4 base_color = texture(TEXTURE, curved_uv);
+        
+        // Converte a luminanza per simulare monitor monocromatico
+        float luminance = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
+        
+        // Applica colore fosfori verdi
+        vec3 crt_color = phosphor_color * luminance * phosphor_persistence;
+        
+        // Aggiunge sfondo leggermente illuminato
+        crt_color += background_tint * (1.0 - luminance) * 0.1;
+        
+        // Applica scanline
+        float scanline_factor = scanlines(curved_uv);
+        crt_color *= scanline_factor;
+        
+        // Aggiunge rumore vintage
+        float noise = random(curved_uv + TIME * 0.1) * noise_strength;
+        crt_color += vec3(noise);
+        
+        // Applica vignette
+        float vig = vignette(curved_uv);
+        crt_color *= vig;
+        
+        // Regola luminosità e contrasto
+        crt_color = (crt_color - 0.5) * contrast + 0.5;
+        crt_color *= brightness;
+        
+        // Clamp valori
+        crt_color = clamp(crt_color, 0.0, 1.0);
+        
+        COLOR = vec4(crt_color, base_color.a);
     }
-    
-    // Campiona texture originale
-    vec4 base_color = texture(TEXTURE, curved_uv);
-    
-    // Converte a luminanza per simulare monitor monocromatico
-    float luminance = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
-    
-    // Applica colore fosfori verdi
-    vec3 crt_color = phosphor_color * luminance * phosphor_persistence;
-    
-    // Aggiunge sfondo leggermente illuminato
-    crt_color += background_tint * (1.0 - luminance) * 0.1;
-    
-    // Applica scanline
-    float scanline_factor = scanlines(curved_uv);
-    crt_color *= scanline_factor;
-    
-    // Aggiunge rumore vintage
-    float noise = random(curved_uv + TIME * 0.1) * noise_strength;
-    crt_color += vec3(noise);
-    
-    // Applica vignette
-    float vig = vignette(curved_uv);
-    crt_color *= vig;
-    
-    // Regola luminosità e contrasto
-    crt_color = (crt_color - 0.5) * contrast + 0.5;
-    crt_color *= brightness;
-    
-    // Clamp valori
-    crt_color = clamp(crt_color, 0.0, 1.0);
-    
-    COLOR = vec4(crt_color, base_color.a);
 } 
