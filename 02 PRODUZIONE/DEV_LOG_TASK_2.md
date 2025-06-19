@@ -5,7 +5,7 @@
 ## **INFORMAZIONI TASK**
 
 - **Milestone:** M0.T2 - Shader CRT e Effetti Terminale
-- **Versione:** v0.0.2 Phoenix CRT
+- **Versione:** v0.0.2 ScanLines
 - **Data:** 19 Giugno 2025
 - **Dipendenze:** M0.T1 completato (ThemeManager + Font)
 - **Obiettivo:** Simulazione autentica terminali anni 80 con shader CRT
