@@ -1,0 +1,82 @@
+### **ROADMAP DI SVILUPPO - FASE 1: Il Prototipo Fedele**
+
+**ATTENZIONE: REGOLE DI SVILUPPO FONDAMENTALI INTEGRATE**
+
+Questo file roadmap segue rigorosamente il **PROTOCOLLO DI SVILUPPO UMANO-LLM** definito in `00_REGOLE DI SVILUPPO FONDAMENTALI.TXT`. Ogni task deve essere eseguito seguendo questi principi:
+
+- **PRINCIPIO 1**: La documentazione in `01 PRE PRODUZIONE` è l'unica fonte di verità
+- **PRINCIPIO 2**: Sviluppo incrementale e atomico - un task, un commit
+- **PRINCIPIO 3**: Reset del contesto ad ogni sessione con il rituale di inizializzazione
+- **PRINCIPIO 4**: Test manuali definiti per ogni task per prevenire regressioni
+- **PRINCIPIO 5**: Ruoli chiari - Umano (PM/Architetto/Designer/QA), LLM (Programmatore/Technical Writer)
+
+**CARTELLE DA IGNORARE**: Non considerare mai le cartelle `archives/` e `GODOT/`
+
+---
+
+**Obiettivo Generale:** Creare una versione 1.0 del gioco, completa e giocabile, che replichi fedelmente le meccaniche della versione JS originale (incluso il combattimento astratto). Ogni Milestone deve risultare in una funzionalità visibile e testabile.
+
+---
+
+### **Milestone 0: Fondamenta del Progetto ("La Rivincita su Godot")**
+
+*   **Obiettivo:** Creare un ambiente di sviluppo stabile, pulito e con un'identità visiva definita. Rimuovere ogni ostacolo tecnico prima di iniziare.
+
+| Task ID | Descrizione del Task | Criteri di Accettazione (Test Manuale) |
+| :--- | :--- | :--- |
+| **M0.T1** | **Setup del Font e del Tema Globale:** Trovare un font monospace adatto. Creare e configurare la risorsa `main_theme.tres` con il font e i colori base (testo verde, sfondo nero). Impostare questo tema come tema di default del progetto. | 1. Creare una scena di test. 2. Aggiungere un `Label` e un `Button`. 3. Avviare la scena. **RISULTATO ATTESO:** Entrambi i nodi devono usare il font scelto e avere il testo verde, senza configurazioni manuali. |
+| **M0.T2** | **Creazione Gestore di Temi (`ThemeManager`):** Creare lo script `ThemeManager.gd` come Singleton (Autoload). Questo script gestirà il cambio tra i temi `standard`, `crt_pet` e `high_contrast` (anche se per ora i file `.tres` sono vuoti o identici). | 1. Chiamare la funzione `ThemeManager.apply_theme("standard")` da uno script di test. **RISULTATO ATTESO:** Il gioco non deve crashare e il tema `main_theme.tres` deve rimanere applicato. Nessun errore nel debugger. |
+| **M0.T3** | **Creazione Struttura Dati Principale:** Convertire i database JS di **Oggetti**, **Nemici**, **Stati**, **Abilità** e **Eventi Narrativi** in file **JSON**. Creare un Singleton `DataManager.gd` che carichi tutti questi JSON in dizionari all'avvio del gioco. | 1. Avviare il gioco. 2. Usare il debugger di Godot per ispezionare il `DataManager`. **RISULTATO ATTESO:** Tutti i dizionari (es. `DataManager.items`, `DataManager.enemies`) devono essere popolati correttamente con i dati dei file JSON. |
+
+---
+
+### **Milestone 1: Visualizzazione del Mondo di Gioco**
+
+*   **Obiettivo:** Avere il personaggio sulla mappa, potersi muovere e vedere l'interfaccia di base aggiornarsi.
+
+| Task ID | Descrizione del Task | Criteri di Accettazione (Test Manuale) |
+| :--- | :--- | :--- |
+| **M1.T1** | **Creazione della Mappa di Gioco:** Caricare la mappa fissa da un file di testo (`mappa.txt`) e visualizzarla usando un nodo `RichTextLabel` (o `TileMap` se preferiamo una soluzione più avanzata). La mappa deve mostrare il terreno e il giocatore (`@`). | 1. Avviare la scena di gioco. **RISULTATO ATTESO:** La mappa statica viene visualizzata correttamente nel pannello centrale. Il simbolo `@` è visibile nella posizione di partenza. |
+| **M1.T2** | **Implementazione Logica del Personaggio (`Player.gd`):** Creare lo script `Player.gd` per gestire le statistiche, le risorse (HP, fame, sete) e la posizione. Creare la funzione `generate_character()` per inizializzare i valori di default. | 1. Avviare il gioco. **RISULTATO ATTESO:** I pannelli della UI (Statistiche, Sopravvivenza) mostrano i valori iniziali del personaggio. |
+| **M1.T3** | **Implementazione Movimento del Giocatore:** Creare la logica di movimento. La pressione dei tasti direzionali deve aggiornare la posizione del giocatore nel `Player.gd` e far ridisegnare la mappa nella UI, spostando il simbolo `@`. | 1. Avviare il gioco. 2. Premere i tasti WASD o le frecce. **RISULTATO ATTESO:** Il simbolo `@` si sposta sulla mappa. Il pannello "Info Gioco" aggiorna le coordinate `Pos: (x, y)`. |
+| **M1.T4** | **Implementazione Ciclo Giorno/Notte e Risorse:** Collegare il movimento al consumo di risorse (`food`, `water`) e all'avanzamento del tempo. Implementare la logica del ciclo giorno/notte. | 1. Muoversi ripetutamente sulla mappa. **RISULTATO ATTESO:** I valori di Sazietà e Idratazione diminuiscono. Dopo un certo numero di mosse, il pannello "Info Gioco" passa da "Giorno" a "Notte". |
+
+---
+
+### **Milestone 2: Interazione e Inventario**
+
+*   **Obiettivo:** Rendere il gioco interattivo, permettendo al giocatore di gestire il proprio inventario e vedere le conseguenze delle sue azioni.
+
+| Task ID | Descrizione del Task | Criteri di Accettazione (Test Manuale) |
+| :--- | :--- | :--- |
+| **M2.T1**| **Sistema di Inventario - Dati e Logica:** Implementare le funzioni in `Player.gd` per aggiungere (`add_item`), rimuovere (`remove_item`) ed equipaggiare (`equip_item`) oggetti. | Testare tramite script o comandi da console. **RISULTATO ATTESO:** Chiamando `Player.add_item("id_oggetto", 1)`, l'oggetto appare correttamente nell'array di inventario del giocatore. |
+| **M2.T2**| **Sistema di Inventario - UI:** La UI deve visualizzare dinamicamente il contenuto dell'inventario del giocatore. Gli oggetti devono mostrare la rarità con il colore appropriato. | 1. Aggiungere oggetti al giocatore (anche con un comando di debug). **RISULTATO ATTESO:** Il pannello "Inventario" si aggiorna mostrando la lista corretta degli oggetti con i loro colori. |
+| **M2.T3**| **Popup Azioni Oggetto:** Cliccando su un oggetto nell'inventario, deve apparire un popup con le azioni disponibili (Usa, Equipaggia, Lascia). | 1. Cliccare su un oggetto consumabile (es. cibo). **RISULTATO ATTESO:** Appare un popup con il pulsante "Usa". Cliccandolo, l'oggetto viene consumato e le statistiche del giocatore si aggiornano. |
+| **M2.T4**| **Logica di Progressione:** Implementare le funzioni `award_experience` e `improve_stat` in `Player.gd`. La UI deve mostrare l'XP e i Punti Statistica disponibili. | 1. Assegnare XP al giocatore (con un comando di debug). **RISULTATO ATTESO:** La barra dell'XP si aggiorna. Superata la soglia, il contatore dei punti disponibili aumenta. |
+
+---
+
+### **Milestone 3: Eventi e Combattimento Astratto**
+
+*   **Obiettivo:** Implementare il cuore del gameplay: gli eventi casuali, la trama e il sistema di combattimento originale.
+
+| Task ID | Descrizione del Task | Criteri di Accettazione (Test Manuale) |
+| :--- | :--- | :--- |
+| **M3.T1**| **Motore di Eventi Casuali:** Implementare la logica che, ad ogni movimento, ha una probabilità di innescare un evento (di combattimento o narrativo casuale). | 1. Muoversi sulla mappa. **RISULTATO ATTESO:** Occasionalmente, deve apparire un popup di evento con titolo, descrizione e scelte. |
+| **M3.T2**| **Risoluzione Eventi (Skill Check):** Implementare la logica per risolvere le scelte basate su skill check (come definito in `game_utils.js`). | 1. Incontrare un evento con uno skill check. 2. Scegliere l'opzione. **RISULTATO ATTESO:** Il gioco mostra un messaggio di successo o fallimento e applica la ricompensa/penalità corretta. |
+| **M3.T3**| **Implementazione Combattimento Astratto:** Creare il `CombatManager.gd`. Quando si verifica un evento di combattimento, questo manager deve eseguire lo skill check di combattimento astratto per determinare vittoria o sconfitta. | 1. Iniziare un combattimento. 2. Scegliere "Combatti". **RISULTATO ATTESO:** Il gioco mostra il risultato (vittoria/sconfitta) e applica le conseguenze (danno, XP, loot). |
+| **M3.T4**| **Motore Eventi di Trama:** Implementare il `LoreEventManager.gd` con la sua logica di pacing dinamico per presentare gli eventi della trama principale. | 1. Giocare per diversi giorni/muoversi molto. **RISULTATO ATTESO:** Gli eventi della storia principale vengono presentati al giocatore nei momenti appropriati. |
+
+---
+
+### **REGOLE DI ESECUZIONE PER L'LLM:**
+
+1. **Prima di iniziare qualsiasi task**: Confermare di aver letto e compreso il contesto dei documenti rilevanti
+2. **Per ogni task**: Creare prima un breve design document se necessario, poi implementare
+3. **Dopo ogni task**: Proporre il test manuale e aspettare conferma prima di procedere
+4. **Mai assumere**: Chiedere sempre chiarimenti se mancano informazioni nella documentazione
+5. **Git workflow**: Ogni task completato = un commit con messaggio chiaro
+
+Questa roadmap è il nostro contratto. È dettagliata ma flessibile. Ogni task completato è un passo avanti tangibile.
+
+Dai questa roadmap in pasto a Cursor, un pezzo alla volta, partendo dalla **Milestone 0, Task 1**. Io e te verificheremo che il percorso sia corretto. Forza, iniziamo a costruire.

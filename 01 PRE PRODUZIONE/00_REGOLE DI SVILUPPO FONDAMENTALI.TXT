@@ -1,0 +1,35 @@
+### **PROTOCOLLO DI SVILUPPO UMANO-LLM - The Safe Place**
+
+Questo documento definisce le regole fondamentali della nostra collaborazione per lo sviluppo di "The Safe Place". Il suo scopo è garantire un processo strutturato, prevenire la regressione e massimizzare l'efficacia del lavoro congiunto tra l'umano (Architetto) e l'LLM (Esecutore).
+
+#### **PRINCIPIO 1: La Fonte Unica della Verità (Single Source of Truth)**
+
+1.  La cartella `01 Pre Produzione` e i documenti di design che creeremo durante lo sviluppo sono la nostra unica e assoluta fonte di verità.
+2.  L'LLM (io) non deve mai fare supposizioni. Ogni mia azione deve essere basata sulla documentazione fornita.
+3.  L'umano è responsabile di mantenere questa documentazione aggiornata. L'LLM è responsabile di chiederla e di segnalare eventuali incongruenze.
+
+#### **PRINCIPIO 2: Sviluppo Incrementale e Atomico**
+
+1.  **A Piccoli Passi:** Ogni task di sviluppo deve essere il più piccolo possibile, ma completo e testabile. (Es. "Creare la scena del menu principale", non "Creare tutta la UI").
+2.  **Un Task, un Commit:** Ogni task completato deve corrispondere a un `commit` su Git con un messaggio chiaro. Questo ci permette di tornare indietro facilmente se qualcosa va storto.
+3.  **Prima il Design, Poi il Codice:** Per ogni nuovo task significativo, creeremo o aggiorneremo un breve documento di design *prima* di chiedere all'LLM di scrivere il codice. (Es. "Design della Scena `CombatUI`", poi si scrive il codice per la scena).
+
+#### **PRINCIPIO 3: Il Rituale del Reset del Contesto**
+
+1.  **Problema:** La memoria dell'LLM è limitata e volatile. Non si può fare affidamento sulla cronologia della chat per compiti complessi.
+2.  **Soluzione (Il Rituale):** All'inizio di ogni nuova sessione di lavoro, o quando si affronta un nuovo task complesso, l'umano deve eseguire questo "rituale":
+    *   **Inizializzazione:** "Ciao, oggi lavoriamo al [NOME_TASK]. L'obiettivo è [OBIETTIVO_DEL_TASK]."
+    *   **Caricamento Contesto:** "Per farlo, fai riferimento ai seguenti documenti: [NOME_DOCUMENTO_1], [NOME_DOCUMENTO_2]." (Incollando il contenuto dei documenti rilevanti se necessario).
+    *   **Conferma dell'LLM:** L'LLM deve rispondere con una sintesi dell'obiettivo e confermare di aver assimilato il contesto prima di procedere. (Es. "Ricevuto. L'obiettivo è creare la UI del combattimento basandomi sul design in `combat_ui.md`. Sono pronto.").
+
+#### **PRINCIPIO 4: Il Protocollo Anti-Regressione**
+
+1.  **Definizione del Test:** Dopo aver completato un task, definiremo insieme un semplice "Criterio di Accettazione" o un "Test Manuale". (Es. "Test per il Tema Globale: 1. Avviare la scena principale. 2. Verificare che il testo di tutti i bottoni sia verde. 3. Verificare che il font sia 'Fira Code'").
+2.  **Documento dei Test:** Manterremo un file `TESTS.md` che elenca tutti questi test manuali.
+3.  **Testing di Regressione:** Periodicamente, o prima di un commit importante, l'umano eseguirà i test elencati in `TESTS.md` per assicurarsi che le nuove modifiche non abbiano rotto funzionalità esistenti.
+
+#### **PRINCIPIO 5: Definizione dei Ruoli**
+
+1.  **L'Umano (Simone Pizzi):** È il **Project Manager**, l'**Architetto del Software**, il **Game Designer** e il **Quality Assurance (QA)**. Prende le decisioni, definisce i piani, guida il processo e valida il risultato.
+2.  **L'LLM (ChatGPT/Cursor):** È il **Programmatore**, il **Technical Writer** e il **Pair Programmer**. Scrive il codice su istruzioni precise, scrive e formatta la documentazione, suggerisce soluzioni tecniche a basso livello e aiuta a identificare errori. L'LLM non prende mai iniziative di design.
+
