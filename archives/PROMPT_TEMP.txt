@@ -52,6 +52,8 @@ Pertanto considera questo file con un PROMPT UNICO ma suddiviso in punti e tu do
 	f. ✅ Test oggetti aggiunti - Inventario con armi/armature/kit per verifiche immediate
 	g. ⚠️ NOTA: Oggetti test visibili solo in NUOVE partite (non in salvataggi esistenti)
 	h. ✅ Cache corruption crisis RISOLTA - ThemeManager riabilitato, errori eliminati
+	i. 🚨 TASK PROSSIMA SESSIONE: Oggetti test NON appaiono in inventario nuove partite - debug necessario
+	   📋 Dettagli completi: TASK_VERIFICA_OGGETTI_TEST_v1.9.3.md
 8. il numero massimo di oggetti nell'inventario è 9, dobbiamo fare in modo che l'interfaccia contempli questa quantità senza sbordare fuori, quindi qui massima attenzione
 9. serve inserire un'arma e un'armatura nell'inventario di prova per verificare se possono essere equipaggiate e se l'equipaggiamento si aggiorna
 10. nella sezione comandi leva i pulsanti, ossia l'oggetto come pulsante ma lascia i comandi come tasti, come succede nel pannello di destra con crafting, crescita ecc ecc per migliorare l'impaginazione e cerca di centrare tutti gli oggetti nel box comandi in modo centrale rispetto ai bordi di destra e sinistra
