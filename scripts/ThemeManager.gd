@@ -60,10 +60,7 @@ const HIGH_CONTRAST_THEME = {
 var current_theme_type: ThemeType = ThemeType.DEFAULT
 var current_colors: Dictionary = DEFAULT_THEME.duplicate()
 
-# 🎥 CONTROLLO SHADER CRT
-var crt_material: ShaderMaterial
-var main_canvas_layer: CanvasLayer
-var crt_overlay: ColorRect
+# 🎥 CONTROLLO SHADER CRT - RIMOSSO (da reimplementare con Compositor)
 
 # 📡 SEGNALI GLOBALI
 signal theme_changed(theme_type: ThemeType)
@@ -72,10 +69,10 @@ signal crt_shader_toggled(enabled: bool)
 
 # 🚀 INIZIALIZZAZIONE
 func _ready():
-	print("🎨 ThemeManager inizializzato - Preparazione sistema CRT...")
-	_setup_crt_system()
 	print("🎨 ThemeManager inizializzato - Tema: DEFAULT")
 	set_theme(ThemeType.DEFAULT)
+	# Configura sistema CRT dopo un frame per assicurarsi che la scena sia pronta
+	call_deferred("setup_crt_control")
 
 # 🎯 API PRINCIPALE TEMI
 func set_theme(theme_type: ThemeType) -> void:
@@ -92,8 +89,8 @@ func set_theme(theme_type: ThemeType) -> void:
 		ThemeType.HIGH_CONTRAST:
 			current_colors = HIGH_CONTRAST_THEME.duplicate()
 	
-	# Gestione shader CRT
-	_update_crt_shader(theme_type == ThemeType.CRT_GREEN)
+	# Gestione shader CRT - Sistema funzionale
+	enable_crt_with_theme(theme_type)
 	
 	# Emetti segnali per aggiornamento globale
 	theme_changed.emit(theme_type)
@@ -182,67 +179,37 @@ func get_theme_name() -> String:
 		_:
 			return "Sconosciuto"
 
-# 🎥 SISTEMA SHADER CRT
-func _setup_crt_system() -> void:
-	"""Inizializza il sistema shader CRT per effetti terminale"""
-	print("🎥 Inizializzazione sistema CRT...")
-	
-	# Carica material CRT
-	crt_material = load("res://themes/crt_material.tres") as ShaderMaterial
-	if not crt_material:
-		print("⚠️ Impossibile caricare material CRT")
-		return
-	
-	# Crea CanvasLayer per overlay fullscreen
-	main_canvas_layer = CanvasLayer.new()
-	main_canvas_layer.layer = 100  # Layer alto per essere sopra tutto
-	main_canvas_layer.name = "CRT_OverlayLayer"
-	
-	# Crea ColorRect per applicare shader
-	crt_overlay = ColorRect.new()
-	crt_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	crt_overlay.material = crt_material
-	crt_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Non bloccare input
-	crt_overlay.visible = false  # Inizialmente nascosto
-	crt_overlay.name = "CRT_Overlay"
-	
-	# Assembla gerarchia
-	main_canvas_layer.add_child(crt_overlay)
-	get_tree().current_scene.add_child(main_canvas_layer)
-	
-	print("✅ Sistema CRT inizializzato correttamente")
+# 🎥 SISTEMA CRT SEMPLIFICATO E FUNZIONALE
+var crt_display: ColorRect
+var crt_material: ShaderMaterial
+var is_crt_active: bool = false
 
-func _update_crt_shader(enabled: bool) -> void:
-	"""Attiva/disattiva shader CRT"""
-	if not crt_overlay:
-		print("⚠️ Overlay CRT non inizializzato")
-		return
-	
-	crt_overlay.visible = enabled
-	crt_shader_toggled.emit(enabled)
-	
-	if enabled:
-		print("🎥 Shader CRT ATTIVATO - Modalità terminale anni 80")
-	else:
-		print("🎥 Shader CRT DISATTIVATO - Modalità standard")
+func setup_crt_control():
+	"""Trova e configura controllo CRT nella scena"""
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		crt_display = main_scene.get_node_or_null("CRTDisplay")
+		if crt_display:
+			print("✅ CRTDisplay trovato")
+			# Il material verrà caricato manualmente in Godot
+		else:
+			print("⚠️ CRTDisplay non trovato nella scena")
 
 func toggle_crt_shader() -> void:
-	"""Toggle manuale dello shader CRT"""
-	if crt_overlay:
-		_update_crt_shader(not crt_overlay.visible)
+	"""Attiva/disattiva effetto CRT"""
+	if crt_display:
+		is_crt_active = !is_crt_active
+		crt_display.visible = is_crt_active
+		print("🎥 CRT: %s" % ("ATTIVO" if is_crt_active else "DISATTIVO"))
+		crt_shader_toggled.emit(is_crt_active)
 
 func is_crt_shader_active() -> bool:
 	"""Controlla se lo shader CRT è attualmente attivo"""
-	return crt_overlay and crt_overlay.visible
+	return is_crt_active
 
-func set_crt_parameter(param_name: String, value) -> void:
-	"""Modifica parametri shader CRT in runtime"""
-	if crt_material and crt_material.shader:
-		crt_material.set_shader_parameter(param_name, value)
-		print("🎥 Parametro CRT aggiornato: %s = %s" % [param_name, value])
-
-func get_crt_parameter(param_name: String):
-	"""Ottiene valore parametro shader CRT"""
-	if crt_material and crt_material.shader:
-		return crt_material.get_shader_parameter(param_name)
-	return null 
+func enable_crt_with_theme(theme_type: ThemeType):
+	"""Attiva CRT automaticamente con tema CRT_GREEN"""
+	if crt_display:
+		var should_enable = (theme_type == ThemeType.CRT_GREEN)
+		if should_enable != is_crt_active:
+			toggle_crt_shader()

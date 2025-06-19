@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://dseq50c1on0w8"]
 
-[ext_resource type="Theme" path="res://themes/main_theme.tres" id="1"]
-[ext_resource type="Script" path="res://scenes/TestScene.gd" id="2"]
+[ext_resource type="Theme" uid="uid://d31vy5b8bcfsa" path="res://themes/main_theme.tres" id="1"]
+[ext_resource type="Script" uid="uid://do6hcwmr1ikpq" path="res://scenes/TestScene.gd" id="2"]
+[ext_resource type="Material" uid="uid://b052lgv26x5db" path="res://themes/crt_simple_material.tres" id="3_n77mx"]
 
 [node name="TestScene" type="Control"]
 layout_mode = 3
@@ -14,8 +15,7 @@ theme = ExtResource("1")
 script = ExtResource("2")
 
 [node name="Background" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -23,8 +23,7 @@ grow_vertical = 2
 color = Color(0, 0.0196078, 0.0117647, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -80,5 +79,17 @@ layout_mode = 2
 [node name="Instructions" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "Verifica che il font sia Perfect DOS VGA 437,
-testo verde (#4EA162) e effetti CRT funzionanti"
+testo verde (#4EA162) e effetti CRT funzionanti.
+Premi F1 per toggle CRT manuale"
 horizontal_alignment = 1
+
+[node name="CRTDisplay" type="ColorRect" parent="."]
+visible = false
+material = ExtResource("3_n77mx")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

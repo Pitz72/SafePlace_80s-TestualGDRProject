@@ -1,6 +1,6 @@
-[gd_resource type="Theme" load_steps=3 format=3 uid="uid://bkimvdsl7lqe3"]
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://d31vy5b8bcfsa"]
 
-[ext_resource type="FontFile" uid="uid://1rmfuh3lt1ki" path="res://themes/Perfect DOS VGA 437 Win.ttf" id="1"]
+[ext_resource type="FontFile" uid="uid://dfw4ij5rfurac" path="res://themes/Perfect DOS VGA 437 Win.ttf" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0, 0.0196078, 0.0117647, 1)

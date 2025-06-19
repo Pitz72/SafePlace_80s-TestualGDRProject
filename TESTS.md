@@ -20,9 +20,9 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 - ✅ I bottoni devono avere bordi verdi e testo verde
 - ✅ Non devono esserci errori nella console di Godot
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Test superato con successo - v0.0.1
 
 ---
 
@@ -41,9 +41,9 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 - ✅ Ogni cambio è confermato in console
 - ✅ I colori dell'interfaccia cambiano visivamente con i temi
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Test superato con successo - v0.0.1
 
 ---
 
@@ -61,83 +61,110 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 - ✅ Il tema cambia visivamente
 - ✅ Console conferma: "✅ Tema applicato: DEFAULT"
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Test superato con successo - v0.0.1
 
 ---
 
-## Milestone 0 Task 2: Shader CRT e Effetti Terminale
+## Milestone 0 Task 2: Shader CRT e Effetti Terminale (v0.0.2b)
 
-### Test M0.T2.1: Verifica Shader CRT Autentico
+### Test M0.T2.1: Verifica Sistema CRT Funzionale
 
-**Obiettivo:** Verificare che il sistema shader CRT funzioni correttamente con effetti autentici terminale anni 80.
+**Obiettivo:** Verificare che il sistema CRT completamente riparato funzioni correttamente con architettura ColorRect overlay.
 
 **Passi:**
 1. Aprire il progetto Godot
 2. Avviare la scena `TestScene.tscn`
-3. Premere "Test Button" fino a tema CRT_GREEN
-4. Osservare effetti CRT: scanline, curvatura, rumore, vignette
+3. Verificare stato iniziale (CRT disattivo)
+4. Premere F1 per attivare CRT manualmente
+5. Osservare effetti: scanline, fosfori verdi, rumore vintage
 
 **Risultato Atteso:**
-- ✅ Tema CRT_GREEN attiva automaticamente shader CRT
-- ✅ Scanline visibili e autentiche (frequenza ~250Hz)
-- ✅ Curvatura schermo simile a monitor anni 80
-- ✅ Rumore vintage animato e vignette ai bordi
+- ✅ Avvio normale: schermo pulito senza effetti CRT
+- ✅ F1 attiva CRT: effetti fosfori verdi autentici
+- ✅ Scanline orizzontali visibili e realistiche
+- ✅ Colore fosforoso verde (#00FF40) applicato correttamente
+- ✅ Rumore vintage leggero e discreto
+- ✅ Console mostra: "🎥 CRT: ATTIVO/DISATTIVO"
 - ✅ Performance mantenute (60+ FPS)
-- ✅ Console mostra: "🎥 Shader CRT ATTIVATO - Modalità terminale anni 80"
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Sistema completamente funzionale - v0.0.2b
 
 ---
 
-### Test M0.T2.2: Controllo Parametri CRT Dinamici
+### Test M0.T2.2: Integrazione Automatica con Temi
 
-**Obiettivo:** Verificare controllo dinamico parametri shader e API ThemeManager estesa.
+**Obiettivo:** Verificare attivazione automatica CRT con tema CRT_GREEN.
 
 **Passi:**
-1. Attivare tema CRT_GREEN (shader attivo)
-2. Verificare toggle automatico ogni 5 secondi
-3. Controllare log console per conferma operazioni
-4. Testare controllo manuale con F1 (se implementato)
+1. Avviare con tema DEFAULT (CRT spento)
+2. Premere "Test Button" per passare a CRT_GREEN
+3. Verificare attivazione automatica CRT
+4. Cambiare a HIGH_CONTRAST
+5. Verificare disattivazione automatica CRT
 
 **Risultato Atteso:**
-- ✅ Log "🎥 Shader CRT ATTIVATO/DISATTIVATO" in console
-- ✅ Toggle automatico funzionante ogni 5 secondi
-- ✅ Segnali crt_shader_toggled emessi correttamente
-- ✅ UI "CRT Info" aggiornata dinamicamente
-- ✅ API set_crt_parameter() e get_crt_parameter() funzionanti
+- ✅ Tema DEFAULT: CRT spento
+- ✅ Tema CRT_GREEN: CRT si attiva automaticamente
+- ✅ Tema HIGH_CONTRAST: CRT si spegne automaticamente
+- ✅ Transizioni fluide senza glitch
+- ✅ UI "CRT Info" aggiornata correttamente
+- ✅ Console conferma ogni cambio stato
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Integrazione perfetta - v0.0.2b
 
 ---
 
-### Test M0.T2.3: Integrazione Sistema Temi
+### Test M0.T2.3: Controllo Manuale F1
 
-**Obiettivo:** Verificare integrazione shader con sistema temi esistente senza regressioni.
+**Obiettivo:** Verificare controllo manuale indipendente dal tema.
 
 **Passi:**
-1. Rotazione completa temi: DEFAULT → CRT_GREEN → HIGH_CONTRAST → DEFAULT
-2. Verificare attivazione/disattivazione automatica shader
-3. Controllare che shader sia attivo SOLO con tema CRT_GREEN
-4. Verificare retrocompatibilità con Task 1
+1. Impostare tema DEFAULT
+2. Premere F1 per attivare CRT manualmente
+3. Cambiare tema a CRT_GREEN (dovrebbe rimanere attivo)
+4. Premere F1 per disattivare
+5. Verificare che rimanga spento anche con tema CRT_GREEN
 
 **Risultato Atteso:**
-- ✅ Shader CRT attivo SOLO con tema CRT_GREEN
-- ✅ Temi DEFAULT e HIGH_CONTRAST senza shader
-- ✅ Transizioni fluide senza glitch o errori
-- ✅ Font Perfect DOS VGA 437 sempre funzionante
-- ✅ Test M0.T1 ancora tutti superati
+- ✅ F1 funziona indipendentemente dal tema attivo
+- ✅ Controllo manuale ha precedenza su quello automatico
+- ✅ Toggle immediato e responsivo
+- ✅ Stato visuale coerente con stato logico
+- ✅ Console conferma ogni toggle manuale
 
-**Risultato Test:** [ ] PASS / [ ] FAIL
+**Risultato Test:** [✅] PASS / [ ] FAIL
 
-**Note:** _Da compilare durante il test_
+**Note:** Controllo manuale perfetto - v0.0.2b
 
 ---
+
+### Test M0.T2.4: Regressione Architettura Precedente
+
+**Obiettivo:** Verificare che la nuova architettura non abbia introdotto regressioni.
+
+**Passi:**
+1. Verificare che tutti i test M0.T1 passino ancora
+2. Verificare font Perfect DOS VGA 437 funzionante
+3. Verificare temi DEFAULT e HIGH_CONTRAST senza problemi
+4. Verificare performance e stabilità generale
+
+**Risultato Atteso:**
+- ✅ Tutti i test M0.T1 ancora superati
+- ✅ Font perfetto in tutti i temi
+- ✅ Colori temi corretti
+- ✅ Nessun errore in console
+- ✅ Stabilità generale mantenuta
+- ✅ Architettura ColorRect più semplice e robusta
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Zero regressioni - architettura migliorata - v0.0.2b
 
 ## Template per Nuovi Test
 

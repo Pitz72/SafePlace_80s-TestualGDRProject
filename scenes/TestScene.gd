@@ -28,8 +28,8 @@ func _ready():
 	if test_button:
 		test_button.pressed.connect(_on_test_button_pressed)
 	
-	# Setup timer per test automatici
-	setup_auto_test_timer()
+	# Setup timer per test automatici - DISABILITATO (causava layer che copre tutto)
+	# setup_auto_test_timer()
 
 func update_theme_info():
 	"""Aggiorna le informazioni del tema corrente"""
@@ -103,6 +103,11 @@ func _input(event):
 		_on_test_button_pressed()
 	elif event.is_action_pressed("ui_cancel"):
 		get_tree().quit()
+	# Controllo F1 per toggle CRT manuale
+	elif event is InputEventKey and event.pressed:
+		if event.keycode == KEY_F1:
+			if ThemeManager:
+				ThemeManager.toggle_crt_shader()
 
 # 🧪 METODI DI TEST AUTOMATICI
 func test_theme_manager():

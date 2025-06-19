@@ -1,16 +1,11 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bkeycknn1phrd"]
 
-[ext_resource type="Shader" path="res://themes/crt_terminal.gdshader" id="1"]
+[ext_resource type="Shader" uid="uid://yb17j48e4cl0" path="res://themes/crt_simple.gdshader" id="1_r0brg"]
 
 [resource]
-shader = ExtResource("1")
+shader = ExtResource("1_r0brg")
 shader_parameter/scanline_strength = 0.25
 shader_parameter/scanline_frequency = 250.0
-shader_parameter/curvature = 0.015
+shader_parameter/phosphor_glow = 1.3
+shader_parameter/phosphor_color = Color(0, 1, 0.25, 1)
 shader_parameter/noise_strength = 0.1
-shader_parameter/brightness = 1.3
-shader_parameter/contrast = 1.15
-shader_parameter/phosphor_persistence = 0.85
-shader_parameter/vignette_strength = 0.3
-shader_parameter/phosphor_color = Vector3(0, 1, 0.25)
-shader_parameter/background_tint = Vector3(0.05, 0.1, 0.05) 
