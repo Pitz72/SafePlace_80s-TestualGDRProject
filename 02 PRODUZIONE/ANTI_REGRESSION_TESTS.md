@@ -277,6 +277,97 @@
 
 ---
 
+## **🗄️ MILESTONE 0 TASK 3b - DataManager Singleton (v0.0.3+)**
+
+### **TEST M0.T3b.1: DataManager Autoload**
+
+**Obiettivo:** Verificare configurazione e inizializzazione DataManager
+
+**PASSI:**
+1. Aprire progetto Godot
+2. Andare in "Project Settings" → "Autoload"
+3. Verificare presenza DataManager in lista
+4. Eseguire `scenes/TestScene.tscn`
+5. Osservare console per log DataManager
+
+**RISULTATO ATTESO:**
+- ✅ DataManager presente negli Autoload
+- ✅ Console mostra: "🗄️ DataManager inizializzazione..."
+- ✅ Console mostra: "✅ DataManager pronto - X oggetti caricati"
+- ✅ Nessun errore di caricamento file JSON
+
+**CRITERIO SUPERAMENTO:** ✅ DataManager si inizializza senza errori
+**STATO:** ✅ SUPERATO v0.0.3+
+
+---
+
+### **TEST M0.T3b.2: Caricamento Database Modulari**
+
+**Obiettivo:** Verificare caricamento corretto di tutti i file JSON
+
+**PASSI:**
+1. Eseguire TestScene
+2. Osservare log di caricamento nella console
+3. Verificare caricamento di ogni categoria
+4. Controllare che non ci siano errori di parsing JSON
+
+**RISULTATO ATTESO:**
+- ✅ Log: "📁 Caricamento database modulari..."
+- ✅ Sistema rarità: 5 livelli caricati
+- ✅ Tutti i file items/ caricati senza errori
+- ✅ Database unificato con 55+ oggetti totali
+- ✅ Nessun conflitto ID rilevato
+
+**CRITERIO SUPERAMENTO:** ✅ Tutti i database caricati correttamente
+**STATO:** ✅ SUPERATO v0.0.3+
+
+---
+
+### **TEST M0.T3b.3: API DataManager Funzionale**
+
+**Obiettivo:** Verificare funzionamento delle API pubbliche
+
+**PASSI:**
+1. Eseguire TestScene con test automatici
+2. Osservare risultati test API nella console
+3. Verificare funzioni: get_item_data, get_rarity_data, ricerca
+4. Controllare filtri per categoria e rarità
+
+**RISULTATO ATTESO:**
+- ✅ Sistema rarità COMMON accessibile
+- ✅ Oggetti LEGENDARY trovati
+- ✅ Armi filtrate per categoria
+- ✅ Ricerca per nome funzionante
+- ✅ Colori rarità disponibili per UI
+- ✅ Log: "✅ SUCCESS: DataManager completamente funzionale!"
+
+**CRITERIO SUPERAMENTO:** ✅ Tutte le API funzionano correttamente
+**STATO:** ✅ SUPERATO v0.0.3+
+
+---
+
+### **TEST M0.T3b.4: Zero Regressioni M0.T1-T3**
+
+**Obiettivo:** Verificare che DataManager non abbia rotto funzionalità esistenti
+
+**PASSI:**
+1. Eseguire tutti i test M0.T1 (Font, ThemeManager)
+2. Eseguire tutti i test M0.T2 (Sistema CRT)
+3. Eseguire tutti i test M0.T3 (Database modulari)
+4. Verificare TestScene completa senza errori
+
+**RISULTATO ATTESO:**
+- ✅ Tutti i test M0.T1 ancora superati
+- ✅ Tutti i test M0.T2 ancora superati
+- ✅ Tutti i test M0.T3 ancora superati
+- ✅ ThemeManager e DataManager coesistono correttamente
+- ✅ Console pulita da errori critici
+
+**CRITERIO SUPERAMENTO:** ✅ Zero regressioni introdotte
+**STATO:** ✅ SUPERATO v0.0.3+
+
+---
+
 ## **🚨 TEST CRITICI TRANSVERSALI**
 
 ### **TEST CRITICO 1: Zero Errori Godot**
@@ -430,8 +521,9 @@ Prima di ogni commit, verificare:
 **MILESTONE 0 TASK 1:** ✅ 3/3 TEST SUPERATI  
 **MILESTONE 0 TASK 2:** ✅ 4/4 TEST SUPERATI  
 **MILESTONE 0 TASK 3:** ✅ 4/4 TEST SUPERATI  
+**MILESTONE 0 TASK 3b:** ✅ 4/4 TEST SUPERATI  
 **TEST CRITICI:** ✅ 3/3 TEST SUPERATI  
 
-**TOTALE: 14/14 TEST ANTI-REGRESSIONE SUPERATI** 🎉
+**TOTALE: 18/18 TEST ANTI-REGRESSIONE SUPERATI** 🎉
 
-**SafePlace v0.0.3 "Found Objects" è SOLIDO e pronto per M1.T1** 🚀 
+**SafePlace v0.0.3+ "Found Objects + DataManager" è SOLIDO e pronto per M1.T1** 🚀 
