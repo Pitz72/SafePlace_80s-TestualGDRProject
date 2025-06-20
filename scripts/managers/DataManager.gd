@@ -145,7 +145,9 @@ func _merge_item_databases() -> void:
 	for database in databases:
 		# Determina la chiave principale basandosi sulla struttura del file
 		var main_key = ""
-		if database.has("items"):
+		if database.has("unique_items"):
+			main_key = "unique_items"
+		elif database.has("items"):
 			main_key = "items"
 		elif database.has("weapons"):
 			main_key = "weapons"
@@ -160,13 +162,28 @@ func _merge_item_databases() -> void:
 		elif database.has("quest_items"):
 			main_key = "quest_items"
 		
-		if main_key != "" and database[main_key] is Dictionary:
-			for item_id in database[main_key]:
-				if items.has(item_id):
-					conflicts.append("ID duplicato: %s" % item_id)
-				else:
-					items[item_id] = database[main_key][item_id]
-					_total_items_loaded += 1
+		if main_key != "":
+			var data_collection = database[main_key]
+			
+			# Gestione sia Array che Dictionary
+			if data_collection is Array:
+				# Array di oggetti (es. unique_items)
+				for item_data in data_collection:
+					if item_data.has("id"):
+						var item_id = item_data.id
+						if items.has(item_id):
+							conflicts.append("ID duplicato: %s" % item_id)
+						else:
+							items[item_id] = item_data
+							_total_items_loaded += 1
+			elif data_collection is Dictionary:
+				# Dictionary di oggetti (es. weapons, armor)
+				for item_id in data_collection:
+					if items.has(item_id):
+						conflicts.append("ID duplicato: %s" % item_id)
+					else:
+						items[item_id] = data_collection[item_id]
+						_total_items_loaded += 1
 	
 	if conflicts.size() > 0:
 		print("⚠️ Conflitti ID rilevati:")
@@ -179,10 +196,14 @@ func _merge_item_databases() -> void:
 ## Conta gli oggetti in un database specifico
 func _count_items(database: Dictionary) -> int:
 	# Cerca la chiave principale del database
-	var main_keys = ["items", "weapons", "armor", "consumables", "crafting_materials", "ammo", "quest_items"]
+	var main_keys = ["items", "unique_items", "weapons", "armor", "consumables", "crafting_materials", "ammo", "quest_items"]
 	for key in main_keys:
-		if database.has(key) and database[key] is Dictionary:
-			return database[key].size()
+		if database.has(key):
+			var data = database[key]
+			if data is Array:
+				return data.size()
+			elif data is Dictionary:
+				return data.size()
 	return 0
 
 ## Verifica integrità dei dati caricati

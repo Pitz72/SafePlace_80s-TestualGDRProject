@@ -1,6 +1,6 @@
 {
-  "unique_items": {
-    "last_letter_from_dad": {
+  "unique_items": [
+    {
       "id": "last_letter_from_dad",
       "name": "Ultima Lettera di Papà",
       "nameShort": "Lettera Papà",
@@ -17,7 +17,7 @@
         { "type": "permanent_hope", "bonus": 5 }
       ]
     },
-    "ultimate_survivor_journal": {
+    {
       "id": "ultimate_survivor_journal",
       "name": "Diario di Ultimo",
       "nameShort": "Diario Ultimo",
@@ -34,7 +34,7 @@
         { "type": "learn_from_mistakes", "failureReduction": 0.2 }
       ]
     },
-    "prewar_family_photo": {
+    {
       "id": "prewar_family_photo",
       "name": "Foto di Famiglia Pre-Guerra",
       "nameShort": "Foto Famiglia",
@@ -51,7 +51,7 @@
         { "type": "family_memory", "determination": 10 }
       ]
     },
-    "safe_place_map_fragment_master": {
+    {
       "id": "safe_place_map_fragment_master",
       "name": "Frammento Mappa Principale",
       "nameShort": "Mappa Master",
@@ -68,11 +68,11 @@
         { "type": "destiny_guidance", "finalQuestBonus": 25 }
       ]
     },
-    "prewar_military_tags": {
+    {
       "id": "prewar_military_tags",
       "name": "Piastrine Militari Pre-Guerra",
       "nameShort": "Piastrine",
-      "description": "Piastrine di identificazione militare appartenenti a un soldato sconosciuto. Incise: 'Sgt. Marcus Chen - Never Leave a Man Behind'.",
+      "description": "Piastrine di identificazione militare appartenute a un soldato sconosciuto. Incise: 'Sgt. Marcus Chen - Never Leave a Man Behind'.",
       "type": "unique",
       "rarity": "RARE",
       "weight": 0.08,
@@ -84,5 +84,5 @@
         { "type": "warrior_spirit", "courageBonus": 12 }
       ]
     }
-  }
+  ]
 } 

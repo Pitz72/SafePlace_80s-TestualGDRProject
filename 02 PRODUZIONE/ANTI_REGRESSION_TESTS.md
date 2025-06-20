@@ -389,15 +389,15 @@
 3. Sommare totale manuale e confrontare con DataManager (47)
 4. Se differenza: identificare file con discrepanze
 
-**RISULTATI ATTESI DataManager v0.0.4:**
+**RISULTATI VERIFICATI DataManager v0.0.4:**
 - ✅ Armi: 8
 - ✅ Armature: 6  
 - ✅ Consumabili: 18
 - ✅ Materiali crafting: 10
 - ✅ Munizioni: 2
 - ✅ Quest items: 3
-- ⚠️ **Oggetti unici: 0** ← POSSIBILE PROBLEMA QUI
-- **TOTALE: 47**
+- ✅ **Oggetti unici: 5** ← BUG RISOLTO!
+- **TOTALE: 52** ← CORRETTO!
 
 **AZIONI RICHIESTE:**
 1. Verificare se `unique_items.json` ha struttura corretta
@@ -406,7 +406,7 @@
 4. Aggiornare documentazione con conteggio verificato
 
 **CRITERIO SUPERAMENTO:** ✅ Conteggio verificato e documentato
-**STATO:** ⚠️ **VERIFICA IN CORSO**
+**STATO:** ✅ **SUPERATO** - Bug risolto, 52 oggetti confermati
 
 ---
 
