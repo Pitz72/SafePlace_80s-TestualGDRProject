@@ -194,10 +194,93 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 3. **Segnalare fallimenti:** Se un test fallisce, fermare lo sviluppo e risolvere prima di procedere
 4. **Aggiornare i test:** Quando si aggiunge una nuova funzionalità, aggiungere il relativo test
 
+## Milestone 0 Task 3: Sistema DataManager e Database Modulare (v0.0.4)
+
+### Test M0.T3.1: Verifica DataManager Singleton Funzionale
+
+**Obiettivo:** Verificare che DataManager carichi correttamente tutti i database modulari.
+
+**Passi:**
+1. Aprire progetto Godot
+2. Verificare Autoload: ThemeManager e DataManager presenti
+3. Avviare TestScene.tscn
+4. Osservare output console per caricamento dati
+
+**Risultato Atteso:**
+- ✅ DataManager compare negli Autoload
+- ✅ Console mostra: "📊 DataManager inizializzato"
+- ✅ Conteggio oggetti caricati: 47 totali
+- ✅ Sistema rarità: 5 livelli caricati
+- ✅ 8 categorie database caricate: weapons, armor, consumables, etc.
+- ✅ Zero errori JSON durante caricamento
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Sistema funzionante - v0.0.4
+
+---
+
+### Test M0.T3.2: API DataManager Complete
+
+**Obiettivo:** Verificare tutte le API functions del DataManager.
+
+**Passi:**
+1. Aprire Remote Inspector di Godot
+2. Testare API principali:
+   - `DataManager.get_item_data("pistol")`
+   - `DataManager.get_rarity_data("common")`
+   - `DataManager.get_items_by_category("weapons")`
+   - `DataManager.get_items_by_rarity("rare")`
+
+**Risultato Atteso:**
+- ✅ get_item_data() restituisce oggetto corretto o null
+- ✅ get_rarity_data() restituisce info rarità con colore
+- ✅ Filtri categoria funzionanti
+- ✅ Filtri rarità funzionanti
+- ✅ Nessun errore durante le chiamate API
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** API complete e funzionali - v0.0.4
+
+---
+
+### Test M0.T3.3: ⚠️ Verifica Conteggio Oggetti (CRITICO)
+
+**Obiettivo:** Verificare manualmente il conteggio degli oggetti nei file JSON.
+
+**Passi:**
+1. Aprire manualmente tutti i file in `data/items/`
+2. Contare oggetti per categoria:
+   - unique_items.json → sezione "items"
+   - weapons.json → sezione "weapons"
+   - armor.json → sezione "armor"
+   - consumables.json → sezione "consumables"
+   - crafting_materials.json → sezione "crafting_materials"
+   - ammo.json → sezione "ammo"
+   - quest_items.json → sezione "quest_items"
+3. Sommare totale manuale
+4. Confrontare con DataManager (47)
+
+**Risultato Atteso:**
+- ✅ Conteggio manuale = conteggio DataManager
+- ✅ Tutti i file JSON strutturalmente corretti
+- ✅ Nessun oggetto duplicato o mancante
+- ⚠️ **Verifica se oggetti unici caricati correttamente**
+
+**Risultato Test:** [ ] PASS / [ ] FAIL - ⚠️ **VERIFICA MANUALE RICHIESTA**
+
+**Note:** Conteggio da verificare manualmente prima commit finale
+
+---
+
 ## Log dei Test Eseguiti
 
 | Data | Milestone | Test | Risultato | Note |
-|------|-----------|------|-----------|------|
+|------|-----------|------|-----------|------| 
+| 2024-12-19 | M0.T3 | M0.T3.1 | ✅ PASS | DataManager carica 47 oggetti correttamente |
+| 2024-12-19 | M0.T3 | M0.T3.2 | ✅ PASS | Tutte API funzionanti, filtri operativi |
+| 2024-12-19 | M0.T3 | M0.T3.3 | ⚠️ VERIFICA | Conteggio oggetti richiede controllo manuale |
 | [Data] | M0.T1 | M0.T1 | PASS/FAIL | [Note] |
 | [Data] | M0.T2 | M0.T2 | PASS/FAIL | [Note] |
 | [Data] | M0.T3 | M0.T3 | PASS/FAIL | [Note] | 

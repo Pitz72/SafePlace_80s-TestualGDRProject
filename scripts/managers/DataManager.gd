@@ -60,8 +60,8 @@ func _load_all_data() -> void:
 	
 	# 1. SISTEMA CONDIVISO
 	rarity_system = _load_json_file("res://data/system/rarity_system.json")
-	if rarity_system.has("rarities"):
-		print("   ✅ Sistema rarità: %d livelli" % rarity_system.rarities.size())
+	if rarity_system.has("rarity_system"):
+		print("   ✅ Sistema rarità: %d livelli" % rarity_system.rarity_system.size())
 	
 	# 2. DATABASE OGGETTI CATEGORIZZATI
 	unique_items = _load_json_file("res://data/items/unique_items.json")
@@ -143,12 +143,29 @@ func _merge_item_databases() -> void:
 	var conflicts: Array[String] = []
 	
 	for database in databases:
-		if database.has("items") and database.items is Dictionary:
-			for item_id in database.items:
+		# Determina la chiave principale basandosi sulla struttura del file
+		var main_key = ""
+		if database.has("items"):
+			main_key = "items"
+		elif database.has("weapons"):
+			main_key = "weapons"
+		elif database.has("armor"):
+			main_key = "armor"
+		elif database.has("consumables"):
+			main_key = "consumables"
+		elif database.has("crafting_materials"):
+			main_key = "crafting_materials"
+		elif database.has("ammo"):
+			main_key = "ammo"
+		elif database.has("quest_items"):
+			main_key = "quest_items"
+		
+		if main_key != "" and database[main_key] is Dictionary:
+			for item_id in database[main_key]:
 				if items.has(item_id):
 					conflicts.append("ID duplicato: %s" % item_id)
 				else:
-					items[item_id] = database.items[item_id]
+					items[item_id] = database[main_key][item_id]
 					_total_items_loaded += 1
 	
 	if conflicts.size() > 0:
@@ -161,8 +178,11 @@ func _merge_item_databases() -> void:
 
 ## Conta gli oggetti in un database specifico
 func _count_items(database: Dictionary) -> int:
-	if database.has("items") and database.items is Dictionary:
-		return database.items.size()
+	# Cerca la chiave principale del database
+	var main_keys = ["items", "weapons", "armor", "consumables", "crafting_materials", "ammo", "quest_items"]
+	for key in main_keys:
+		if database.has(key) and database[key] is Dictionary:
+			return database[key].size()
 	return 0
 
 ## Verifica integrità dei dati caricati
@@ -170,7 +190,7 @@ func _validate_data_integrity() -> void:
 	print("🔍 Validazione integrità dati...")
 	
 	# Verifica sistema rarità
-	if not rarity_system.has("rarities"):
+	if not rarity_system.has("rarity_system"):
 		_loading_errors.append("Sistema rarità mancante o corrotto")
 	
 	# Verifica che tutti gli oggetti abbiano proprietà essenziali
@@ -213,8 +233,8 @@ func get_item_data(item_id: String) -> Dictionary:
 ## @param rarity_name: Nome rarità (es. "COMMON", "EPIC", "LEGENDARY")
 ## @return: Dictionary con dati rarità, o {} se non trovato
 func get_rarity_data(rarity_name: String) -> Dictionary:
-	if rarity_system.has("rarities") and rarity_system.rarities.has(rarity_name):
-		return rarity_system.rarities[rarity_name]
+	if rarity_system.has("rarity_system") and rarity_system.rarity_system.has(rarity_name):
+		return rarity_system.rarity_system[rarity_name]
 	
 	print("⚠️ DataManager: Rarità non trovata: %s" % rarity_name)
 	return {}
@@ -279,7 +299,7 @@ func get_loading_stats() -> Dictionary:
 		"crafting_materials": _count_items(crafting_materials),
 		"ammo": _count_items(ammo),
 		"quest_items": _count_items(quest_items),
-		"rarity_levels": rarity_system.rarities.size() if rarity_system.has("rarities") else 0,
+		"rarity_levels": rarity_system.rarity_system.size() if rarity_system.has("rarity_system") else 0,
 		"loading_errors": _loading_errors.size(),
 		"has_errors": _loading_errors.size() > 0
 	}
@@ -338,9 +358,9 @@ func get_items_by_slot(slot: String) -> Dictionary:
 func get_rarity_colors() -> Dictionary:
 	var colors: Dictionary = {}
 	
-	if rarity_system.has("rarities"):
-		for rarity_name in rarity_system.rarities:
-			var rarity_data = rarity_system.rarities[rarity_name]
+	if rarity_system.has("rarity_system"):
+		for rarity_name in rarity_system.rarity_system:
+			var rarity_data = rarity_system.rarity_system[rarity_name]
 			if rarity_data.has("color"):
 				colors[rarity_name] = rarity_data.color
 	

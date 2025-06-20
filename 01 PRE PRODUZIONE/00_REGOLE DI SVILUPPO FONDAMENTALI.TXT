@@ -33,12 +33,15 @@ Questo documento definisce le regole fondamentali della nostra collaborazione pe
 1.  **L'Umano (Simone Pizzi):** È il **Project Manager**, l'**Architetto del Software**, il **Game Designer** e il **Quality Assurance (QA)**. Prende le decisioni, definisce i piani, guida il processo e valida il risultato.
 2.  **L'LLM (ChatGPT/Cursor):** È il **Programmatore**, il **Technical Writer** e il **Pair Programmer**. Scrive il codice su istruzioni precise, scrive e formatta la documentazione, suggerisce soluzioni tecniche a basso livello e aiuta a identificare errori. L'LLM non prende mai iniziative di design.
 
-#### **PRINCIPIO 6: Architettura Modulare per Database (v0.0.3)**
+#### **PRINCIPIO 6: Architettura Modulare per Database (Standard v0.0.4)**
 
-1.  **Regola Modulare:** Tutti i database JSON devono seguire architettura modulare anziché monolitica. File singoli devono rimanere sotto i 10KB per gestibilità.
-2.  **Organizzazione per Cartelle:** Database vanno organizzati in cartelle logiche (`data/items/`, `data/enemies/`, `data/events/`, `data/system/`).
-3.  **Standard di Suddivisione:** Database grandi vanno suddivisi per categoria logica (es. oggetti → armi, armature, consumabili).
-4.  **File Condivisi:** Sistemi condivisi come rarità vanno nella cartella `data/system/` per essere condivisi tra tutti i database.
-5.  **Naming Convention:** Formato `categoria_tipologia.json` per consistenza (es. `enemies_basic.json`, `events_narrative.json`).
-6.  **Applicazione Universale:** Questa regola si applica a TUTTI i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
+1.  **Regola Modulare:** Tutti i database JSON devono seguire architettura modulare con file singoli < 10KB per gestibilità ottimale.
+2.  **Organizzazione Strutturata:** Database organizzati in cartelle specializzate (`data/system/`, `data/items/`, `data/enemies/`, `data/events/`).
+3.  **Suddivisione Categorica:** Database grandi suddivisi per categoria logica (oggetti → armi, armature, consumabili, unici, ecc.).
+4.  **Sistemi Condivisi:** Sistemi globali in `data/system/` (rarity_system.json, config.json) accessibili a tutti i database.
+5.  **Naming Convention:** Standard `categoria_principale.json` per consistenza (weapons.json, armor.json, enemies_bosses.json).
+6.  **Manager Dedicati:** Ogni categoria richiede Manager Godot (DataManager.gd) con API complete per accesso unificato.
+7.  **Struttura JSON Standard:** Formato `{"categoria": [...], "metadata": {...}}` per tutti i database.
+8.  **Verifica e Diagnostica:** Conteggi sempre verificabili manualmente, diagnostica integrata nei Manager.
+9.  **Applicazione Universale:** Standard OBBLIGATORIO per tutti i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
 

@@ -364,7 +364,49 @@
 - ✅ Console pulita da errori critici
 
 **CRITERIO SUPERAMENTO:** ✅ Zero regressioni introdotte
-**STATO:** ✅ SUPERATO v0.0.3+
+**STATO:** ✅ SUPERATO v0.0.4
+
+---
+
+## **⚠️ MILESTONE 0 TASK 3c - Verifica Conteggio Oggetti (v0.0.4)**
+
+### **TEST M0.T3c.1: VERIFICA URGENTE Conteggio Oggetti**
+
+**⚠️ PROBLEMA RILEVATO:** Il DataManager carica 47 oggetti, ma si aspettavano 55+ oggetti dai database originali JS.
+
+**OBIETTIVO:** Verificare se mancano oggetti nella migrazione o se il conteggio originale era errato
+
+**PASSI DI VERIFICA:**
+1. Aprire manualmente ogni file JSON in `data/items/`
+2. Contare manualmente gli oggetti per categoria:
+   - `unique_items.json` → Contare oggetti in sezione "items"
+   - `weapons.json` → Contare oggetti in sezione "weapons" 
+   - `armor.json` → Contare oggetti in sezione "armor"
+   - `consumables.json` → Contare oggetti in sezione "consumables"
+   - `crafting_materials.json` → Contare oggetti in sezione "crafting_materials"
+   - `ammo.json` → Contare oggetti in sezione "ammo"
+   - `quest_items.json` → Contare oggetti in sezione "quest_items"
+3. Sommare totale manuale e confrontare con DataManager (47)
+4. Se differenza: identificare file con discrepanze
+
+**RISULTATI ATTESI DataManager v0.0.4:**
+- ✅ Armi: 8
+- ✅ Armature: 6  
+- ✅ Consumabili: 18
+- ✅ Materiali crafting: 10
+- ✅ Munizioni: 2
+- ✅ Quest items: 3
+- ⚠️ **Oggetti unici: 0** ← POSSIBILE PROBLEMA QUI
+- **TOTALE: 47**
+
+**AZIONI RICHIESTE:**
+1. Verificare se `unique_items.json` ha struttura corretta
+2. Controllare se oggetti unici sono stati migrati
+3. Confrontare con database JS originali se disponibili
+4. Aggiornare documentazione con conteggio verificato
+
+**CRITERIO SUPERAMENTO:** ✅ Conteggio verificato e documentato
+**STATO:** ⚠️ **VERIFICA IN CORSO**
 
 ---
 

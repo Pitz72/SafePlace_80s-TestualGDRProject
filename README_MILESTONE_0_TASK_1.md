@@ -1,6 +1,6 @@
 # 🎨 MILESTONE 0 TASK 1 - Setup del Font e del Tema Globale
 
-**Status:** ✅ IMPLEMENTATO - ⚠️ RICHIEDE FONT FILE
+**Status:** ✅ IMPLEMENTATO - v0.0.4 "The Manager Gets His Hands Dirty"
 
 ## Obiettivo Completato
 
