@@ -3,8 +3,10 @@
 🎯 MILESTONE 0 TASK 3 COMPLETATO
 ✅ Migrazione completa database oggetti JS → JSON con architettura modulare innovativa
 
-🗂️ ARCHITETTURA MODULARE IMPLEMENTATA (8 file JSON):
+🗂️ ARCHITETTURA MODULARE ORGANIZZATA (8 file JSON in cartelle):
+📁 data/system/
 • rarity_system.json - Sistema rarità condiviso (706B, 34 righe)
+📁 data/items/
 • unique_items.json - 5 oggetti unici storyline (3.4KB, 88 righe)  
 • weapons.json - 8 armi complete base→leggendarie (4.9KB, 142 righe)
 • armor.json - 9 armature + Wastelander Set (5.8KB, 168 righe)
@@ -21,8 +23,9 @@
 
 🏗️ PRINCIPI ARCHITETTURALI STABILITI:
 • File per categoria logica (max 10KB per gestibilità)
+• Organizzazione per cartelle (items/, enemies/, events/, system/)
 • Separazione responsabilità base vs avanzato  
-• File condivisi per sistemi comuni (rarity_system.json)
+• File condivisi in data/system/ per tutti i database
 • Naming convention categoria_tipologia.json
 • Standard per TUTTI i database futuri (Nemici, Eventi, Stati, Abilità)
 
@@ -55,14 +58,16 @@ Ready per Milestone 1: World Visualization! 🌍🚀
 
 Files changed:
 - REMOVED: data/items.json (monolitico 29KB)
-- ADDED: data/rarity_system.json
-- ADDED: data/unique_items.json  
-- ADDED: data/weapons.json
-- ADDED: data/armor.json
-- ADDED: data/consumables.json
-- ADDED: data/crafting_materials.json
-- ADDED: data/ammo.json
-- ADDED: data/quest_items.json
+- ADDED: data/system/ (cartella per file condivisi)
+- ADDED: data/items/ (cartella per oggetti)
+- ADDED: data/system/rarity_system.json
+- ADDED: data/items/unique_items.json  
+- ADDED: data/items/weapons.json
+- ADDED: data/items/armor.json
+- ADDED: data/items/consumables.json
+- ADDED: data/items/crafting_materials.json
+- ADDED: data/items/ammo.json
+- ADDED: data/items/quest_items.json
 - MODIFIED: 01 PRE PRODUZIONE/01 ROADMAP.txt
 - MODIFIED: 02 PRODUZIONE/ANTI_REGRESSION_TESTS.md
 - ADDED: 02 PRODUZIONE/DEV_LOG_v0.0.3_FOUND_OBJECTS.md

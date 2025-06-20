@@ -36,14 +36,16 @@ data/
 ### **📁 ARCHITETTURA MODULARE FINALE:**
 ```
 data/
-  ├── rarity_system.json (706B, 34 righe)
-  ├── unique_items.json (3.4KB, 88 righe)
-  ├── weapons.json (4.9KB, 142 righe)
-  ├── armor.json (5.8KB, 168 righe)
-  ├── consumables.json (9.0KB, 269 righe)
-  ├── crafting_materials.json (4.2KB, 114 righe)
-  ├── ammo.json (709B, 26 righe)
-  └── quest_items.json (1.2KB, 37 righe)
+  ├── system/
+  │   └── rarity_system.json (706B, 34 righe)
+  └── items/
+      ├── unique_items.json (3.4KB, 88 righe)
+      ├── weapons.json (4.9KB, 142 righe)
+      ├── armor.json (5.8KB, 168 righe)
+      ├── consumables.json (9.0KB, 269 righe)
+      ├── crafting_materials.json (4.2KB, 114 righe)
+      ├── ammo.json (709B, 26 righe)
+      └── quest_items.json (1.2KB, 37 righe)
 ```
 
 **✅ VANTAGGI OTTENUTI:**
@@ -60,7 +62,7 @@ data/
 ### **🎲 SISTEMA RARITÀ:**
 - **5 Livelli:** COMMON → UNCOMMON → RARE → EPIC → LEGENDARY
 - **Proprietà:** Nome, colore, moltiplicatore valore, percentuale drop
-- **File:** `rarity_system.json` (condiviso da tutti i database)
+- **File:** `data/system/rarity_system.json` (condiviso da tutti i database)
 
 ### **💎 OGGETTI UNICI STORYLINE (5):**
 - Ultima Lettera di Papà (LEGENDARY)
@@ -188,24 +190,27 @@ database_events.json (file gigante)
 
 **DOPO (APPROCCIO MODULARE):**
 ```
-enemies/
-  ├── enemies_basic.json
-  ├── enemies_elite.json
-  ├── enemies_boss.json
-  └── abilities.json
-
-events/
-  ├── events_random.json
-  ├── events_narrative.json
-  └── events_combat.json
+data/
+  ├── enemies/
+  │   ├── enemies_basic.json
+  │   ├── enemies_elite.json
+  │   ├── enemies_boss.json
+  │   └── abilities.json
+  ├── events/
+  │   ├── events_random.json
+  │   ├── events_narrative.json
+  │   └── events_combat.json
+  └── system/
+      └── rarity_system.json
 ```
 
 ### **💡 PRINCIPI ARCHITETTURALI:**
 1. **Un file per categoria logica** (max 10KB)
 2. **Separazione responsabilità** (base vs avanzato)
-3. **File condivisi** (rarity_system.json per tutti)
-4. **Naming consistente** (categoria_tipologia.json)
-5. **Struttura JSON uniforme** tra categorie
+3. **Organizzazione per cartelle** (`items/`, `enemies/`, `events/`, `system/`)
+4. **File condivisi** in `data/system/` per tutti i database
+5. **Naming consistente** (categoria_tipologia.json)
+6. **Struttura JSON uniforme** tra categorie
 
 ---
 

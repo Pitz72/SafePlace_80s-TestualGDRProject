@@ -182,12 +182,15 @@
 
 **PASSI:**
 1. Aprire cartella `data/` in file manager
-2. Verificare presenza di tutti gli 8 file JSON
-3. Controllare dimensioni files ragionevoli (< 10KB ciascuno)
-4. Aprire ogni file e verificare sintassi JSON valida
+2. Verificare presenza cartelle `system/` e `items/`
+3. Verificare presenza di tutti gli 8 file JSON nelle rispettive cartelle
+4. Controllare dimensioni files ragionevoli (< 10KB ciascuno)
+5. Aprire ogni file e verificare sintassi JSON valida
 
 **RISULTATO ATTESO:**
-- ✅ 8 file presenti: `rarity_system.json`, `unique_items.json`, `weapons.json`, `armor.json`, `consumables.json`, `crafting_materials.json`, `ammo.json`, `quest_items.json`
+- ✅ 8 file presenti organizzati in cartelle:
+  - `data/system/rarity_system.json`
+  - `data/items/unique_items.json`, `weapons.json`, `armor.json`, `consumables.json`, `crafting_materials.json`, `ammo.json`, `quest_items.json`
 - ✅ Tutti i file hanno sintassi JSON corretta
 - ✅ File vecchio monolitico `items.json` rimosso
 - ✅ Dimensioni ragionevoli per ogni categoria
@@ -202,13 +205,13 @@
 **Obiettivo:** Verificare che tutti gli oggetti dal database JS siano stati migrati
 
 **PASSI:**
-1. Aprire `data/unique_items.json` - contare oggetti unici (5)
-2. Aprire `data/weapons.json` - contare armi (8 total)
-3. Aprire `data/armor.json` - contare armature e accessori (9 total)
-4. Aprire `data/consumables.json` - contare consumabili (18 total)
-5. Aprire `data/crafting_materials.json` - contare materiali (10)
-6. Aprire `data/ammo.json` - contare munizioni (2)
-7. Aprire `data/quest_items.json` - contare oggetti quest (3)
+1. Aprire `data/items/unique_items.json` - contare oggetti unici (5)
+2. Aprire `data/items/weapons.json` - contare armi (8 total)
+3. Aprire `data/items/armor.json` - contare armature e accessori (9 total)
+4. Aprire `data/items/consumables.json` - contare consumabili (18 total)
+5. Aprire `data/items/crafting_materials.json` - contare materiali (10)
+6. Aprire `data/items/ammo.json` - contare munizioni (2)
+7. Aprire `data/items/quest_items.json` - contare oggetti quest (3)
 
 **RISULTATO ATTESO:**
 - ✅ Oggetti unici storyline: 5 items (lettera papà, diario, bussola, foto, piastrine)
@@ -230,7 +233,7 @@
 **Obiettivo:** Verificare coerenza struttura e proprietà oggetti
 
 **PASSI:**
-1. Aprire `data/rarity_system.json` - verificare 5 livelli rarità
+1. Aprire `data/system/rarity_system.json` - verificare 5 livelli rarità
 2. Aprire file categoria qualsiasi
 3. Verificare presenza proprietà obbligatorie: id, name, nameShort, description, type, rarity, weight, value
 4. Verificare proprietà specifiche: damage per armi, armorValue per armature, effects per consumabili
@@ -310,14 +313,14 @@
 ✅ scenes/TestScene.tscn                # Scena test ristrutturata
 ✅ scenes/TestScene.gd                  # Script test con F1
 ✅ project.godot                        # Configurazione progetto
-✅ data/rarity_system.json              # Sistema rarità condiviso
-✅ data/unique_items.json               # Oggetti unici storyline
-✅ data/weapons.json                    # Database armi
-✅ data/armor.json                      # Database armature + accessori
-✅ data/consumables.json                # Database consumabili
-✅ data/crafting_materials.json         # Database materiali crafting
-✅ data/ammo.json                       # Database munizioni
-✅ data/quest_items.json                # Database oggetti quest
+✅ data/system/rarity_system.json       # Sistema rarità condiviso
+✅ data/items/unique_items.json         # Oggetti unici storyline
+✅ data/items/weapons.json              # Database armi
+✅ data/items/armor.json                # Database armature + accessori
+✅ data/items/consumables.json          # Database consumabili
+✅ data/items/crafting_materials.json   # Database materiali crafting
+✅ data/items/ammo.json                 # Database munizioni
+✅ data/items/quest_items.json          # Database oggetti quest
 ```
 
 **CRITERIO SUPERAMENTO:** ✅ Tutti i file si aprono senza errori

@@ -10,7 +10,7 @@ extends Control
 var auto_test_timer: Timer
 
 func _ready():
-	print("🧪 TestScene avviata - Milestone 0 Task 1+2")
+	print("🧪 TestScene avviata - Milestone 0 Task 1+2+3")
 	
 	# Verifica che il ThemeManager sia disponibile
 	if ThemeManager:
@@ -23,6 +23,14 @@ func _ready():
 		ThemeManager.crt_shader_toggled.connect(_on_crt_shader_toggled)
 	else:
 		print("❌ ThemeManager non trovato - verificare Autoload")
+	
+	# Verifica DataManager e testa caricamento dati
+	if DataManager:
+		print("✅ DataManager trovato")
+		await get_tree().process_frame  # Aspetta che DataManager finisca il caricamento
+		test_data_manager()
+	else:
+		print("❌ DataManager non trovato - verificare Autoload")
 	
 	# Connetti il pulsante di test
 	if test_button:
@@ -140,4 +148,76 @@ func test_theme_manager():
 		return false
 	
 	print("✅ SUCCESS: Tutti i test ThemeManager passati")
-	return true 
+	return true
+
+# 🧪 TEST DATAMANAGER
+func test_data_manager():
+	"""Test automatico del DataManager"""
+	print("\n🧪 Avvio test DataManager...")
+	
+	if not DataManager:
+		print("❌ FAIL: DataManager non disponibile")
+		return false
+	
+	# Test statistiche caricamento
+	var stats = DataManager.get_loading_stats()
+	print("📊 Statistiche caricamento:")
+	print("   • Oggetti totali: %d" % stats.total_items)
+	print("   • Errori: %d" % stats.loading_errors)
+	
+	if stats.has_errors:
+		print("⚠️ Errori rilevati durante caricamento:")
+		var errors = DataManager.get_loading_errors()
+		for error in errors:
+			print("   - %s" % error)
+	
+	# Test accesso dati specifici
+	var test_results = []
+	
+	# Test 1: Verifica sistema rarità
+	var rarity_data = DataManager.get_rarity_data("COMMON")
+	if rarity_data.is_empty():
+		test_results.append("❌ Sistema rarità COMMON non trovato")
+	else:
+		test_results.append("✅ Sistema rarità COMMON OK")
+	
+	# Test 2: Verifica accesso oggetto specifico
+	var legendary_items = DataManager.get_items_by_rarity("LEGENDARY")
+	if legendary_items.size() > 0:
+		test_results.append("✅ Oggetti LEGENDARY trovati: %d" % legendary_items.size())
+	else:
+		test_results.append("❌ Nessun oggetto LEGENDARY trovato")
+	
+	# Test 3: Verifica armi
+	var weapons = DataManager.get_items_by_category("weapon")
+	if weapons.size() > 0:
+		test_results.append("✅ Armi trovate: %d" % weapons.size())
+	else:
+		test_results.append("❌ Nessuna arma trovata")
+	
+	# Test 4: Verifica ricerca
+	var search_results = DataManager.search_items_by_name("pistol")
+	if search_results.size() > 0:
+		test_results.append("✅ Ricerca 'pistol' trovata: %d risultati" % search_results.size())
+	else:
+		test_results.append("⚠️ Ricerca 'pistol' nessun risultato")
+	
+	# Stampa risultati test
+	print("\n📋 Risultati test DataManager:")
+	for result in test_results:
+		print("   %s" % result)
+	
+	# Test colori rarità per UI
+	var rarity_colors = DataManager.get_rarity_colors()
+	if rarity_colors.size() > 0:
+		print("\n🎨 Colori rarità disponibili:")
+		for rarity in rarity_colors:
+			print("   • %s: %s" % [rarity, rarity_colors[rarity]])
+	
+	var success = not stats.has_errors and stats.total_items > 0
+	if success:
+		print("\n✅ SUCCESS: DataManager completamente funzionale!")
+	else:
+		print("\n❌ FAIL: DataManager ha problemi")
+	
+	return success 

@@ -36,8 +36,9 @@ Questo documento definisce le regole fondamentali della nostra collaborazione pe
 #### **PRINCIPIO 6: Architettura Modulare per Database (v0.0.3)**
 
 1.  **Regola Modulare:** Tutti i database JSON devono seguire architettura modulare anziché monolitica. File singoli devono rimanere sotto i 10KB per gestibilità.
-2.  **Standard di Suddivisione:** Database grandi vanno suddivisi per categoria logica (es. oggetti → armi, armature, consumabili).
-3.  **File Condivisi:** Sistemi condivisi come rarità vanno in file separati (es. `rarity_system.json`) da condividere tra tutti i database.
-4.  **Naming Convention:** Formato `categoria_tipologia.json` per consistenza (es. `enemies_basic.json`, `events_narrative.json`).
-5.  **Applicazione Universale:** Questa regola si applica a TUTTI i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
+2.  **Organizzazione per Cartelle:** Database vanno organizzati in cartelle logiche (`data/items/`, `data/enemies/`, `data/events/`, `data/system/`).
+3.  **Standard di Suddivisione:** Database grandi vanno suddivisi per categoria logica (es. oggetti → armi, armature, consumabili).
+4.  **File Condivisi:** Sistemi condivisi come rarità vanno nella cartella `data/system/` per essere condivisi tra tutti i database.
+5.  **Naming Convention:** Formato `categoria_tipologia.json` per consistenza (es. `enemies_basic.json`, `events_narrative.json`).
+6.  **Applicazione Universale:** Questa regola si applica a TUTTI i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
 

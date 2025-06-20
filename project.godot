@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 ThemeManager="*res://scripts/ThemeManager.gd"
+DataManager="*res://scripts/managers/DataManager.gd"
 
 [gui]
 
