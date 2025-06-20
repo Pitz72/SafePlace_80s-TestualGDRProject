@@ -1,0 +1,142 @@
+{
+  "weapons": {
+    "weapon_knife_rusty": {
+      "id": "weapon_knife_rusty",
+      "name": "Coltello Arrugginito",
+      "nameShort": "Coltello",
+      "description": "Un vecchio coltello da cucina, arrugginito ma ancora appuntito. Meglio che combattere a mani nude.",
+      "type": "weapon",
+      "rarity": "COMMON",
+      "slot": "main_hand",
+      "weight": 0.4,
+      "value": 5,
+      "stackable": false,
+      "durability": 30,
+      "maxDurability": 30,
+      "damage": { "min": 2, "max": 5, "bonus": 0 }
+    },
+    "weapon_pipe_lead": {
+      "id": "weapon_pipe_lead",
+      "name": "Tubo di Piombo",
+      "nameShort": "Tubo Piombo",
+      "description": "Un pesante tubo di piombo. Semplice, affidabile e ottimo per spaccare teste.",
+      "type": "weapon",
+      "rarity": "COMMON",
+      "slot": "main_hand",
+      "weight": 2.0,
+      "value": 15,
+      "stackable": false,
+      "durability": 60,
+      "maxDurability": 60,
+      "damage": { "min": 3, "max": 8, "bonus": 1 }
+    },
+    "weapon_pistol_old": {
+      "id": "weapon_pistol_old",
+      "name": "Vecchia Pistola",
+      "nameShort": "Pistola",
+      "description": "Una pistola semiautomatica che ha visto giorni migliori. Ogni colpo è una preghiera.",
+      "type": "weapon",
+      "rarity": "UNCOMMON",
+      "slot": "main_hand",
+      "weight": 1.2,
+      "value": 50,
+      "stackable": false,
+      "durability": 40,
+      "maxDurability": 40,
+      "damage": { "min": 5, "max": 12, "bonus": 0 },
+      "ammo_type": "ammo_9mm"
+    },
+    "weapon_rifle_hunting": {
+      "id": "weapon_rifle_hunting",
+      "name": "Fucile da Caccia",
+      "nameShort": "Fucile Caccia",
+      "description": "Un fucile a otturatore girevole-scorrevole, affidabile e preciso. Ottimo per la caccia, di animali o di uomini.",
+      "type": "weapon",
+      "rarity": "RARE",
+      "slot": "main_hand",
+      "weight": 3.5,
+      "value": 100,
+      "stackable": false,
+      "durability": 50,
+      "maxDurability": 50,
+      "damage": { "min": 8, "max": 18, "bonus": 2 },
+      "ammo_type": "ammo_rifle"
+    },
+    "combat_shotgun_tactical": {
+      "id": "combat_shotgun_tactical",
+      "name": "Fucile a Pompa da Combattimento",
+      "nameShort": "Fucile a Pompa",
+      "description": "Un fucile a pompa calibro 12 modificato per uso tattico. Devastante a corto raggio.",
+      "type": "weapon",
+      "rarity": "EPIC",
+      "slot": "main_hand",
+      "weight": 4.0,
+      "value": 700,
+      "stackable": false,
+      "durability": 60,
+      "maxDurability": 60,
+      "damage": { "min": 15, "max": 30, "bonus": 5 },
+      "effects": [
+        { "type": "knockback", "chance": 0.5 },
+        { "type": "area_of_effect", "range": 2 }
+      ]
+    },
+    "sniper_rifle_scout": {
+      "id": "sniper_rifle_scout",
+      "name": "Fucile di Precisione da Esploratore",
+      "nameShort": "Fucile Precisione",
+      "description": "Un fucile bolt-action leggero e preciso, dotato di un'ottica a lungo raggio. Perfetto per eliminare le minacce dalla distanza.",
+      "type": "weapon",
+      "rarity": "EPIC",
+      "slot": "main_hand",
+      "weight": 5.5,
+      "value": 900,
+      "stackable": false,
+      "durability": 50,
+      "maxDurability": 50,
+      "damage": { "min": 25, "max": 40, "bonus": 10 },
+      "effects": [
+        { "type": "high_critical", "chance": 0.2, "multiplier": 3 },
+        { "type": "armor_piercing", "amount": 0.3 }
+      ]
+    },
+    "energy_pistol_prototype": {
+      "id": "energy_pistol_prototype",
+      "name": "Pistola a Energia (Prototipo)",
+      "nameShort": "Pistola Energia",
+      "description": "Un prototipo di pistola a celle di energia del Lab 7. Instabile ma potente. A volte sovraccarica, causando danni extra.",
+      "type": "weapon",
+      "rarity": "LEGENDARY",
+      "slot": "main_hand",
+      "weight": 2.0,
+      "value": 1500,
+      "stackable": false,
+      "durability": 40,
+      "maxDurability": 40,
+      "damage": { "min": 20, "max": 35, "bonus": 0 },
+      "effects": [
+        { "type": "overcharge", "chance": 0.1, "extraDamage": 20 },
+        { "type": "disintegrate", "chance": 0.05 }
+      ]
+    },
+    "katana_mono_molecular": {
+      "id": "katana_mono_molecular",
+      "name": "Katana Monomolecolare",
+      "nameShort": "Katana Hi-Tech",
+      "description": "Una katana forgiata con una lega pre-guerra e affilata a livello molecolare. Taglia quasi ogni materiale con facilità.",
+      "type": "weapon",
+      "rarity": "LEGENDARY",
+      "slot": "main_hand",
+      "weight": 1.5,
+      "value": 1200,
+      "stackable": false,
+      "durability": 80,
+      "maxDurability": 80,
+      "damage": { "min": 12, "max": 25, "bonus": 8 },
+      "effects": [
+        { "type": "armor_ignore", "chance": 0.3 },
+        { "type": "bleeding", "chance": 0.4, "duration": 3 }
+      ]
+    }
+  }
+} 

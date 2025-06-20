@@ -33,3 +33,11 @@ Questo documento definisce le regole fondamentali della nostra collaborazione pe
 1.  **L'Umano (Simone Pizzi):** È il **Project Manager**, l'**Architetto del Software**, il **Game Designer** e il **Quality Assurance (QA)**. Prende le decisioni, definisce i piani, guida il processo e valida il risultato.
 2.  **L'LLM (ChatGPT/Cursor):** È il **Programmatore**, il **Technical Writer** e il **Pair Programmer**. Scrive il codice su istruzioni precise, scrive e formatta la documentazione, suggerisce soluzioni tecniche a basso livello e aiuta a identificare errori. L'LLM non prende mai iniziative di design.
 
+#### **PRINCIPIO 6: Architettura Modulare per Database (v0.0.3)**
+
+1.  **Regola Modulare:** Tutti i database JSON devono seguire architettura modulare anziché monolitica. File singoli devono rimanere sotto i 10KB per gestibilità.
+2.  **Standard di Suddivisione:** Database grandi vanno suddivisi per categoria logica (es. oggetti → armi, armature, consumabili).
+3.  **File Condivisi:** Sistemi condivisi come rarità vanno in file separati (es. `rarity_system.json`) da condividere tra tutti i database.
+4.  **Naming Convention:** Formato `categoria_tipologia.json` per consistenza (es. `enemies_basic.json`, `events_narrative.json`).
+5.  **Applicazione Universale:** Questa regola si applica a TUTTI i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
+

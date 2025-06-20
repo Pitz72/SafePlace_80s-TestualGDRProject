@@ -1,0 +1,26 @@
+{
+  "ammo": {
+    "ammo_9mm": {
+      "id": "ammo_9mm",
+      "name": "Munizioni 9mm",
+      "nameShort": "9mm",
+      "description": "Una scatola di proiettili calibro 9mm. Comuni, ma sempre preziose.",
+      "type": "ammo",
+      "rarity": "COMMON",
+      "weight": 0.3,
+      "value": 20,
+      "stackable": true
+    },
+    "ammo_rifle": {
+      "id": "ammo_rifle",
+      "name": "Munizioni per Fucile",
+      "nameShort": "Munizioni Fucile",
+      "description": "Proiettili di grosso calibro per fucili da caccia o di precisione. Più rari e potenti.",
+      "type": "ammo",
+      "rarity": "UNCOMMON",
+      "weight": 0.5,
+      "value": 40,
+      "stackable": true
+    }
+  }
+} 

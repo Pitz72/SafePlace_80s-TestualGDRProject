@@ -1,0 +1,114 @@
+{
+  "crafting_materials": {
+    "scrap_metal": {
+      "id": "scrap_metal",
+      "name": "Rottami Metallici",
+      "nameShort": "Rottami",
+      "description": "Pezzi di metallo assortiti. Utili per riparazioni e per rinforzare equipaggiamento.",
+      "type": "crafting_material",
+      "rarity": "COMMON",
+      "weight": 0.8,
+      "value": 5,
+      "stackable": true
+    },
+    "electronic_parts": {
+      "id": "electronic_parts",
+      "name": "Parti Elettroniche",
+      "nameShort": "Elettronica",
+      "description": "Componenti elettronici recuperati da vecchi dispositivi. Necessari per riparare oggetti tecnologici.",
+      "type": "crafting_material",
+      "rarity": "UNCOMMON",
+      "weight": 0.2,
+      "value": 15,
+      "stackable": true
+    },
+    "animal_hide": {
+      "id": "animal_hide",
+      "name": "Pelle di Animale",
+      "nameShort": "Pelle Animale",
+      "description": "La pelle scuoiata da un animale. Può essere conciata per creare o riparare armature leggere.",
+      "type": "crafting_material",
+      "rarity": "COMMON",
+      "weight": 1.5,
+      "value": 8,
+      "stackable": true
+    },
+    "wood_plank": {
+      "id": "wood_plank",
+      "name": "Asse di Legno",
+      "nameShort": "Asse Legno",
+      "description": "Un'asse di legno robusta. Utile per costruire rifugi o come arma improvvisata.",
+      "type": "crafting_material",
+      "rarity": "COMMON",
+      "weight": 2.0,
+      "value": 3,
+      "stackable": true
+    },
+    "military_grade_electronics": {
+      "id": "military_grade_electronics",
+      "name": "Elettronica di Grado Militare",
+      "nameShort": "Elettronica Mil.",
+      "description": "Componenti elettronici schermati e robusti, recuperati da equipaggiamento militare. Essenziali per il crafting di alto livello.",
+      "type": "crafting_material",
+      "rarity": "RARE",
+      "weight": 0.5,
+      "value": 120,
+      "stackable": true
+    },
+    "fusion_core_depleted": {
+      "id": "fusion_core_depleted",
+      "name": "Nucleo a Fusione Esaurito",
+      "nameShort": "Nucleo Fusione",
+      "description": "Il nucleo di alimentazione di una vecchia armatura potenziata o di un robot. È esaurito, ma può essere ricaricato o smontato per ottenere componenti rari.",
+      "type": "crafting_material",
+      "rarity": "EPIC",
+      "weight": 2.0,
+      "value": 300,
+      "stackable": true
+    },
+    "mutant_gland_hyper": {
+      "id": "mutant_gland_hyper",
+      "name": "Ghiandola Mutante Iperattiva",
+      "nameShort": "Ghiandola Mutante",
+      "description": "Una ghiandola pulsante recuperata da un mutante particolarmente potente. Contiene un cocktail di sostanze chimiche instabili, utili in alchimia avanzata.",
+      "type": "crafting_material",
+      "rarity": "RARE",
+      "weight": 0.3,
+      "value": 180,
+      "stackable": true
+    },
+    "unidentified_alien_alloy": {
+      "id": "unidentified_alien_alloy",
+      "name": "Lega Sconosciuta",
+      "nameShort": "Lega Sconosciuta",
+      "description": "Un frammento di metallo leggero ma incredibilmente resistente. Non assomiglia a nessun materiale terrestre. Forse parte di un satellite... o qualcos'altro.",
+      "type": "crafting_material",
+      "rarity": "LEGENDARY",
+      "weight": 1.0,
+      "value": 1000,
+      "stackable": true
+    },
+    "prewar_medical_kit": {
+      "id": "prewar_medical_kit",
+      "name": "Kit Medico Pre-Guerra",
+      "nameShort": "Kit Medico Pre-Guerra",
+      "description": "Una borsa medica completa di strumenti chirurgici, farmaci sigillati e manuali. Una fonte inestimabile per creare cure avanzate.",
+      "type": "crafting_material",
+      "rarity": "UNCOMMON",
+      "weight": 1.5,
+      "value": 220,
+      "stackable": false
+    },
+    "perfectly_preserved_plant": {
+      "id": "perfectly_preserved_plant",
+      "name": "Pianta Perfettamente Conservata",
+      "nameShort": "Pianta Rara",
+      "description": "Un esemplare di una pianta estinta, conservata in un gel speciale. Le sue proprietà biologiche sono uniche e potenti.",
+      "type": "crafting_material",
+      "rarity": "EPIC",
+      "weight": 0.2,
+      "value": 450,
+      "stackable": true
+    }
+  }
+} 

@@ -1,0 +1,37 @@
+{
+  "quest_items": {
+    "old_military_map": {
+      "id": "old_military_map",
+      "name": "Vecchia Mappa Militare",
+      "nameShort": "Mappa Militare",
+      "description": "Una mappa topografica militare, segnata con simboli sconosciuti. Potrebbe indicare la posizione di nascondigli o pericoli.",
+      "type": "quest",
+      "rarity": "RARE",
+      "weight": 0.2,
+      "value": 100,
+      "stackable": false
+    },
+    "carillon_of_lena": {
+      "id": "carillon_of_lena",
+      "name": "Carillon di Lena",
+      "nameShort": "Carillon Lena",
+      "description": "Un piccolo carillon di legno intagliato. Suona una melodia malinconica ma familiare. Un ricordo di un tempo più felice.",
+      "type": "quest",
+      "rarity": "EPIC",
+      "weight": 0.3,
+      "value": 200,
+      "stackable": false
+    },
+    "classified_documents": {
+      "id": "classified_documents",
+      "name": "Documenti Classificati",
+      "nameShort": "Doc. Classificati",
+      "description": "Fascicoli con il sigillo 'Top Secret'. Parlano di un 'Progetto Chimera' e delle sue catastrofiche conseguenze.",
+      "type": "quest",
+      "rarity": "EPIC",
+      "weight": 0.5,
+      "value": 300,
+      "stackable": false
+    }
+  }
+} 
