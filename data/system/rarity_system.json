@@ -1,0 +1,34 @@
+{
+  "rarity_system": {
+    "COMMON": {
+      "name": "Comune",
+      "color": "#9ca3af",
+      "valueMultiplier": 1.0,
+      "dropChance": 0.6
+    },
+    "UNCOMMON": {
+      "name": "Non Comune",
+      "color": "#22c55e",
+      "valueMultiplier": 1.5,
+      "dropChance": 0.25
+    },
+    "RARE": {
+      "name": "Raro",
+      "color": "#3b82f6",
+      "valueMultiplier": 2.5,
+      "dropChance": 0.1
+    },
+    "EPIC": {
+      "name": "Epico",
+      "color": "#8b5cf6",
+      "valueMultiplier": 4.0,
+      "dropChance": 0.04
+    },
+    "LEGENDARY": {
+      "name": "Leggendario",
+      "color": "#f59e0b",
+      "valueMultiplier": 6.0,
+      "dropChance": 0.01
+    }
+  }
+} 

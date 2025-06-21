@@ -1,4 +1,6 @@
 # SafePlace Project - .gitignore
+GODOT/
+archives/
 
 # Archives e backup temporanei
 archives/temp_files/

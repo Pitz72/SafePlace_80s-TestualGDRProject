@@ -1,0 +1,269 @@
+{
+  "consumables": {
+    "water_dirty": {
+      "id": "water_dirty",
+      "name": "Acqua Sporca",
+      "nameShort": "Acqua Sporca",
+      "description": "Acqua raccolta da una pozzanghera. Potrebbe dissetare, ma anche far ammalare. Un rischio da correre solo se disperati.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 1.0,
+      "value": 1,
+      "stackable": true,
+      "effects": [
+        { "type": "hydrate", "amount": 20 },
+        { "type": "infection_chance", "chance": 0.4 }
+      ]
+    },
+    "water_purified": {
+      "id": "water_purified",
+      "name": "Acqua Purificata",
+      "nameShort": "Acqua Purificata",
+      "description": "Acqua potabile e sicura. Un lusso raro in queste terre desolate.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 1.0,
+      "value": 10,
+      "stackable": true,
+      "effects": [
+        { "type": "hydrate", "amount": 40 }
+      ]
+    },
+    "purified_water_bottle_large": {
+      "id": "purified_water_bottle_large",
+      "name": "Bottiglia d'Acqua Purificata Grande",
+      "nameShort": "Acqua Grande",
+      "description": "Una grande borraccia di acqua purificata, in grado di saziare anche la sete più intensa e di durare a lungo.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 1.5,
+      "value": 50,
+      "stackable": true,
+      "effects": [
+        { "type": "hydrate", "amount": 80 }
+      ]
+    },
+    "ration_pack": {
+      "id": "ration_pack",
+      "name": "Pacco di Razioni",
+      "nameShort": "Razioni",
+      "description": "Cibo in scatola pre-guerra, dal sapore indefinito ma nutriente. Meglio di niente.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 0.5,
+      "value": 8,
+      "stackable": true,
+      "effects": [
+        { "type": "nourish", "amount": 30 }
+      ]
+    },
+    "MRE_pack_military": {
+      "id": "MRE_pack_military",
+      "name": "Pacco Razione MRE Militare",
+      "nameShort": "Razione MRE",
+      "description": "Meal, Ready-to-Eat. Una razione da combattimento completa, sigillata e perfettamente conservata. Ricca di calorie e nutrienti essenziali.",
+      "type": "consumable",
+      "rarity": "RARE",
+      "weight": 1.0,
+      "value": 100,
+      "stackable": true,
+      "effects": [
+        { "type": "nourish", "amount": 100 },
+        { "type": "well_fed_bonus", "duration": 180 }
+      ]
+    },
+    "meat_raw": {
+      "id": "meat_raw",
+      "name": "Carne Cruda",
+      "nameShort": "Carne Cruda",
+      "description": "Un pezzo di carne cruda strappata da una carcassa. Mangiarla così è pericoloso.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 0.7,
+      "value": 2,
+      "stackable": true,
+      "effects": [
+        { "type": "nourish", "amount": 15 },
+        { "type": "infection_chance", "chance": 0.6 }
+      ]
+    },
+    "meat_cooked": {
+      "id": "meat_cooked",
+      "name": "Carne Cotta",
+      "nameShort": "Carne Cotta",
+      "description": "Carne arrostita su un fuoco improvvisato. Sicura da mangiare e molto nutriente.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 0.6,
+      "value": 12,
+      "stackable": true,
+      "effects": [
+        { "type": "nourish", "amount": 40 }
+      ]
+    },
+    "berries": {
+      "id": "berries",
+      "name": "Bacche Sconosciute",
+      "nameShort": "Bacche",
+      "description": "Un pugno di bacche trovate su un cespuglio. Potrebbero essere nutrienti o velenose.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 0.2,
+      "value": 3,
+      "stackable": true,
+      "effects": [
+        { "type": "nourish", "amount": 10 },
+        { "type": "poison_chance", "chance": 0.15 }
+      ]
+    },
+    "energy_drink_nuclear": {
+      "id": "energy_drink_nuclear",
+      "name": "Energy Drink \"Nuclear\"",
+      "nameShort": "Nuclear Drink",
+      "description": "Una lattina dai colori vivaci e un logo radioattivo. Promette un'esplosione di energia. Ha un sapore chimico e fa brillare leggermente le urine.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 0.4,
+      "value": 30,
+      "stackable": true,
+      "effects": [
+        { "type": "restore_stamina", "amount": 50 },
+        { "type": "add_radiation", "amount": 5 }
+      ]
+    },
+    "bandages_dirty": {
+      "id": "bandages_dirty",
+      "name": "Bende Sporche",
+      "nameShort": "Bende Sporche",
+      "description": "Pezzi di stoffa strappati e non proprio puliti. Meglio di niente per fermare un'emorragia.",
+      "type": "consumable",
+      "rarity": "COMMON",
+      "weight": 0.1,
+      "value": 2,
+      "stackable": true,
+      "effects": [
+        { "type": "heal", "amount": 10 },
+        { "type": "infection_chance", "chance": 0.2 }
+      ]
+    },
+    "bandages_clean": {
+      "id": "bandages_clean",
+      "name": "Bende Pulite",
+      "nameShort": "Bende Pulite",
+      "description": "Bende sterili. Fermano l'emorragia e prevengono infezioni.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 0.1,
+      "value": 15,
+      "stackable": true,
+      "effects": [
+        { "type": "heal", "amount": 25 }
+      ]
+    },
+    "medkit_field": {
+      "id": "medkit_field",
+      "name": "Kit Medico da Campo",
+      "nameShort": "Kit Medico",
+      "description": "Un kit medico di base con disinfettante, bende e qualche antidolorifico.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 1.2,
+      "value": 40,
+      "stackable": true,
+      "effects": [
+        { "type": "heal", "amount": 50 },
+        { "type": "cure", "status": "infection" }
+      ]
+    },
+    "stimpak_military": {
+      "id": "stimpak_military",
+      "name": "Stimpak Militare",
+      "nameShort": "Stimpak Militare",
+      "description": "Un iniettore automatico di grado militare. Ripristina una grande quantità di salute istantaneamente e purifica il corpo da alcune tossine.",
+      "type": "consumable",
+      "rarity": "RARE",
+      "weight": 0.2,
+      "value": 150,
+      "stackable": true,
+      "effects": [
+        { "type": "heal", "amount": 100 },
+        { "type": "cure", "status": "poison" },
+        { "type": "adrenaline_rush", "duration": 30 }
+      ]
+    },
+    "antidote": {
+      "id": "antidote",
+      "name": "Antidoto",
+      "nameShort": "Antidoto",
+      "description": "Una siringa contenente un siero universale contro i veleni più comuni.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 0.2,
+      "value": 25,
+      "stackable": true,
+      "effects": [
+        { "type": "cure", "status": "poison" }
+      ]
+    },
+    "herbal_antidote_strong": {
+      "id": "herbal_antidote_strong",
+      "name": "Antidoto Erbale Forte",
+      "nameShort": "Antidoto Forte",
+      "description": "Un potente antidoto creato con erbe rare e reagenti chimici. Efficace contro i veleni più letali delle terre desolate.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 0.1,
+      "value": 80,
+      "stackable": true,
+      "effects": [
+        { "type": "cure", "status": "strong_poison" }
+      ]
+    },
+    "rad_away_crude": {
+      "id": "rad_away_crude",
+      "name": "Rad-Away Rudimentale",
+      "nameShort": "Rad-Away",
+      "description": "Un intruglio chimico che aiuta a espellere le radiazioni. Gli effetti collaterali sono... spiacevoli.",
+      "type": "consumable",
+      "rarity": "UNCOMMON",
+      "weight": 0.3,
+      "value": 30,
+      "stackable": true,
+      "effects": [
+        { "type": "remove_radiation", "amount": 150 },
+        { "type": "debuff", "stat": "strength", "amount": -1, "duration": 60 }
+      ]
+    },
+    "radaway_advanced": {
+      "id": "radaway_advanced",
+      "name": "RadAway Avanzato",
+      "nameShort": "RadAway Avanzato",
+      "description": "Una versione potenziata del RadAway, in grado di eliminare anche i livelli di radiazione più pericolosi e di offrire una resistenza temporanea.",
+      "type": "consumable",
+      "rarity": "RARE",
+      "weight": 0.3,
+      "value": 200,
+      "stackable": true,
+      "effects": [
+        { "type": "remove_radiation", "amount": 500 },
+        { "type": "radiation_resistance", "amount": 0.5, "duration": 300 }
+      ]
+    },
+    "combat_enhancer_v2": {
+      "id": "combat_enhancer_v2",
+      "name": "Potenziatore da Combattimento V2",
+      "nameShort": "Potenziatore V2",
+      "description": "Un cocktail chimico pre-guerra che affina i riflessi, aumenta la forza e la resistenza al dolore per un breve periodo. Crea dipendenza.",
+      "type": "consumable",
+      "rarity": "EPIC",
+      "weight": 0.1,
+      "value": 350,
+      "stackable": true,
+      "effects": [
+        { "type": "stat_boost", "stats": ["strength", "agility"], "amount": 3, "duration": 60 },
+        { "type": "pain_resistance", "amount": 0.5, "duration": 60 },
+        { "type": "addiction_risk", "chance": 0.15 }
+      ]
+    }
+  }
+} 

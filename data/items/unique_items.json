@@ -1,0 +1,88 @@
+{
+  "unique_items": [
+    {
+      "id": "last_letter_from_dad",
+      "name": "Ultima Lettera di Papà",
+      "nameShort": "Lettera Papà",
+      "description": "Un foglio ingiallito con la calligrafia familiare. Le ultime parole del padre sono una guida e un conforto nei momenti più bui. 'Trova il Safe Place, Ultimo. Tutto quello che abbiamo sognato ti attende lì.'",
+      "type": "unique",
+      "rarity": "LEGENDARY",
+      "weight": 0.1,
+      "value": 1000,
+      "stackable": false,
+      "usable": true,
+      "effects": [
+        { "type": "morale_boost", "amount": 20, "duration": 24 },
+        { "type": "reveal_lore", "loreKey": "fathers_final_message" },
+        { "type": "permanent_hope", "bonus": 5 }
+      ]
+    },
+    {
+      "id": "ultimate_survivor_journal",
+      "name": "Diario di Ultimo",
+      "nameShort": "Diario Ultimo",
+      "description": "Il tuo diario personale, riempito con osservazioni sulla sopravvivenza, mappe improvvisate e ricordi del passato. Ogni pagina è una lezione appresa.",
+      "type": "unique",
+      "rarity": "EPIC",
+      "weight": 0.3,
+      "value": 500,
+      "stackable": false,
+      "usable": true,
+      "effects": [
+        { "type": "experience_bonus", "amount": 0.15 },
+        { "type": "survival_knowledge", "skillBonus": 10 },
+        { "type": "learn_from_mistakes", "failureReduction": 0.2 }
+      ]
+    },
+    {
+      "id": "prewar_family_photo",
+      "name": "Foto di Famiglia Pre-Guerra",
+      "nameShort": "Foto Famiglia",
+      "description": "Una foto sbiadita che mostra te, il padre e una donna sorridente in un mondo che non esiste più. La madre che non ricordi, ma che vive nel tuo cuore.",
+      "type": "unique",
+      "rarity": "RARE",
+      "weight": 0.05,
+      "value": 300,
+      "stackable": false,
+      "usable": true,
+      "effects": [
+        { "type": "emotional_strength", "resistanceBonus": 15 },
+        { "type": "mothers_love", "healingBonus": 0.25 },
+        { "type": "family_memory", "determination": 10 }
+      ]
+    },
+    {
+      "id": "safe_place_map_fragment_master",
+      "name": "Frammento Mappa Principale",
+      "nameShort": "Mappa Master",
+      "description": "Il frammento di mappa più importante: mostra la posizione esatta del Safe Place e i percorsi sicuri per raggiungerlo. Una chiave per il futuro.",
+      "type": "unique",
+      "rarity": "EPIC",
+      "weight": 0.1,
+      "value": 800,
+      "stackable": false,
+      "usable": true,
+      "effects": [
+        { "type": "reveal_safe_place", "fullPath": true },
+        { "type": "optimal_routing", "travelTimeReduction": 0.3 },
+        { "type": "destiny_guidance", "finalQuestBonus": 25 }
+      ]
+    },
+    {
+      "id": "prewar_military_tags",
+      "name": "Piastrine Militari Pre-Guerra",
+      "nameShort": "Piastrine",
+      "description": "Piastrine di identificazione militare appartenute a un soldato sconosciuto. Incise: 'Sgt. Marcus Chen - Never Leave a Man Behind'.",
+      "type": "unique",
+      "rarity": "RARE",
+      "weight": 0.08,
+      "value": 250,
+      "stackable": false,
+      "effects": [
+        { "type": "military_discipline", "combatBonus": 8 },
+        { "type": "never_give_up", "lastStandBonus": 0.5 },
+        { "type": "warrior_spirit", "courageBonus": 12 }
+      ]
+    }
+  ]
+} 

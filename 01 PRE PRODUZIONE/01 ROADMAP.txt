@@ -1,0 +1,198 @@
+📋 ROADMAP - The Safe Place (GDR Testuale Anni 80)
+
+🎯 VERSIONE CORRENTE: v0.1.0 "My small, wonderful, and devastated world"
+📅 ULTIMO AGGIORNAMENTO: 2025-01-21
+🎮 TARGET: Godot 4.4.1 Engine
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 STATO GENERALE: 
+🏆 MILESTONE 0: ✅ COMPLETATA (18/18 test superati)
+🏆 MILESTONE 1: ✅ COMPLETATA (4/4 task completati)
+⏳ MILESTONE 2: ⏸️ IN ATTESA - Gameplay Core
+⏳ MILESTONE 3: ⏸️ IN ATTESA - Sistema Combattimento
+⏳ MILESTONE 4: ⏸️ IN ATTESA - Narrativa e Lore
+⏳ MILESTONE 5: ⏸️ IN ATTESA - Polish e Release
+
+PROGRESSO COMPLESSIVO: 40% (2/5 milestone completate)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🏁 MILESTONE 0: FONDAMENTA TECNICHE ✅ COMPLETATA
+══════════════════════════════════════════════════════════════════════════════
+
+✅ M0.T1: Font Perfect DOS VGA + ThemeManager (v0.0.1)
+   - Font Perfect DOS VGA 437 implementato
+   - ThemeManager singleton con 3 temi
+   - Rotazione temi dinamica funzionante
+
+✅ M0.T2: Sistema CRT Autentico (v0.0.2b)
+   - Shader CRT con fosfori verdi autentici
+   - Toggle F1 manuale + integrazione automatica temi
+   - Performance ottimizzate, zero regressioni
+
+✅ M0.T3: Database Oggetti Modulare (v0.0.3)
+   - 8 file JSON organizzati per categoria
+   - 52 oggetti totali migrati da database originali
+   - Architettura modulare scalabile
+
+✅ M0.T3+: DataManager Singleton (v0.0.4)
+   - API complete per accesso database
+   - Caricamento automatico all'avvio
+   - Sistema rarità e filtri implementati
+
+RISULTATO M0: Base tecnica solida, 18/18 test anti-regressione superati
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🌍 MILESTONE 1: MONDO DI GIOCO ✅ COMPLETATA
+══════════════════════════════════════════════════════════════════════════════
+
+✅ M1.T1: Visualizzazione Mappa (v0.0.5-v0.1.0)
+   STATUS: ✅ COMPLETATA AL 100%
+   
+   COMPLETATO:
+   ✅ Risoluzione problema rendering base (Control + RichTextLabel)
+   ✅ Migrazione completa architettura TileMap (da 62.500 tag BBCode)
+   ✅ Script World.gd finale con collision detection
+   ✅ Scena World.tscn ottimizzata (Node2D + TileMap + Player + Camera)
+   ✅ Sistema generazione texture tiles automatico
+   ✅ 8 texture PNG generate (terrain, forest, mountain, water, city, village, start, end)
+   ✅ TileSet ascii_tileset.tres configurato con collision su montagne
+   ✅ Mappa 250x250 (62.500 tiles) renderizzata perfettamente
+   ✅ Player movement fluido con WASD
+   ✅ Camera follow centrata con zoom 2x
+   ✅ Sfondo nero per visibilità ottimale
+   ✅ Performance scalabili e ottimizzate
+   ✅ Documentazione completa migrazione
+
+RISULTATO M1: Mondo di gioco completamente funzionale e giocabile
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎮 MILESTONE 2: GAMEPLAY CORE ⏳ PROSSIMA
+══════════════════════════════════════════════════════════════════════════════
+
+⏳ M2.T1: Sistema Inventario
+   - UI inventario integrata
+   - Drag & drop oggetti
+   - Integrazione con DataManager (52 oggetti)
+
+⏳ M2.T2: Interazioni Mondo
+   - Raccolta oggetti sulla mappa
+   - Interazione con città e villaggi
+   - Sistema eventi location-based
+
+⏳ M2.T3: Sistema Progressione
+   - Statistiche player
+   - Leveling system
+   - Skill progression
+
+⏳ M2.T4: Save/Load System
+   - Salvataggio stato mondo
+   - Persistenza inventario
+   - Checkpoint system
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚔️ MILESTONE 3: SISTEMA COMBATTIMENTO ⏳ PENDING
+══════════════════════════════════════════════════════════════════════════════
+
+⏳ M3.T1: Combat Engine
+   - Sistema combattimento turn-based
+   - Integrazione armi e armature
+   - Bilanciamento statistiche
+
+⏳ M3.T2: Nemici e AI
+   - Spawn nemici sulla mappa
+   - AI comportamentale
+   - Sistema loot
+
+⏳ M3.T3: Abilità Speciali
+   - Sistema magie/abilità
+   - Cooldown e risorse
+   - Effetti visivi
+
+⏳ M3.T4: Boss Battles
+   - Nemici unici
+   - Meccaniche speciali
+   - Rewards esclusivi
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📖 MILESTONE 4: NARRATIVA E LORE ⏳ PENDING
+══════════════════════════════════════════════════════════════════════════════
+
+⏳ M4.T1: Sistema Dialoghi
+   - Dialog tree system
+   - Character interactions
+   - Voice acting placeholder
+
+⏳ M4.T2: Questline Principale
+   - Storia principale implementata
+   - Cutscenes e narrative beats
+   - Multiple endings
+
+⏳ M4.T3: Side Quests
+   - Quest secondarie
+   - Lore expansion
+   - Hidden secrets
+
+⏳ M4.T4: World Building
+   - Background lore
+   - Environmental storytelling
+   - Easter eggs anni 80
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎨 MILESTONE 5: POLISH E RELEASE ⏳ PENDING
+══════════════════════════════════════════════════════════════════════════════
+
+⏳ M5.T1: UI/UX Polish
+   - Menu principali
+   - Settings system completo
+   - Accessibility features
+
+⏳ M5.T2: Audio System
+   - Colonna sonora anni 80
+   - Sound effects ambientali
+   - Audio settings avanzati
+
+⏳ M5.T3: Performance Final
+   - Profiling completo
+   - Memory optimization
+   - Cross-platform testing
+
+⏳ M5.T4: Release Preparation
+   - Build pipeline automatizzato
+   - Beta testing
+   - Marketing materials
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📈 STATISTICHE SVILUPPO
+══════════════════════════════════════════════════════════════════════════════
+
+VERSIONI RILASCIATE:
+- v0.0.1: Font + ThemeManager
+- v0.0.2b: Sistema CRT completo  
+- v0.0.3: Database modulare (52 oggetti)
+- v0.0.4: DataManager + bug fixes
+- v0.0.5: Rendering base risolto
+- v0.0.6: Migrazione TileMap completata
+- v0.1.0: "My small, wonderful, and devastated world" (CURRENT)
+
+MILESTONE COMPLETATE: 2/5 (40%)
+TEST ANTI-REGRESSIONE: 25/25 superati
+ARCHITETTURA: Modulare e scalabile
+PERFORMANCE: Ottimizzate per 250x250 world
+
+PROSSIMO RILASCIO: v0.2.0 - Gameplay Core
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 FOCUS PROSSIMO: Implementazione sistema inventario e interazioni mondo
+
+🏆 ACHIEVEMENT UNLOCKED: "World Builder" - Primo mondo di gioco completamente funzionale!
+
+ULTIMA MODIFICA: 2025-01-21 - Milestone 1 completata, v0.1.0 rilasciata
