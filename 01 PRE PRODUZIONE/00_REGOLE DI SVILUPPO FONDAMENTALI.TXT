@@ -45,3 +45,16 @@ Questo documento definisce le regole fondamentali della nostra collaborazione pe
 8.  **Verifica e Diagnostica:** Conteggi sempre verificabili manualmente, diagnostica integrata nei Manager.
 9.  **Applicazione Universale:** Standard OBBLIGATORIO per tutti i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
 
+#### **PRINCIPIO 7: Aggiornamento Documentazione Roadmap (Standard v0.1.0)**
+
+1.  **Regola Fondamentale:** SEMPRE aggiornare "01 PRE PRODUZIONE\01 ROADMAP.txt" ad ogni task/milestone completato.
+2.  **Documenti Obbligatori:** Tutti i documenti roadmap devono essere aggiornati simultaneamente:
+    - `01 PRE PRODUZIONE/01 ROADMAP.txt` (roadmap principale)
+    - `01 PRE PRODUZIONE/01 REVERSE ENGENIEERING/ROADMAP_PORTING.md` (se applicabile)
+    - `02 PRODUZIONE/DEV_LOG.md` (log generale) 
+    - `README_MILESTONE_X_TASK_Y.md` (specifico task)
+3.  **Coerenza Versioning:** Tutti i documenti devono riflettere la stessa versione corrente e stati milestone.
+4.  **Verifica Incrociata:** LLM deve sempre verificare coerenza tra tutti i documenti roadmap prima di chiudere un task.
+5.  **Mai Ignorare:** Cartelle `01 PRE PRODUZIONE/` e `02 PRODUZIONE/` sono sacre e devono essere sempre aggiornate.
+6.  **Chiedere Sempre:** Se mancano informazioni nella documentazione, LLM deve chiedere chiarimenti prima di procedere.
+

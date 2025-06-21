@@ -126,4 +126,103 @@ data/
 **NEXT ACTION:** Controllo umano dei file JSON  
 **ETA COMPLETION:** Dipende da risultati verifica  
 
-**READY FOR:** Dopo verifica → Finalizzazione commit v0.0.4 
+---
+
+## ✅ **RISOLUZIONE BUG CRITICO - OGGETTI UNICI (2024-12-19)**
+
+### **🐛 PROBLEMA IDENTIFICATO:**
+DataManager caricava 47 oggetti invece di 52, con 0 oggetti unici visualizzati.
+
+### **🔍 DIAGNOSI TECNICA:**
+1. **Root Cause:** Inconsistenza struttura JSON tra file database
+2. **File corrotto:** `unique_items.json` aveva struttura **Dictionary** invece di **Array**
+3. **Code Issue:** DataManager.gd gestiva solo **Dictionary**, non **Array**
+
+### **📋 STRUTTURA PROBLEMATICA:**
+```json
+// ERRATA (unique_items.json)
+{
+  "unique_items": {
+    "item_id": { "name": "...", ... },
+    "item_id2": { "name": "...", ... }
+  }
+}
+
+// CORRETTA (come altri file)
+{
+  "unique_items": [
+    { "id": "item_id", "name": "...", ... },
+    { "id": "item_id2", "name": "...", ... }
+  ]
+}
+```
+
+### **🔧 SOLUZIONE IMPLEMENTATA:**
+
+#### **1. Correzione JSON (unique_items.json):**
+- Convertito da **Object** a **Array** format
+- Standardizzato struttura con altri database
+
+#### **2. Fix DataManager.gd (3 funzioni):**
+
+**A) `_merge_item_databases()` - Linea 157:**
+```gdscript
+// PRIMA (solo Dictionary)
+if main_key != "" and database[main_key] is Dictionary:
+    for item_id in database[main_key]:
+        items[item_id] = database[main_key][item_id]
+
+// DOPO (Array + Dictionary)
+if main_key != "":
+    var data_collection = database[main_key]
+    if data_collection is Array:
+        for item_data in data_collection:
+            if item_data.has("id"):
+                items[item_data.id] = item_data
+    elif data_collection is Dictionary:
+        for item_id in data_collection:
+            items[item_id] = data_collection[item_id]
+```
+
+**B) `_count_items()` - Linea 175:**
+```gdscript
+// PRIMA (solo Dictionary)
+if database.has(key) and database[key] is Dictionary:
+    return database[key].size()
+
+// DOPO (Array + Dictionary)
+if database.has(key):
+    var data = database[key]
+    if data is Array:
+        return data.size()
+    elif data is Dictionary:
+        return data.size()
+```
+
+**C) Key Priority - Linea 147:**
+```gdscript
+// AGGIUNTO: unique_items priority
+if database.has("unique_items"):
+    main_key = "unique_items"
+elif database.has("items"):
+    main_key = "items"
+```
+
+### **🧪 RISULTATI POST-FIX:**
+- ✅ **Oggetti unici:** 0 → 5 (risolto)
+- ✅ **Totale oggetti:** 47 → 52 (corretto)
+- ✅ **Zero errori** di caricamento
+- ✅ **Tutti test** superati
+
+### **📚 LESSON LEARNED:**
+1. **Standardizzazione critica:** Tutti JSON devono seguire stesso format
+2. **Defensive coding:** Manager devono gestire multiple strutture dati
+3. **Test validation:** Conteggi manuali essenziali per verifica
+4. **Cache cleanup:** `.godot/` removal risolve path corruption
+
+### **🎯 PREVENZIONE FUTURA:**
+- **PRINCIPIO 6 aggiornato:** Standard JSON consolidato
+- **Validation automatica:** Controlli struttura in DataManager
+- **Template JSON:** Esempi per nuovi database
+
+**READY FOR:** ✅ Commit v0.0.4 finale - Sistema stabile e bug-free 

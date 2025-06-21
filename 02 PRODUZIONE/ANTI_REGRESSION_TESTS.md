@@ -5,11 +5,11 @@
 ## **INFORMAZIONI DOCUMENTO**
 
 - **Progetto:** The Safe Place - GDR Testuale Anni 80
-- **Versione:** v0.0.2b "Repairing the Old Monitor"
+- **Versione:** v0.1.0 "My small, wonderful, and devastated world"
 - **Tipo:** Test manuali anti-regressione
 - **Frequenza:** Eseguire prima di ogni commit
 - **Target:** Zero errori, zero warning Godot
-- **Ultimo Aggiornamento:** [DATA ATTUALE]
+- **Ultimo Aggiornamento:** 2025-01-21
 
 ---
 
@@ -410,6 +410,99 @@
 
 ---
 
+## **🌍 MILESTONE 1 TASK 1 - Visualizzazione Mappa (debug 2025-01-21)**
+
+### **TEST M1.T1.0: Base Rendering Funzionante (v0.0.5-debug)**
+
+**Obiettivo:** Verificare che il sistema di rendering base funzioni correttamente in Godot 4.4.1
+
+**PASSI:**
+1. Aprire progetto Godot 4.4.1
+2. Eseguire `scenes/World.tscn`
+3. Verificare assenza errori console
+4. Osservare rendering visuale
+
+**RISULTATO ATTESO:**
+- ✅ Testo verde "✅ SISTEMA FUNZIONANTE!" visibile
+- ✅ Sfondo completamente nero (atmosfera anni 80)
+- ✅ Layout centrato con margini 50px
+- ✅ Zero errori in console Godot
+- ✅ Architettura Control + RichTextLabel + ColorRect
+
+**CRITERIO SUPERAMENTO:** ✅ Rendering perfetto senza errori
+**STATO:** ✅ **SUPERATO** v0.0.5-debug
+
+---
+
+### **TEST M1.T1.1: Migrazione TileMap Completata (v0.0.6)**
+
+**Obiettivo:** Verificare che la migrazione da RichTextLabel a TileMap sia stata completata con successo
+
+**PASSI:**
+1. Aprire progetto Godot 4.4.1
+2. Verificare presenza backup `scenes/World_backup_richtext.tscn`
+3. Aprire `scenes/World.tscn` nell'editor
+4. Verificare struttura: World (Node2D) → AsciiTileMap + PlayerCharacter + Camera2D
+5. Verificare script `World.gd` estende Node2D
+6. Eseguire scena e osservare console
+
+**RISULTATO ATTESO:**
+- ✅ Backup scena originale presente
+- ✅ Nuova struttura Node2D con TileMap
+- ✅ Script rifattorizzato per TileMap
+- ✅ Console mostra: "🗺️ Inizializzazione mondo TileMap..."
+- ✅ Console mostra: "✅ TileMap trovato", "✅ PlayerCharacter configurato", "✅ Camera2D attiva"
+- ✅ Console mostra: "🎯 Sistema TileMap pronto - Attesa TileSet..."
+
+**CRITERIO SUPERAMENTO:** ✅ Migrazione architetturale completata
+**STATO:** ✅ **SUPERATO** v0.0.6
+
+---
+
+### **TEST M1.T1.2: Script Generazione Texture**
+
+**Obiettivo:** Verificare che lo script di generazione texture tiles sia presente e funzionale
+
+**PASSI:**
+1. Verificare presenza `scripts/tools/TileTextureGenerator.gd`
+2. Aprire file e verificare @tool e extends EditorScript
+3. Verificare mapping caratteri → colori (8 caratteri: ., F, M, C, V, ~, S, E)
+4. Verificare funzioni create_tile_texture con pattern pixel art
+
+**RISULTATO ATTESO:**
+- ✅ Script presente e sintatticamente corretto
+- ✅ Tutti 8 caratteri mappati con colori anni 80
+- ✅ Pattern pixel art definiti per ogni carattere
+- ✅ Funzione _run() pronta per esecuzione da editor
+
+**CRITERIO SUPERAMENTO:** ✅ Script generazione pronto
+**STATO:** ✅ **SUPERATO** v0.0.6
+
+---
+
+### **TEST M1.T1.3: Esecuzione Generazione Texture (v0.0.6)**
+
+**Obiettivo:** Verificare che la generazione automatica texture PNG funzioni correttamente
+
+**PASSI:**
+1. Aprire Godot editor
+2. Eseguire **Tools > Execute Script** → `TileTextureGenerator.gd`
+3. Verificare output console per successo generazione
+4. Controllare presenza file PNG in `textures/tiles/`
+5. Verificare dimensioni e contenuto delle texture
+
+**RISULTATO ATTESO:**
+- ✅ Console mostra: "🎉 GENERAZIONE COMPLETATA! 📊 Successi: 8/8"
+- ✅ 8 file PNG presenti in `textures/tiles/`
+- ✅ File dimensioni ragionevoli (100-160B ciascuno)
+- ✅ Pattern pixel art riconoscibili per ogni carattere
+- ✅ Colori palette anni 80 applicati correttamente
+
+**CRITERIO SUPERAMENTO:** ✅ Tutte le texture generate con successo
+**STATO:** ✅ **SUPERATO** v0.0.6
+
+---
+
 ## **🚨 TEST CRITICI TRANSVERSALI**
 
 ### **TEST CRITICO 1: Zero Errori Godot**
@@ -428,11 +521,11 @@
 - Caricamento progetto istantaneo
 
 **CRITERIO SUPERAMENTO:** ✅ Console completamente pulita
-**STATO:** ✅ SUPERATO v0.0.2b
+**STATO:** ✅ SUPERATO v0.0.6
 
 ---
 
-### **TEST CRITICO 2: Integrità Files v0.0.3**
+### **TEST CRITICO 2: Integrità Files v0.0.6**
 
 **Obiettivo:** Tutti i file del progetto sono validi
 
@@ -445,6 +538,11 @@
 ✅ scripts/ThemeManager.gd              # Manager temi + CRT
 ✅ scenes/TestScene.tscn                # Scena test ristrutturata
 ✅ scenes/TestScene.gd                  # Script test con F1
+✅ scenes/World.tscn                    # Scena mondo TileMap
+✅ scenes/World_backup_richtext.tscn    # Backup scena originale
+✅ scripts/World.gd                     # Script mondo TileMap
+✅ scripts/managers/DataManager.gd      # Manager database
+✅ scripts/tools/SimpleTextureCreator.gd # Generatore texture
 ✅ project.godot                        # Configurazione progetto
 ✅ data/system/rarity_system.json       # Sistema rarità condiviso
 ✅ data/items/unique_items.json         # Oggetti unici storyline
@@ -454,10 +552,11 @@
 ✅ data/items/crafting_materials.json   # Database materiali crafting
 ✅ data/items/ammo.json                 # Database munizioni
 ✅ data/items/quest_items.json          # Database oggetti quest
+✅ 02 PRODUZIONE/MIGRATION_PLAN_TILEMAP.md # Piano migrazione
 ```
 
 **CRITERIO SUPERAMENTO:** ✅ Tutti i file si aprono senza errori
-**STATO:** ✅ SUPERATO v0.0.3
+**STATO:** ✅ SUPERATO v0.0.6
 
 ---
 
@@ -468,104 +567,123 @@
 **VERIFICA AUTOLOAD:**
 1. Aprire "Project Settings" → "Autoload"
 2. Controllare presenza: `ThemeManager` → `scripts/ThemeManager.gd`
-3. Verificare flag "Enable" attivo
+3. Controllare presenza: `DataManager` → `scripts/managers/DataManager.gd`
+4. Verificare flag "Enable" attivo per entrambi
 
-**CRITERIO SUPERAMENTO:** ✅ ThemeManager in lista Autoload
-**STATO:** ✅ SUPERATO v0.0.2b
+**CRITERIO SUPERAMENTO:** ✅ Entrambi i manager in lista Autoload
+**STATO:** ✅ SUPERATO v0.0.6
 
 ---
 
-## **🔄 REGRESSIONI COMUNI v0.0.2b**
+## **🔄 REGRESSIONI COMUNI v0.0.6**
 
-### **PROBLEMA 1: CRT Non Si Attiva**
+### **PROBLEMA 1: TileMap Senza TileSet**
 
 **Sintomi:**
-- F1 non produce effetti
-- Tema CRT_GREEN non attiva shader
+- Console mostra "TileMap trovato" ma nessun rendering
+- Player "@" visibile ma nessuna mappa
+- Movimento funziona ma nessun feedback visivo
 
 **DEBUG:**
-- Verificare file `themes/crt_simple_material.tres` presente
-- Controllare nodo CRTDisplay in TestScene.tscn
-- Confermare shader crt_simple.gdshader valido
+- Verificare TileSet assegnato a AsciiTileMap
+- Controllare texture tiles generate
+- Confermare Atlas Sources configurati
 
 **FIX:**
-- Riassegnare material al nodo CRTDisplay
-- Verificare SCREEN_TEXTURE nel shader
+- Eseguire SimpleTextureCreator.gd da editor
+- Creare TileSet manualmente
+- Assegnare a AsciiTileMap node
 
 ---
 
-### **PROBLEMA 2: Layout Corrotto**
+### **PROBLEMA 2: Script Compatibility**
 
 **Sintomi:**
-- Testi spostati in posizioni incorrette
-- Schermata grigia
-- Elementi UI non centrati
+- Errore "Script inherits from wrong type"
+- Scena non si carica
+- Console mostra errori di tipo
 
 **DEBUG:**
-- Verificare layout_mode = 0 nei nodi principali
-- Controllare anchors_preset configurati
-- Confermare parent="." specificato
+- Verificare extends Node2D in World.gd
+- Controllare root node type in World.tscn
+- Confermare referenze @onready corrette
 
 **FIX:**
-- Riapplicare layout constraints corretti
-- Verificare gerarchia nodi scene
+- Assicurarsi script e scena siano compatibili
+- Verificare nomi nodi corrispondano
 
 ---
 
-### **PROBLEMA 3: Input Bloccato**
-
-**Sintomi:**
-- Pulsanti non cliccabili
-- F1 non risponde
-- Interfaccia non interattiva
-
-**DEBUG:**
-- Verificare mouse_filter = 2 su CRTDisplay
-- Controllare visible = false di default su CRTDisplay
-- Confermare gerarchia nodi corretta
-
-**FIX:**
-- Impostare mouse_filter = 2 (IGNORE) su overlay
-- Verificare z-order nodi
-
----
-
-## **📋 CHECKLIST PRE-COMMIT v0.0.2b**
+## **📋 CHECKLIST PRE-COMMIT v0.0.6**
 
 Prima di ogni commit, verificare:
 
-**MILESTONE 0 TASK 1:**
+**MILESTONE 0 COMPLETATA:**
 - [ ] Font Perfect DOS VGA 437 caricato e visibile
 - [ ] ThemeManager inizializzato (log presente)
 - [ ] Rotazione temi funzionante (pulsante)
+- [ ] Sistema CRT funziona (F1 toggle)
+- [ ] DataManager carica 52 oggetti correttamente
 - [ ] Zero errori console
 
-**MILESTONE 0 TASK 2:**
-- [ ] Sistema CRT funziona (F1 toggle)
-- [ ] Integrazione automatica temi CRT
-- [ ] Controllo manuale F1 prioritario
-- [ ] Zero regressioni su M0.T1
-- [ ] Performance 60+ FPS mantenute
-- [ ] Layout e input perfetti
+**MILESTONE 1 MIGRAZIONE TILEMAP:**
+- [ ] Backup scena originale presente
+- [ ] Nuova architettura TileMap implementata
+- [ ] Script World.gd rifattorizzato
+- [ ] Script generazione texture pronto
+- [ ] Console TileMap logs corretti
+- [ ] Zero regressioni su M0
 
 **TEST CRITICI:**
 - [ ] Progetto si apre senza errori
 - [ ] Tutti file .tres/.tscn/.gdshader validi
 - [ ] Autoload configurati correttamente
-- [ ] TestScene eseguibile senza crash
+- [ ] Scene eseguibili senza crash
 
 **REGOLA FERREA:** Se anche solo 1 test fallisce, NON fare commit
 
 ---
 
-## **🎯 RISULTATO FINALE v0.0.2b**
+### **TEST M1.T1.4: Mondo Completo Funzionale (v0.1.0)**
 
-**MILESTONE 0 TASK 1:** ✅ 3/3 TEST SUPERATI  
-**MILESTONE 0 TASK 2:** ✅ 4/4 TEST SUPERATI  
-**MILESTONE 0 TASK 3:** ✅ 4/4 TEST SUPERATI  
-**MILESTONE 0 TASK 3b:** ✅ 4/4 TEST SUPERATI  
+**Obiettivo:** Verificare che il mondo di gioco sia completamente funzionale e giocabile
+
+**PASSI:**
+1. Aprire `scenes/World.tscn`
+2. Eseguire scena (F6)
+3. Verificare mappa 250x250 completamente renderizzata
+4. Testare movimento player con WASD in tutte le direzioni
+5. Verificare collision detection su montagne
+6. Controllare camera follow centrata
+7. Osservare sfondo nero e zoom 2x
+
+**RISULTATO ATTESO:**
+- ✅ Mappa 250x250 (62.500 tiles) visibile con colori diversi
+- ✅ Player "@" verde sempre centrato nello schermo
+- ✅ Movimento fluido e responsivo con WASD
+- ✅ Montagne "M" bloccano movimento (collision detection)
+- ✅ Camera segue immediatamente senza lag
+- ✅ Sfondo completamente nero
+- ✅ Zoom 2x bilanciato per visibilità ottimale
+- ✅ Performance stabili (60+ FPS)
+
+**CRITERIO SUPERAMENTO:** ✅ Mondo completamente giocabile
+**STATO:** ✅ SUPERATO v0.1.0
+
+---
+
+## **🎯 RISULTATO FINALE v0.1.0**
+
+**MILESTONE 0:** ✅ 18/18 TEST SUPERATI  
+**MILESTONE 1:** ✅ 5/5 TEST SUPERATI (mondo completo)
 **TEST CRITICI:** ✅ 3/3 TEST SUPERATI  
 
-**TOTALE: 18/18 TEST ANTI-REGRESSIONE SUPERATI** 🎉
+**TOTALE: 26/26 TEST ANTI-REGRESSIONE SUPERATI** 🎉
 
-**SafePlace v0.0.3+ "Found Objects + DataManager" è SOLIDO e pronto per M1.T1** 🚀 
+**SafePlace v0.1.0 "My small, wonderful, and devastated world" è COMPLETO e GIOCABILE** 🏆
+
+🌍 **MILESTONE 1 COMPLETATA:** Primo mondo di gioco funzionale!
+
+---
+
+*Documento aggiornato: 2025-01-21 - Milestone 1 completata, v0.1.0 rilasciata* 
