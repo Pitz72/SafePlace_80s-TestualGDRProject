@@ -36,7 +36,7 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
     -   [X] M0.T3b: DataManager Singleton (v0.0.3+)
     -   [X] M0.T3c: Verifica Conteggio Oggetti (v0.0.4)
 
--   [X] **MILESTONE 1: Mondo di Gioco (v0.0.5 → v0.1.0)**
+-   [X] **MILESTONE 1: Mondo di Gioco (v0.0.5 → v0.1.1)**
     -   [X] M1.T1: Visualizzazione Mappa Completa (v0.1.0)
     -   [X] ✅ Migrazione TileMap completata
     -   [X] ✅ Mondo 250x250 (62.500 tiles) renderizzato
@@ -44,6 +44,11 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
     -   [X] ✅ Collision detection implementata
     -   [X] ✅ Camera follow centrata
     -   [X] ✅ Performance 60+ FPS stabili
+    -   [X] M1.T2: World System v2.0 Avanzato (v0.1.1)
+    -   [X] ✅ Sistema BBCode effetti speciali
+    -   [X] ✅ Palette colori ufficiale (9 terreni)
+    -   [X] ✅ Penalità movimento fiume
+    -   [X] ✅ Nodi dinamici S/E lampeggianti
 
 -   [ ] **MILESTONE 2: Gameplay Core**
     -   [ ] M2.T1: Sistema Inventario UI
@@ -71,23 +76,42 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
 
 ## **RISULTATI RAGGIUNTI**
 
-### **v0.1.0 "My small, wonderful, and devastated world"**
-- 🌍 **Primo mondo giocabile completato**
-- 🎮 **Gameplay base funzionante** (movement, collision, camera)
-- 🏗️ **Architettura TileMap scalabile**
-- 📊 **52 oggetti database migrati**
-- 🧪 **26/26 test anti-regressione superati**
-- 📈 **40% progresso totale** (2/5 milestone)
+### **v0.1.1 "This world is an ecosystem"** ✅ COMPLETATA
+- 🌍 **World System v2.0:** Sistema mondo avanzato completo
+- 🎮 **Meccaniche gameplay:** Penalità fiume (1 turno), collision montagne, camera intelligente
+- 🎨 **Palette ufficiale:** 9 terreni incluso nuovo Ristoro (R) giallo
+- 📈 **Performance:** 60+ FPS stabili su 250x250 con effetti BBCode
+- 🧪 **34/34 test anti-regressione superati** (100%)
+- 📊 **40% progresso totale** (2/5 milestone completate)
+- ✨ **Sistema BBCode:** S/E come nodi dinamici, effetti speciali
+- 🏗️ **Architettura v2.0:** Modulare e scalabile per Milestone 2
 
-### **Porting Status: ECCELLENTE**
-Il porting da JavaScript/HTML originale a Godot 4.4.1 procede con successo:
-- ✅ **Fondamenta tecniche**: Complete e stabili
-- ✅ **Sistema rendering**: TileMap ottimizzato vs RichTextLabel originale
-- ✅ **Database oggetti**: Migrazione completa e migliorata
-- ✅ **Primo mondo**: Completamente giocabile e performante
+⚠️ **PROBLEMA IDENTIFICATO - PLAYER VISUALIZATION:**
+- **Issue:** Player @ non cambia colore (#00FF43) né lampeggia
+- **Root cause:** BBCode RichTextLabel incompatibilità Godot 4.4.1
+- **Impatto:** Non bloccante gameplay, solo visual feedback limitato
+- **Soluzioni candidate:** 1) Debug BBCode, 2) Sprite pixelart 16x16, 3) Tween alternativo
+
+### **v0.1.0 "My small, wonderful, and devastated world"** ✅ COMPLETATA
+- 🌍 **Primo mondo giocabile completato**
+- 🎮 **Gameplay base** (movimento, collision, camera)
+- 🏗️ **Architettura TileMap scalabile**
+- 📊 **52 oggetti database + 8 terreni**
+- 🧪 **26/26 test anti-regressione superati**
+
+### **Porting Status: ECCELLENTE** 
+Il porting da JavaScript/HTML originale a Godot 4.4.1 procede con successo eccezionale:
+- ✅ **Fondamenta tecniche**: Complete e ottimizzate
+- ✅ **Sistema rendering**: TileMap hardware-accelerated vs HTML/Canvas
+- ✅ **Database oggetti**: Migrazione completa con architettura modulare migliorata
+- ✅ **Mondo ecosistema**: Completamente interattivo con meccaniche avanzate
+- ✅ **Performance**: Superiori al prototipo originale (60+ FPS vs limiti browser)
+- 🔧 **Player representation**: Da perfezionare (issue non bloccante)
+
+**PRONTO PER MILESTONE 2: Gameplay Core** 🚀
 
 ---
 
 *Questo documento verrà aggiornato al completamento di ogni task.*
 
-*Ultimo aggiornamento: 2025-01-21 - Milestone 1 completata, v0.1.0 rilasciata* 
+*Ultimo aggiornamento: 2025-01-21 - v0.1.1 "This world is an ecosystem" consolidata* 

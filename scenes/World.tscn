@@ -17,7 +17,9 @@ color = Color(0, 0, 0, 1)
 [node name="AsciiTileMap" type="TileMap" parent="."]
 format = 2
 
-[node name="PlayerCharacter" type="Label" parent="."]
+[node name="SpecialPoints" type="Node2D" parent="."]
+
+[node name="PlayerCharacter" type="RichTextLabel" parent="."]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -28,8 +30,8 @@ offset_top = -8.0
 offset_right = 8.0
 offset_bottom = 8.0
 theme = ExtResource("2_theme")
-text = "@"
-horizontal_alignment = 1
-vertical_alignment = 1
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="Camera2D" type="Camera2D" parent="."]

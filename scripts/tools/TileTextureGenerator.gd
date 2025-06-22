@@ -14,16 +14,17 @@ const TEXTURE_SIZE = 16         # Dimensione texture in pixel (16x16)
 const FONT_SIZE = 14           # Dimensione font per riempire bene i 16px
 const OUTPUT_PATH = "res://textures/tiles/"  # Cartella output PNG
 
-# PALETTE COLORI UFFICIALE - The Safe Place
+# PALETTE COLORI UFFICIALE - The Safe Place v2.0
 var CHAR_DATA = {
-	"terrain":    { "char": ".", "color": Color("#a5c9a5") },
-	"forest":     { "char": "F", "color": Color("#34672a") },
-	"mountain":   { "char": "M", "color": Color("#675945") },
-	"water":      { "char": "~", "color": Color("#1e7ba8") }, # <-- COLORE AGGIORNATO
-	"village":    { "char": "V", "color": Color("#c9a57b") },
-	"city":       { "char": "C", "color": Color("#c9c9c9") },
-	"start_point":{ "char": "S", "color": Color("#ffdd00") }, # <-- COLORE AGGIORNATO
-	"end_point":  { "char": "E", "color": Color("#ffdd00") }  # <-- COLORE AGGIORNATO
+	"terrain":    { "char": ".", "color": Color("#a5c9a5") },  # Pianura
+	"forest":     { "char": "F", "color": Color("#34672a") },  # Foresta
+	"mountain":   { "char": "M", "color": Color("#675945") },  # Montagna
+	"water":      { "char": "~", "color": Color("#1e7ba8") },  # Fiume
+	"village":    { "char": "V", "color": Color("#c9a57b") },  # Villaggio
+	"city":       { "char": "C", "color": Color("#c9c9c9") },  # Città
+	"rest_stop":  { "char": "R", "color": Color("#ffdd00") },  # Ristoro (NUOVO!)
+	"start_point":{ "char": "S", "color": Color("#ffdd00") },  # Start (gestito come nodo)
+	"end_point":  { "char": "E", "color": Color("#ffdd00") }   # End (gestito come nodo)
 }
 
 # Font Perfect DOS VGA 437
