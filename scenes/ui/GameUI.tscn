@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://cfpj3ceo6x3ih"]
+[gd_scene load_steps=2 format=3 uid="uid://bkhciyfpfpjvu"]
 
-[ext_resource type="Script" uid="uid://c1mhoiyipeo0d" path="res://scripts/ui/GameUI.gd" id="1_m9k5p"]
+[ext_resource type="Script" uid="uid://crh7vwk7r6bwl" path="res://scripts/ui/GameUI.gd" id="1_m9k5p"]
 
 [node name="GameUI" type="Control"]
 layout_mode = 3
@@ -109,6 +109,7 @@ horizontal_alignment = 1
 [node name="LogPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="LogVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel/LogPanel"]
 layout_mode = 2
@@ -123,7 +124,6 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-fit_content = true
 scroll_following = true
 
 [node name="RightPanel" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout"]

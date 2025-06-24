@@ -130,11 +130,14 @@ RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
    ✅ Stile ASCII puro: zero emoji, marcatori [W][A][C][M][Q][T]
    ✅ Format consistente: [POS], [LOC], [TIME], [ERROR], [DEBUG]
    ✅ API pubbliche per messaggi sistema e refresh manuale
+   🔧 EVOLUZIONE DESIGN: Migrazione a sistema numerazione oggetti
+   📋 PRINCIPIO 8: Architettura keyboard-only rigorosamente implementata
 
-⏳ M2.T3: UI Inventario
-   - Interfaccia inventario grafica
-   - Drag & drop oggetti
-   - Integrazione con PlayerManager
+⏳ M2.T3: UI Inventario Keyboard-Only
+   - Sistema numerazione oggetti [1][2][3]... invece di categorie
+   - Hotkey diretti 1-9 per uso oggetti immediato
+   - Zero dipendenza mouse, navigazione pura tastiera
+   - Integrazione con PlayerManager mantenuta
 
 ⏳ M2.T4: Sistema Interazioni Mondo
    - Raccolta oggetti sulla mappa
@@ -392,3 +395,171 @@ Tutte le meccaniche core funzionano perfettamente. L'unico aspetto da perfeziona
 
 ---
 Documento aggiornato: 2025-01-21 | Versione: v0.1.2 "The Player Manager"
+
+===============================================================================
+                    THE SAFE PLACE - GDR TESTUALE ANNI 80
+                         ROADMAP DI SVILUPPO v0.1.4
+                      "The Inventory Master" - 2025-01-25
+===============================================================================
+
+🎯 OBIETTIVO PRINCIPALE
+Ricreare "The Safe Place" su Godot 4.4.1 mantenendo l'anima nostalgica anni 80
+
+📊 PROGRESSO GENERALE: 62.5% (2.5/4 milestone completate)
+
+===============================================================================
+✅ MILESTONE 0: FONDAMENTA TECNICHE [COMPLETATA AL 100%] ✅
+===============================================================================
+📅 Durata: 2025-01-19 → 2025-01-20
+🎯 Obiettivo: Impostare architettura base Godot
+
+TASK COMPLETATI:
+✅ T0.1: Setup Progetto Godot + Sistema Temi CRT
+✅ T0.2: Importazione Asset Grafici 
+✅ T0.3: Test Anti-Regressione Iniziali
+✅ T0.4: Documentazione Architettura Base
+
+RISULTATI MILESTONE 0:
+• Engine: Godot 4.4.1 configurato
+• Tema CRT: Shader terminal anni 80 perfetto
+• Font: Perfect DOS VGA 437 integrato
+• Test: 18/18 superati
+• Asset: Texture base importate
+
+===============================================================================
+✅ MILESTONE 1: MONDO DI GIOCO [COMPLETATA AL 100%] ✅  
+===============================================================================
+📅 Durata: 2025-01-20 → 2025-01-21
+🎯 Obiettivo: Mondo ASCII navigabile completo
+
+TASK COMPLETATI:
+✅ M1.T1: Conversione Mappa ASCII (250x250)
+✅ M1.T2: Sistema TileMap con Texture Generate  
+✅ M1.T3: Player Controller + Movimento
+✅ M1.T4: Camera System + World Integration
+✅ M1.T5: Performance Optimization (60+ FPS stabili)
+
+RISULTATI MILESTONE 1:
+• Mappa: 250x250 tiles (62.500 celle) ASCII perfetta
+• Performance: 60+ FPS stabili su mondo completo
+• TileSet: 9 texture generate automaticamente
+• Player: Movimento fluido con limiti mappa
+• Sistema: Architettura modulare pronta per features
+
+===============================================================================
+✅ MILESTONE 2: GAMEPLAY CORE [COMPLETATA AL 62.5%] ⏳
+===============================================================================
+📅 Durata: 2025-01-21 → in corso
+🎯 Obiettivo: Sistemi giocatore e interfaccia
+
+TASK COMPLETATI:
+✅ M2.T1: PlayerManager Singleton (v0.1.2) [COMPLETATO]
+  • Gestione HP/Food/Water con segnali reattivi
+  • Sistema inventario completo con add/remove
+  • Statistiche personaggio (5 attributi)
+  • Equipaggiamento armi/armature
+  • API salvataggio/caricamento stati
+
+✅ M2.T2: GameUI Sistema Giocatore (v0.1.3) [COMPLETATO]  
+  • Interfaccia 3 colonne (1:2:1) con 13 pannelli
+  • Integrazione reattiva PlayerManager (16 referenze @onready)
+  • SubViewport per World.tscn nel pannello centrale
+  • Sistema diario BBCode con timestamp
+  • Robustness excellence (44 test anti-regressione)
+  • ASCII style completo (conversione da emoji a [POS]/[ERROR]/[DEBUG])
+
+✅ M2.T3: UI Inventario Avanzato (v0.1.4) [COMPLETATO]
+  • Sistema navigazione WASD + Frecce indistintamente
+  • Evidenziazione visuale inventario con > [1] [2] [3]
+  • Consumo reale oggetti tramite PlayerManager.use_item()
+  • Hotkey diretti 1-9 con consumo immediato
+  • Sistema effetti oggetti (heal, nourish, hydrate)
+  • Modalità inventario attiva/inattiva con comandi dinamici
+
+🚧 M2.T4: Sistema Combattimento Base [IN ATTESA]
+  • Sistema turni con nemici
+  • Calcolo danni armi/armature
+  • Stati alterati base
+
+TASK RIMANENTI MILESTONE 2: 1/4
+
+===============================================================================
+⏳ MILESTONE 3: SISTEMI AVANZATI [IN ATTESA] ⏳
+===============================================================================
+📅 Durata: TBD
+🎯 Obiettivo: Caratteristiche RPG complete
+
+TASK PIANIFICATI:
+🔲 M3.T1: Sistema Eventi Casuali
+🔲 M3.T2: Dialoghi NPG e Quest
+🔲 M3.T3: Sistema Crafting Base
+🔲 M3.T4: Salvataggio/Caricamento Partite
+
+===============================================================================
+⏳ MILESTONE 4: CONTENUTI E POLISH [IN ATTESA] ⏳
+===============================================================================
+📅 Durata: TBD  
+🎯 Obiettivo: Contenuti completi e release
+
+TASK PIANIFICATI:
+🔲 M4.T1: Database Completo (Oggetti/Nemici/Eventi)
+🔲 M4.T2: Sistema Progressione Personaggio
+🔲 M4.T3: Audio e Effetti Sonori
+🔲 M4.T4: Testing Finale e Packaging
+
+===============================================================================
+📊 METRICHE PROGETTO v0.1.4
+===============================================================================
+
+PERFORMANCE:
+• FPS: 60+ stabili (mondo 62.500 tiles)
+• Memoria: Ottimizzata per mappe grandi
+• Caricamento: < 3 secondi avvio completo
+
+CODEBASE:
+• Script totali: 8 file principali
+• Test anti-regressione: 47/47 superati (100%)
+• Database JSON: 52 oggetti modulari
+• Architettura: Singleton + Scene modulari
+
+FEATURES COMPLETATE:
+• ✅ Mondo ASCII navigabile 250x250
+• ✅ PlayerManager completo con inventario
+• ✅ GameUI reattiva 3-colonne con 13 pannelli  
+• ✅ Sistema inventario WASD/frecce + consumo reale
+• ✅ Database modulare 52 oggetti categorizzati
+• ✅ Tema CRT anni 80 con Perfect DOS VGA
+• ✅ TileMap system con texture generate
+
+PROSSIMI OBIETTIVI:
+• 🎯 M2.T4: Sistema Combattimento Base (completare Milestone 2)
+• 🎯 M3: Sistemi Avanzati (eventi, dialoghi, crafting)
+
+===============================================================================
+🎮 NOTE SVILUPPO
+===============================================================================
+
+ARCHITETTURA CONSOLIDATA:
+• Principio Keyboard-Only: Design rigorosamente anni 80 senza mouse
+• Database Modulare: JSON < 10KB per categoria logica  
+• Anti-Regression Excellence: 47 test per zero regressioni
+• Reactive UI: Aggiornamenti automatici via segnali PlayerManager
+
+ACHIEVEMENT SBLOCCATI:
+• 🌍 "World Builder" - Mondo 62.500 tiles completo
+• 🎮 "The Manager" - PlayerManager singleton perfetto  
+• 🎨 "The UI Master" - GameUI 3-colonne reattiva
+• 📦 "The Inventory Master" - Sistema inventario WASD + consumo
+
+===============================================================================
+👥 TEAM & WORKFLOW
+===============================================================================
+• Project Manager: Umano
+• Lead Developer: Claude (LLM)
+• QA Tester: Umano
+• Technical Writer: Claude (LLM)
+
+Protocollo Umano-LLM seguito rigorosamente per v0.1.4
+Documentazione aggiornata 2025-01-25
+
+===============================================================================

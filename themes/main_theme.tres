@@ -1,8 +1,24 @@
-[gd_resource type="Theme" load_steps=3 format=3 uid="uid://d31vy5b8bcfsa"]
+[gd_resource type="Theme" load_steps=5 format=3 uid="uid://d31vy5b8bcfsa"]
 
 [ext_resource type="FontFile" uid="uid://dfw4ij5rfurac" path="res://themes/Perfect DOS VGA 437 Win.ttf" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0, 0.0196078, 0.0117647, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.305882, 0.705882, 0.384314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scrollbar_grabber"]
+bg_color = Color(0.305882, 0.705882, 0.384314, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.305882, 0.705882, 0.384314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scrollbar_bg"]
 bg_color = Color(0, 0.0196078, 0.0117647, 1)
 border_width_left = 1
 border_width_top = 1
@@ -23,6 +39,11 @@ Button/styles/disabled = SubResource("StyleBoxFlat_1")
 Button/styles/hover = SubResource("StyleBoxFlat_1")
 Button/styles/normal = SubResource("StyleBoxFlat_1")
 Button/styles/pressed = SubResource("StyleBoxFlat_1")
+HScrollBar/styles/grabber = SubResource("StyleBoxFlat_scrollbar_grabber")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scrollbar_grabber")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scrollbar_grabber")
+HScrollBar/styles/scroll = SubResource("StyleBoxFlat_scrollbar_bg")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_scrollbar_bg")
 Label/colors/font_color = Color(0.305882, 0.705882, 0.384314, 1)
 Label/colors/font_shadow_color = Color(0, 0, 0, 0.5)
 Label/constants/shadow_offset_x = 1
@@ -47,3 +68,8 @@ RichTextLabel/fonts/bold_italics_font = ExtResource("1")
 RichTextLabel/fonts/italics_font = ExtResource("1")
 RichTextLabel/fonts/mono_font = ExtResource("1")
 RichTextLabel/fonts/normal_font = ExtResource("1")
+VScrollBar/styles/grabber = SubResource("StyleBoxFlat_scrollbar_grabber")
+VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scrollbar_grabber")
+VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scrollbar_grabber")
+VScrollBar/styles/scroll = SubResource("StyleBoxFlat_scrollbar_bg")
+VScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_scrollbar_bg")

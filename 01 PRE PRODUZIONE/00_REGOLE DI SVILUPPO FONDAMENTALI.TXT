@@ -1,64 +1,185 @@
-### **PROTOCOLLO DI SVILUPPO UMANO-LLM - The Safe Place**
+===============================================================================
+                    THE SAFE PLACE - GDR TESTUALE ANNI 80
+                       REGOLE DI SVILUPPO FONDAMENTALI
+                      "The Inventory Master" - v0.1.4
+                           Aggiornato: 2025-01-25
+===============================================================================
 
-**Versione:** v0.1.3 "The UI Master"  
-**Ultimo aggiornamento:** 2025-01-21  
-**Milestone 2:** 50% completata (2/4 task)
+🎯 VERSIONE CORRENTE: v0.1.4 "The Inventory Master"
+📊 PROGRESSO: 62.5% (Milestone 2 Task 3 completato)
 
-Questo documento definisce le regole fondamentali della nostra collaborazione per lo sviluppo di "The Safe Place". Il suo scopo è garantire un processo strutturato, prevenire la regressione e massimizzare l'efficacia del lavoro congiunto tra l'umano (Architetto) e l'LLM (Esecutore).
+===============================================================================
+📋 PROTOCOLLO DI SVILUPPO UMANO-LLM
+===============================================================================
 
-#### **PRINCIPIO 1: La Fonte Unica della Verità (Single Source of Truth)**
+PRINCIPIO 1: DOCUMENTAZIONE COME FONTE UNICA DI VERITÀ
+• Cartella "01 Pre Produzione" è l'UNICA fonte di verità
+• LLM non deve MAI fare supposizioni su features o architettura
+• Sempre consultare documenti esistenti prima di implementare
+• Mai ignorare o sovrascrivere decisioni architetturali documentate
 
-1.  La cartella `01 Pre Produzione` e i documenti di design che creeremo durante lo sviluppo sono la nostra unica e assoluta fonte di verità.
-2.  L'LLM (io) non deve mai fare supposizioni. Ogni mia azione deve essere basata sulla documentazione fornita.
-3.  L'umano è responsabile di mantenere questa documentazione aggiornata. L'LLM è responsabile di chiederla e di segnalare eventuali incongruenze.
+PRINCIPIO 2: SVILUPPO INCREMENTALE ATOMICO
+• Ogni task deve essere il più piccolo possibile
+• Un task = un commit GitHub con messaggio descrittivo
+• Mai mescolare features multiple in un singolo task
+• Testing completo prima di passare al task successivo
 
-#### **PRINCIPIO 2: Sviluppo Incrementale e Atomico**
+PRINCIPIO 3: RITUALE DEL RESET (Inizio Sessione)
+• Step 1: Inizializzazione obiettivo sessione
+• Step 2: Caricamento completo contesto documentazione
+• Step 3: Conferma LLM di comprensione obiettivo
+• Step 4: Identificazione task atomico da completare
+• Mai iniziare sviluppo senza questo rituale
 
-1.  **A Piccoli Passi:** Ogni task di sviluppo deve essere il più piccolo possibile, ma completo e testabile. (Es. "Creare la scena del menu principale", non "Creare tutta la UI").
-2.  **Un Task, un Commit:** Ogni task completato deve corrispondere a un `commit` su Git con un messaggio chiaro. Questo ci permette di tornare indietro facilmente se qualcosa va storto.
-3.  **Prima il Design, Poi il Codice:** Per ogni nuovo task significativo, creeremo o aggiorneremo un breve documento di design *prima* di chiedere all'LLM di scrivere il codice. (Es. "Design della Scena `CombatUI`", poi si scrive il codice per la scena).
+PRINCIPIO 4: PROTOCOLLO ANTI-REGRESSIONE
+• File TESTS.md deve essere aggiornato per ogni feature
+• Test manuali definiti e descritti dettagliatamente
+• Verifiche obbligatorie prima di ogni commit
+• Zero regressioni tollerate su features esistenti
 
-#### **PRINCIPIO 3: Il Rituale del Reset del Contesto**
+PRINCIPIO 5: RUOLI UMANO-LLM DEFINITI
+• UMANO: Project Manager, Architetto, Game Designer, QA Tester
+• LLM: Programmatore, Technical Writer, Pair Programmer
+• LLM segue decisioni architetturali umane senza questionare
+• Umano fornisce feedback e direzione, LLM implementa
 
-1.  **Problema:** La memoria dell'LLM è limitata e volatile. Non si può fare affidamento sulla cronologia della chat per compiti complessi.
-2.  **Soluzione (Il Rituale):** All'inizio di ogni nuova sessione di lavoro, o quando si affronta un nuovo task complesso, l'umano deve eseguire questo "rituale":
-    *   **Inizializzazione:** "Ciao, oggi lavoriamo al [NOME_TASK]. L'obiettivo è [OBIETTIVO_DEL_TASK]."
-    *   **Caricamento Contesto:** "Per farlo, fai riferimento ai seguenti documenti: [NOME_DOCUMENTO_1], [NOME_DOCUMENTO_2]." (Incollando il contenuto dei documenti rilevanti se necessario).
-    *   **Conferma dell'LLM:** L'LLM deve rispondere con una sintesi dell'obiettivo e confermare di aver assimilato il contesto prima di procedere. (Es. "Ricevuto. L'obiettivo è creare la UI del combattimento basandomi sul design in `combat_ui.md`. Sono pronto.").
+PRINCIPIO 6: ARCHITETTURA MODULARE DATABASE
+• Database JSON modulari (file < 10KB ciascuno)
+• Organizzazione per cartelle logiche (data/items/, data/enemies/, etc.)
+• Suddivisione per categoria funzionale
+• File condivisi in data/system/ per sistemi comuni
+• Naming convention: categoria_tipologia.json
+• Applicazione OBBLIGATORIA a tutti database futuri
 
-#### **PRINCIPIO 4: Il Protocollo Anti-Regressione**
+PRINCIPIO 7: AGGIORNAMENTO DOCUMENTAZIONE OBBLIGATORIO
+• "01 PRE PRODUZIONE\01 ROADMAP.txt" SEMPRE aggiornato
+• TUTTI i documenti roadmap aggiornati simultaneamente
+• Coerenza versioning tra tutti i documenti
+• Verifica incrociata prima chiusura ogni task
+• MAI ignorare aggiornamento cartelle "01 PRE PRODUZIONE" e "02 PRODUZIONE"
+• Sempre chiedere chiarimenti se mancano info in documentazione
 
-1.  **Definizione del Test:** Dopo aver completato un task, definiremo insieme un semplice "Criterio di Accettazione" o un "Test Manuale". (Es. "Test per il Tema Globale: 1. Avviare la scena principale. 2. Verificare che il testo di tutti i bottoni sia verde. 3. Verificare che il font sia 'Fira Code'").
-2.  **Documento dei Test:** Manterremo un file `TESTS.md` che elenca tutti questi test manuali.
-3.  **Testing di Regressione:** Periodicamente, o prima di un commit importante, l'umano eseguirà i test elencati in `TESTS.md` per assicurarsi che le nuove modifiche non abbiano rotto funzionalità esistenti.
+PRINCIPIO 8: DESIGN KEYBOARD-ONLY RIGOROSO
+• Interfacce navigabili SOLO da tastiera (autenticità anni 80)
+• Nessun elemento richiede mouse per accesso completo
+• Input mapping completo: WASD + Frecce per movimento
+• Hotkey numerici 1-9 per azioni rapide
+• Modalità testuali con comandi ASCII ([I] [ESC] [ENTER])
+• UI design che ricorda terminali reali anni '80
 
-#### **PRINCIPIO 5: Definizione dei Ruoli**
+===============================================================================
+🎮 STANDARD ARCHITETTURALI CONSOLIDATI v0.1.4
+===============================================================================
 
-1.  **L'Umano (Simone Pizzi):** È il **Project Manager**, l'**Architetto del Software**, il **Game Designer** e il **Quality Assurance (QA)**. Prende le decisioni, definisce i piani, guida il processo e valida il risultato.
-2.  **L'LLM (ChatGPT/Cursor):** È il **Programmatore**, il **Technical Writer** e il **Pair Programmer**. Scrive il codice su istruzioni precise, scrive e formatta la documentazione, suggerisce soluzioni tecniche a basso livello e aiuta a identificare errori. L'LLM non prende mai iniziative di design.
+ARCHITETTURA SINGLETON MANAGER:
+• ThemeManager: Gestione temi CRT e font DOS
+• DataManager: Database JSON modulari unificati
+• PlayerManager: Stato giocatore completo + inventario + segnali reattivi
 
-#### **PRINCIPIO 6: Architettura Modulare per Database (Standard v0.0.4)**
+ARCHITETTURA UI REATTIVA:
+• GameUI.tscn: Layout 3-colonne (1:2:1) con 13 pannelli specializzati
+• Aggiornamenti automatici via segnali PlayerManager
+• SubViewport per World.tscn integrato nel pannello centrale
+• Sistema diario BBCode con timestamp per azioni giocatore
 
-1.  **Regola Modulare:** Tutti i database JSON devono seguire architettura modulare con file singoli < 10KB per gestibilità ottimale.
-2.  **Organizzazione Strutturata:** Database organizzati in cartelle specializzate (`data/system/`, `data/items/`, `data/enemies/`, `data/events/`).
-3.  **Suddivisione Categorica:** Database grandi suddivisi per categoria logica (oggetti → armi, armature, consumabili, unici, ecc.).
-4.  **Sistemi Condivisi:** Sistemi globali in `data/system/` (rarity_system.json, config.json) accessibili a tutti i database.
-5.  **Naming Convention:** Standard `categoria_principale.json` per consistenza (weapons.json, armor.json, enemies_bosses.json).
-6.  **Manager Dedicati:** Ogni categoria richiede Manager Godot (DataManager.gd) con API complete per accesso unificato.
-7.  **Struttura JSON Standard:** Formato `{"categoria": [...], "metadata": {...}}` per tutti i database.
-8.  **Verifica e Diagnostica:** Conteggi sempre verificabili manualmente, diagnostica integrata nei Manager.
-9.  **Applicazione Universale:** Standard OBBLIGATORIO per tutti i database futuri (Nemici, Eventi, Stati, Abilità, etc.).
+SISTEMA INVENTARIO AVANZATO:
+• Navigazione WASD + Frecce indistintamente
+• Evidenziazione visuale con > [1] [2] [3] format
+• Consumo reale tramite PlayerManager.use_item()
+• Hotkey diretti 1-9 con applicazione effetti immediata
+• Modalità attiva/inattiva con comandi dinamici contestuali
 
-#### **PRINCIPIO 7: Aggiornamento Documentazione Roadmap (Standard v0.1.0)**
+FORMATO DATI STANDARDIZZATO:
+• JSON con effects array: [{"type": "heal", "amount": 25}]
+• Tipologie effetti: heal, nourish, hydrate, restore_stamina
+• Gestione placeholder per features future (radiazioni, veleni)
+• Oggetti non consumabili gestiti separatamente
 
-1.  **Regola Fondamentale:** SEMPRE aggiornare "01 PRE PRODUZIONE\01 ROADMAP.txt" ad ogni task/milestone completato.
-2.  **Documenti Obbligatori:** Tutti i documenti roadmap devono essere aggiornati simultaneamente:
-    - `01 PRE PRODUZIONE/01 ROADMAP.txt` (roadmap principale)
-    - `01 PRE PRODUZIONE/01 REVERSE ENGENIEERING/ROADMAP_PORTING.md` (se applicabile)
-    - `02 PRODUZIONE/DEV_LOG.md` (log generale) 
-    - `README_MILESTONE_X_TASK_Y.md` (specifico task)
-3.  **Coerenza Versioning:** Tutti i documenti devono riflettere la stessa versione corrente e stati milestone.
-4.  **Verifica Incrociata:** LLM deve sempre verificare coerenza tra tutti i documenti roadmap prima di chiudere un task.
-5.  **Mai Ignorare:** Cartelle `01 PRE PRODUZIONE/` e `02 PRODUZIONE/` sono sacre e devono essere sempre aggiornate.
-6.  **Chiedere Sempre:** Se mancano informazioni nella documentazione, LLM deve chiedere chiarimenti prima di procedere.
+===============================================================================
+🛠️ STRUMENTI E WORKFLOW CONSOLIDATI
+===============================================================================
+
+AMBIENTE SVILUPPO:
+• Engine: Godot 4.4.1 stable
+• Font Standard: Perfect DOS VGA 437 Win
+• Tema CRT: Shader terminale anni 80 con scanlines
+• Performance Target: 60+ FPS stabili
+
+GESTIONE VERSIONING:
+• Formato: v0.X.Y "Nome Milestone/Feature"
+• Commit atomici con messaggi descrittivi
+• Branch principale: godot-port
+• Tag per release major milestone
+
+QUALITY ASSURANCE:
+• Test anti-regressione: 47/47 attualmente (100% pass rate)
+• Verifica manuale features prima commit
+• Performance monitoring continuo
+• Documentazione aggiornata obbligatoria
+
+===============================================================================
+📊 ACHIEVEMENT E MILESTONE COMPLETATE
+===============================================================================
+
+✅ MILESTONE 0: FONDAMENTA TECNICHE (100%)
+• "Foundation Builder" - Setup Godot + CRT perfetto
+
+✅ MILESTONE 1: MONDO DI GIOCO (100%)  
+• "World Builder" - Mondo ASCII 250x250 navigabile
+
+✅ MILESTONE 2: GAMEPLAY CORE (62.5% - 2.5/4 task)
+• "The Manager" - PlayerManager singleton completo
+• "The UI Master" - GameUI reattiva 3-colonne  
+• "The Inventory Master" - Sistema inventario WASD + consumo
+
+🎯 PROSSIMO OBIETTIVO: M2.T4 Sistema Combattimento Base
+
+===============================================================================
+⚠️ REGOLE SPECIALI GODOT 4.4.1
+===============================================================================
+
+GESTIONE PERCORSI:
+• Mai usare path assoluti Windows in scene/script
+• Sempre res:// per riferimenti interni
+• Pulizia cache .godot/ in caso corruzione UID
+• Rimozione file .uid corrotti se necessario
+
+PERFORMANCE TILEMAP:
+• TileSet ottimizzato per mappe 250x250 (62.500 tiles)
+• Texture generate programmaticamente per coerenza
+• Camera limits configurati per contenimento
+
+SISTEMA AUTOLOAD:
+• Caricamento ordinato: Theme → Data → Player
+• Gestione dipendenze cross-manager
+• Inizializzazione pulita con logging dettagliato
+
+===============================================================================
+🎯 OBIETTIVI SESIONI FUTURE
+===============================================================================
+
+BREVE TERMINE (M2.T4):
+• Sistema combattimento base con turni
+• Calcolo danni armi/armature da inventario
+• Stati alterati base (veleno, infezione)
+
+MEDIO TERMINE (M3):
+• Eventi casuali con database modulare
+• Sistema dialoghi NPG semplificato
+• Crafting base con recipe JSON
+
+LUNGO TERMINE (M4):
+• Database contenuti completo
+• Sistema progressione personaggio
+• Audio integration e release
+
+===============================================================================
+
+🎮 The Safe Place v0.1.4 "The Inventory Master"
+📦 Sistema inventario WASD + consumo reale completato
+
+Documentazione aggiornata: 2025-01-25
+Prossima milestone: M2.T4 Sistema Combattimento Base
+
+===============================================================================
 

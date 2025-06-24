@@ -1,7 +1,8 @@
 extends Control
 
-# Script per la UI principale di gioco - The Safe Place v0.1.2
-# Gestisce l'interfaccia a tre colonne con integrazione completa PlayerManager
+# Script per la UI principale di gioco - The Safe Place v0.1.3+
+# Gestisce l'interfaccia a tre colonne con sistema di selezione inventario
+# Features: PlayerManager integration + Keyboard inventory navigation
 # Autore: LLM Assistant per progetto The Safe Place
 
 class_name GameUI
@@ -38,11 +39,21 @@ class_name GameUI
 @onready var weapon_label: Label = $MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox/WeaponLabel
 @onready var armor_label: Label = $MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox/ArmorLabel
 
+# Pannello Comandi (Right Panel)
+@onready var command1_label: Label = $MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox/Command1
+@onready var command2_label: Label = $MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox/Command2  
+@onready var command3_label: Label = $MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox/Command3
+
 # ═══ VARIABILI INTERNE ═══
 
 var world_scene_instance: Node = null
 var ui_update_timer: float = 0.0
 var last_player_position: Vector2 = Vector2.ZERO
+
+# ═══ SISTEMA SELEZIONE INVENTARIO ═══
+
+var selected_inventory_index: int = 0
+var is_inventory_active: bool = false
 
 # ═══ INIZIALIZZAZIONE PRINCIPALE ═══
 
@@ -90,6 +101,9 @@ func debug_node_references():
 	print("  luck_label: %s" % ("✅ OK" if luck_label else "❌ NULL"))
 	print("  weapon_label: %s" % ("✅ OK" if weapon_label else "❌ NULL"))
 	print("  armor_label: %s" % ("✅ OK" if armor_label else "❌ NULL"))
+	print("  command1_label: %s" % ("✅ OK" if command1_label else "❌ NULL"))
+	print("  command2_label: %s" % ("✅ OK" if command2_label else "❌ NULL"))
+	print("  command3_label: %s" % ("✅ OK" if command3_label else "❌ NULL"))
 
 func verify_player_manager():
 	"""Verifica che PlayerManager sia disponibile"""
@@ -124,6 +138,7 @@ func initialize_log_messages():
 	add_log_message("═══ BENVENUTO IN THE SAFE PLACE ═══")
 	add_log_message("Un mondo post-apocalittico ti aspetta...")
 	add_log_message("Usa [WASD] per muoverti sulla mappa")
+	add_log_message("Premi [I] per attivare navigazione inventario")
 	add_log_message("Controlla le tue risorse nel pannello sinistro")
 	add_log_message("La sopravvivenza dipende dalle tue scelte")
 
@@ -186,6 +201,7 @@ func update_all_ui():
 	update_inventory_panel()
 	update_equipment_panel()
 	update_info_panel()
+	update_commands_panel()
 	
 	print("GameUI: ✅ Aggiornamento completo UI terminato")
 
@@ -236,7 +252,7 @@ func update_stats_panel():
 		luck_label.text = "Fortuna: %d" % PlayerManager.get_stat("fortuna")
 
 func update_inventory_panel():
-	"""Aggiorna pannello inventario dinamicamente"""
+	"""Aggiorna pannello inventario dinamicamente con sistema di selezione"""
 	# Verifica che inventory_list esista
 	if not inventory_list:
 		print("GameUI: ❌ inventory_list è null")
@@ -251,16 +267,27 @@ func update_inventory_panel():
 		inventory_list.add_child(error_label)
 		return
 	
-	# Step 2: Aggiungi ogni oggetto dell'inventario - STILE ASCII PURO
+	# Step 2: Aggiungi ogni oggetto dell'inventario con selezione visuale - STILE ASCII PURO
 	if PlayerManager.inventory.size() == 0:
 		var empty_label = Label.new()
 		empty_label.text = "- Inventario vuoto -"
 		inventory_list.add_child(empty_label)
+		# Reset selezione se inventario vuoto
+		selected_inventory_index = 0
 	else:
-		for item in PlayerManager.inventory:
-			add_inventory_item_to_display(item)
+		# Assicurati che selected_inventory_index sia valido
+		if selected_inventory_index >= PlayerManager.inventory.size():
+			selected_inventory_index = PlayerManager.inventory.size() - 1
+		if selected_inventory_index < 0:
+			selected_inventory_index = 0
+			
+		# Crea oggetti con indicatore selezione
+		for i in range(PlayerManager.inventory.size()):
+			var item = PlayerManager.inventory[i]
+			var is_selected = (i == selected_inventory_index and is_inventory_active)
+			add_inventory_item_to_display_with_selection(item, is_selected)
 	
-	print("GameUI: ✅ Inventario aggiornato (%d oggetti)" % PlayerManager.inventory.size())
+	print("GameUI: ✅ Inventario aggiornato (%d oggetti) - Selezione: %d - Modalità attiva: %s" % [PlayerManager.inventory.size(), selected_inventory_index, is_inventory_active])
 
 func update_equipment_panel():
 	"""Aggiorna pannello equipaggiamento corrente"""
@@ -298,6 +325,22 @@ func update_info_panel():
 	if ora_label:
 		ora_label.text = "[TIME]: 08:00"
 
+func update_commands_panel():
+	"""Aggiorna pannello comandi con istruzioni dinamiche"""
+	if not command1_label or not command2_label or not command3_label:
+		return
+		
+	# Comandi base sempre disponibili
+	command1_label.text = "[WASD] Movimento"
+	
+	# Comandi dinamici basati su modalità inventario
+	if is_inventory_active:
+		command2_label.text = "[WS/↑↓] Naviga inv."
+		command3_label.text = "[ENTER] Usa oggetto"
+	else:
+		command2_label.text = "[I] Inventario"
+		command3_label.text = "[1-9] Usa oggetto"
+
 # ═══ UTILITY INVENTARIO ═══
 
 func clear_inventory_display():
@@ -307,35 +350,51 @@ func clear_inventory_display():
 
 func add_inventory_item_to_display(item: Dictionary):
 	"""Aggiunge un singolo oggetto alla visualizzazione inventario - STILE ASCII"""
-	var item_label = Label.new()
+	add_inventory_item_to_display_with_selection(item, false)
+
+func add_inventory_item_to_display_with_selection(item: Dictionary, is_selected: bool):
+	"""Aggiunge un singolo oggetto alla visualizzazione inventario con indicatore selezione"""
+	var item_label = RichTextLabel.new()
+	item_label.bbcode_enabled = true
+	item_label.fit_content = true
+	item_label.scroll_active = false
 	
 	# Ottieni dati oggetto dal DataManager
 	var item_data = DataManager.get_item_data(item.item_id)
 	var item_name = item_data.get("name", item.item_id) if item_data else item.item_id
 	
-	# Formatta testo con marcatore ASCII e quantità
-	var icon = get_item_icon(item_data)
+	# Calcola numero posizione oggetto nella lista (1-based per display)
+	var item_index = -1
+	for i in range(PlayerManager.inventory.size()):
+		if PlayerManager.inventory[i] == item:
+			item_index = i + 1  # Display 1-based (1, 2, 3...)
+			break
+	
+	# Formatta testo con numerazione posizionale e quantità
+	var number_marker = "[%d]" % item_index if item_index > 0 else "[?]"
+	var base_text = ""
 	if item.quantity > 1:
-		item_label.text = "%s %s x%d" % [icon, item_name, item.quantity]
+		base_text = "%s %s x%d" % [number_marker, item_name, item.quantity]
 	else:
-		item_label.text = "%s %s" % [icon, item_name]
+		base_text = "%s %s" % [number_marker, item_name]
+	
+	# Applica indicatore selezione con evidenziazione forte
+	if is_selected:
+		# Oggetto selezionato: sfondo verde, testo nero, bordato
+		item_label.text = "[bgcolor=#00FF40][color=#000000]>>> %s <<<[/color][/bgcolor]" % base_text
+	else:
+		# Oggetto non selezionato: testo normale verde
+		item_label.text = "[color=#00FF40]  %s[/color]" % base_text
 	
 	inventory_list.add_child(item_label)
 
-func get_item_icon(item_data: Dictionary) -> String:
-	"""Restituisce marcatore ASCII basato sul tipo oggetto"""
-	if not item_data:
-		return "[?]"
-	
-	var item_type = item_data.get("type", "unknown")
-	match item_type:
-		"weapon": return "[W]"
-		"armor": return "[A]"
-		"consumable": return "[C]"
-		"ammo": return "[M]"
-		"quest": return "[Q]"
-		"crafting": return "[T]"
-		_: return "[?]"
+# ═══ NOTA EVOLUZIONE v0.1.3+ ═══
+# Sistema inventario migrato da categorie [W][A][C] a numerazione [1][2][3]
+# - Marcatori posizionali: [1] primo oggetto, [2] secondo oggetto, etc.
+# - Hotkey diretti: Tasti 1-9 per uso immediato oggetti
+# - Compatibilità: Navigazione frecce + ENTER mantenuta
+# - Principio 8: Architettura keyboard-only implementata
+# ═══ ISSUE FIX: UID corrotti rimossi per cache clean ═══
 
 # ═══ SISTEMA DIARIO ═══
 
@@ -382,18 +441,157 @@ func force_ui_refresh():
 	print("GameUI: 🔄 FORCE REFRESH richiesto")
 	update_all_ui()
 
+# ═══ SISTEMA NAVIGAZIONE INVENTARIO ═══
+
+func toggle_inventory_mode():
+	"""Attiva/disattiva modalità navigazione inventario"""
+	is_inventory_active = !is_inventory_active
+	
+	if is_inventory_active:
+		# Attiva modalità inventario
+		show_system_message("Modalità inventario ATTIVATA - Usa frecce SU/GIÙ per navigare")
+		add_log_message("[DEBUG] Navigazione inventario: ATTIVA")
+		
+		# Reset selezione a primo oggetto se inventario non vuoto
+		if PlayerManager and PlayerManager.inventory.size() > 0:
+			selected_inventory_index = 0
+		
+		# Disabilita movimento world (TODO: implementare quando necessario)
+		disable_world_movement()
+	else:
+		# Disattiva modalità inventario
+		show_system_message("Modalità inventario DISATTIVATA")
+		add_log_message("[DEBUG] Navigazione inventario: DISATTIVA")
+		
+		# Riabilita movimento world
+		enable_world_movement()
+	
+	# Aggiorna visual dell'inventario e comandi
+	update_inventory_panel()
+	update_commands_panel()
+
+func use_selected_inventory_item():
+	"""Usa l'oggetto attualmente selezionato nell'inventario"""
+	if not PlayerManager or PlayerManager.inventory.size() == 0:
+		add_log_message("[ERROR] Nessun oggetto da usare")
+		return
+	
+	if selected_inventory_index < 0 or selected_inventory_index >= PlayerManager.inventory.size():
+		add_log_message("[ERROR] Selezione inventario non valida")
+		return
+	
+	var selected_item = PlayerManager.inventory[selected_inventory_index]
+	var item_data = DataManager.get_item_data(selected_item.item_id)
+	var item_name = item_data.get("name", selected_item.item_id) if item_data else selected_item.item_id
+	
+	# Usa oggetto tramite PlayerManager (consumo reale)
+	var success = PlayerManager.use_item(selected_item.item_id, 1)
+	
+	if success:
+		show_player_action("Hai usato: %s" % item_name)
+		add_log_message("[AZIONE] Oggetto consumato: %s" % item_name)
+		
+		# Aggiusta la selezione se l'oggetto era l'ultimo nella lista
+		if selected_inventory_index >= PlayerManager.inventory.size() and PlayerManager.inventory.size() > 0:
+			selected_inventory_index = PlayerManager.inventory.size() - 1
+	else:
+		add_log_message("[ERROR] Impossibile usare: %s" % item_name)
+
+func disable_world_movement():
+	"""Disabilita movimento nel world quando inventario è attivo"""
+	# TODO: Implementare quando avremo integrazione movement controller
+	# Per ora solo log
+	print("GameUI: 🔒 Movimento world disabilitato (inventario attivo)")
+
+func enable_world_movement():
+	"""Riabilita movimento nel world quando inventario è disattivo"""
+	# TODO: Implementare quando avremo integrazione movement controller  
+	# Per ora solo log
+	print("GameUI: 🔓 Movimento world riabilitato (inventario disattivo)")
+
 # ═══ INPUT HANDLING E DEBUG ═══
 
 func _input(event):
-	"""Gestisce input per debug e test dell'UI"""
-	# Debug: ENTER per test messaggio
-	if event.is_action_pressed("ui_accept"):
-		add_log_message("[DEBUG] Test messaggio - UI funzionante!")
+	"""Gestisce input per navigazione inventario, debug e test dell'UI"""
 	
-	# Debug: ESC per force refresh
-	if event.is_action_pressed("ui_cancel"):
-		force_ui_refresh()
-		show_system_message("UI aggiornata manualmente")
+	# ═══ SISTEMA SELEZIONE INVENTARIO ═══
+	
+	# Tasto I: Toggle modalità inventario
+	if event.is_action_pressed("ui_inventory"):
+		toggle_inventory_mode()
+		return
+	
+	# Navigazione inventario (solo se attivo)
+	if is_inventory_active and PlayerManager and PlayerManager.inventory.size() > 0:
+		
+		# Freccia GIÙ / S: Selezione successiva
+		if event.is_action_pressed("ui_down") or event.is_action_pressed("move_down"):
+			selected_inventory_index += 1
+			if selected_inventory_index >= PlayerManager.inventory.size():
+				selected_inventory_index = 0  # Wrap around al primo
+			update_inventory_panel()
+			add_log_message("[DEBUG] Selezione inventario: %d" % selected_inventory_index)
+			return
+		
+		# Freccia SU / W: Selezione precedente
+		if event.is_action_pressed("ui_up") or event.is_action_pressed("move_up"):
+			selected_inventory_index -= 1
+			if selected_inventory_index < 0:
+				selected_inventory_index = PlayerManager.inventory.size() - 1  # Wrap around all'ultimo
+			update_inventory_panel()
+			add_log_message("[DEBUG] Selezione inventario: %d" % selected_inventory_index)
+			return
+		
+		# ENTER: Usa oggetto selezionato (placeholder)
+		if event.is_action_pressed("ui_accept"):
+			use_selected_inventory_item()
+			return
+	
+	# ═══ HOTKEY NUMERICI DIRETTI (sempre attivi) ═══
+	
+	# Uso diretto oggetti con tasti 1-9 (solo per InputEventKey)
+	if event is InputEventKey and event.pressed and PlayerManager and PlayerManager.inventory.size() > 0:
+		var hotkey_index = -1
+		
+		match event.keycode:
+			KEY_1: hotkey_index = 0
+			KEY_2: hotkey_index = 1
+			KEY_3: hotkey_index = 2
+			KEY_4: hotkey_index = 3
+			KEY_5: hotkey_index = 4
+			KEY_6: hotkey_index = 5
+			KEY_7: hotkey_index = 6
+			KEY_8: hotkey_index = 7
+			KEY_9: hotkey_index = 8
+		
+		# Se hotkey valido e oggetto esistente, usa direttamente
+		if hotkey_index >= 0 and hotkey_index < PlayerManager.inventory.size():
+			var item = PlayerManager.inventory[hotkey_index]
+			var item_data = DataManager.get_item_data(item.item_id)
+			var item_name = item_data.get("name", item.item_id) if item_data else item.item_id
+			
+			# Usa oggetto tramite PlayerManager (consumo reale)
+			var success = PlayerManager.use_item(item.item_id, 1)
+			
+			if success:
+				show_player_action("Hotkey [%d]: Usato %s" % [hotkey_index + 1, item_name])
+				add_log_message("[AZIONE] Hotkey [%d] - Oggetto consumato: %s" % [hotkey_index + 1, item_name])
+			else:
+				add_log_message("[ERROR] Hotkey [%d] - Impossibile usare: %s" % [hotkey_index + 1, item_name])
+			
+			return
+	
+	# ═══ INPUT DEBUG (solo se inventario non attivo) ═══
+	
+	if not is_inventory_active:
+		# Debug: ENTER per test messaggio
+		if event.is_action_pressed("ui_accept"):
+			add_log_message("[DEBUG] Test messaggio - UI funzionante!")
+		
+		# Debug: ESC per force refresh
+		if event.is_action_pressed("ui_cancel"):
+			force_ui_refresh()
+			show_system_message("UI aggiornata manualmente")
 
 # ═══ PROCESS E UTILITY ═══
 

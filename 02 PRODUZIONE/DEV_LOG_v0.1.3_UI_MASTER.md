@@ -198,6 +198,71 @@ func connect_player_manager_signals():
 - **[I]:** Inventario (preparato per future implementazioni)
 - **[ESC]:** Menu/Escape (preparato per future implementazioni)
 - **ENTER:** Test messaggio diario (debug)
+
+---
+
+## 🎯 **EVOLUZIONE DESIGN ARCHITETTURALE**
+
+### **📋 PRINCIPIO 8: KEYBOARD-ONLY ARCHITECTURE**
+
+**Data decisione:** 2025-01-21 (Post-implementazione v0.1.3)
+
+#### **🔧 Motivazione Evoluzione**
+Dopo il completamento di GameUI v0.1.3, è emersa la necessità di definire rigorosamente l'approccio **keyboard-only** per mantenere l'autenticità retrò anni '80 e ottimizzare l'esperienza utente.
+
+#### **🎮 Sistema Inventario: Da Categorie a Numerazione**
+
+**PRIMA (Categorico):**
+```gdscript
+# Marcatori per categoria oggetto:
+"[W]" = Armi      (Weapons)
+"[A]" = Armature  (Armor)
+"[C]" = Consumabili (Consumables)
+"[M]" = Munizioni  (amMo)
+"[Q]" = Quest     (Quest items)
+"[T]" = Crafting  (crafTing)
+```
+
+**DOPO (Numerico):**
+```gdscript
+# Numerazione posizionale:
+"[1]" = Primo oggetto inventario
+"[2]" = Secondo oggetto inventario  
+"[3]" = Terzo oggetto inventario
+"[4-9]" = Oggetti successivi
+```
+
+#### **✅ Vantaggi Numerazione**
+1. **Hotkey Diretti:** Tasti 1-9 per uso immediato oggetti
+2. **Logica Intuitiva:** Posizione lista = numero hotkey
+3. **Zero Ambiguità:** Non serve ricordare categorie oggetti
+4. **Scalabilità:** Funziona con qualsiasi tipo oggetto
+5. **Compatibility:** Perfetta con sistema selezione esistente
+
+#### **🛠️ Implementazione Futura (M2.T3)**
+```gdscript
+# Sistema target da implementare:
+func _input(event):
+    if event.pressed:
+        match event.keycode:
+            KEY_1: use_inventory_item(0)  # Primo oggetto
+            KEY_2: use_inventory_item(1)  # Secondo oggetto
+            KEY_3: use_inventory_item(2)  # Terzo oggetto
+            # ... fino a KEY_9
+```
+
+### **📖 Documentazione Aggiornata**
+- ✅ **PRINCIPIO 8** aggiunto a `00_REGOLE DI SVILUPPO FONDAMENTALI.TXT`
+- ✅ **Roadmap principale** aggiornata con approach keyboard-only
+- ✅ **M2.T3 specifiche** modificate per numerazione oggetti
+- ✅ **Dev log** evoluzione documentata
+
+### **🎯 Impact su Milestone Future**
+- **M2.T3:** Implementazione numerazione [1-9] invece di [W][A][C]
+- **M3+:** Tutti sistemi UI futuri seguiranno PRINCIPIO 8
+- **Polish:** Hotkey consistency in tutto il progetto
+
+**Risultato:** Architettura più coerente, pratica e autentica per esperienza retrò anni '80
 - **ESC:** Force refresh UI (debug)
 
 ---

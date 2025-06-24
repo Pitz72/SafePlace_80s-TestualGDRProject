@@ -218,6 +218,87 @@ func get_item_count(item_id: String) -> int:
 		return inventory[slot_index].quantity
 	return 0
 
+## Usa un oggetto dall'inventario (consumo con effetti)
+## @param item_id: ID oggetto da usare
+## @param quantity: Quantità da usare (default 1)
+## @return: true se usato con successo, false altrimenti
+func use_item(item_id: String, quantity: int = 1) -> bool:
+	# Verifica che abbiamo l'oggetto
+	if not has_item(item_id) or get_item_count(item_id) < quantity:
+		print("⚠️ PlayerManager: Oggetto non disponibile o quantità insufficiente: %s" % item_id)
+		return false
+	
+	# Ottieni dati oggetto per applicare effetti
+	var item_data = DataManager.get_item_data(item_id)
+	if not item_data:
+		print("❌ PlayerManager: Dati oggetto non trovati: %s" % item_id)
+		return false
+	
+	# Applica effetti basati sul tipo oggetto
+	var item_type = item_data.get("type", "unknown")
+	var item_name = item_data.get("name", item_id)
+	
+	match item_type:
+		"consumable":
+			_apply_consumable_effects(item_data, quantity)
+		"weapon":
+			print("⚠️ Armi non possono essere 'usate' direttamente. Usa equip_weapon()")
+			return false
+		"armor":
+			print("⚠️ Armature non possono essere 'usate' direttamente. Usa equip_armor()")
+			return false
+		_:
+			print("⚠️ Tipo oggetto non gestito per uso: %s" % item_type)
+			# Per oggetti senza effetti, li rimuoviamo comunque
+	
+	# Rimuovi oggetto dall'inventario (consumo)
+	if not remove_item(item_id, quantity):
+		print("❌ PlayerManager: Errore rimozione oggetto dopo uso: %s" % item_id)
+		return false
+	
+	print("✅ Usato %dx %s" % [quantity, item_name])
+	return true
+
+## Applica gli effetti di un oggetto consumabile
+## @param item_data: Dati completi dell'oggetto
+## @param quantity: Quantità usata (per moltiplicare effetti)
+func _apply_consumable_effects(item_data: Dictionary, quantity: int) -> void:
+	var effects = item_data.get("effects", [])
+	var effects_applied = []
+	
+	# Itera through array of effects
+	for effect in effects:
+		var effect_type = effect.get("type", "")
+		var amount = effect.get("amount", 0)
+		
+		match effect_type:
+			"heal":
+				modify_hp(amount * quantity)
+				effects_applied.append("Cura: +%d HP" % (amount * quantity))
+			"nourish":
+				modify_food(amount * quantity)
+				effects_applied.append("Nutrimento: +%d Food" % (amount * quantity))
+			"hydrate":
+				modify_water(amount * quantity)
+				effects_applied.append("Idratazione: +%d Water" % (amount * quantity))
+			"restore_stamina":
+				# Placeholder per stamina quando implementata
+				effects_applied.append("Stamina: +%d (placeholder)" % (amount * quantity))
+			"add_radiation":
+				# Placeholder per radiazioni quando implementate
+				effects_applied.append("Radiazioni: +%d (placeholder)" % (amount * quantity))
+			"infection_chance", "poison_chance":
+				# Placeholder per effetti negativi probabilistici
+				var chance = effect.get("chance", 0.0)
+				effects_applied.append("Rischio %s: %.1f%%" % [effect_type.replace("_chance", ""), chance * 100])
+			_:
+				print("⚠️ Effetto non gestito: %s" % effect_type)
+	
+	if effects_applied.size() > 0:
+		print("⚡ Effetti applicati da %s (x%d): %s" % [item_data.get("name", "oggetto"), quantity, ", ".join(effects_applied)])
+	else:
+		print("⚡ Nessun effetto applicabile da %s" % item_data.get("name", "oggetto"))
+
 ## Trova l'indice dello slot inventario contenente l'oggetto specificato
 ## @param item_id: ID oggetto da cercare
 ## @return: Indice slot (0-based) o -1 se non trovato
