@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://b2y4xvjsf0ycs"]
+[gd_scene load_steps=7 format=3 uid="uid://b2y4xvjsf0ycs"]
 
 [ext_resource type="Script" uid="uid://dosj7h4vqtmem" path="res://scripts/World.gd" id="1_oj0xl"]
 [ext_resource type="Texture2D" uid="uid://dwt1omp540cax" path="res://textures/player/player_sprite.png" id="2_32lhk"]
+[ext_resource type="Script" uid="uid://nxxfwk7a0p4x" path="res://scenes/ui/GameUI.gd" id="3_7g83o"]
 
 [sub_resource type="Animation" id="Animation_7g83o"]
 length = 0.001
@@ -65,3 +66,11 @@ texture = ExtResource("2_32lhk")
 libraries = {
 &"": SubResource("AnimationLibrary_d1c63")
 }
+
+[node name="GameUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("3_7g83o")
+metadata/_custom_type_script = "uid://nxxfwk7a0p4x"

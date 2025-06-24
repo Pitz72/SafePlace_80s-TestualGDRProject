@@ -1,6 +1,6 @@
 📋 ROADMAP - The Safe Place (GDR Testuale Anni 80)
 
-🎯 VERSIONE CORRENTE: v0.1.2 "The Player Manager"
+🎯 VERSIONE CORRENTE: v0.1.3 "The UI Master"
 📅 ULTIMO AGGIORNAMENTO: 2025-01-21
 🎮 TARGET: Godot 4.4.1 Engine
 
@@ -9,12 +9,12 @@
 📊 STATO GENERALE: 
 🏆 MILESTONE 0: ✅ COMPLETATA (18/18 test superati)
 🏆 MILESTONE 1: ✅ COMPLETATA (8/8 task completati)
-🔄 MILESTONE 2: 🚀 IN CORSO - Gameplay Core (1/4 task completati)
+🔄 MILESTONE 2: 🚀 IN CORSO - Gameplay Core (2/4 task completati)
 ⏳ MILESTONE 3: ⏸️ IN ATTESA - Sistema Combattimento
 ⏳ MILESTONE 4: ⏸️ IN ATTESA - Narrativa e Lore
 ⏳ MILESTONE 5: ⏸️ IN ATTESA - Polish e Release
 
-PROGRESSO COMPLESSIVO: 45% (2/5 milestone + M2 20% progresso)
+PROGRESSO COMPLESSIVO: 50% (2/5 milestone + M2 50% progresso)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -114,10 +114,22 @@ RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
    ✅ Oggetti iniziali: coltello arrugginito, 3 razioni, 2 acqua purificata
    ✅ Debug API completa (print_character_status)
 
-⏳ M2.T2: UI Sistema Giocatore
-   - Pannello stato personaggio (HP/Food/Water)
-   - Interfaccia statistiche
-   - Barre di progresso animate
+✅ M2.T2: UI Sistema Giocatore (v0.1.3)
+   STATUS: ✅ COMPLETATA AL 100%
+   
+   COMPLETATO:
+   ✅ GameUI.tscn con layout a tre colonne (1:2:1)
+   ✅ 13 pannelli specializzati: Sopravvivenza, Inventario, Mappa, Diario, Info, Stats, Equipment, Commands
+   ✅ GameUI.gd con 16 referenze @onready e integrazione PlayerManager completa
+   ✅ Sistema reattivo con connessione ai 3 segnali PlayerManager
+   ✅ SubViewport per integrazione World.tscn nel pannello centrale
+   ✅ Sistema diario BBCode con timestamp e scroll automatico
+   ✅ Inventario dinamico con marcatori ASCII per categorie
+   ✅ Protezioni null complete per robustezza
+   ✅ Sistema debug con verifica referenze nodi
+   ✅ Stile ASCII puro: zero emoji, marcatori [W][A][C][M][Q][T]
+   ✅ Format consistente: [POS], [LOC], [TIME], [ERROR], [DEBUG]
+   ✅ API pubbliche per messaggi sistema e refresh manuale
 
 ⏳ M2.T3: UI Inventario
    - Interfaccia inventario grafica

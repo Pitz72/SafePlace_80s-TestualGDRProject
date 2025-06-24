@@ -2,12 +2,20 @@
 
 **Progetto:** The Safe Place - GDR Testuale Anni 80  
 **Engine:** Godot 4.4.1  
-**Versione corrente:** v0.1.2 "The Player Manager"  
+**Versione corrente:** v0.1.3 "The UI Master"  
 **Ultimo aggiornamento:** 2025-01-21
 
 ---
 
 ## 🎯 **VERSIONI RILASCIATE**
+
+### **📦 v0.1.3 "The UI Master" (2025-01-21)** ✅ STABILE
+- **GameUI System:** Interfaccia principale a tre colonne perfettamente funzionale
+- **UI Architecture:** 16 referenze @onready, 13 pannelli specializzati, integrazione completa PlayerManager
+- **ASCII Style:** Conversione completa da emoji a marcatori ASCII puri [W][A][C][M][Q][T]
+- **Reactive System:** Aggiornamenti automatici tramite segnali PlayerManager (3/3 connessi)
+- **Integration Excellence:** SubViewport per World.tscn, diario BBCode, inventario dinamico
+- **Robustness:** Protezioni null complete, sistema debug avanzato, cleanup automatico
 
 ### **📦 v0.1.2 "The Player Manager" (2025-01-21)** ✅ STABILE
 - **PlayerManager Singleton:** Sistema personaggio completo con API inventario
@@ -56,13 +64,14 @@
 ## 🚀 **ROADMAP IMMEDIATA**
 
 ### **Prossimi Task (Milestone 2 - Gameplay Core)**
-1. **M2.T2:** UI Sistema Giocatore (pannello HP/Food/Water, statistiche)
+1. ✅ **M2.T2:** UI Sistema Giocatore COMPLETATO (v0.1.3)
 2. **M2.T3:** UI Inventario (interfaccia grafica, drag & drop)
 3. **M2.T4:** Sistema Interazioni Mondo (raccolta oggetti, eventi)
 4. **Milestone 3:** Combat engine e sistema nemici
 
 ### **Preparazione Tecnica COMPLETATA**
-- ✅ **PlayerManager:** Sistema personaggio completo e testato (41 test totali)
+- ✅ **PlayerManager:** Sistema personaggio completo e testato (44 test totali)
+- ✅ **GameUI System:** Interfaccia principale completa e reattiva
 - ✅ **Database integration:** PlayerManager-DataManager perfettamente integrati
 - ✅ **Player system:** Sprite2D robusto e scalabile implementato
 - ✅ **Testing foundation:** Suite completa per anti-regressione

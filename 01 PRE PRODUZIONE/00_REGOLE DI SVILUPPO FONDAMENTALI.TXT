@@ -1,5 +1,9 @@
 ### **PROTOCOLLO DI SVILUPPO UMANO-LLM - The Safe Place**
 
+**Versione:** v0.1.3 "The UI Master"  
+**Ultimo aggiornamento:** 2025-01-21  
+**Milestone 2:** 50% completata (2/4 task)
+
 Questo documento definisce le regole fondamentali della nostra collaborazione per lo sviluppo di "The Safe Place". Il suo scopo è garantire un processo strutturato, prevenire la regressione e massimizzare l'efficacia del lavoro congiunto tra l'umano (Architetto) e l'LLM (Esecutore).
 
 #### **PRINCIPIO 1: La Fonte Unica della Verità (Single Source of Truth)**
