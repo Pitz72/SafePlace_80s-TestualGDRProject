@@ -6,7 +6,7 @@ class_name World
 # ============================================================================
 # Sistema completo di mondo interattivo con:
 # - TileMap ottimizzato per rendering
-# - BBCode per effetti speciali (lampeggio S/E/Player)
+# - Sprite2D animato per effetti player (lampeggio)
 # - Penalità movimento per attraversamento fiumi
 # - Camera con limiti calcolati automaticamente
 # - Gestione collisioni avanzata
@@ -15,7 +15,7 @@ class_name World
 # REFERENZE NODI SCENA
 @onready var ascii_tilemap: TileMap = $AsciiTileMap
 @onready var special_points: Node2D = $SpecialPoints
-@onready var player_character: RichTextLabel = $PlayerCharacter
+@onready var player_character: Sprite2D = $PlayerCharacter
 @onready var camera: Camera2D = $Camera2D
 
 # CONFIGURAZIONE MAPPA
@@ -61,7 +61,10 @@ func _ready():
 	_setup_camera()
 	
 	# 4. Disegna player iniziale
-	_draw_player()
+	_update_player_position()
+	
+	# 5. Avvia animazione di lampeggio
+	player_character.get_node("AnimationPlayer").play("pulse")
 	
 	print("✅ World v2.0 pronto - Sistema completo attivo!")
 
@@ -172,39 +175,24 @@ func _convert_map_to_world():
 # SISTEMA PLAYER E MOVIMENTO
 # ============================================================================
 
-func _draw_player():
-	"""Aggiorna posizione e aspetto player con BBCode lampeggio BRILLANTE"""
+func _update_player_position():
+	"""Aggiorna posizione player sprite"""
 	if player_character == null:
 		print("❌ ERRORE: PlayerCharacter non trovato!")
 		return
 	
-	# Posiziona player in coordinate mondo
-	var world_pos = Vector2(player_pos.x * TILE_SIZE, player_pos.y * TILE_SIZE)
+	# Posiziona player in coordinate mondo (centrato nella tile)
+	var world_pos = Vector2(player_pos.x * TILE_SIZE + TILE_SIZE/2, player_pos.y * TILE_SIZE + TILE_SIZE/2)
 	player_character.position = world_pos
 	
-	# DEBUG: Verifica configurazione RichTextLabel
-	print("🔧 PlayerCharacter type: %s" % player_character.get_class())
-	print("🔧 BBCode enabled: %s" % player_character.bbcode_enabled)
+	# Ridimensiona sprite per adattarsi alle tile (16x16 pixel)
+	if player_character.texture != null:
+		var texture_size = player_character.texture.get_size()
+		var scale_factor = Vector2(TILE_SIZE / texture_size.x, TILE_SIZE / texture_size.y)
+		player_character.scale = scale_factor
+		print("🔧 Sprite ridimensionato: %s → scale %s" % [str(texture_size), str(scale_factor)])
 	
-	# BBCode per lampeggio player - VERDE BRILLANTE ACCESO
-	var bbcode_text = "[center][pulse freq=2.0 color=#00FF43 ease=-2.0]@[/pulse][/center]"
-	player_character.text = bbcode_text
-	
-	# FORZA configurazione BBCode
-	player_character.bbcode_enabled = true
-	player_character.size = Vector2(TILE_SIZE, TILE_SIZE)
-	player_character.fit_content = true
-	player_character.scroll_active = false
-	
-	# DEBUG: Verifica testo applicato
-	print("🔧 Testo applicato: %s" % player_character.text)
-	print("🔧 Posizione: %s" % str(world_pos))
-	
-	# Se BBCode non funziona, usa fallback semplice
-	if not player_character.bbcode_enabled:
-		print("⚠️  BBCode disabilitato, usando fallback colore")
-		player_character.add_theme_color_override("default_color", Color("#00FF43"))
-		player_character.text = "@"
+	print("🎯 Player posizionato: %s" % str(world_pos))
 	
 	# Aggiorna camera per seguire player
 	_update_camera_to_player()
@@ -255,7 +243,7 @@ func _input(event):
 		
 		# Applica movimento
 		player_pos = new_position
-		_draw_player()
+		_update_player_position()
 		
 		# Log movimento (solo per posizioni significative)
 		if new_position.x % 5 == 0 or new_position.y % 5 == 0:

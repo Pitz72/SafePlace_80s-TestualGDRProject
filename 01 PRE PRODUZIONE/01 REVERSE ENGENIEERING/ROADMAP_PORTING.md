@@ -36,7 +36,7 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
     -   [X] M0.T3b: DataManager Singleton (v0.0.3+)
     -   [X] M0.T3c: Verifica Conteggio Oggetti (v0.0.4)
 
--   [X] **MILESTONE 1: Mondo di Gioco (v0.0.5 → v0.1.1)**
+-   [X] **MILESTONE 1: Mondo di Gioco (v0.0.5 → v0.1.2)**
     -   [X] M1.T1: Visualizzazione Mappa Completa (v0.1.0)
     -   [X] ✅ Migrazione TileMap completata
     -   [X] ✅ Mondo 250x250 (62.500 tiles) renderizzato
@@ -49,12 +49,16 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
     -   [X] ✅ Palette colori ufficiale (9 terreni)
     -   [X] ✅ Penalità movimento fiume
     -   [X] ✅ Nodi dinamici S/E lampeggianti
+    -   [X] M1.T3: Player System v2.0 (v0.1.2)
+    -   [X] ✅ Migrazione Sprite2D + AnimationPlayer
+    -   [X] ✅ Player visualization issue RISOLTO
+    -   [X] ✅ Auto-scaling e posizionamento centrato
 
--   [ ] **MILESTONE 2: Gameplay Core**
-    -   [ ] M2.T1: Sistema Inventario UI
-    -   [ ] M2.T2: Interazioni Mondo (raccolta oggetti)
-    -   [ ] M2.T3: Statistiche Player Base
-    -   [ ] M2.T4: Sistema Progressione Livelli
+-   [X] **MILESTONE 2: Gameplay Core (25% completato)**
+    -   [X] M2.T1: PlayerManager Singleton (v0.1.2)
+    -   [ ] M2.T2: UI Sistema Giocatore
+    -   [ ] M2.T3: UI Inventario
+    -   [ ] M2.T4: Sistema Interazioni Mondo
 
 -   [ ] **MILESTONE 3: Sistema Combattimento**
     -   [ ] M3.T1: Combat Engine Base
@@ -76,21 +80,21 @@ Questo documento traccia le attività necessarie per analizzare il progetto orig
 
 ## **RISULTATI RAGGIUNTI**
 
+### **v0.1.2 "The Player Manager"** ✅ COMPLETATA
+- 🎮 **PlayerManager Singleton:** Sistema completo con API inventario, risorse vitali, statistiche
+- 🎨 **Player System v2.0:** Migrazione Sprite2D + AnimationPlayer, player visualization RISOLTO
+- 🧪 **41/41 test anti-regressione superati** (100%, +7 nuovi test)
+- 📊 **45% progresso totale** (2/5 milestone + M2 25%)
+- 🏗️ **Milestone 2 kickoff:** Foundation PlayerManager per UI e gameplay
+- ⚡ **Performance ottimizzate:** Sprite2D vs RichTextLabel overhead
+
 ### **v0.1.1 "This world is an ecosystem"** ✅ COMPLETATA
 - 🌍 **World System v2.0:** Sistema mondo avanzato completo
 - 🎮 **Meccaniche gameplay:** Penalità fiume (1 turno), collision montagne, camera intelligente
 - 🎨 **Palette ufficiale:** 9 terreni incluso nuovo Ristoro (R) giallo
 - 📈 **Performance:** 60+ FPS stabili su 250x250 con effetti BBCode
 - 🧪 **34/34 test anti-regressione superati** (100%)
-- 📊 **40% progresso totale** (2/5 milestone completate)
 - ✨ **Sistema BBCode:** S/E come nodi dinamici, effetti speciali
-- 🏗️ **Architettura v2.0:** Modulare e scalabile per Milestone 2
-
-⚠️ **PROBLEMA IDENTIFICATO - PLAYER VISUALIZATION:**
-- **Issue:** Player @ non cambia colore (#00FF43) né lampeggia
-- **Root cause:** BBCode RichTextLabel incompatibilità Godot 4.4.1
-- **Impatto:** Non bloccante gameplay, solo visual feedback limitato
-- **Soluzioni candidate:** 1) Debug BBCode, 2) Sprite pixelart 16x16, 3) Tween alternativo
 
 ### **v0.1.0 "My small, wonderful, and devastated world"** ✅ COMPLETATA
 - 🌍 **Primo mondo giocabile completato**
@@ -114,4 +118,4 @@ Il porting da JavaScript/HTML originale a Godot 4.4.1 procede con successo eccez
 
 *Questo documento verrà aggiornato al completamento di ogni task.*
 
-*Ultimo aggiornamento: 2025-01-21 - v0.1.1 "This world is an ecosystem" consolidata* 
+*Ultimo aggiornamento: 2025-01-21 - v0.1.2 "The Player Manager" consolidata* 

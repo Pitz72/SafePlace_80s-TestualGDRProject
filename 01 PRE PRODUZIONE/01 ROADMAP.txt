@@ -1,6 +1,6 @@
 📋 ROADMAP - The Safe Place (GDR Testuale Anni 80)
 
-🎯 VERSIONE CORRENTE: v0.1.1 "This world is an ecosystem"
+🎯 VERSIONE CORRENTE: v0.1.2 "The Player Manager"
 📅 ULTIMO AGGIORNAMENTO: 2025-01-21
 🎮 TARGET: Godot 4.4.1 Engine
 
@@ -8,13 +8,13 @@
 
 📊 STATO GENERALE: 
 🏆 MILESTONE 0: ✅ COMPLETATA (18/18 test superati)
-🏆 MILESTONE 1: ✅ COMPLETATA (4/4 task completati)
-⏳ MILESTONE 2: ⏸️ IN ATTESA - Gameplay Core
+🏆 MILESTONE 1: ✅ COMPLETATA (8/8 task completati)
+🔄 MILESTONE 2: 🚀 IN CORSO - Gameplay Core (1/4 task completati)
 ⏳ MILESTONE 3: ⏸️ IN ATTESA - Sistema Combattimento
 ⏳ MILESTONE 4: ⏸️ IN ATTESA - Narrativa e Lore
 ⏳ MILESTONE 5: ⏸️ IN ATTESA - Polish e Release
 
-PROGRESSO COMPLESSIVO: 40% (2/5 milestone completate)
+PROGRESSO COMPLESSIVO: 45% (2/5 milestone + M2 20% progresso)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -80,32 +80,54 @@ RISULTATO M0: Base tecnica solida, 18/18 test anti-regressione superati
    ✅ Scena World.tscn con nodo SpecialPoints
    ✅ PlayerCharacter come RichTextLabel per BBCode
 
-RISULTATO M1: Mondo di gioco con gameplay avanzato e effetti speciali
+✅ M1.T3: Refactoring Player System (v0.1.2)
+   STATUS: ✅ COMPLETATA AL 100%
+   
+   COMPLETATO:
+   ✅ PlayerCharacter migrato da RichTextLabel a Sprite2D
+   ✅ AnimationPlayer implementato con animazione "pulse"
+   ✅ Auto-scaling sprite per adattamento 16x16 pixel
+   ✅ Posizionamento centrato nelle tile perfetto
+   ✅ World.gd aggiornato per gestione Sprite2D
+   ✅ Performance migliorate eliminando BBCode overhead
+
+RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-🎮 MILESTONE 2: GAMEPLAY CORE ⏳ PROSSIMA
+🎮 MILESTONE 2: GAMEPLAY CORE 🚀 IN CORSO
 ══════════════════════════════════════════════════════════════════════════════
 
-⏳ M2.T1: Sistema Inventario
-   - UI inventario integrata
-   - Drag & drop oggetti
-   - Integrazione con DataManager (52 oggetti)
+✅ M2.T1: PlayerManager Singleton (v0.1.2)
+   STATUS: ✅ COMPLETATA AL 100%
+   
+   COMPLETATO:
+   ✅ PlayerManager.gd come Singleton (Autoload)
+   ✅ Sistema risorse vitali (HP/Food/Water + max)
+   ✅ Sistema statistiche (5 stats: forza, agilità, intelligenza, carisma, fortuna)
+   ✅ API inventario completa (add_item, remove_item, has_item, get_item_count)
+   ✅ Gestione stackable/non-stackable automatica
+   ✅ Integrazione DataManager per validazione oggetti
+   ✅ Sistema segnali (inventory_changed, stats_changed, resources_changed)
+   ✅ API salvataggio/caricamento (get_save_data, load_save_data)
+   ✅ Test suite completa con 7 test (100% pass rate)
+   ✅ Oggetti iniziali: coltello arrugginito, 3 razioni, 2 acqua purificata
+   ✅ Debug API completa (print_character_status)
 
-⏳ M2.T2: Interazioni Mondo
+⏳ M2.T2: UI Sistema Giocatore
+   - Pannello stato personaggio (HP/Food/Water)
+   - Interfaccia statistiche
+   - Barre di progresso animate
+
+⏳ M2.T3: UI Inventario
+   - Interfaccia inventario grafica
+   - Drag & drop oggetti
+   - Integrazione con PlayerManager
+
+⏳ M2.T4: Sistema Interazioni Mondo
    - Raccolta oggetti sulla mappa
    - Interazione con città e villaggi
    - Sistema eventi location-based
-
-⏳ M2.T3: Sistema Progressione
-   - Statistiche player
-   - Leveling system
-   - Skill progression
-
-⏳ M2.T4: Save/Load System
-   - Salvataggio stato mondo
-   - Persistenza inventario
-   - Checkpoint system
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -196,8 +218,9 @@ VERSIONI RILASCIATE:
 - v0.0.6: Migrazione TileMap completata
 - v0.1.0: "My small, wonderful, and devastated world"
 - v0.1.1: "This world is an ecosystem"
+- v0.1.2: "The Player Manager"
 
-MILESTONE COMPLETATE: 2/5 (40%)
+MILESTONE COMPLETATE: 2/5 (40%) + M2 progresso 25%
 TEST ANTI-REGRESSIONE: 34/34 superati
 ARCHITETTURA: Modulare e scalabile con BBCode
 PERFORMANCE: Ottimizzate per 250x250 world + effetti speciali
@@ -210,13 +233,13 @@ PROSSIMO RILASCIO: v0.2.0 - Gameplay Core
 
 🏆 ACHIEVEMENT UNLOCKED: "World Builder" - Primo mondo di gioco completamente funzionale!
 
-ULTIMA MODIFICA: 2025-01-21 - World v2.0 implementato, v0.1.1 rilasciata
+ULTIMA MODIFICA: 2025-01-21 - PlayerManager implementato, v0.1.2 rilasciata
 
 ================================================================================
 🎮 THE SAFE PLACE - ROADMAP SVILUPPO PRINCIPALE
 ================================================================================
 📅 Ultimo aggiornamento: 2025-01-21
-🏷️  Versione corrente: v0.1.1 "This world is an ecosystem"
+🏷️  Versione corrente: v0.1.2 "The Player Manager"
 🎯 Engine: Godot 4.4.1
 📊 Progresso totale: 40% (2/5 milestone completate)
 
@@ -230,7 +253,8 @@ ULTIMA MODIFICA: 2025-01-21 - World v2.0 implementato, v0.1.1 rilasciata
 
 ✅ MILESTONE 1 - MONDO COMPLETO (COMPLETATA 2025-01-21) 
    ├── v0.1.0 "My small, wonderful, and devastated world" ✅
-   ├── v0.1.1 "This world is an ecosystem" ✅ 
+├── v0.1.1 "This world is an ecosystem" ✅
+├── v0.1.2 "The Player Manager" ✅ 
    └── 34/34 test anti-regressione superati
    └── World System v2.0 con BBCode, palette 9 terreni, meccaniche avanzate
 
@@ -355,4 +379,4 @@ Tutte le meccaniche core funzionano perfettamente. L'unico aspetto da perfeziona
 **The Safe Place è pronto per evolvere verso un GDR completo.**
 
 ---
-Documento aggiornato: 2025-01-21 | Versione: v0.1.1 "This world is an ecosystem"
+Documento aggiornato: 2025-01-21 | Versione: v0.1.2 "The Player Manager"
