@@ -83,7 +83,10 @@ func _ready():
 	# Step 5: Debug automatico viewport dopo inizializzazione
 	call_deferred("debug_world_viewport")
 	
-	print("GameUI: ✅ Inizializzazione completata con successo (MainGame.tscn architecture)")
+	# Step 6: CONNETTI SEGNALI INPUTMANAGER
+	_connect_input_manager()
+	
+	print("GameUI: ✅ Inizializzazione completata con successo (MainGame.tscn architecture + InputManager)")
 
 # ═══ VERIFICA E SETUP INIZIALE ═══
 
@@ -155,9 +158,8 @@ func instantiate_world_scene():
 		if camera:
 			camera.enabled = true
 			camera.make_current()
-			# Imposta subito zoom equilibrato per evitare zoom-in automatico
-			camera.zoom = Vector2(0.8, 0.8)
-			print("GameUI: 📷 Camera2D configurata per SubViewport con zoom equilibrato")
+			# APPROCCIO 1: Rimuovo sovrascrittura zoom - World.gd gestisce il suo zoom
+			print("GameUI: 📷 Camera2D configurata per SubViewport - zoom gestito da World.gd")
 		
 		# Forza il World a inizializzarsi
 		if world_scene_instance.has_method("_ready"):
@@ -172,6 +174,9 @@ func instantiate_world_scene():
 		
 		# Collega la texture del SubViewport al TextureRect per visualizzazione
 		call_deferred("connect_viewport_to_display")
+		
+		# PROBLEMA LAYOUT RISOLTO: Configura MapDisplay per riempimento completo
+		call_deferred("configure_map_display_scaling")
 		
 		# Debug immediato per test
 		call_deferred("test_viewport_content")
@@ -216,6 +221,44 @@ func connect_player_manager_signals():
 	
 	print("GameUI: ✅ Tutti i segnali PlayerManager connessi (%d/3)" % signals_connected)
 
+# ═══ CONNESSIONI SEGNALI INPUTMANAGER ═══
+
+func _connect_input_manager():
+	"""Connette i segnali InputManager per gestione input centralizzata"""
+	if not InputManager:
+		print("GameUI: ❌ Impossibile connettere segnali - InputManager non disponibile")
+		return
+	
+	# Connetti segnali InputManager
+	var signals_connected = 0
+	
+	if not InputManager.inventory_toggle.is_connected(_on_inventory_toggle):
+		InputManager.inventory_toggle.connect(_on_inventory_toggle)
+		signals_connected += 1
+		print("GameUI: ✅ Segnale inventory_toggle connesso")
+	
+	if not InputManager.inventory_navigate.is_connected(_on_inventory_navigate):
+		InputManager.inventory_navigate.connect(_on_inventory_navigate)
+		signals_connected += 1
+		print("GameUI: ✅ Segnale inventory_navigate connesso")
+	
+	if not InputManager.inventory_use_item.is_connected(_on_inventory_use_item):
+		InputManager.inventory_use_item.connect(_on_inventory_use_item)
+		signals_connected += 1
+		print("GameUI: ✅ Segnale inventory_use_item connesso")
+	
+	if not InputManager.action_cancel.is_connected(_on_action_cancel):
+		InputManager.action_cancel.connect(_on_action_cancel)
+		signals_connected += 1
+		print("GameUI: ✅ Segnale action_cancel connesso")
+	
+	if not InputManager.action_confirm.is_connected(_on_action_confirm):
+		InputManager.action_confirm.connect(_on_action_confirm)
+		signals_connected += 1
+		print("GameUI: ✅ Segnale action_confirm connesso")
+	
+	print("GameUI: ✅ Tutti i segnali InputManager connessi (%d/5)" % signals_connected)
+
 # ═══ CALLBACK SEGNALI PLAYERMANAGER ═══
 
 func _on_resources_changed():
@@ -235,6 +278,108 @@ func _on_inventory_changed():
 	print("GameUI: 🔄 Inventario cambiato - aggiornamento pannello inventario")
 	update_inventory_panel()
 	add_log_message("Inventario aggiornato")
+
+# ═══ CALLBACK SEGNALI INPUTMANAGER ═══
+
+func _on_inventory_toggle():
+	"""Callback: toggle modalità inventario"""
+	is_inventory_active = !is_inventory_active
+	
+	if is_inventory_active:
+		# Attiva modalità inventario
+		InputManager.set_state(InputManager.InputState.INVENTORY)
+		print("GameUI: 🎒 Modalità inventario ATTIVATA")
+		add_log_message("Inventario aperto - usa [WASD] per navigare, [1-9] per usare oggetti")
+		
+		# PROBLEMA 1 RISOLTO: Evidenzia prima voce immediatamente
+		if PlayerManager and PlayerManager.inventory.size() > 0:
+			selected_inventory_index = 0  # Reset a prima voce
+		
+		# Disabilita movimento world
+		disable_world_movement()
+	else:
+		# Disattiva modalità inventario
+		InputManager.set_state(InputManager.InputState.MAP)
+		print("GameUI: 🗺️ Modalità mappa ATTIVATA")
+		add_log_message("Inventario chiuso - modalità esplorazione")
+		
+		# PROBLEMA 2 RISOLTO: Reset evidenziazione quando si esce
+		selected_inventory_index = 0
+		
+		# Riabilita movimento world
+		enable_world_movement()
+	
+	# Aggiorna visual dell'inventario e comandi
+	update_inventory_panel()
+	update_commands_panel()
+
+func _on_inventory_navigate(direction: Vector2i):
+	"""Callback: navigazione inventario con WASD/frecce"""
+	if not is_inventory_active:
+		return  # Ignora se inventario non attivo
+	
+	if not PlayerManager or PlayerManager.inventory.size() == 0:
+		return  # Nessun oggetto da navigare
+	
+	# Logica navigazione inventario
+	if direction.y == -1:  # SU
+		selected_inventory_index -= 1
+		if selected_inventory_index < 0:
+			selected_inventory_index = PlayerManager.inventory.size() - 1  # Wrap around all'ultimo
+	elif direction.y == 1:  # GIÙ
+		selected_inventory_index += 1
+		if selected_inventory_index >= PlayerManager.inventory.size():
+			selected_inventory_index = 0  # Wrap around al primo
+	
+	print("GameUI: 🎯 Navigazione inventario: index %d" % selected_inventory_index)
+	add_log_message("[DEBUG] Selezione inventario: %d" % selected_inventory_index)
+	update_inventory_panel()  # Aggiorna evidenziazione
+
+func _on_inventory_use_item(slot_number: int):
+	"""Callback: uso oggetto tramite hotkey 1-9 (SEMPRE ATTIVI)"""
+	# PROBLEMA 3 RISOLTO: Rimuovi check is_inventory_active
+	# I tasti numerici devono funzionare sempre, come nella versione precedente
+	
+	if not PlayerManager or PlayerManager.inventory.size() == 0:
+		print("GameUI: ⚠️ Nessun oggetto nell'inventario")
+		return
+	
+	var item_index = slot_number - 1  # Converti 1-9 in 0-8
+	if item_index >= 0 and item_index < PlayerManager.inventory.size():
+		var item_slot = PlayerManager.inventory[item_index]
+		var item_id = item_slot.item_id
+		var item_data = DataManager.get_item_data(item_id)
+		var item_name = item_data.get("name", item_id) if item_data else item_id
+		
+		# Usa oggetto tramite PlayerManager (consumo reale)
+		if PlayerManager.use_item(item_id, 1):
+			print("GameUI: ✅ Hotkey [%d] - Usato: %s" % [slot_number, item_name])
+			add_log_message("Hotkey [%d]: Usato %s" % [slot_number, item_name])
+			show_player_action("Hotkey [%d]: Usato %s" % [slot_number, item_name])
+		else:
+			print("GameUI: ❌ Hotkey [%d] - Impossibile usare: %s" % [slot_number, item_name])
+			add_log_message("Hotkey [%d]: Impossibile usare %s" % [slot_number, item_name])
+	else:
+		print("GameUI: ⚠️ Hotkey [%d] - Slot non valido o vuoto" % slot_number)
+		add_log_message("Hotkey [%d]: Slot vuoto" % slot_number)
+
+func _on_action_cancel():
+	"""Callback: azione cancellazione (ESC)"""
+	if is_inventory_active:
+		# Chiudi inventario
+		_on_inventory_toggle()
+	else:
+		# Altre azioni di cancellazione future
+		print("GameUI: ↩️ Azione cancel (nessuna azione definita)")
+
+func _on_action_confirm():
+	"""Callback: azione conferma (ENTER/SPACE)"""
+	if is_inventory_active:
+		# PROBLEMA RISOLTO: INVIO usa oggetto selezionato in modalità inventario
+		use_selected_inventory_item()
+	else:
+		# Altre azioni di conferma future (es. dialoghi, interazioni)
+		print("GameUI: ✅ Azione confirm (nessuna azione definita)")
 
 # ═══ AGGIORNAMENTO UI - MASTER FUNCTION ═══
 
@@ -536,7 +681,7 @@ func test_viewport_content():
 		print("  camera current: %s" % camera.is_current())
 		# Centra la camera sul player
 		camera.position = player.position
-		camera.zoom = Vector2(0.8, 0.8)  # Zoom leggermente out - via di mezzo
+		# APPROCCIO 1: Non sovrascrivere zoom - lascia che World.gd gestisca
 		print("  camera centered on player at %s" % str(player.position))
 
 func connect_viewport_to_display():
@@ -556,6 +701,14 @@ func connect_viewport_to_display():
 		# Riprova dopo un frame
 		call_deferred("connect_viewport_to_display")
 
+func configure_map_display_scaling():
+	"""Configura MapDisplay per riempimento completo eliminando strisce nere"""
+	if map_display:
+		# SOLUZIONE RIEMPIMENTO: Forza scaling completo del container
+		map_display.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		map_display.stretch_mode = TextureRect.STRETCH_SCALE  # Scala per riempire completamente
+		print("GameUI: 📏 MapDisplay configurato per riempimento completo (STRETCH_SCALE)")
+
 func update_map_camera():
 	"""Aggiorna la posizione della camera nella mappa per seguire il player"""
 	if not world_scene_instance:
@@ -566,8 +719,7 @@ func update_map_camera():
 	
 	if camera and player:
 		camera.position = player.position
-		# Mantieni zoom adeguato per vedere l'area intorno al player
-		camera.zoom = Vector2(0.8, 0.8)  # Zoom leggermente out - via di mezzo
+		# APPROCCIO 1: Non sovrascrivere zoom - lascia che World.gd gestisca
 
 # ═══ SISTEMA NAVIGAZIONE INVENTARIO ═══
 
@@ -637,109 +789,16 @@ func enable_world_movement():
 	# Per ora solo log
 	print("GameUI: 🔓 Movimento world riabilitato (inventario disattivo)")
 
-# ═══ INPUT HANDLING E DEBUG ═══
-
-func _input(event):
-	"""Gestisce input per navigazione inventario, debug e test dell'UI"""
-	
-	# ═══ FORWARD INPUT MOVEMENT AL WORLD ═══
-	
-	# Se non siamo in modalità inventario, forward input movimento al World
-	if not is_inventory_active:
-		# Forward input WASD e frecce al World.gd (usa ui_* actions)
-		if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down") or \
-		   event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right") or \
-		   (event is InputEventKey and event.pressed and \
-			(event.keycode == KEY_W or event.keycode == KEY_A or event.keycode == KEY_S or event.keycode == KEY_D)):
-			
-			if world_scene_instance and world_scene_instance.has_method("_input"):
-				# Propaga input direttamente al World.gd 
-				world_scene_instance._input(event)
-				return  # Non processare oltre per movimento
-	
-	# ═══ SISTEMA SELEZIONE INVENTARIO ═══
-	
-	# Tasto I: Toggle modalità inventario
-	if event.is_action_pressed("ui_inventory"):
-		toggle_inventory_mode()
-		return
-	
-	# Navigazione inventario (solo se attivo)
-	if is_inventory_active and PlayerManager and PlayerManager.inventory.size() > 0:
-		
-		# Freccia GIÙ / S: Selezione successiva
-		if event.is_action_pressed("ui_down") or event.is_action_pressed("move_down"):
-			selected_inventory_index += 1
-			if selected_inventory_index >= PlayerManager.inventory.size():
-				selected_inventory_index = 0  # Wrap around al primo
-			update_inventory_panel()
-			add_log_message("[DEBUG] Selezione inventario: %d" % selected_inventory_index)
-			return
-		
-		# Freccia SU / W: Selezione precedente
-		if event.is_action_pressed("ui_up") or event.is_action_pressed("move_up"):
-			selected_inventory_index -= 1
-			if selected_inventory_index < 0:
-				selected_inventory_index = PlayerManager.inventory.size() - 1  # Wrap around all'ultimo
-			update_inventory_panel()
-			add_log_message("[DEBUG] Selezione inventario: %d" % selected_inventory_index)
-			return
-		
-		# ENTER: Usa oggetto selezionato (placeholder)
-		if event.is_action_pressed("ui_accept"):
-			use_selected_inventory_item()
-			return
-	
-	# ═══ HOTKEY NUMERICI DIRETTI (sempre attivi) ═══
-	
-	# Uso diretto oggetti con tasti 1-9 (solo per InputEventKey)
-	if event is InputEventKey and event.pressed and PlayerManager and PlayerManager.inventory.size() > 0:
-		var hotkey_index = -1
-		
-		match event.keycode:
-			KEY_1: hotkey_index = 0
-			KEY_2: hotkey_index = 1
-			KEY_3: hotkey_index = 2
-			KEY_4: hotkey_index = 3
-			KEY_5: hotkey_index = 4
-			KEY_6: hotkey_index = 5
-			KEY_7: hotkey_index = 6
-			KEY_8: hotkey_index = 7
-			KEY_9: hotkey_index = 8
-		
-		# Se hotkey valido e oggetto esistente, usa direttamente
-		if hotkey_index >= 0 and hotkey_index < PlayerManager.inventory.size():
-			var item = PlayerManager.inventory[hotkey_index]
-			var item_data = DataManager.get_item_data(item.item_id)
-			var item_name = item_data.get("name", item.item_id) if item_data else item.item_id
-			
-			# Usa oggetto tramite PlayerManager (consumo reale)
-			var success = PlayerManager.use_item(item.item_id, 1)
-			
-			if success:
-				show_player_action("Hotkey [%d]: Usato %s" % [hotkey_index + 1, item_name])
-				add_log_message("[AZIONE] Hotkey [%d] - Oggetto consumato: %s" % [hotkey_index + 1, item_name])
-			else:
-				add_log_message("[ERROR] Hotkey [%d] - Impossibile usare: %s" % [hotkey_index + 1, item_name])
-			
-			return
-	
-	# ═══ INPUT DEBUG (solo se inventario non attivo) ═══
-	
-	if not is_inventory_active:
-		# Debug: ENTER per test messaggio
-		if event.is_action_pressed("ui_accept"):
-			add_log_message("[DEBUG] Test messaggio - UI funzionante!")
-		
-		# Debug: ESC per force refresh
-		if event.is_action_pressed("ui_cancel"):
-			update_all_ui()
-			show_system_message("UI aggiornata manualmente")
-		
-		# Debug: TAB per verifica WorldViewport
-		if event.is_action_pressed("ui_focus_next"):
-			debug_world_viewport()
-			show_system_message("Debug WorldViewport stampato in console")
+# ═══ INPUT HANDLING TRAMITE INPUTMANAGER ═══
+# 
+# NOTA: Logica input centralizzata in InputManager.gd
+# GameUI ora riceve eventi tramite segnali InputManager:
+# - inventory_toggle() → _on_inventory_toggle()
+# - inventory_navigate() → _on_inventory_navigate()  
+# - inventory_use_item() → _on_inventory_use_item()
+# - action_cancel() → _on_action_cancel()
+#
+# Movimento mappa gestito direttamente da World.gd tramite InputManager.map_move
 
 # ═══ PROCESS E UTILITY ═══
 

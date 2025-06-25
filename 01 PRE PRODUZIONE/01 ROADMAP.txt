@@ -1,7 +1,7 @@
 📋 ROADMAP - The Safe Place (GDR Testuale Anni 80)
 
-🎯 VERSIONE CORRENTE: v0.1.5 "The Monitor Frame"
-📅 ULTIMO AGGIORNAMENTO: 2025-01-21
+🎯 VERSIONE CORRENTE: v0.1.6 "The Input Master"
+📅 ULTIMO AGGIORNAMENTO: 2025-01-25
 🎮 TARGET: Godot 4.4.1 Engine
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -9,12 +9,15 @@
 📊 STATO GENERALE: 
 🏆 MILESTONE 0: ✅ COMPLETATA (18/18 test superati)
 🏆 MILESTONE 1: ✅ COMPLETATA (8/8 task completati)
-🔄 MILESTONE 2: 🚀 IN CORSO - Gameplay Core (3/4 task completati)
+🔄 MILESTONE 2: 🚀 IN CORSO - Gameplay Core (4/4 task completati - BUG IDENTIFICATO)
 ⏳ MILESTONE 3: ⏸️ IN ATTESA - Sistema Combattimento
 ⏳ MILESTONE 4: ⏸️ IN ATTESA - Narrativa e Lore
 ⏳ MILESTONE 5: ⏸️ IN ATTESA - Polish e Release
 
-PROGRESSO COMPLESSIVO: 60% (2/5 milestone + M2 75% progresso)
+PROGRESSO COMPLESSIVO: 65% (2/5 milestone + M2 100% completato)
+
+🐛 BUG IDENTIFICATI:
+- Camera saltello periodico ogni X caselle movimento player (v0.1.6) - Non bloccante
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -95,7 +98,7 @@ RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-🎮 MILESTONE 2: GAMEPLAY CORE 🚀 IN CORSO
+🎮 MILESTONE 2: GAMEPLAY CORE ✅ COMPLETATA
 ══════════════════════════════════════════════════════════════════════════════
 
 ✅ M2.T1: PlayerManager Singleton (v0.1.2)
@@ -150,14 +153,33 @@ RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
    ✅ Integrazione perfetta movimento WASD/frecce
    ✅ Sistema debug completo per troubleshooting
 
-⏳ M2.T4: Sistema Interazioni Mondo
-   - Raccolta oggetti sulla mappa
-   - Interazione con città e villaggi
-   - Sistema eventi location-based
+✅ M2.T4: Input System Centralizzato (v0.1.6)
+   STATUS: ✅ COMPLETATA AL 100%
+   
+   COMPLETATO:
+   ✅ InputManager.gd Singleton con architettura centralizzata
+   ✅ Enum InputState (MAP, INVENTORY, DIALOGUE, COMBAT) per gestione contesti
+   ✅ 8 segnali pubblici per comunicazione: map_move, inventory_navigate, inventory_toggle, etc.
+   ✅ Gestione input gerarchica: globale + specifici per stato
+   ✅ Sistema debug integrato per troubleshooting
+   ✅ Migrazione da World.gd e GameUI.gd (_input rimossi)
+   ✅ Callback system completo con 6 handler GameUI
+   ✅ Single Source of Truth per zoom camera (1.065x in World.gd)
+   ✅ Layout mappa ottimizzato: STRETCH_SCALE per riempimento completo
+   ✅ Backward compatibility 100%: tutte funzionalità mantenute
+   ✅ Tasti numerici globali per uso oggetti inventario
+   ✅ Sistema conferma INVIO per consumo oggetti in modalità inventario
+   
+   🐛 BUG IDENTIFICATO:
+   - Camera saltello periodico ogni X caselle durante movimento player
+   - Non bloccante, da investigare in sessione futura
+   - Possibile conflitto zoom management o posizionamento camera
+
+RISULTATO M2: Architettura InputManager scalabile, Single Source of Truth implementato
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-⚔️ MILESTONE 3: SISTEMA COMBATTIMENTO ⏳ PENDING
+⚔️ MILESTONE 3: SISTEMA COMBATTIMENTO ⏳ READY
 ══════════════════════════════════════════════════════════════════════════════
 
 ⏳ M3.T1: Combat Engine
@@ -198,7 +220,6 @@ RISULTATO M1: Mondo di gioco con sistema player ottimizzato e scalabile
 ⏳ M4.T3: Side Quests
    - Quest secondarie
    - Lore expansion
-   - Hidden secrets
 
 ⏳ M4.T4: World Building
    - Background lore

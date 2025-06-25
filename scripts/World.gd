@@ -66,7 +66,10 @@ func _ready():
 	# 5. Avvia animazione di lampeggio
 	player_character.get_node("AnimationPlayer").play("pulse")
 	
-	print("✅ World v2.0 pronto - Sistema completo attivo!")
+	# 6. CONNETTI SEGNALI INPUTMANAGER
+	_connect_input_manager()
+	
+	print("✅ World v2.0 pronto - Sistema completo attivo con InputManager!")
 
 func _setup_tilemap():
 	"""Configura il TileMap con il TileSet aggiornato"""
@@ -84,13 +87,14 @@ func _setup_tilemap():
 	print("✅ TileSet con nuova palette caricato")
 
 func _setup_camera():
-	"""Configura camera con zoom 2x e limiti automatici"""
+	"""Configura camera con zoom ottimizzato e limiti automatici"""
 	if camera == null:
 		print("❌ ERRORE: Nodo Camera2D non trovato!")
 		return
 	
-	# Zoom 2x per visibilità ottimale
-	camera.zoom = Vector2(2.0, 2.0)
+	# APPROCCIO 1: Zoom ottimizzato per player più visibile
+	# Calcolo: 0.925 (vecchio target) + 15% = 1.065x
+	camera.zoom = Vector2(1.065, 1.065)
 	
 	# Calcola limiti mappa in pixel
 	var map_width_pixels = map_width * TILE_SIZE
@@ -107,7 +111,7 @@ func _setup_camera():
 	camera.position = world_pos
 	camera.force_update_scroll()
 	
-	print("✅ Camera configurata - Zoom 2x, Limiti: %dx%d pixel" % [map_width_pixels, map_height_pixels])
+	print("✅ Camera configurata - Zoom 1.065x (Single Source of Truth), Limiti: %dx%d pixel" % [map_width_pixels, map_height_pixels])
 
 # ============================================================================
 # CARICAMENTO E CONVERSIONE MAPPA
@@ -205,13 +209,27 @@ func _update_camera_to_player():
 		camera.position = world_pos
 
 # ============================================================================
-# LOGICA MOVIMENTO AVANZATA
+# LOGICA MOVIMENTO AVANZATA (InputManager Integration)
 # ============================================================================
 
-func _input(event):
-	"""Gestisce input movimento con penalità fiume e controlli avanzati"""
-	if not event.is_pressed():
+## Connette i segnali InputManager per gestione movimento centralizzata
+func _connect_input_manager():
+	"""Configura connessioni ai segnali InputManager per movimento player"""
+	if not InputManager:
+		print("❌ ERRORE: InputManager non disponibile!")
 		return
+	
+	# Connetti segnale movimento mappa
+	if not InputManager.map_move.is_connected(_on_map_move):
+		InputManager.map_move.connect(_on_map_move)
+		print("✅ World: Connesso a InputManager.map_move")
+	
+	print("🎮 World: Gestione input delegata a InputManager")
+
+## Callback per movimento player tramite InputManager
+## @param direction: Vector2i direzione movimento (-1,0,1 per x/y)
+func _on_map_move(direction: Vector2i):
+	"""Gestisce movimento player con penalità fiume e controlli avanzati"""
 	
 	# SISTEMA PENALITÀ MOVIMENTO
 	if movement_penalty > 0:
@@ -219,19 +237,8 @@ func _input(event):
 		print("⏳ Penalità movimento: resta %d turni" % movement_penalty)
 		return  # Salta turno
 	
-	var new_position = player_pos
-	
-	# Calcola movimento basato su input KEYBOARD ONLY
-	if event.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
-		new_position.y -= 1
-	elif event.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
-		new_position.y += 1
-	elif event.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
-		new_position.x -= 1
-	elif event.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
-		new_position.x += 1
-	else:
-		return  # Input non riconosciuto
+	# Calcola nuova posizione basata su direzione InputManager
+	var new_position = player_pos + direction
 	
 	# Valida movimento
 	if _is_valid_move(new_position):

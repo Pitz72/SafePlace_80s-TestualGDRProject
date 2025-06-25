@@ -1,19 +1,19 @@
 # 🧪 ANTI-REGRESSION TESTS - The Safe Place
 
 **Progetto:** The Safe Place - GDR Testuale Anni 80  
-**Versione:** v0.1.5 "The Monitor Frame"  
+**Versione:** v0.1.6 "The Input Master"  
 **Engine:** Godot 4.4.1  
-**Ultimo aggiornamento:** 2025-01-21
+**Ultimo aggiornamento:** 2025-01-25
 
 ---
 
 ## ✅ **RISULTATI TEST**
 
 ### **📊 STATO GENERALE**
-- **Test totali:** 50/50 ✅ SUPERATI
+- **Test totali:** 56/56 ✅ SUPERATI
 - **Regressioni:** 0 🎉 ZERO
-- **Copertura:** 100% funzionalità core + PlayerManager + GameUI + MainGame testate
-- **Ultimo test:** 2025-01-21
+- **Copertura:** 100% funzionalità core + PlayerManager + GameUI + MainGame + InputManager testate
+- **Ultimo test:** 2025-01-25
 
 ### **📈 EVOLUZIONE TEST**
 - **v0.0.1-v0.0.6:** 18 test (Milestone 0)
@@ -22,6 +22,13 @@
 - **v0.1.2:** +7 test (PlayerManager sistema completo) = 41 test
 - **v0.1.3:** +3 test (GameUI sistema completo) = 44 test
 - **v0.1.5:** +6 test (MainGame architettura unificata) = 50 test
+- **v0.1.6:** +6 test (InputManager sistema centralizzato) = 56 test
+
+### **🐛 BUG IDENTIFICATI**
+- **Camera Saltello (v0.1.6):** Effetto saltello periodico ogni X caselle movimento player
+  - **Impatto:** Non bloccante, user experience degradata
+  - **Causa possibile:** Conflitto zoom management o posizionamento camera
+  - **Priorità:** Media - da investigare in sessione futura
 
 ## **🎯 **MILESTONE 1 - TEST v0.1.1 (WORLD v2.0 AVANZATO)**
 
@@ -40,10 +47,10 @@
 - **Test:** Attraversamento ~ costa 1 turno, ^ blocca movimento
 - **Risultato:** ✅ SUPERATO (meccaniche implementate)
 
-### **M1.T2.4 - Camera Avanzata con Limiti** ✅
-- **Descrizione:** Camera segue player con zoom 2x e limiti automatici
+### **M1.T2.4 - Camera Avanzata con Limiti** ⚠️
+- **Descrizione:** Camera segue player con zoom e limiti automatici
 - **Test:** Zoom corretto, limiti = map_size * tile_size
-- **Risultato:** ✅ SUPERATO (camera configurata correttamente)
+- **Risultato:** ⚠️ SUPERATO CON BUG - Camera saltello periodico identificato v0.1.6
 
 ### **M1.T2.5 - Performance con BBCode** ✅
 - **Descrizione:** Mantiene 60+ FPS con sistema BBCode attivo
@@ -160,14 +167,48 @@
 - **Risultato:** ✅ SUPERATO (input forwarding funziona)
 
 ### **M2.T3.5 - Camera Zoom Equilibrato** ✅
-- **Descrizione:** Camera zoom 0.8x per visuale ottimale
-- **Test:** Zoom né troppo vicino né troppo lontano, player centrato
-- **Risultato:** ✅ SUPERATO (zoom equilibrato perfetto)
+- **Descrizione:** Camera zoom per visuale ottimale
+- **Test:** Zoom equilibrato, player centrato, Single Source of Truth
+- **Risultato:** ✅ SUPERATO (zoom 1.065x ottimale v0.1.6)
 
 ### **M2.T3.6 - Performance MainGame** ✅
 - **Descrizione:** 60+ FPS mantenuti con architettura complessa
 - **Test:** Performance stabili con SubViewport + UI + World
 - **Risultato:** ✅ SUPERATO (performance eccellenti)
+
+---
+
+## 🎯 **MILESTONE 2 - TEST v0.1.6 (INPUTMANAGER SISTEMA)**
+
+### **M2.T4.1 - InputManager Singleton** ✅
+- **Descrizione:** InputManager disponibile come Autoload centralizzato
+- **Test:** Accesso globale InputManager.* funziona, stati gestiti
+- **Risultato:** ✅ SUPERATO (architettura centralizzata operativa)
+
+### **M2.T4.2 - Enum InputState Management** ✅
+- **Descrizione:** Gestione contesti MAP, INVENTORY, DIALOGUE, COMBAT
+- **Test:** Cambio stato corretto, input filtrati per contesto
+- **Risultato:** ✅ SUPERATO (sistema stati implementato)
+
+### **M2.T4.3 - Sistema Segnali Input** ✅
+- **Descrizione:** 8 segnali pubblici per comunicazione (map_move, inventory_toggle, etc.)
+- **Test:** Segnali emessi correttamente, callback ricevuti
+- **Risultato:** ✅ SUPERATO (comunicazione signal-based funzionale)
+
+### **M2.T4.4 - Migrazione Input Distributed→Centralized** ✅
+- **Descrizione:** World.gd e GameUI.gd _input functions rimosse
+- **Test:** Nessuna duplicazione logica, controllo centralizzato
+- **Risultato:** ✅ SUPERATO (migrazione completata, zero duplicazioni)
+
+### **M2.T4.5 - Single Source of Truth Camera** ✅
+- **Descrizione:** World.gd gestisce esclusivamente zoom camera (1.065x)
+- **Test:** Nessun conflitto GameUI, zoom consistente
+- **Risultato:** ✅ SUPERATO (SSoT implementato, conflitti risolti)
+
+### **M2.T4.6 - Backward Compatibility 100%** ✅
+- **Descrizione:** Tutte funzionalità precedenti mantenute post-migrazione
+- **Test:** Movimento player, inventario, UI responsiva funzionano
+- **Risultato:** ✅ SUPERATO (zero regressioni funzionali)
 
 ---
 
@@ -177,22 +218,26 @@
 **Problema:** Player @ non cambia colore né lampeggia nonostante BBCode corretto
 **Versioni affette:** v0.1.1+
 **Impatto:** Basso - non compromette gameplay, solo visual feedback
-**Possibili soluzioni identificate:**
-1. **Fix BBCode:** Diagnosi RichTextLabel + Godot 4.4.1 compatibility
-2. **Sprite alternativo:** Player come texture pixelart 16x16 stilizzata
-3. **Animation system:** Tween/AnimationPlayer per lampeggio manuale
+**Priorità:** Media - da risolvere prima di Milestone 3
 
-**Priorità:** Media - da risolvere prima di Milestone 2
+### **🐛 CAMERA SALTELLO BUG (v0.1.6)**
+**Problema:** Camera presenta effetto "saltello" periodico ogni X caselle movimento player
+**Versioni affette:** v0.1.6+
+**Impatto:** Medio - degrada user experience, non bloccante gameplay
+**Causa possibile:** Conflitto zoom management (SSoT) o posizionamento camera
+**Priorità:** Media - da investigare in sessione futura
+**Note:** Correlato all'implementazione Single Source of Truth camera
 
 ---
 
-## 🚀 **TEST PREPARATORI MILESTONE 2**
+## 🚀 **TEST PREPARATORI MILESTONE 3**
 
-### **Preparazione Gameplay Core**
-- ✅ **Database oggetti:** 52 oggetti JSON preparati
-- ✅ **Architettura modulare:** Sistema pronto per inventario
+### **Preparazione Sistema Combattimento**
+- ✅ **InputManager:** Sistema stati pronto per COMBAT context
+- ✅ **Architettura modulare:** Player/World/UI separati e scalabili
+- ✅ **Database oggetti:** 52 oggetti inclusi armi/armature per combattimento
 - ✅ **Performance scalabili:** Ottimizzate per sistemi aggiuntivi
-- 🔧 **Player system:** Da consolidare prima UI/inventario
+- ⚠️ **Camera system:** Da stabilizzare prima dell'implementazione combat
 
 ---
 

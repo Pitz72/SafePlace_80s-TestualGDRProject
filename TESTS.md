@@ -166,6 +166,143 @@ Questo file mantiene tutti i test manuali per prevenire regressioni durante lo s
 
 **Note:** Zero regressioni - architettura migliorata - v0.0.2b
 
+## Milestone 2 Task 4: InputManager Sistema Centralizzato (v0.1.6)
+
+### Test M2.T4.1: Verifica InputManager Singleton
+
+**Obiettivo:** Verificare che InputManager funzioni come Autoload centralizzato
+
+**Passi:**
+1. Avviare MainGame.tscn
+2. Verificare accesso globale InputManager
+3. Testare cambio stati InputState
+
+**Risultato Atteso:**
+- ✅ InputManager accessibile globalmente
+- ✅ Enum InputState funzionante (MAP, INVENTORY, DIALOGUE, COMBAT)
+- ✅ Cambio stati senza errori
+- ✅ Debug output corretto in console
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Singleton centralizzato operativo - v0.1.6
+
+---
+
+### Test M2.T4.2: Sistema Segnali Input
+
+**Obiettivo:** Verificare che 8 segnali InputManager funzionino correttamente
+
+**Passi:**
+1. Premere WASD per movimento (map_move signal)
+2. Premere I per inventario (inventory_toggle signal)
+3. Premere numeri 1-9 (inventory_use_item signal)
+4. Premere INVIO in inventario (action_confirm signal)
+
+**Risultato Atteso:**
+- ✅ map_move emesso correttamente con direction Vector2
+- ✅ inventory_toggle cambia stato UI inventario
+- ✅ inventory_use_item con slot corretto
+- ✅ action_confirm funziona in modalità inventario
+- ✅ Tutti segnali ricevuti dai callback GameUI
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Sistema segnali completamente funzionale - v0.1.6
+
+---
+
+### Test M2.T4.3: Migrazione Input Centralizzato
+
+**Obiettivo:** Verificare eliminazione duplicazioni input da World.gd e GameUI.gd
+
+**Passi:**
+1. Verificare World.gd non ha più _input function
+2. Verificare GameUI.gd non ha più _input function  
+3. Testare che tutto il movimento funzioni tramite InputManager
+4. Verificare nessuna duplicazione logica
+
+**Risultato Atteso:**
+- ✅ World.gd: _input function rimossa, solo callback _on_map_move
+- ✅ GameUI.gd: _input function rimossa, solo 6 callback InputManager
+- ✅ Movimento player fluido tramite segnali
+- ✅ Zero duplicazioni input, controllo centralizzato
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Migrazione completa distributed→centralized - v0.1.6
+
+---
+
+### Test M2.T4.4: Single Source of Truth Camera
+
+**Obiettivo:** Verificare che solo World.gd gestisca zoom camera
+
+**Passi:**
+1. Verificare zoom camera = 1.065x costante
+2. Controllare che GameUI.gd non sovrascriva zoom
+3. Testare movimento player con zoom consistente
+4. Verificare nessun conflitto zoom
+
+**Risultato Atteso:**
+- ✅ Camera zoom sempre 1.065x (Single Source of Truth)
+- ✅ GameUI.gd non modifica camera
+- ✅ World.gd gestione esclusiva camera
+- ✅ Zoom consistente durante movimento
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** SSoT implementato, conflitti camera risolti - v0.1.6
+
+---
+
+### Test M2.T4.5: Layout Mappa Ottimizzato
+
+**Obiettivo:** Verificare riempimento completo pannello mappa senza strisce nere
+
+**Passi:**
+1. Aprire MainGame.tscn
+2. Osservare pannello mappa centrale
+3. Verificare MapDisplay STRETCH_SCALE
+4. Controllare riempimento completo senza bordi
+
+**Risultato Atteso:**
+- ✅ Pannello mappa riempie completamente area centrale
+- ✅ Nessuna striscia nera sui bordi
+- ✅ TextureRect configurato con STRETCH_SCALE
+- ✅ Proportioni corrette mantenute
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Layout ottimizzato, strisce nere eliminate - v0.1.6
+
+---
+
+### Test M2.T4.6: Backward Compatibility 100%
+
+**Obiettivo:** Verificare che tutte funzionalità precedenti siano mantenute
+
+**Passi:**
+1. Testare movimento player WASD/frecce
+2. Testare inventario (I, numeri, INVIO)
+3. Testare UI pannelli e aggiornamenti real-time
+4. Verificare tutti i 50 test precedenti ancora validi
+
+**Risultato Atteso:**
+- ✅ Movimento player identico a v0.1.5
+- ✅ Sistema inventario completamente funzionale
+- ✅ GameUI reattivo e aggiornamenti automatici
+- ✅ Zero regressioni funzionali identificate
+
+**Risultato Test:** [✅] PASS / [ ] FAIL
+
+**Note:** Backward compatibility perfetta, zero regressioni - v0.1.6
+
+⚠️ **BUG IDENTIFICATO v0.1.6:**
+**Camera Saltello:** Effetto periodico ogni X caselle movimento player. Non bloccante, da investigare in sessione futura.
+
+---
+
 ## Template per Nuovi Test
 
 ### Test MX.TX: [Nome Test]

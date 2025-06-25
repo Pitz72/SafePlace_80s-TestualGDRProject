@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 ThemeManager="*res://scripts/ThemeManager.gd"
 DataManager="*res://scripts/managers/DataManager.gd"
 PlayerManager="*res://scripts/managers/PlayerManager.gd"
+InputManager="*res://scripts/managers/InputManager.gd"
 
 [gui]
 
