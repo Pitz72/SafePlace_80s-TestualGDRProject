@@ -12,7 +12,7 @@ config_version=5
 
 config/name="The Safe Place - GDR Testuale Anni 80"
 config/description="Un GDR di sopravvivenza post-apocalittico ispirato ai terminali anni 80"
-run/main_scene="res://scenes/ui/GameUI.tscn"
+run/main_scene="uid://bxpd6rvs4jp0j"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 

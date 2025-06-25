@@ -1,8 +1,9 @@
 extends Control
 
-# Script per la UI principale di gioco - The Safe Place v0.1.3+
+# Script per la UI principale di gioco - The Safe Place v0.1.4+
 # Gestisce l'interfaccia a tre colonne con sistema di selezione inventario
 # Features: PlayerManager integration + Keyboard inventory navigation
+# ARCHITETTURA: MainGame.tscn → World.tscn + GameUI.tscn (con CanvasLayer)
 # Autore: LLM Assistant per progetto The Safe Place
 
 class_name GameUI
@@ -17,7 +18,8 @@ class_name GameUI
 # Pannello Inventario (Left Panel)
 @onready var inventory_list: VBoxContainer = $MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox/InventoryScroll/InventoryList
 
-# Pannello Mappa (Center Panel)
+# Pannello Mappa (Center Panel) - RIPRISTINATO world_viewport
+@onready var map_display: TextureRect = $MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox/MapDisplay
 @onready var world_viewport: SubViewport = $MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox/WorldViewport
 
 # Pannello Diario (Center Panel)
@@ -58,7 +60,7 @@ var is_inventory_active: bool = false
 # ═══ INIZIALIZZAZIONE PRINCIPALE ═══
 
 func _ready():
-	print("GameUI: ═══ INIZIALIZZAZIONE UI PRINCIPALE ═══")
+	print("GameUI: ═══ INIZIALIZZAZIONE UI PRINCIPALE (MAINGAME ARCHITECTURE) ═══")
 	
 	# Step 0: Debug referenze nodi
 	debug_node_references()
@@ -75,10 +77,13 @@ func _ready():
 	# Step 4: Aggiorna l'UI con valori iniziali
 	update_all_ui()
 	
-	# Step 5: Aggiungi messaggi di benvenuto
+	# Step 4: Aggiungi messaggi di benvenuto
 	initialize_log_messages()
 	
-	print("GameUI: ✅ Inizializzazione completata con successo")
+	# Step 5: Debug automatico viewport dopo inizializzazione
+	call_deferred("debug_world_viewport")
+	
+	print("GameUI: ✅ Inizializzazione completata con successo (MainGame.tscn architecture)")
 
 # ═══ VERIFICA E SETUP INIZIALE ═══
 
@@ -89,6 +94,7 @@ func debug_node_references():
 	print("  food_label: %s" % ("✅ OK" if food_label else "❌ NULL"))
 	print("  water_label: %s" % ("✅ OK" if water_label else "❌ NULL"))
 	print("  inventory_list: %s" % ("✅ OK" if inventory_list else "❌ NULL"))
+	print("  map_display: %s" % ("✅ OK" if map_display else "❌ NULL"))
 	print("  world_viewport: %s" % ("✅ OK" if world_viewport else "❌ NULL"))
 	print("  log_display: %s" % ("✅ OK" if log_display else "❌ NULL"))
 	print("  posizione_label: %s" % ("✅ OK" if posizione_label else "❌ NULL"))
@@ -119,7 +125,7 @@ func verify_player_manager():
 		push_error("GameUI: PlayerManager Singleton non configurato correttamente")
 
 func instantiate_world_scene():
-	"""Instanzia la scena World.tscn nel WorldViewport"""
+	"""Instanzia la scena World.tscn nel WorldViewport del pannello mappa"""
 	if not world_viewport:
 		print("GameUI: ❌ world_viewport è null - impossibile istanziare World")
 		return
@@ -128,7 +134,47 @@ func instantiate_world_scene():
 	if world_scene:
 		world_scene_instance = world_scene.instantiate()
 		world_viewport.add_child(world_scene_instance)
-		print("GameUI: ✅ Scena World.tscn istanziata correttamente nel viewport")
+		
+		# Configurazione speciale per SubViewport
+		world_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		world_viewport.size = Vector2i(400, 300)  # Dimensione fissa per il monitor
+		
+		# Configurazioni aggiuntive per il rendering
+		world_viewport.snap_2d_transforms_to_pixel = true
+		world_viewport.snap_2d_vertices_to_pixel = true
+		world_viewport.disable_3d = true  # Forza 2D only
+		
+		# CRUCIALE: Configurazione input per movimento player nel SubViewport
+		world_viewport.gui_disable_input = false  # Abilita ricezione input
+		world_viewport.handle_input_locally = true  # SubViewport gestisce input internamente
+		world_viewport.physics_object_picking = true  # Abilita interazioni fisiche
+		print("GameUI: 🎮 SubViewport configurato per gestire input internamente")
+		
+		# Configura la camera del World per il SubViewport
+		var camera = world_scene_instance.get_node("Camera2D")
+		if camera:
+			camera.enabled = true
+			camera.make_current()
+			# Imposta subito zoom equilibrato per evitare zoom-in automatico
+			camera.zoom = Vector2(0.8, 0.8)
+			print("GameUI: 📷 Camera2D configurata per SubViewport con zoom equilibrato")
+		
+		# Forza il World a inizializzarsi
+		if world_scene_instance.has_method("_ready"):
+			print("GameUI: 🔄 Forzando inizializzazione World...")
+		
+		# Forza rendering immediato
+		world_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		
+		print("GameUI: ✅ Scena World.tscn istanziata nel viewport mappa")
+		print("GameUI: 🖥️ SubViewport configurato come 'monitor' 400x300")
+		print("GameUI: 📊 World children: %d" % world_scene_instance.get_child_count())
+		
+		# Collega la texture del SubViewport al TextureRect per visualizzazione
+		call_deferred("connect_viewport_to_display")
+		
+		# Debug immediato per test
+		call_deferred("test_viewport_content")
 	else:
 		print("GameUI: ❌ ERRORE nel caricamento scena World.tscn")
 		push_error("GameUI: Impossibile caricare res://scenes/World.tscn")
@@ -436,10 +482,92 @@ func get_world_scene() -> Node:
 	"""Restituisce l'istanza della scena World per accesso esterno"""
 	return world_scene_instance
 
-func force_ui_refresh():
-	"""Forza aggiornamento completo UI (per debug)"""
-	print("GameUI: 🔄 FORCE REFRESH richiesto")
-	update_all_ui()
+func debug_world_viewport():
+	"""Debug: verifica stato del WorldViewport e World istanziato"""
+	print("GameUI: 🔍 DEBUG WorldViewport:")
+	print("  world_viewport: %s" % ("✅ OK" if world_viewport else "❌ NULL"))
+	if world_viewport:
+		print("  viewport size: %s" % str(world_viewport.size))
+		print("  viewport children: %d" % world_viewport.get_child_count())
+		print("  render_target_update_mode: %d" % world_viewport.render_target_update_mode)
+	print("  world_scene_instance: %s" % ("✅ OK" if world_scene_instance else "❌ NULL"))
+	if world_scene_instance:
+		print("  world_scene name: %s" % world_scene_instance.name)
+		print("  world_scene children: %d" % world_scene_instance.get_child_count())
+		
+		# Debug specifico dei componenti World
+		var camera = world_scene_instance.get_node("Camera2D")
+		var tilemap = world_scene_instance.get_node("AsciiTileMap")
+		var player = world_scene_instance.get_node("PlayerCharacter")
+		
+		if camera:
+			print("  camera position: %s" % str(camera.position))
+			print("  camera zoom: %s" % str(camera.zoom))
+			print("  camera enabled: %s" % camera.enabled)
+		
+		if tilemap:
+			print("  tilemap visible: %s" % tilemap.visible)
+			print("  tilemap cells: %d" % tilemap.get_used_cells(0).size())
+			print("  tilemap tile_set: %s" % ("✅ OK" if tilemap.tile_set else "❌ NULL"))
+		
+		if player:
+			print("  player position: %s" % str(player.position))
+			print("  player visible: %s" % player.visible)
+
+func test_viewport_content():
+	"""Test: verifica se il SubViewport sta renderizzando qualcosa"""
+	if not world_viewport or not world_scene_instance:
+		print("GameUI: ❌ Test viewport fallito - componenti mancanti")
+		return
+	
+	print("GameUI: 🧪 TEST VIEWPORT CONTENT:")
+	
+	# Test 1: Verifica texture del viewport
+	var texture = world_viewport.get_texture()
+	print("  viewport texture: %s" % ("✅ OK" if texture else "❌ NULL"))
+	
+	# Test 2: Forza un update
+	world_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	
+	# Test 3: Verifica la camera e centrala sul player
+	var camera = world_scene_instance.get_node("Camera2D")
+	var player = world_scene_instance.get_node("PlayerCharacter")
+	if camera and player:
+		print("  camera current: %s" % camera.is_current())
+		# Centra la camera sul player
+		camera.position = player.position
+		camera.zoom = Vector2(0.8, 0.8)  # Zoom leggermente out - via di mezzo
+		print("  camera centered on player at %s" % str(player.position))
+
+func connect_viewport_to_display():
+	"""Collega la texture del SubViewport al TextureRect per visualizzazione"""
+	if not world_viewport or not map_display:
+		print("GameUI: ❌ Impossibile collegare viewport a display - componenti mancanti")
+		return
+	
+	# Ottieni la texture dal SubViewport
+	var viewport_texture = world_viewport.get_texture()
+	if viewport_texture:
+		map_display.texture = viewport_texture
+		print("GameUI: 🖼️ Texture SubViewport collegata a MapDisplay")
+		print("GameUI: 📏 Texture size: %s" % str(viewport_texture.get_size()))
+	else:
+		print("GameUI: ❌ Texture SubViewport non disponibile")
+		# Riprova dopo un frame
+		call_deferred("connect_viewport_to_display")
+
+func update_map_camera():
+	"""Aggiorna la posizione della camera nella mappa per seguire il player"""
+	if not world_scene_instance:
+		return
+		
+	var camera = world_scene_instance.get_node("Camera2D")
+	var player = world_scene_instance.get_node("PlayerCharacter")
+	
+	if camera and player:
+		camera.position = player.position
+		# Mantieni zoom adeguato per vedere l'area intorno al player
+		camera.zoom = Vector2(0.8, 0.8)  # Zoom leggermente out - via di mezzo
 
 # ═══ SISTEMA NAVIGAZIONE INVENTARIO ═══
 
@@ -513,6 +641,21 @@ func enable_world_movement():
 
 func _input(event):
 	"""Gestisce input per navigazione inventario, debug e test dell'UI"""
+	
+	# ═══ FORWARD INPUT MOVEMENT AL WORLD ═══
+	
+	# Se non siamo in modalità inventario, forward input movimento al World
+	if not is_inventory_active:
+		# Forward input WASD e frecce al World.gd (usa ui_* actions)
+		if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down") or \
+		   event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right") or \
+		   (event is InputEventKey and event.pressed and \
+			(event.keycode == KEY_W or event.keycode == KEY_A or event.keycode == KEY_S or event.keycode == KEY_D)):
+			
+			if world_scene_instance and world_scene_instance.has_method("_input"):
+				# Propaga input direttamente al World.gd 
+				world_scene_instance._input(event)
+				return  # Non processare oltre per movimento
 	
 	# ═══ SISTEMA SELEZIONE INVENTARIO ═══
 	
@@ -590,8 +733,13 @@ func _input(event):
 		
 		# Debug: ESC per force refresh
 		if event.is_action_pressed("ui_cancel"):
-			force_ui_refresh()
+			update_all_ui()
 			show_system_message("UI aggiornata manualmente")
+		
+		# Debug: TAB per verifica WorldViewport
+		if event.is_action_pressed("ui_focus_next"):
+			debug_world_viewport()
+			show_system_message("Debug WorldViewport stampato in console")
 
 # ═══ PROCESS E UTILITY ═══
 
@@ -602,6 +750,7 @@ func _process(delta):
 	# Aggiorna info panel ogni 2 secondi
 	if ui_update_timer >= 2.0:
 		update_info_panel()
+		update_map_camera()  # Aggiorna anche la camera della mappa
 		ui_update_timer = 0.0
 
 func _notification(what):

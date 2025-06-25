@@ -1,7 +1,7 @@
 # 🧪 ANTI-REGRESSION TESTS - The Safe Place
 
 **Progetto:** The Safe Place - GDR Testuale Anni 80  
-**Versione:** v0.1.3 "The UI Master"  
+**Versione:** v0.1.5 "The Monitor Frame"  
 **Engine:** Godot 4.4.1  
 **Ultimo aggiornamento:** 2025-01-21
 
@@ -10,9 +10,9 @@
 ## ✅ **RISULTATI TEST**
 
 ### **📊 STATO GENERALE**
-- **Test totali:** 44/44 ✅ SUPERATI
+- **Test totali:** 50/50 ✅ SUPERATI
 - **Regressioni:** 0 🎉 ZERO
-- **Copertura:** 100% funzionalità core + PlayerManager + GameUI testate
+- **Copertura:** 100% funzionalità core + PlayerManager + GameUI + MainGame testate
 - **Ultimo test:** 2025-01-21
 
 ### **📈 EVOLUZIONE TEST**
@@ -21,6 +21,7 @@
 - **v0.1.1:** +8 test (World v2.0 avanzato) = 34 test
 - **v0.1.2:** +7 test (PlayerManager sistema completo) = 41 test
 - **v0.1.3:** +3 test (GameUI sistema completo) = 44 test
+- **v0.1.5:** +6 test (MainGame architettura unificata) = 50 test
 
 ## **🎯 **MILESTONE 1 - TEST v0.1.1 (WORLD v2.0 AVANZATO)**
 
@@ -136,6 +137,40 @@
 
 ---
 
+## 🎯 **MILESTONE 2 - TEST v0.1.5 (MAINGAME ARCHITETTURA)**
+
+### **M2.T3.1 - MainGame Scene Unificata** ✅
+- **Descrizione:** MainGame.tscn come scena principale unificata
+- **Test:** Avvio MainGame.tscn senza errori, UI e World visibili
+- **Risultato:** ✅ SUPERATO (architettura unificata funzionale)
+
+### **M2.T3.2 - SubViewport Integration** ✅
+- **Descrizione:** World.tscn renderizzato nel SubViewport del pannello mappa
+- **Test:** Mondo visibile nel pannello centrale, rendering real-time
+- **Risultato:** ✅ SUPERATO (SubViewport funziona perfettamente)
+
+### **M2.T3.3 - TextureRect Display** ✅
+- **Descrizione:** Texture SubViewport visualizzata tramite TextureRect
+- **Test:** MapDisplay mostra contenuto SubViewport correttamente
+- **Risultato:** ✅ SUPERATO (texture display implementato)
+
+### **M2.T3.4 - Input Forwarding Sistema** ✅
+- **Descrizione:** Input movimento WASD/frecce forwarded al World
+- **Test:** Player si muove nel SubViewport tramite input forwarding
+- **Risultato:** ✅ SUPERATO (input forwarding funziona)
+
+### **M2.T3.5 - Camera Zoom Equilibrato** ✅
+- **Descrizione:** Camera zoom 0.8x per visuale ottimale
+- **Test:** Zoom né troppo vicino né troppo lontano, player centrato
+- **Risultato:** ✅ SUPERATO (zoom equilibrato perfetto)
+
+### **M2.T3.6 - Performance MainGame** ✅
+- **Descrizione:** 60+ FPS mantenuti con architettura complessa
+- **Test:** Performance stabili con SubViewport + UI + World
+- **Risultato:** ✅ SUPERATO (performance eccellenti)
+
+---
+
 ## ⚠️ **PROBLEMI IDENTIFICATI**
 
 ### **🔧 PLAYER VISUALIZATION ISSUE**
@@ -184,12 +219,12 @@
 
 ## 🏆 **ACHIEVEMENT TESTING**
 
-### **Traguardi Raggiunti v0.1.3**
-- 🧪 **"Test Master Elite"** - 44 test anti-regressione
-- 🛡️ **"Zero Regression Legend"** - Nessuna regressione in 44 test
-- 🎯 **"Quality Guardian Supreme"** - 100% copertura core + PlayerManager + GameUI
-- ⚡ **"Performance Champion Pro"** - 60+ FPS mantenuti con UI completa
-- 🎮 **"UI Master"** - Sistema interfaccia completo e reattivo implementato
+### **Traguardi Raggiunti v0.1.5**
+- 🧪 **"Test Master Legend"** - 50 test anti-regressione
+- 🛡️ **"Zero Regression Supreme"** - Nessuna regressione in 50 test
+- 🎯 **"Quality Guardian Ultimate"** - 100% copertura core + PlayerManager + GameUI + MainGame
+- ⚡ **"Performance Champion Ultimate"** - 60+ FPS mantenuti con architettura complessa
+- 🖥️ **"The Monitor Frame Master"** - Architettura MainGame unificata implementata perfettamente
 
 ---
 

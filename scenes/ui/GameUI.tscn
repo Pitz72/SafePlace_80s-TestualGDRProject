@@ -1,8 +1,10 @@
 [gd_scene load_steps=2 format=3 uid="uid://bkhciyfpfpjvu"]
 
-[ext_resource type="Script" uid="uid://crh7vwk7r6bwl" path="res://scripts/ui/GameUI.gd" id="1_m9k5p"]
+[ext_resource type="Script" path="res://scripts/ui/GameUI.gd" id="1_m9k5p"]
 
-[node name="GameUI" type="Control"]
+[node name="GameUI_Layer" type="CanvasLayer"]
+
+[node name="GameUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_m9k5p")
 
-[node name="BackgroundColor" type="ColorRect" parent="."]
+[node name="BackgroundColor" type="ColorRect" parent="GameUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="MainLayout" type="MarginContainer" parent="."]
+[node name="MainLayout" type="MarginContainer" parent="GameUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,201 +34,210 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="ThreeColumnLayout" type="HBoxContainer" parent="MainLayout"]
+[node name="ThreeColumnLayout" type="HBoxContainer" parent="GameUI/MainLayout"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="LeftPanel" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout"]
+[node name="LeftPanel" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="SurvivalPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel"]
+[node name="SurvivalPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel"]
 layout_mode = 2
 
-[node name="SurvivalVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel"]
+[node name="SurvivalVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="SurvivalTitle" type="Label" parent="MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
+[node name="SurvivalTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
 layout_mode = 2
 text = "═══ SOPRAVVIVENZA ═══"
 horizontal_alignment = 1
 
-[node name="HPLabel" type="Label" parent="MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
+[node name="HPLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
 layout_mode = 2
 text = "HP: 100/100"
 
-[node name="FoodLabel" type="Label" parent="MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
+[node name="FoodLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
 layout_mode = 2
 text = "Sazietà: 100/100"
 
-[node name="WaterLabel" type="Label" parent="MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
+[node name="WaterLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/SurvivalPanel/SurvivalVBox"]
 layout_mode = 2
 text = "Idratazione: 100/100"
 
-[node name="InventoryPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel"]
+[node name="InventoryPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="InventoryVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel"]
+[node name="InventoryVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="InventoryTitle" type="Label" parent="MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox"]
+[node name="InventoryTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox"]
 layout_mode = 2
 text = "═══ INVENTARIO ═══"
 horizontal_alignment = 1
 
-[node name="InventoryScroll" type="ScrollContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox"]
+[node name="InventoryScroll" type="ScrollContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="InventoryList" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox/InventoryScroll"]
+[node name="InventoryList" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/LeftPanel/InventoryPanel/InventoryVBox/InventoryScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CenterPanel" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout"]
+[node name="CenterPanel" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 theme_override_constants/separation = 10
 
-[node name="MapPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel"]
+[node name="MapPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="MapVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel/MapPanel"]
+[node name="MapVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/MapPanel"]
 layout_mode = 2
 
-[node name="MapTitle" type="Label" parent="MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox"]
+[node name="MapTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox"]
 layout_mode = 2
 text = "═══ MAPPA DEL MONDO ═══"
 horizontal_alignment = 1
 
-[node name="WorldViewport" type="SubViewport" parent="MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox"]
+[node name="MapDisplay" type="TextureRect" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
 
-[node name="LogPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel"]
+[node name="WorldViewport" type="SubViewport" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/MapPanel/MapVBox"]
+layout_mode = 2
+size = Vector2i(400, 300)
+render_target_update_mode = 4
+
+[node name="LogPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="LogVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/CenterPanel/LogPanel"]
+[node name="LogVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/LogPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="LogTitle" type="Label" parent="MainLayout/ThreeColumnLayout/CenterPanel/LogPanel/LogVBox"]
+[node name="LogTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/LogPanel/LogVBox"]
 layout_mode = 2
 text = "═══ DIARIO DI VIAGGIO ═══"
 horizontal_alignment = 1
 
-[node name="LogDisplay" type="RichTextLabel" parent="MainLayout/ThreeColumnLayout/CenterPanel/LogPanel/LogVBox"]
+[node name="LogDisplay" type="RichTextLabel" parent="GameUI/MainLayout/ThreeColumnLayout/CenterPanel/LogPanel/LogVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 scroll_following = true
 
-[node name="RightPanel" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout"]
+[node name="RightPanel" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="InfoPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/RightPanel"]
+[node name="InfoPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel"]
 layout_mode = 2
 
-[node name="InfoVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/RightPanel/InfoPanel"]
+[node name="InfoVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/InfoPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="InfoTitle" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
+[node name="InfoTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
 layout_mode = 2
 text = "═══ INFORMAZIONI ═══"
 horizontal_alignment = 1
 
-[node name="PosizioneLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
+[node name="PosizioneLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
 layout_mode = 2
 text = "Posizione: (0,0)"
 
-[node name="LuogoLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
+[node name="LuogoLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
 layout_mode = 2
 text = "Luogo: Pianura"
 
-[node name="OraLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
+[node name="OraLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/InfoPanel/InfoVBox"]
 layout_mode = 2
 text = "Ora: 08:00"
 
-[node name="StatsPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/RightPanel"]
+[node name="StatsPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel"]
 layout_mode = 2
 
-[node name="StatsVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel"]
+[node name="StatsVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="StatsTitle" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="StatsTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "═══ STATISTICHE ═══"
 horizontal_alignment = 1
 
-[node name="StrengthLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="StrengthLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "Forza: 10"
 
-[node name="AgilityLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="AgilityLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "Agilità: 10"
 
-[node name="IntelligenceLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="IntelligenceLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "Intelligenza: 10"
 
-[node name="CharismaLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="CharismaLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "Carisma: 10"
 
-[node name="LuckLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
+[node name="LuckLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/StatsPanel/StatsVBox"]
 layout_mode = 2
 text = "Fortuna: 10"
 
-[node name="EquipmentPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/RightPanel"]
+[node name="EquipmentPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel"]
 layout_mode = 2
 
-[node name="EquipmentVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel"]
+[node name="EquipmentVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="EquipmentTitle" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
+[node name="EquipmentTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
 layout_mode = 2
 text = "═══ EQUIPAGGIAMENTO ═══"
 horizontal_alignment = 1
 
-[node name="WeaponLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
+[node name="WeaponLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
 layout_mode = 2
 text = "Arma: Nessuna"
 
-[node name="ArmorLabel" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
+[node name="ArmorLabel" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/EquipmentPanel/EquipmentVBox"]
 layout_mode = 2
 text = "Armatura: Nessuna"
 
-[node name="CommandsPanel" type="PanelContainer" parent="MainLayout/ThreeColumnLayout/RightPanel"]
+[node name="CommandsPanel" type="PanelContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel"]
 layout_mode = 2
 
-[node name="CommandsVBox" type="VBoxContainer" parent="MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel"]
+[node name="CommandsVBox" type="VBoxContainer" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="CommandsTitle" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
+[node name="CommandsTitle" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
 layout_mode = 2
 text = "═══ COMANDI ═══"
 horizontal_alignment = 1
 
-[node name="Command1" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
+[node name="Command1" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
 layout_mode = 2
 text = "[WASD] Movimento"
 
-[node name="Command2" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
+[node name="Command2" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
 layout_mode = 2
 text = "[I] Inventario"
 
-[node name="Command3" type="Label" parent="MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
+[node name="Command3" type="Label" parent="GameUI/MainLayout/ThreeColumnLayout/RightPanel/CommandsPanel/CommandsVBox"]
 layout_mode = 2
-text = "[ESC] Menu"
+text = "[1-9] Usa oggetto"
