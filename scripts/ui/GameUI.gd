@@ -49,7 +49,7 @@ class_name GameUI
 # ═══ VARIABILI INTERNE ═══
 
 var world_scene_instance: Node = null
-var ui_update_timer: float = 0.0
+# var ui_update_timer: float = 0.0  # ❌ RIMOSSO: causava refresh fastidioso ogni 2 secondi
 var last_player_position: Vector2 = Vector2.ZERO
 
 # ═══ SISTEMA SELEZIONE INVENTARIO ═══
@@ -61,6 +61,9 @@ var is_inventory_active: bool = false
 
 func _ready():
 	print("GameUI: ═══ INIZIALIZZAZIONE UI PRINCIPALE (MAINGAME ARCHITECTURE) ═══")
+	
+	# Step 0: Aggiungi al gruppo per connessione automatica World
+	add_to_group("gameui")
 	
 	# Step 0: Debug referenze nodi
 	debug_node_references()
@@ -506,15 +509,13 @@ func update_equipment_panel():
 			armor_label.text = "ARMATURA: Nessuna"
 
 func update_info_panel():
-	"""Aggiorna pannello informazioni (posizione, luogo, ora)"""
-	# TODO: Implementare quando avremo sistema posizione e tempo reale
-	# Per ora usa valori placeholder con protezione null - STILE ASCII PURO
-	if posizione_label:
-		posizione_label.text = "[POS]: (0,0)"
-	if luogo_label:
-		luogo_label.text = "[LOC]: Pianura Desolata"
+	"""Aggiorna pannello informazioni (posizione, luogo, ora) - SOLO se non già gestiti"""
+	# NOTA: Posizione e luogo ora gestiti da _on_player_moved() in real-time
+	# Questo aggiorna solo l'ora (quando sistema temporale sarà implementato)
+	
+	# Solo l'ora viene aggiornata qui (sistema temporale futuro)
 	if ora_label:
-		ora_label.text = "[TIME]: 08:00"
+		ora_label.text = "[TIME]: 08:00"  # TODO: Implementare sistema tempo reale
 
 func update_commands_panel():
 	"""Aggiorna pannello comandi con istruzioni dinamiche"""
@@ -801,16 +802,20 @@ func enable_world_movement():
 # Movimento mappa gestito direttamente da World.gd tramite InputManager.map_move
 
 # ═══ PROCESS E UTILITY ═══
+# 
+# NOTA: Timer automatico RIMOSSO per evitare refresh fastidioso delle coordinate
+# Le informazioni posizione/luogo sono ora gestite real-time da _on_player_moved()
+# Solo l'ora sarà gestita qui quando il sistema temporale sarà implementato
 
-func _process(delta):
-	"""Update loop per UI dinamica"""
-	ui_update_timer += delta
-	
-	# Aggiorna info panel ogni 2 secondi
-	if ui_update_timer >= 2.0:
-		update_info_panel()
-		update_map_camera()  # Aggiorna anche la camera della mappa
-		ui_update_timer = 0.0
+# func _process(delta):  # ❌ FUNZIONE RIMOSSA
+	# """Update loop per UI dinamica"""
+	# ui_update_timer += delta
+	# 
+	# # Aggiorna info panel ogni 2 secondi
+	# if ui_update_timer >= 2.0:
+	# 	update_info_panel()
+	# 	update_map_camera()  # Aggiorna anche la camera della mappa
+	# 	ui_update_timer = 0.0
 
 func _notification(what):
 	"""Gestisce notifiche di sistema Godot"""
@@ -849,3 +854,30 @@ func _exit_tree():
 	print("GameUI: ✅ Cleanup completato")
 
 # ═══ FINE GAMEUI SCRIPT ═══ 
+
+func add_world_log(message: String):
+	"""Aggiunge un messaggio di movimento dal World al diario"""
+	if not log_display:
+		print("GameUI: [ERROR] log_display è null - messaggio World perso: " + message)
+		return
+	
+	var timestamp = get_current_timestamp()
+	var formatted_message = "[color=cyan]%s[/color] [color=lightgreen][MONDO][/color] %s\n" % [timestamp, message]
+	
+	log_display.append_text(formatted_message)
+	
+	# Scroll automatico all'ultimo messaggio
+	log_display.scroll_to_line(log_display.get_line_count() - 1)
+
+func _on_player_moved(new_position: Vector2i, terrain_type: String):
+	"""Callback per aggiornamento pannello informazioni quando player si muove"""
+	
+	# Aggiorna label posizione
+	if posizione_label:
+		posizione_label.text = "Posizione: [%d, %d]" % [new_position.x, new_position.y]
+	
+	# Aggiorna label luogo/terreno
+	if luogo_label:
+		luogo_label.text = "Luogo: %s" % terrain_type
+	
+	print("GameUI: 📍 Pannello info aggiornato - Pos: %s, Terreno: %s" % [str(new_position), terrain_type])

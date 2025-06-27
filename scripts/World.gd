@@ -2,15 +2,19 @@ extends Node2D
 class_name World
 
 # ============================================================================
-# WORLD SCRIPT FINALE v2.0 - The Safe Place 
+# WORLD SCRIPT FINALE v2.1 - The Safe Place 
 # ============================================================================
 # Sistema completo di mondo interattivo con:
 # - TileMap ottimizzato per rendering
 # - Sprite2D animato per effetti player (lampeggio)
 # - Penalità movimento per attraversamento fiumi
-# - Camera con limiti calcolati automaticamente
+# - Camera con limiti calcolati automaticamente e fix saltello
 # - Gestione collisioni avanzata
+# - Log movimento real-time e pannello informazioni
 # ============================================================================
+
+# SEGNALI PER COMUNICAZIONE UI
+signal player_moved(new_position: Vector2i, terrain_type: String)
 
 # REFERENZE NODI SCENA
 @onready var ascii_tilemap: TileMap = $AsciiTileMap
@@ -37,6 +41,27 @@ var char_to_tile_id = {
 	"E": 7   # End Point - start_point.png (CORRETTI!)
 }
 
+# MAPPING CARATTERI → NOMI TERRENI (per log movimento)
+var char_to_terrain_name = {
+	".": "Pianura",
+	"F": "Foresta",
+	"M": "Montagna",
+	"~": "Fiume",
+	"V": "Villaggio",
+	"C": "Città",
+	"R": "Ristoro",
+	"S": "Punto di Partenza",
+	"E": "Destinazione"
+}
+
+# MAPPING DIREZIONI → NOMI (per log movimento)
+var direction_to_name = {
+	Vector2i(0, -1): "Nord",
+	Vector2i(0, 1): "Sud",
+	Vector2i(-1, 0): "Ovest",
+	Vector2i(1, 0): "Est"
+}
+
 # STATO PLAYER E MOVIMENTO
 var player_pos: Vector2i = Vector2i(0, 0)
 var movement_penalty: int = 0  # Penalità movimento (fiume)
@@ -44,12 +69,15 @@ var map_data: Array[String] = []
 var map_width: int = 0
 var map_height: int = 0
 
+# CAMERA SMOOTH TARGET (FIX SALTELLO)
+var target_camera_position: Vector2 = Vector2.ZERO
+
 # ============================================================================
 # INIZIALIZZAZIONE SISTEMA
 # ============================================================================
 
 func _ready():
-	print("🌍 Inizializzazione World v2.0 - Sistema Avanzato")
+	print("🌍 Inizializzazione World v2.1 - Sistema Avanzato + Camera Fix")
 	
 	# 1. Configura TileMap
 	_setup_tilemap()
@@ -69,7 +97,10 @@ func _ready():
 	# 6. CONNETTI SEGNALI INPUTMANAGER
 	_connect_input_manager()
 	
-	print("✅ World v2.0 pronto - Sistema completo attivo con InputManager!")
+	# 7. CONNETTI SEGNALE A GAMEUI PER AGGIORNAMENTI INFO
+	_connect_to_gameui()
+	
+	print("✅ World v2.1 pronto - Sistema completo con camera fix e log movimento!")
 
 func _setup_tilemap():
 	"""Configura il TileMap con il TileSet aggiornato"""
@@ -106,12 +137,29 @@ func _setup_camera():
 	camera.limit_right = map_width_pixels
 	camera.limit_bottom = map_height_pixels
 	
-	# Posiziona camera su player
+	# Inizializza posizione target camera
 	var world_pos = Vector2(player_pos.x * TILE_SIZE, player_pos.y * TILE_SIZE)
+	target_camera_position = world_pos
 	camera.position = world_pos
 	camera.force_update_scroll()
 	
 	print("✅ Camera configurata - Zoom 1.065x (Single Source of Truth), Limiti: %dx%d pixel" % [map_width_pixels, map_height_pixels])
+
+# ============================================================================
+# PHYSICS PROCESS - CAMERA SMOOTH UPDATE (FIX SALTELLO)
+# ============================================================================
+
+func _physics_process(delta):
+	"""Aggiorna camera smoothly ogni frame per evitare saltelli"""
+	if camera != null:
+		# Calcola posizione target (sempre a coordinate intere per evitare arrotondamenti)
+		var target_world_pos = Vector2(
+			round(target_camera_position.x),
+			round(target_camera_position.y)
+		)
+		
+		# Aggiorna camera con posizione intera (elimina decimali)
+		camera.position = target_world_pos
 
 # ============================================================================
 # CARICAMENTO E CONVERSIONE MAPPA
@@ -198,15 +246,14 @@ func _update_player_position():
 	
 	print("🎯 Player posizionato: %s" % str(world_pos))
 	
-	# Aggiorna camera per seguire player
-	_update_camera_to_player()
+	# Aggiorna target camera (non più chiamata diretta)
+	_update_camera_target()
 
-func _update_camera_to_player():
-	"""Aggiorna posizione camera per seguire player"""
+func _update_camera_target():
+	"""Aggiorna target position per camera (processata in _physics_process)"""
 	if camera != null:
-		var world_pos = Vector2(player_pos.x * TILE_SIZE, player_pos.y * TILE_SIZE)
-		# Camera segue immediatamente (no tween per responsività)
-		camera.position = world_pos
+		# Calcola nuova posizione target per la camera
+		target_camera_position = Vector2(player_pos.x * TILE_SIZE, player_pos.y * TILE_SIZE)
 
 # ============================================================================
 # LOGICA MOVIMENTO AVANZATA (InputManager Integration)
@@ -226,15 +273,32 @@ func _connect_input_manager():
 	
 	print("🎮 World: Gestione input delegata a InputManager")
 
+## Connette il segnale player_moved al GameUI per aggiornamenti info real-time
+func _connect_to_gameui():
+	"""Connette il segnale al GameUI per aggiornamenti pannello informazioni"""
+	# Cerca GameUI nella scena
+	var gameui = get_tree().get_first_node_in_group("gameui")
+	if gameui == null:
+		# Cerca tramite percorso relativo se non trovato nel gruppo
+		gameui = get_node("../../../GameUI") if get_node_or_null("../../../GameUI") else null
+	
+	if gameui and gameui.has_method("_on_player_moved"):
+		if not player_moved.is_connected(gameui._on_player_moved):
+			player_moved.connect(gameui._on_player_moved)
+			print("✅ World: Connesso segnale player_moved a GameUI")
+	else:
+		print("⚠️ World: GameUI non trovato per connessione segnale")
+
 ## Callback per movimento player tramite InputManager
 ## @param direction: Vector2i direzione movimento (-1,0,1 per x/y)
 func _on_map_move(direction: Vector2i):
-	"""Gestisce movimento player con penalità fiume e controlli avanzati"""
+	"""Gestisce movimento player con penalità fiume, log movimento e aggiornamenti UI"""
 	
 	# SISTEMA PENALITÀ MOVIMENTO
 	if movement_penalty > 0:
 		movement_penalty -= 1
 		print("⏳ Penalità movimento: resta %d turni" % movement_penalty)
+		_add_movement_log("Penalità movimento: resta %d turni" % movement_penalty)
 		return  # Salta turno
 	
 	# Calcola nuova posizione basata su direzione InputManager
@@ -252,11 +316,35 @@ func _on_map_move(direction: Vector2i):
 		player_pos = new_position
 		_update_player_position()
 		
+		# LOG MOVIMENTO CON DIREZIONE E TERRENO
+		var direction_name = direction_to_name.get(direction, "Direzione Sconosciuta")
+		var terrain_name = char_to_terrain_name.get(destination_char, "Terreno Sconosciuto")
+		_add_movement_log("Ti sposti verso %s, raggiungendo: %s" % [direction_name, terrain_name])
+		
+		# EMETTI SEGNALE PER AGGIORNAMENTO PANNELLO INFO
+		player_moved.emit(new_position, terrain_name)
+		
 		# Log movimento (solo per posizioni significative)
 		if new_position.x % 5 == 0 or new_position.y % 5 == 0:
 			print("🚶 Player: %s (%s)" % [str(new_position), destination_char])
 	else:
 		print("🚫 Movimento bloccato verso: %s" % str(new_position))
+		var direction_name = direction_to_name.get(direction, "Direzione Sconosciuta")
+		_add_movement_log("Movimento bloccato verso %s: ostacolo invalicabile" % direction_name)
+
+## Aggiunge log di movimento al GameUI
+func _add_movement_log(message: String):
+	"""Invia messaggio di movimento al log del GameUI"""
+	# Cerca GameUI nella scena per log movimento
+	var gameui = get_tree().get_first_node_in_group("gameui")
+	if gameui == null:
+		# Cerca tramite percorso relativo se non trovato nel gruppo
+		gameui = get_node("../../../GameUI") if get_node_or_null("../../../GameUI") else null
+	
+	if gameui and gameui.has_method("add_world_log"):
+		gameui.add_world_log(message)
+	else:
+		print("⚠️ GameUI non trovato per log movimento: %s" % message)
 
 func _is_valid_move(pos: Vector2i) -> bool:
 	"""Valida movimento con controlli confini e collisioni"""
@@ -306,16 +394,23 @@ func is_river_crossing() -> bool:
 	"""API pubblica: controlla se player è su fiume"""
 	return _get_char_at_position(player_pos) == "~"
 
+func get_current_terrain_name() -> String:
+	"""API pubblica: nome terreno corrente"""
+	var char = _get_char_at_position(player_pos)
+	return char_to_terrain_name.get(char, "Terreno Sconosciuto")
+
 # ============================================================================
 # DEBUG E INFORMAZIONI
 # ============================================================================
 
 func _on_debug_requested():
 	"""Stampa informazioni debug complete"""
-	print("=== WORLD v2.0 DEBUG ===")
+	print("=== WORLD v2.1 DEBUG ===")
 	print("Mappa: %dx%d" % [map_width, map_height])
 	print("Player: %s" % str(player_pos))
 	print("Char sotto player: %s" % _get_char_at_position(player_pos))
+	print("Terreno corrente: %s" % get_current_terrain_name())
 	print("Penalità movimento: %d" % movement_penalty)
 	print("Camera: %s (zoom: %s)" % [str(camera.position), str(camera.zoom)])
+	print("Target Camera: %s" % str(target_camera_position))
 	print("========================")
