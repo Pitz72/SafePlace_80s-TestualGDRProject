@@ -1,0 +1,60 @@
+[gd_resource type="TileSet" load_steps=19 format=3 uid="uid://b0kosv4r0ml4d"]
+
+[ext_resource type="Texture2D" uid="uid://bojw2nr5e7f3u" path="res://textures/tiles/city.png" id="1_aumnj"]
+[ext_resource type="Texture2D" uid="uid://nur8qb3l2y1f" path="res://textures/tiles/end_point.png" id="2_yrbvh"]
+[ext_resource type="Texture2D" uid="uid://ca0u8radbilyi" path="res://textures/tiles/forest.png" id="3_mdv18"]
+[ext_resource type="Texture2D" uid="uid://bovib4i8e5nxt" path="res://textures/tiles/mountain.png" id="4_lyroi"]
+[ext_resource type="Texture2D" uid="uid://do2bes7jmo0fy" path="res://textures/tiles/start_point.png" id="5_mqf86"]
+[ext_resource type="Texture2D" uid="uid://cxpwd43je2e3g" path="res://textures/tiles/terrain.png" id="6_r3wu0"]
+[ext_resource type="Texture2D" uid="uid://4sahe512q2gv" path="res://textures/tiles/village.png" id="7_yapea"]
+[ext_resource type="Texture2D" uid="uid://b3yuv71cji2pm" path="res://textures/tiles/rest_stop.png" id="7_yrbvh"]
+[ext_resource type="Texture2D" uid="uid://c5xi021ti5jab" path="res://textures/tiles/water.png" id="8_v8bwf"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h6mjf"]
+texture = ExtResource("6_r3wu0")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2y74b"]
+texture = ExtResource("3_mdv18")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fvrxc"]
+texture = ExtResource("4_lyroi")
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kya5s"]
+texture = ExtResource("8_v8bwf")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0ujcp"]
+texture = ExtResource("7_yapea")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nakki"]
+texture = ExtResource("1_aumnj")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_mdv18"]
+texture = ExtResource("7_yrbvh")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5iy6n"]
+texture = ExtResource("2_yrbvh")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sd507"]
+texture = ExtResource("5_mqf86")
+0:0/0 = 0
+
+[resource]
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_h6mjf")
+sources/1 = SubResource("TileSetAtlasSource_2y74b")
+sources/2 = SubResource("TileSetAtlasSource_fvrxc")
+sources/3 = SubResource("TileSetAtlasSource_kya5s")
+sources/4 = SubResource("TileSetAtlasSource_0ujcp")
+sources/5 = SubResource("TileSetAtlasSource_nakki")
+sources/6 = SubResource("TileSetAtlasSource_mdv18")
+sources/7 = SubResource("TileSetAtlasSource_5iy6n")
+sources/8 = SubResource("TileSetAtlasSource_sd507")

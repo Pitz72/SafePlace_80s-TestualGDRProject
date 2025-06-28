@@ -1,0 +1,185 @@
+===============================================================================
+                    THE SAFE PLACE - GDR TESTUALE ANNI 80
+                       REGOLE DI SVILUPPO FONDAMENTALI
+                      "The Inventory Master" - v0.1.4
+                           Aggiornato: 2025-01-25
+===============================================================================
+
+🎯 VERSIONE CORRENTE: v0.1.4 "The Inventory Master"
+📊 PROGRESSO: 62.5% (Milestone 2 Task 3 completato)
+
+===============================================================================
+📋 PROTOCOLLO DI SVILUPPO UMANO-LLM
+===============================================================================
+
+PRINCIPIO 1: DOCUMENTAZIONE COME FONTE UNICA DI VERITÀ
+• Cartella "01 Pre Produzione" è l'UNICA fonte di verità
+• LLM non deve MAI fare supposizioni su features o architettura
+• Sempre consultare documenti esistenti prima di implementare
+• Mai ignorare o sovrascrivere decisioni architetturali documentate
+
+PRINCIPIO 2: SVILUPPO INCREMENTALE ATOMICO
+• Ogni task deve essere il più piccolo possibile
+• Un task = un commit GitHub con messaggio descrittivo
+• Mai mescolare features multiple in un singolo task
+• Testing completo prima di passare al task successivo
+
+PRINCIPIO 3: RITUALE DEL RESET (Inizio Sessione)
+• Step 1: Inizializzazione obiettivo sessione
+• Step 2: Caricamento completo contesto documentazione
+• Step 3: Conferma LLM di comprensione obiettivo
+• Step 4: Identificazione task atomico da completare
+• Mai iniziare sviluppo senza questo rituale
+
+PRINCIPIO 4: PROTOCOLLO ANTI-REGRESSIONE
+• File TESTS.md deve essere aggiornato per ogni feature
+• Test manuali definiti e descritti dettagliatamente
+• Verifiche obbligatorie prima di ogni commit
+• Zero regressioni tollerate su features esistenti
+
+PRINCIPIO 5: RUOLI UMANO-LLM DEFINITI
+• UMANO: Project Manager, Architetto, Game Designer, QA Tester
+• LLM: Programmatore, Technical Writer, Pair Programmer
+• LLM segue decisioni architetturali umane senza questionare
+• Umano fornisce feedback e direzione, LLM implementa
+
+PRINCIPIO 6: ARCHITETTURA MODULARE DATABASE
+• Database JSON modulari (file < 10KB ciascuno)
+• Organizzazione per cartelle logiche (data/items/, data/enemies/, etc.)
+• Suddivisione per categoria funzionale
+• File condivisi in data/system/ per sistemi comuni
+• Naming convention: categoria_tipologia.json
+• Applicazione OBBLIGATORIA a tutti database futuri
+
+PRINCIPIO 7: AGGIORNAMENTO DOCUMENTAZIONE OBBLIGATORIO
+• "01 PRE PRODUZIONE\01 ROADMAP.txt" SEMPRE aggiornato
+• TUTTI i documenti roadmap aggiornati simultaneamente
+• Coerenza versioning tra tutti i documenti
+• Verifica incrociata prima chiusura ogni task
+• MAI ignorare aggiornamento cartelle "01 PRE PRODUZIONE" e "02 PRODUZIONE"
+• Sempre chiedere chiarimenti se mancano info in documentazione
+
+PRINCIPIO 8: DESIGN KEYBOARD-ONLY RIGOROSO
+• Interfacce navigabili SOLO da tastiera (autenticità anni 80)
+• Nessun elemento richiede mouse per accesso completo
+• Input mapping completo: WASD + Frecce per movimento
+• Hotkey numerici 1-9 per azioni rapide
+• Modalità testuali con comandi ASCII ([I] [ESC] [ENTER])
+• UI design che ricorda terminali reali anni '80
+
+===============================================================================
+🎮 STANDARD ARCHITETTURALI CONSOLIDATI v0.1.4
+===============================================================================
+
+ARCHITETTURA SINGLETON MANAGER:
+• ThemeManager: Gestione temi CRT e font DOS
+• DataManager: Database JSON modulari unificati
+• PlayerManager: Stato giocatore completo + inventario + segnali reattivi
+
+ARCHITETTURA UI REATTIVA:
+• GameUI.tscn: Layout 3-colonne (1:2:1) con 13 pannelli specializzati
+• Aggiornamenti automatici via segnali PlayerManager
+• SubViewport per World.tscn integrato nel pannello centrale
+• Sistema diario BBCode con timestamp per azioni giocatore
+
+SISTEMA INVENTARIO AVANZATO:
+• Navigazione WASD + Frecce indistintamente
+• Evidenziazione visuale con > [1] [2] [3] format
+• Consumo reale tramite PlayerManager.use_item()
+• Hotkey diretti 1-9 con applicazione effetti immediata
+• Modalità attiva/inattiva con comandi dinamici contestuali
+
+FORMATO DATI STANDARDIZZATO:
+• JSON con effects array: [{"type": "heal", "amount": 25}]
+• Tipologie effetti: heal, nourish, hydrate, restore_stamina
+• Gestione placeholder per features future (radiazioni, veleni)
+• Oggetti non consumabili gestiti separatamente
+
+===============================================================================
+🛠️ STRUMENTI E WORKFLOW CONSOLIDATI
+===============================================================================
+
+AMBIENTE SVILUPPO:
+• Engine: Godot 4.4.1 stable
+• Font Standard: Perfect DOS VGA 437 Win
+• Tema CRT: Shader terminale anni 80 con scanlines
+• Performance Target: 60+ FPS stabili
+
+GESTIONE VERSIONING:
+• Formato: v0.X.Y "Nome Milestone/Feature"
+• Commit atomici con messaggi descrittivi
+• Branch principale: godot-port
+• Tag per release major milestone
+
+QUALITY ASSURANCE:
+• Test anti-regressione: 47/47 attualmente (100% pass rate)
+• Verifica manuale features prima commit
+• Performance monitoring continuo
+• Documentazione aggiornata obbligatoria
+
+===============================================================================
+📊 ACHIEVEMENT E MILESTONE COMPLETATE
+===============================================================================
+
+✅ MILESTONE 0: FONDAMENTA TECNICHE (100%)
+• "Foundation Builder" - Setup Godot + CRT perfetto
+
+✅ MILESTONE 1: MONDO DI GIOCO (100%)  
+• "World Builder" - Mondo ASCII 250x250 navigabile
+
+✅ MILESTONE 2: GAMEPLAY CORE (62.5% - 2.5/4 task)
+• "The Manager" - PlayerManager singleton completo
+• "The UI Master" - GameUI reattiva 3-colonne  
+• "The Inventory Master" - Sistema inventario WASD + consumo
+
+🎯 PROSSIMO OBIETTIVO: M2.T4 Sistema Combattimento Base
+
+===============================================================================
+⚠️ REGOLE SPECIALI GODOT 4.4.1
+===============================================================================
+
+GESTIONE PERCORSI:
+• Mai usare path assoluti Windows in scene/script
+• Sempre res:// per riferimenti interni
+• Pulizia cache .godot/ in caso corruzione UID
+• Rimozione file .uid corrotti se necessario
+
+PERFORMANCE TILEMAP:
+• TileSet ottimizzato per mappe 250x250 (62.500 tiles)
+• Texture generate programmaticamente per coerenza
+• Camera limits configurati per contenimento
+
+SISTEMA AUTOLOAD:
+• Caricamento ordinato: Theme → Data → Player
+• Gestione dipendenze cross-manager
+• Inizializzazione pulita con logging dettagliato
+
+===============================================================================
+🎯 OBIETTIVI SESIONI FUTURE
+===============================================================================
+
+BREVE TERMINE (M2.T4):
+• Sistema combattimento base con turni
+• Calcolo danni armi/armature da inventario
+• Stati alterati base (veleno, infezione)
+
+MEDIO TERMINE (M3):
+• Eventi casuali con database modulare
+• Sistema dialoghi NPG semplificato
+• Crafting base con recipe JSON
+
+LUNGO TERMINE (M4):
+• Database contenuti completo
+• Sistema progressione personaggio
+• Audio integration e release
+
+===============================================================================
+
+🎮 The Safe Place v0.1.4 "The Inventory Master"
+📦 Sistema inventario WASD + consumo reale completato
+
+Documentazione aggiornata: 2025-01-25
+Prossima milestone: M2.T4 Sistema Combattimento Base
+
+===============================================================================
+

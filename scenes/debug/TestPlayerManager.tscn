@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ck2sk27xw8l2k"]
+
+[ext_resource type="Script" uid="uid://cges10iomsm7f" path="res://scenes/debug/TestPlayerManager.gd" id="1_5p4xc"]
+
+[node name="TestPlayerManager" type="Node"]
+script = ExtResource("1_5p4xc")

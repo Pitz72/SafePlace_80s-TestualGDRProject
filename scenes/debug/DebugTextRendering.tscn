@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://cxalf5k0xekvu"]
+
+[node name="DebugTextRendering" type="Node2D"]
+
+[node name="TestLabel" type="Label" parent="."]
+offset_left = 100.0
+offset_top = 100.0
+text = "SE MI VEDI, IL RENDERING FUNZIONA"
+
+[node name="Camera2D" type="Camera2D" parent="."]

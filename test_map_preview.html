@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePlace - Test Mappa BBCode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #4ea162;
+            font-family: 'Courier New', monospace;
+            font-size: 8px;
+            line-height: 1.0;
+        }
+        .container {
+            max-width: 100%;
+            overflow: auto;
+            border: 2px solid #4ea162;
+            padding: 10px;
+            background: #111;
+        }
+        .map-display {
+            white-space: pre;
+            font-size: 6px;
+            line-height: 0.8;
+        }
+        .status {
+            color: #f5d442;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .player-pos {
+            color: #66b563;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status">📍 SafePlace - Test Visualizzazione Mappa BBCode</div>
+        <div class="map-display" id="mapDisplay">Caricamento mappa...</div>
+        <div class="player-pos" id="playerPos">Player: Caricamento...</div>
+    </div>
+
+    <script>
+        async function loadAndDisplayMap() {
+            try {
+                // Simula il caricamento della mappa BBCode convertita
+                const response = await fetch('maps/main_map_bbcode.txt');
+                const mapBBCode = await response.text();
+                
+                // Converti BBCode base in HTML per preview
+                let htmlMap = mapBBCode
+                    .replace(/\[color=#([0-9a-fA-F]{6})\](.?)\[\/color\]/g, '<span style="color: #$1;">$2</span>')
+                    .replace(/\[pulse freq=2\.0 color=#([0-9a-fA-F]{6})\](.?)\[\/pulse\]/g, '<span class="pulse" style="color: #$1;">$2</span>');
+                
+                document.getElementById('mapDisplay').innerHTML = htmlMap;
+                
+                // Trova posizione start
+                const lines = mapBBCode.split('\n');
+                let startFound = false;
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('pulse') && lines[i].includes('S')) {
+                        document.getElementById('playerPos').innerHTML = 
+                            `📍 Player Start trovato alla riga ${i + 1} | Mappa: ${lines.length} righe`;
+                        startFound = true;
+                        break;
+                    }
+                }
+                
+                if (!startFound) {
+                    document.getElementById('playerPos').innerHTML = '❌ Start non trovato nella mappa BBCode';
+                }
+                
+            } catch (error) {
+                document.getElementById('mapDisplay').innerHTML = 
+                    `❌ Errore caricamento mappa: ${error.message}`;
+                document.getElementById('playerPos').innerHTML = 
+                    '⚠️ Assicurati che il file maps/main_map_bbcode.txt esista';
+            }
+        }
+
+        // Carica la mappa al caricamento della pagina
+        window.onload = loadAndDisplayMap;
+    </script>
+</body>
+</html>

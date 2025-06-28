@@ -1,0 +1,168 @@
+{
+  "armor": {
+    "armor_rags": {
+      "id": "armor_rags",
+      "name": "Stracci",
+      "nameShort": "Stracci",
+      "description": "Abiti logori e rattoppati. Offrono una protezione minima dagli elementi e quasi nessuna in combattimento.",
+      "type": "armor",
+      "rarity": "COMMON",
+      "slot": "body",
+      "weight": 1.0,
+      "value": 2,
+      "stackable": false,
+      "durability": 20,
+      "maxDurability": 20,
+      "armorValue": 1
+    },
+    "leather_jacket_worn": {
+      "id": "leather_jacket_worn",
+      "name": "Giacca di Pelle Logora",
+      "nameShort": "Giacca Pelle",
+      "description": "Una giacca di pelle spessa, indurita dal tempo e dalle intemperie. Offre una discreta protezione.",
+      "type": "armor",
+      "rarity": "COMMON",
+      "slot": "body",
+      "weight": 2.5,
+      "value": 25,
+      "stackable": false,
+      "durability": 50,
+      "maxDurability": 50,
+      "armorValue": 3
+    },
+    "armor_kevlar_damaged": {
+      "id": "armor_kevlar_damaged",
+      "name": "Giubbotto in Kevlar Danneggiato",
+      "nameShort": "Kevlar",
+      "description": "Un giubbotto antiproiettile di fattura militare, ma con evidenti segni di usura e danni. Protegge ancora, ma non è affidabile come un tempo.",
+      "type": "armor",
+      "rarity": "UNCOMMON",
+      "slot": "body",
+      "weight": 4.0,
+      "value": 60,
+      "stackable": false,
+      "durability": 40,
+      "maxDurability": 40,
+      "armorValue": 5
+    },
+    "wastelander_coat": {
+      "id": "wastelander_coat",
+      "name": "Cappotto del Vagabondo",
+      "nameShort": "Cappotto Vagab.",
+      "description": "Un lungo cappotto di cuoio rinforzato con placche metalliche. Indossato da innumerevoli viandanti delle terre desolate. Parte del leggendario Wastelander Set.",
+      "type": "armor",
+      "rarity": "EPIC",
+      "slot": "body",
+      "armorValue": 6,
+      "weight": 2.5,
+      "value": 400,
+      "stackable": false,
+      "durability": 80,
+      "maxDurability": 80,
+      "setId": "wastelander_set",
+      "effects": [
+        { "type": "elemental_resistance", "amount": 0.15 },
+        { "type": "weather_protection", "allWeather": true }
+      ]
+    },
+    "wastelander_boots": {
+      "id": "wastelander_boots",
+      "name": "Stivali del Vagabondo",
+      "nameShort": "Stivali Vagab.",
+      "description": "Stivali da combattimento rinforzati con suole metalliche e protezioni laterali. Perfetti per attraversare ogni terreno ostile.",
+      "type": "armor",
+      "rarity": "EPIC",
+      "slot": "feet",
+      "armorValue": 3,
+      "weight": 1.2,
+      "value": 300,
+      "stackable": false,
+      "durability": 70,
+      "maxDurability": 70,
+      "setId": "wastelander_set",
+      "effects": [
+        { "type": "movement_speed", "bonus": 0.1 },
+        { "type": "terrain_immunity", "roughTerrain": true }
+      ]
+    },
+    "wastelander_gloves": {
+      "id": "wastelander_gloves",
+      "name": "Guanti del Vagabondo",
+      "nameShort": "Guanti Vagab.",
+      "description": "Guanti tattici rinforzati con protezioni per le nocche. Permettono una presa salda delle armi anche nelle condizioni più difficili.",
+      "type": "armor",
+      "rarity": "EPIC",
+      "slot": "hands",
+      "armorValue": 2,
+      "weight": 0.3,
+      "value": 250,
+      "stackable": false,
+      "durability": 70,
+      "maxDurability": 70,
+      "setId": "wastelander_set",
+      "effects": [
+        { "type": "weapon_handling", "accuracyBonus": 5 },
+        { "type": "critical_chance", "bonus": 0.05 }
+      ]
+    }
+  },
+  "tools_accessories": {
+    "fathers_compass": {
+      "id": "fathers_compass",
+      "name": "Bussola del Padre",
+      "nameShort": "Bussola Papà",
+      "description": "Una bussola militare incisa con le iniziali del padre. L'ago punta sempre verso nord, ma senti che ti guida verso qualcosa di più importante: la speranza.",
+      "type": "tool",
+      "rarity": "LEGENDARY",
+      "slot": "accessory",
+      "weight": 0.2,
+      "value": 800,
+      "stackable": false,
+      "durability": 100,
+      "maxDurability": 100,
+      "effects": [
+        { "type": "navigation_mastery", "accuracy": 1.0 },
+        { "type": "never_lost", "wanderingPrevention": true },
+        { "type": "path_of_hope", "safePlaceGuidance": true }
+      ]
+    },
+    "mothers_locket": {
+      "id": "mothers_locket",
+      "name": "Medaglione della Madre",
+      "nameShort": "Medaglione",
+      "description": "Un piccolo medaglione d'argento con l'immagine di una donna gentile. Dentro, incisa finemente: 'Per Ultimo, con tutto il mio amore - Mamma'.",
+      "type": "accessory",
+      "rarity": "EPIC",
+      "slot": "accessory",
+      "weight": 0.1,
+      "value": 600,
+      "stackable": false,
+      "durability": 999,
+      "maxDurability": 999,
+      "effects": [
+        { "type": "mothers_protection", "damageReduction": 0.1 },
+        { "type": "inner_peace", "stressReduction": 0.3 },
+        { "type": "loving_memory", "hpRegenerationBonus": 2 }
+      ]
+    },
+    "nuclear_detector_advanced": {
+      "id": "nuclear_detector_advanced",
+      "name": "Rilevatore Nucleare Avanzato",
+      "nameShort": "Rilevatore Nucleare",
+      "description": "Un dispositivo pre-guerra ancora funzionante che rileva radiazioni e anomalie nucleari. I suoi sensori avanzati possono salvare la vita.",
+      "type": "tool",
+      "rarity": "LEGENDARY",
+      "slot": "accessory",
+      "weight": 1.0,
+      "value": 1200,
+      "stackable": false,
+      "durability": 50,
+      "maxDurability": 50,
+      "effects": [
+        { "type": "radiation_immunity", "protection": 0.8 },
+        { "type": "nuclear_hazard_detection", "earlyWarning": true },
+        { "type": "safe_zone_identification", "dangerZoneAvoidance": 0.7 }
+      ]
+    }
+  }
+} 
