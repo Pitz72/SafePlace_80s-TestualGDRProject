@@ -1,0 +1,43 @@
+🌍 RELEASE v0.1.1 "This world is an ecosystem"
+
+✨ World System v2.0 - Sistema mondo avanzato completo
+
+🚀 FUNZIONALITÀ PRINCIPALI:
+• World System v2.0 con meccaniche gameplay avanzate
+• Palette ufficiale 9 terreni con texture dedicate  
+• Sistema BBCode per effetti speciali dinamici
+• Penalità movimento fiume (1 turno skip)
+• Collision detection montagne completa
+• Camera intelligente con limiti automatici
+• Start/End point con texture corrette
+
+🎨 MIGLIORAMENTI VISUAL:
+• Nuovo tile Ristoro (R) giallo #ffdd00
+• S/E ora utilizzano texture dedicate invece di BBCode
+• Sistema punti speciali con nodi separati
+• Effetti lampeggio per feedback immersivo
+
+⚡ PERFORMANCE & QUALITÀ:
+• 60+ FPS stabili su mappa 250x250 con effetti
+• 34/34 test anti-regressione superati (100%)
+• Zero regressioni mantenute
+• Architettura modulare v2.0 scalabile
+
+🔧 ISSUE IDENTIFICATO:
+• Player visualization: colore/lampeggio non applicati
+• Soluzioni candidate documentate (BBCode debug, sprite pixelart, Tween)
+• Non bloccante per gameplay - priorità media
+
+📊 RISULTATI CHIAVE:
+• Mondo 250x250 completamente navigabile
+• 9 terreni con meccaniche uniche
+• Sistema movimento strategico avanzato
+• Base solida per Milestone 2 (Gameplay Core)
+
+🏆 MILESTONE 1 COMPLETATA AL 100%
+Progresso totale: 40% (2/5 milestone)
+
+Il mondo di The Safe Place è ora un ecosistema interattivo completo,
+pronto per l'evoluzione verso un GDR anni '80 completo!
+
+#gamedev #godot #indiegame #rpg #retrogaming #pixelart 

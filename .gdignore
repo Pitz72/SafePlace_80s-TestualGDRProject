@@ -1,0 +1,29 @@
+# .gdignore - File per escludere cartelle e file dal progetto Godot
+# Segue il PROTOCOLLO DI SVILUPPO UMANO-LLM
+
+# Cartelle di backup e archivi (REGOLA: Non considerare mai archives/ e GODOT/)
+_archives_BACKUP/
+_GODOT_BACKUP/
+archives/
+GODOT/
+
+# Backup files
+*_BACKUP/
+*_OLD/
+*.backup
+*.bak
+
+# Temporary files  
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Git files (già gestiti da .gitignore)
+.git/ 
